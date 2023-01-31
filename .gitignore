@@ -1,0 +1,11 @@
+.DS_Store */.DS_Store */*/.DS_Store
+obj/*
+*.exe
+*.a 
+*.log
+res
+TESTS/*log
+TESTS/res*
+TESTS/Xres*
+TESTS/err*
+TESTS/freq.xyz

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+here=`pwd`
+DIR_PROG=..
+
+cd $DIR_PROG
+ make tnum-dist &> $here/comp.log
