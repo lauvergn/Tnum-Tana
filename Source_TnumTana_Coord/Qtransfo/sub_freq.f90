@@ -220,7 +220,7 @@ MODULE mod_freq
 !      de la partie cinetique d0k
 !      passage de la base b0 (coordonnees initiales)
 !      a b1 (coordonnees tq d0k soit diagonale)
-       CALL diagonalization(d0k,d0ek,d0ck,nb_var,2,1,.TRUE.)
+       CALL diagonalization(d0k,d0ek,d0ck,diago_type=2,sort=1,phase=.TRUE.)
        CALL rota_denerated(d0ek,d0ck,nb_var)
        WHERE (abs(d0ck) < epsi_freq) d0ck = ZERO
 
@@ -277,7 +277,7 @@ MODULE mod_freq
        END IF
 !-----------------------------------------------------------
 
-       CALL diagonalization(d0k,d0eh,d0ch,nb_var,2,1,.TRUE.)
+       CALL diagonalization(d0k,d0eh,d0ch,diago_type=2,sort=1,phase=.TRUE.)
        CALL rota_denerated(d0eh,d0ch,nb_var)
        WHERE (abs(d0ch) < epsi_freq) d0ch = ZERO
 
@@ -517,7 +517,7 @@ end subroutine calc_freq_new
 !      de la partie cinetique d0k
 !      passage de la base b0 (coordonnees initiales)
 !      a b1 (coordonnees tq d0k soit diagonale)
-       CALL diagonalization(d0k,d0ek,d0ck,nb_var,2,1,.TRUE.)
+       CALL diagonalization(d0k,d0ek,d0ck,diago_type=2,sort=1,phase=.TRUE.)
        CALL rota_denerated(d0ek,d0ck,nb_var)
        WHERE (abs(d0ck) < epsi_freq) d0ck = ZERO
 
@@ -574,7 +574,7 @@ end subroutine calc_freq_new
        END IF
 !-----------------------------------------------------------
 
-       CALL diagonalization(d0k,d0eh,d0ch,nb_var,2,1,.TRUE.)
+       CALL diagonalization(d0k,d0eh,d0ch,diago_type=2,sort=1,phase=.TRUE.)
        CALL rota_denerated(d0eh,d0ch,nb_var)
        WHERE (abs(d0ch) < epsi_freq) d0ch = ZERO
 
@@ -1217,7 +1217,7 @@ end subroutine calc_freq_new
        END IF
 !-----------------------------------------------------------
 
-       CALL diagonalization(d0k,d0eh,d0ch,nb_var,2,2,.TRUE.)
+       CALL diagonalization(d0k,d0eh,d0ch,diago_type=2,sort=2,phase=.TRUE.)
 
        DO i=1,nb_var
          IF (d0eh(i) >= ZERO) THEN

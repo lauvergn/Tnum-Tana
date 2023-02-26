@@ -2992,7 +2992,7 @@ RETURN
       allocate(vp(n))
 
       CALL Write_Mat(g,out_unitp,5,info='g')
-      CALL diagonalization(g,vp,Vec,n,2,1,.FALSE.)
+      CALL diagonalization(g,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
       CALL Write_Mat(Vec,out_unitp,5,info='Vec')
       CALL Write_Vec(vp,out_unitp,5,info='vp')
       write(out_unitp,*)
@@ -3024,7 +3024,7 @@ RETURN
       gn(1:n-1,n) = gn(n,1:n-1)               ! zero
       CALL Write_Mat(gn,out_unitp,5,info='gn')
 
-      CALL diagonalization(gn,vp,Vec,n,2,1,.FALSE.)
+      CALL diagonalization(gn,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
       CALL Write_Mat(Vec,out_unitp,5,info='Vec')
       CALL Write_Vec(vp,out_unitp,5,info='vp')
       flush(out_unitp)

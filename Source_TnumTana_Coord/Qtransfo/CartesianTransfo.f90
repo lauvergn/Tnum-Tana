@@ -1119,8 +1119,8 @@ MODULE mod_CartesianTransfo
 
       write(out_unitp,*) 'Inertia Tensor, i_ref',i_ref_loc
       CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unitp,nbcol=3)
-      CALL diagonalization(CartesianTransfo%InertiaT,                   &
-                           CartesianTransfo%ABC,Rot_PA,3,1,1,.FALSE.)
+      CALL diagonalization(CartesianTransfo%InertiaT,CartesianTransfo%ABC,Rot_PA, &
+                           diago_type=1,sort=1,phase=.FALSE.)
 
       CartesianTransfo%InertiaT(1,1) =  Iyy+Izz   ! Ixx
       CartesianTransfo%InertiaT(2,2) =  Ixx+Izz   ! Iyy
@@ -1506,8 +1506,8 @@ MODULE mod_CartesianTransfo
           CALL Write_Mat(A2,out_unitp,3)
         END IF
 
-        CALL diagonalization(A1,eig1,Vec1,3,1,1,.FALSE.) ! jacobi + sort
-        CALL diagonalization(A2,eig2,Vec2,3,1,1,.FALSE.) ! jacobi + sort
+        CALL diagonalization(A1,eig1,Vec1,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
+        CALL diagonalization(A2,eig2,Vec2,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
 
         ! change the sign of eig2(:,i)
         DO i=1,2

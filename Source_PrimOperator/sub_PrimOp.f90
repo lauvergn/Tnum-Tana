@@ -141,10 +141,6 @@
       IF (PrimOp%QMLib) THEN
         IF (debug) write(out_unitp,*) 'Initialization with Quantum Model Lib'
 
-#if __QML == 1
-        ! those subroutines modify in_unitp and out_unitp in QML to have the EVRT values
-        CALL set_Qmodel_in_unitp(int(in_unitp,kind=Ik4))
-        CALL set_Qmodel_out_unitp(int(out_unitp,kind=Ik4))
         IF (PrimOp%pot_itQtransfo == 0) THEN ! Cartesian coordinates
           ndimI4  = int(mole%ncart_act,kind=Ik4)
           nsurfI4 = int(PrimOp%nb_elec,kind=Ik4)
@@ -159,7 +155,6 @@
             write(out_unitp,*) 'ERROR in ',name_sub
             STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
           END IF
-
 
           PrimOp%nb_elec = nsurfI4
 
@@ -218,13 +213,6 @@
           write(out_unitp,*) '  ndim,mole%nb_var',ndimI4,mole%nb_var
           STOP 'ndim from QML is too large'
         END IF
-#else
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' The "Quantum Model Lib" (QML) library is not present!'
-        write(out_unitp,*) '  Qmodel cannot be intialized!'
-        write(out_unitp,*) 'Use another potential/model'
-        STOP 'QML is not present'
-#endif
 
         IF (allocated(PrimOp%Qit_TO_QQMLib)) THEN
           CALL dealloc_NParray(PrimOp%Qit_TO_QQMLib,'Qit_TO_QQMLib',name_sub)
@@ -470,7 +458,6 @@
                write(out_unitp,*) 'size(Qit),Qit',size(Qit),Qit
                write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
             END IF
-#if __QML == 1
           IF (get_Qmodel_Vib_Adia()) THEN
             d0MatOp(iOpE)%param_TypeOp%QML_Vib_adia = .TRUE.
             CALL sub_Qmodel_tab_HMatVibAdia(d0MatOp(iOpE)%ReVal,  &
@@ -485,12 +472,6 @@
               CALL sub_Qmodel_V(d0MatOp(iOpE)%ReVal(:,:,itermE),Qit(PrimOp%Qit_TO_QQMLib))
             END IF
           END IF
-#else
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) ' The "Quantum Model Lib" (QML) library is not present!'
-            write(out_unitp,*) 'Use another potential/model'
-            STOP 'QML is not present'
-#endif
             !----------------------------------------------------------------
             DO ie=1,PrimOp%nb_elec
              d0MatOp(iOpE)%ReVal(ie,ie,itermE) =                                &
@@ -946,7 +927,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
            write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
         END IF
 
-#if __QML == 1
         SELECT CASE (nderivE)
         CASE (0)
           CALL sub_Qmodel_V(mat_V,Qit(PrimOp%Qit_TO_QQMLib))
@@ -976,12 +956,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           write(out_unitp,*) '  Possible values: 0,1,2'
           STOP 'ERROR in get_dnMatOp_AT_Qact: WRONG nderivE value'
         END SELECT
-#else
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) ' The "Quantum Model Lib" (QML) library is not present!'
-          write(out_unitp,*) 'Use another potential/model'
-          STOP 'ERROR in get_dnMatOp_AT_Qact: QML is not present'
-#endif
+
         !----------------------------------------------------------------
         DO ie=1,PrimOp%nb_elec
           Tab_dnMatOp(iOpE)%tab_dnMatOp(ie,ie,itermE)%d0 =              &
@@ -3446,7 +3421,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       IF (debug) THEN
         d0hh = d0h
-        CALL diagonalization(d0hh,d0eh,d0ch,nb_NM,2,1,.TRUE.)
+        CALL diagonalization(d0hh,d0eh,d0ch,diago_type=2,sort=1,phase=.TRUE.)
         DO i=1,nb_NM,3
           write(out_unitp,*) i,'d0eh:',d0eh(i:min(i+2,nb_NM))
         END DO
@@ -3709,7 +3684,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
     IF (PrimOp%QMLib .AND. PrimOp%QMLib_G .AND. PrimOp%pot_itQtransfo /= 0) THEN
     ! when Qcart is used the size of G form QML is [ncart_cat,ncart_act]
-#if __QML == 1
+
       ndim = get_Qmodel_ndim()
       write(6,*) 'ndim QML',ndim
       CALL alloc_NPArray(GGdef_Qmodel,[ndim,ndim],'GGdef_Qmodel',name_sub)
@@ -3743,12 +3718,6 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
         END DO
       END IF
       CALL dealloc_NPArray(GGdef_Qmodel,'GGdef_Qmodel',name_sub)
-#else
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' The "Quantum Model Lib" (QML) library is not present!'
-      write(out_unitp,*) 'Use another potential/model'
-      STOP 'QML is not present'
-#endif
 
     ELSE
       CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
