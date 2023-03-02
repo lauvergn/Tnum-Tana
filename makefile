@@ -251,7 +251,7 @@ PrimOperator_SRCFILES = \
 SRCFILES= $(Coord_KEO_SRCFILES) $(PrimOperator_SRCFILES) 
 
 OBJ0=${SRCFILES:.f90=.o}
-OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0)) $(OBJ_DIR)/sub_system.o
+OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0))
 #$(info ************ OBJ: $(OBJ))
 #
 #===============================================
@@ -264,8 +264,8 @@ TNUMMAIN = Tnum90
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
 #
-$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBA) $(EXTLib) sub_system.$(extf)
-	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBA) $(FLIB)
+$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(LIBA) $(FLIB)
 #===============================================
 #============= TESTS ===========================
 #===============================================
