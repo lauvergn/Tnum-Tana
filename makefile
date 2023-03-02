@@ -7,7 +7,7 @@
  FC = gfortran
 #
 # Optimize? Empty: default No optimization; 0: No Optimization; 1 Optimzation
-OPT = 0
+OPT = 1
 ## OpenMP? Empty: default with OpenMP; 0: No OpenMP; 1 with OpenMP
 OMP = 1
 ## Lapack/blas/mkl? Empty: default with Lapack; 0: without Lapack; 1 with Lapack
@@ -16,6 +16,8 @@ LAPACK = 1
 ## default 4: , INT=8 (for kind=8)
 INT = 4
 #
+## extension for the "sub_system." file. Possible values: f; f90
+extf = f90
 ## how to get external libraries;  "loc" (default): from local zip file, Empty or something else (v0.5): from github
 EXTLIB_TYPE = loc
 #=================================================================================
@@ -240,17 +242,17 @@ Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(T
 #Primitive Operators
 PrimOperator_SRCFILES = \
    sub_module_SimpleOp.f90 sub_module_OnTheFly_def.f90 \
-	 mod_CAP.f90 mod_HStep.f90\
-	 sub_PrimOp_def.f90 \
+   mod_CAP.f90 mod_HStep.f90\
+   sub_PrimOp_def.f90 \
    sub_onthefly.f90 sub_PrimOp_RPH.f90 sub_PrimOp.f90 \
-   sub_system.f90 read_para.f90
+   read_para.f90
 #============================================================================
 
 SRCFILES= $(Coord_KEO_SRCFILES) $(PrimOperator_SRCFILES) 
 
 OBJ0=${SRCFILES:.f90=.o}
-OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0))
-$(info ************ OBJ: $(OBJ))
+OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0)) $(OBJ_DIR)/sub_system.o
+#$(info ************ OBJ: $(OBJ))
 #
 #===============================================
 #============= Several mains ===================
@@ -262,7 +264,7 @@ TNUMMAIN = Tnum90
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
 #
-$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBA) $(EXTLib)
+$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBA) $(EXTLib) sub_system.$(extf)
 	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBA) $(FLIB)
 #===============================================
 #============= TESTS ===========================
@@ -290,12 +292,24 @@ $(LIBA): $(OBJ)
 $(OBJ_DIR)/%.o: %.f90
 	@echo "  compile: " $<
 	$(FFC) $(FFLAGS) -o $@ -c $<
+$(OBJ_DIR)/%.o: %.f
+	@echo "  compile: " $<
+	$(FFC) $(FFLAGS) -o $@ -c $<
+#
+#===============================================
+#============= make sub_system =================
+#=============  with the .f or .f90 extention ==
+#===============================================
+sub_pot/sub_system.$(extf): sub_pot/sub_system_save.$(extf)
+	cp sub_pot/sub_system_save.$(extf) sub_pot/sub_system.$(extf)
+#===============================================
 #===============================================
 #================ cleaning =====================
 .PHONY: clean cleanall
 clean:
 	rm -f  $(OBJ_DIR)/*.o
-	rm -f *.log 
+	rm -f *.log
+	rm -f sub_pot/sub_system.f sub_pot/sub_system.f90
 	rm -f TEST*.x
 	@echo "  done cleaning"
 
@@ -368,3 +382,47 @@ clean_extlib:
 $(OBJ):                     $(EXTLib)
 $(LIBA):                    $(OBJ)
 $(OBJ_DIR)/$(TNUMMAIN).o:   $(LIBA)
+
+#=================================================================================
+#=================================================================================
+# ifort compillation v17 v18 with mkl
+#=================================================================================
+ifeq ($(FFC),ifort)
+
+  # opt management
+  ifeq ($(OOPT),1)
+      #F90FLAGS = -O -parallel -g -traceback
+      FFLAGS = -O  -g -traceback
+  else
+      FFLAGS = -O0 -check all -g -traceback
+  endif
+
+  # where to store the modules
+  FFLAGS +=-module $(MOD_DIR)
+
+  # omp management
+  ifeq ($(OOMP),1)
+    FFLAGS += -qopenmp
+  endif
+
+  # some cpreprocessing
+  FFLAGS += -cpp $(CPPSHELL_QML)
+
+  # where to look the .mod files
+  FFLAGS += -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
+
+  FLIB    = $(EXTLib)
+  ifeq ($(LLAPACK),1)
+    #FLIB += -mkl -lpthread
+    #FLIB += -qmkl -lpthread
+    FLIB +=  ${MKLROOT}/lib/libmkl_blas95_ilp64.a ${MKLROOT}/lib/libmkl_lapack95_ilp64.a ${MKLROOT}/lib/libmkl_intel_ilp64.a \
+             ${MKLROOT}/lib/libmkl_intel_thread.a ${MKLROOT}/lib/libmkl_core.a -liomp5 -lpthread -lm -ldl
+  else
+    FLIB += -lpthread
+  endif
+
+  FC_VER = $(shell $(F90) --version | head -1 )
+
+endif
+#=================================================================================
+#=================================================================================

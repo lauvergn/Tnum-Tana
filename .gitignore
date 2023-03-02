@@ -1,8 +1,12 @@
-.DS_Store */.DS_Store */*/.DS_Store
+.DS_Store
+*/.DS_Store
+*/*/.DS_Store
 obj/*
 *.exe
 *.a 
 *.log
+sub_pot/sub_system.f
+sub_pot/sub_system.f90
 res
 TESTS/*log
 TESTS/res*

@@ -669,46 +669,4 @@ MODULE mod_dnDetGG_dnDetg
 !----------------------------------------------------------------
 
       end subroutine sub3_permutation
-!=====================================================================
-!
-! ++   calcul du determinant de A
-!
-!=====================================================================
-!
-      SUBROUTINE sub_detA(d,A,trav,index,ndimA,masses,Mtot_inv,ncart)
-      USE mod_system
-      IMPLICIT NONE
-
-       integer ndimA
-       real (kind=Rkind) ::  A(ndimA,ndimA)
-       real (kind=Rkind) :: trav(ndimA)
-       integer index(ndimA)
-       real (kind=Rkind) ::  d
-       integer ncart
-       real (kind=Rkind) :: mass,masses(ncart),Mtot_inv
-
-       integer i
-
-
-!      determinant de A
-
-       CALL ludcmp(A,ndimA,trav,index,d)
-
-!      determinant
-       DO i=1,ndimA
-        mass = masses(i)
-        IF (mass == ZERO) mass = ONE
-        d = d*A(i,i)/(mass*mass)
-       END DO
-
-       DO i=ndimA+1,ncart
-        mass = masses(i)
-        IF (mass == ZERO) mass = ONE
-        d = d/(mass*mass)
-       END DO
-
-       d = d/(Mtot_inv**3)
-!      write(out_unitp,*) d
-
-       end subroutine sub_detA
 END MODULE mod_dnDetGG_dnDetg
