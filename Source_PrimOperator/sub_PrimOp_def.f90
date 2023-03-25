@@ -1,42 +1,35 @@
 !===========================================================================
 !===========================================================================
-!This file is part of ElVibRot.
+!This file is part of ElVibRot-TnumTana.
+! MIT License
 !
-!    ElVibRot is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 3 of the License, or
-!    (at your option) any later version.
+! Copyright (c) 2022 David Lauvergnat
 !
-!    ElVibRot is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more details.
+! Permission is hereby granted, free of charge, to any person obtaining a copy
+! of this software and associated documentation files (the "Software"), to deal
+! in the Software without restriction, including without limitation the rights
+! to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+! copies of the Software, and to permit persons to whom the Software is
+! furnished to do so, subject to the following conditions:
 !
-!    You should have received a copy of the GNU General Public License
-!    along with ElVibRot.  If not, see <http://www.gnu.org/licenses/>.
+! The above copyright notice and this permission notice shall be included in all
+! copies or substantial portions of the Software.
 !
-!    Copyright 2015 David Lauvergnat [1]
-!      with contributions of
-!        Josep Maria Luis (optimization) [2]
-!        Ahai Chen (MPI) [1,4]
-!        Lucien Dupuy (CRP) [5]
+! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+! IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+! FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+! AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+! LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+! SOFTWARE.
+!
+!      Tnum is written David Lauvergnat [1]
+!      Tana is written by Mamadou Ndong [1] and David Lauvergnat [1]
+!         with contributions
+!          Emil Lund klinting (coupling with MidasCpp) [3]'
 !
 ![1]: Institut de Chimie Physique, UMR 8000, CNRS-Université Paris-Saclay, France
-![2]: Institut de Química Computacional and Departament de Química,
-!        Universitat de Girona, Catalonia, Spain
 ![3]: Department of Chemistry, Aarhus University, DK-8000 Aarhus C, Denmark
-![4]: Maison de la Simulation USR 3441, CEA Saclay, France
-![5]: Laboratoire Univers et Particule de Montpellier, UMR 5299,
-!         Université de Montpellier, France
-!
-!    ElVibRot includes:
-!        - Tnum-Tana under the GNU LGPL3 license
-!        - Somme subroutines of John Burkardt under GNU LGPL license
-!             http://people.sc.fsu.edu/~jburkardt/
-!        - Somme subroutines of SHTOOLS written by Mark A. Wieczorek under BSD license
-!             http://shtools.ipgp.fr
-!        - Some subroutine of QMRPack (see cpyrit.doc) Roland W. Freund and Noel M. Nachtigal:
-!             https://www.netlib.org/linalg/qmr/
 !
 !===========================================================================
 !===========================================================================
