@@ -4,4 +4,4 @@ here=`pwd`
 DIR_PROG=..
 
 cd $DIR_PROG
- make tnum-dist &> $here/comp.log
+ make OPT=0 tnum-dist &> $here/comp.log

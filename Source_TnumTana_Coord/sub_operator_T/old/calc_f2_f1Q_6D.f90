@@ -151,7 +151,7 @@
            d2G(i,j,l,k) = GG
            d2G(j,i,l,k) = GG
          END DO
-         close(ni)
+         CALL file_close(file_Tnum)
       END IF
 !---------------------------------------------------------------
 

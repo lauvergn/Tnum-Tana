@@ -261,7 +261,7 @@ MODULE mod_Tana_Tnum
       CALL read_keo_mctdh_form(mole%nb_act,keo=TWOxKEO,io=io_mctdh) ! here we read KEO
       TWOxKEO%Cn(:) = TWOxKEO%Cn(:) * CTWO ! now we have 2*KEO
       IF (debug) CALL write_op(TWOxKEO,header=.TRUE.)
-      close(io_mctdh)
+      close(io_mctdh) ! CALL file_close cannot be used
       write(out_unitp,*) '   end read analytical KEO'
       flush(out_unitp)
 

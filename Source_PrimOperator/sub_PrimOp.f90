@@ -3517,7 +3517,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       TYPE (Type_dnVec)                 :: dnx
 
       real (kind=Rkind), allocatable    :: hCC(:,:),GGdef(:,:)
-      logical                           :: Gref,Qref
+      logical                           :: Gref,Qref,QMLib_G
       logical                           :: tab_skip_transfo(mole%nb_Qtransfo)
       logical                           :: Tana_loc,KEO_only_loc
 
@@ -3675,9 +3675,12 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
     IF (print_level > 1) write(out_unitp,*) ' Gref',shape(GGdef)
     flush(out_unitp)
 
-    IF (PrimOp%QMLib .AND. PrimOp%QMLib_G .AND. PrimOp%pot_itQtransfo /= 0) THEN
+    CALL sub_Qmodel_check_alloc_d0GGdef(QMLib_G)
+    QMLib_G = QMLib_G .AND. PrimOp%QMLib .AND. PrimOp%QMLib_G .AND. PrimOp%pot_itQtransfo /= 0
+    
     ! when Qcart is used the size of G form QML is [ncart_cat,ncart_act]
-
+    IF (QMLib_G) THEN
+      write(out_unitp,*) ' Gref from QML'
       ndim = get_Qmodel_ndim()
       write(6,*) 'ndim QML',ndim
       CALL alloc_NPArray(GGdef_Qmodel,[ndim,ndim],'GGdef_Qmodel',name_sub)
@@ -3713,6 +3716,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       CALL dealloc_NPArray(GGdef_Qmodel,'GGdef_Qmodel',name_sub)
 
     ELSE
+      write(out_unitp,*) ' Gref from Tnum-Tana'
       CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     END IF
 

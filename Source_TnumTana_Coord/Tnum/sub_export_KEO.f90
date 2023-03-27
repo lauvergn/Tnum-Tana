@@ -292,7 +292,7 @@ MODULE mod_export_KEO
               DO iq=1,nb_nq
                 write(no,*) dnGG_grid(iq)%d0(i,j)
               END DO
-              close(no)
+              CALL file_close(file_Ggrid)
             END IF
           END DO
           END DO
@@ -627,7 +627,7 @@ MODULE mod_export_KEO
       write(nio,'(a)') ' END Taylor expansion of G at Qact (Taylor_G.keo)'
       write(nio,'(a)') '-------------------------------------------------'
       flush(nio)
-      IF (present(file_name)) close(nio)
+      IF (present(file_name)) close(nio) ! CALL file_close cannot be used
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
@@ -781,7 +781,7 @@ MODULE mod_export_KEO
         write(nio,'(a)') ' END Taylor expansion of the Vep at Qact (Taylor_Vep.keo)'
         write(nio,'(a)') '-------------------------------------------------'
         flush(nio)
-        IF (present(file_name)) close(nio)
+        IF (present(file_name)) close(nio)  ! CALL file_close cannot be used
   
   !     -----------------------------------------------------------------
         IF (debug) THEN

@@ -338,7 +338,7 @@ MODULE mod_Tana_keo
         CALL file_open2(name_file='keo.op',iunit=io_mctdh)
         CALL write_keo_mctdh_form(mole,TWOxKEO,io_mctdh,       &
                               tab_Qname, para_Tnum%JJ)
-        close(io_mctdh)
+        close(io_mctdh) ! CALL file_close cannot be used
 
         write(out_unitp,*) '================================================='
         write(out_unitp,*) "output MCTDH format"
@@ -365,11 +365,11 @@ MODULE mod_Tana_keo
         CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
         !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
         CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
-        close(nio)
+        close(nio)  ! CALL file_close cannot be used
 
         CALL file_open2(name_file = 'Molecule.mmol', iunit = nio) !Emil change
         CALL write_mol_MidasCppForm(mole, nio, tab_Qname, unit='bohr')
-        close(nio)
+        close(nio) ! CALL file_close cannot be used
 
         write(out_unitp,*) '================================================='
         write(out_unitp,*) 'MidasCpp formatted KEO: T = '
@@ -385,7 +385,7 @@ MODULE mod_Tana_keo
         write(out_unitp,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
         CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
-        close(nio)
+        close(nio) ! CALL file_close cannot be used
       END IF
 
 
@@ -395,7 +395,7 @@ MODULE mod_Tana_keo
         write(out_unitp,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'TanaF2F1Vep.f90', iunit = nio)
         CALL write_keo_Fortranform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
-        close(nio)
+        close(nio) ! CALL file_close cannot be used
       END IF
 
       ! deallocation ...
@@ -687,7 +687,7 @@ MODULE mod_Tana_keo
         CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
         !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
         CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
-        close(nio)
+        close(nio) ! CALL file_close cannot be used
         write(out_unitp,*) '================================================='
         write(out_unitp,*) 'MidasCpp formatted KEO: T = '
         write(out_unitp,*) '-------------------------------------------------'
@@ -702,7 +702,7 @@ MODULE mod_Tana_keo
         write(out_unitp,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
         CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
-        close(nio)
+        close(nio) ! CALL file_close cannot be used
       END IF
 
       ! deallocation ...

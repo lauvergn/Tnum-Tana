@@ -316,7 +316,7 @@ END IF
  21       format(132A)
           write(nio,*) trim(adjustl(line))
         END DO
- 998    close(nio_header)
+ 998    CALL file_close(para_OTF%file_header)
       END IF
       !----------------------------------------------------------------
 
@@ -365,10 +365,10 @@ END IF
  22       format(132A)
           write(nio,*) trim(adjustl(line))
         END DO
- 997    close(nio_footer)
+ 997     CALL file_close(para_OTF%file_footer)
       END IF
 
-      close(nio)
+      CALL file_close(para_OTF%file_data)
       !----------------------------------------------------------------
 
 
@@ -387,7 +387,7 @@ END IF
       read(nio,'(a32)',err=999) labelR
       !write(out_unitp,*) 'last line: ',labelR
       located = verify(labelR,' Normal termination of Gaussian') == 0
-      close(nio)
+      CALL file_close(para_OTF%file_log)
 
  999  CONTINUE
       IF (present(err_calc)) THEN
@@ -516,7 +516,7 @@ END IF
         STOP
       END IF
 
-      close(nio)
+      CALL file_close(file_FChk)
 !     ----------------------------------------------------------------
 !----------------------------------------------------------------------
 
@@ -560,7 +560,7 @@ END IF
         END DO
 
       END IF
-      close(nio)
+      CALL file_close(file_FChk)
 
 !     ----------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -640,7 +640,7 @@ END IF
         write(out_unitp,*) 'located,err',located,err
         STOP
       END IF
-      close(nio)
+      CALL file_close(file_FChk)
 
 !     - read the gradient of the Dipole Moment
       IF (nderiv_loc >= 1) THEN
@@ -660,7 +660,7 @@ END IF
           write(out_unitp,*) 'located,err',located,err
           STOP
         END IF
-        close(nio)
+        CALL file_close(file_FChk)
       END IF
 
 !-----------------------------------------------------------
@@ -739,7 +739,7 @@ END IF
         write(out_unitp,*) 'located,err',located,err
         !STOP
       END IF
-      close(nio)
+      CALL file_close(file_FChk)
 
 !     - read the gradient of the Dipole Moment
       IF (nderiv_loc >= 1) THEN
@@ -759,7 +759,7 @@ END IF
           write(out_unitp,*) 'located,err',located,err
           !STOP
         END IF
-        close(nio)
+        CALL file_close(file_FChk)
       END IF
 
 !-----------------------------------------------------------
@@ -910,7 +910,7 @@ END IF
  21       format(132A)
           write(nio,*) trim(adjustl(line))
         END DO
- 998    close(nio_header)
+ 998    CALL file_close(para_OTF%file_header)
       END IF
 
       write(nio,*) '$CONTRL'
@@ -941,27 +941,19 @@ END IF
       END DO
       write(nio,*) '$END'
 
-      close(nio)
+      CALL file_close(para_OTF%file_data)
       !---------------------------------------------------------------
 
 !       - gamess execution -------------------------------------------
         CALL file_delete(para_OTF%file_log)
 
-        !CALL system(para_OTF%commande_unix)
         CALL EXECUTE_COMMAND_LINE(para_OTF%commande_unix)
 
 
         located = .FALSE.
         CALL file_open(para_OTF%file_log,nio)
         CALL Find_Label(nio,' ddikick.x: exited gracefully.',located)
-        close(nio)
-
-        !located = .FALSE.
-        !CALL file_open(para_OTF%file_log,nio,append=.TRUE.)
-        !backspace(nio,err=999)
-        !read(nio,'(a32)',err=999) labelR
-        !located = verify(labelR,'ddikick.x: exited gracefully.') == 0
-        !close(nio)
+        CALL file_close(para_OTF%file_log)
 
  999    IF (.NOT. located) THEN
           write(out_unitp,*) 'ERROR in the gamess execution'
@@ -1038,7 +1030,7 @@ END IF
         write(out_unitp,*) 'located,err',located,err
         STOP
       END IF
-      close(nio)
+      CALL file_close(file_log)
       !----------------------------------------------------------------
 
       !----------------------------------------------------------------
@@ -1097,7 +1089,7 @@ END IF
         END IF
 
       END IF
-      close(nio)
+      CALL file_close(file_pun)
 
 
 
@@ -1172,7 +1164,7 @@ END IF
         write(out_unitp,*) 'located,err',located,err
         STOP
       END IF
-      close(nio)
+      CALL file_close(file_pun)
 
       dnDipCC(:)%d0 = dnDipCC(:)%d0 * convDebyeTOau ! because mu is in Debye
 
@@ -1194,7 +1186,7 @@ END IF
             dnDipCC(j)%d1(:) = dnDipCC(j)%d1(:) * conv
           END DO
 
-          close(nio)
+          CALL file_close(file_pun)
         END IF
       END IF
 
@@ -1367,7 +1359,7 @@ SUBROUTINE Calc_EneDip_WITH_Molpro(Qxyz,nderivE,nderivDip,mole,PrimOp,para_OTF)
  21       format(132A)
           write(nio,*) trim(adjustl(line))
         END DO
- 998    close(nio_header)
+ 998    CALL file_close(para_OTF%file_header)
       END IF
 
       write(nio,*)
@@ -1403,14 +1395,15 @@ SUBROUTINE Calc_EneDip_WITH_Molpro(Qxyz,nderivE,nderivDip,mole,PrimOp,para_OTF)
  22       format(132A)
           write(nio,*) trim(adjustl(line))
         END DO
- 997    close(nio_footer)
+ 997    CALL file_close(para_OTF%file_footer)
+
       END IF
 
       write(nio,*)
       write(nio,*) 'show,energy'
 
 
-      close(nio)
+      CALL file_close(para_OTF%file_data)
       !---------------------------------------------------------------
 
 !       - molpro execution -------------------------------------------
@@ -1421,7 +1414,7 @@ SUBROUTINE Calc_EneDip_WITH_Molpro(Qxyz,nderivE,nderivDip,mole,PrimOp,para_OTF)
         located = .FALSE.
         CALL file_open(para_OTF%file_log,nio)
         CALL Find_Label(nio,' Variable memory released',located)
-        close(nio)
+        CALL file_close(para_OTF%file_log)
 
  999    IF (.NOT. located) THEN
           write(out_unitp,*) 'ERROR in the molpro execution'
@@ -1496,7 +1489,7 @@ SUBROUTINE Read_dnECC_Molpro(dnECC,outm_name,nderiv,ncart_act)
         write(out_unitp,*) 'located,err',located,err
         STOP
       END IF
-      close(nio)
+      CALL file_close(file_outm)
       !----------------------------------------------------------------
 
       CALL Read_GradHess_Molpro(dnECC,outm_name,nderiv,ncart_act)
@@ -1596,7 +1589,7 @@ SUBROUTINE Read_GradHess_Molpro(dnFCC,outm_name,nderiv,ncart_act)
         IF (debug) THEN
           write(out_unitp,31) dnFCC%d1(:)
         END IF
-        close(nio)
+        CALL file_close(file_outm)
         flush(out_unitp)
       END IF
 
@@ -1644,7 +1637,7 @@ SUBROUTINE Read_GradHess_Molpro(dnFCC,outm_name,nderiv,ncart_act)
           flush(out_unitp)
         END IF
 
-        close(nio)
+        CALL file_close(file_outm)
       END IF
 !     ----------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1807,7 +1800,7 @@ END SUBROUTINE Read_GradHess_Molpro
       END DO
 
       write(nio,*) 'end geom'
-      close(nio)
+      CALL file_close(PrimOp%para_OTF%file_data)
       !----------------------------------------------------------------
 
 
@@ -1822,7 +1815,7 @@ END SUBROUTINE Read_GradHess_Molpro
       backspace(nio,err=999)
       read(nio,'(a32)',err=999) labelR
       located = verify(labelR,'calculation done') == 0
-      close(nio)
+      CALL file_close(PrimOp%para_OTF%file_log)
 
  999  IF (.NOT. located) THEN
         write(out_unitp,*) 'ERROR in the generic execution'
@@ -1906,7 +1899,7 @@ END SUBROUTINE Read_GradHess_Molpro
         write(out_unitp,*) 'located,err',located,err
         STOP
       END IF
-      close(nio)
+      CALL file_close(file_log)
       !----------------------------------------------------------------
 
       IF (nderiv >= 1) THEN
@@ -2048,7 +2041,7 @@ END SUBROUTINE Read_GradHess_Molpro
         STOP
       END IF
 
-      close(nio)
+      CALL file_close(file_log)
       !----------------------------------------------------------------
 
       IF (nderiv >= 1) THEN

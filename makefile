@@ -74,7 +74,7 @@ $(shell [ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR))
 MOD_DIR=$(OBJ_DIR)
 #
 # library name
-LIBA=libCoord_KEO_PrimOp$(extlibwi_obj).a
+LIBA=libTnum-Tana$(extlibwi_obj).a
 #=================================================================================
 # cpp preprocessing
 CPPSHELL = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
@@ -322,16 +322,12 @@ cleanall : clean clean_extlib
 #===============================================
 #================ zip and copy the directory ===
 ExtLibSAVEDIR := /Users/lauvergn/git/Ext_Lib
-BaseName := Coord_KEO_PrimOp
+BaseName := Tnum-Tana
 .PHONY: zip
 zip: cleanall
 	test -d $(ExtLibSAVEDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	cd $(ExtLibSAVEDIR) ; rm -rf $(BaseName)_devloc
-	mkdir $(ExtLibSAVEDIR)/$(BaseName)_devloc
-	cp -r * $(ExtLibSAVEDIR)/$(BaseName)_devloc
-	cd $(ExtLibSAVEDIR) ; zip -r Save_$(BaseName)_devloc.zip $(BaseName)_devloc
-	cd $(ExtLibSAVEDIR) ; rm -rf $(BaseName)_devloc
-	cd $(ExtLibSAVEDIR) ; cp_Coord_KEO_PrimOp.sh
+	$(ExtLibSAVEDIR)/makezip.sh $(BaseName)
+	cd $(ExtLibSAVEDIR) ; cp_Tnum-Tana.sh
 	@echo "  done zip"
 #===============================================
 #=== external libraries ========================

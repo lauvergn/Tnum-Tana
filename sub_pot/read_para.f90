@@ -66,7 +66,7 @@
            read(no,*) F(kl)
 !          write(out_unitp,*) F(kl)
          END DO
-         CLOSE(no)
+         CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
          write(out_unitp,*) 'The file (',nom1,') does not exist !!'
@@ -113,7 +113,7 @@
 !           write(out_unitp,*) F(kl)
            END DO
          END DO
-         CLOSE(no)
+         CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
          write(out_unitp,*) 'The file (',nom1,') does not exist !!'
@@ -176,7 +176,7 @@
 !           write(out_unitp,*) F(kl,i)
            END DO
          END DO
-         CLOSE(no)
+         CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
          write(out_unitp,*) 'The file (',nom1,') does not exist !!'
@@ -240,7 +240,7 @@
 !           write(out_unitp,*) F(kl,i)
            END DO
          END DO
-         CLOSE(no)
+         CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
          write(out_unitp,*) 'The file (',nom1,') does not exist !!'
@@ -286,7 +286,7 @@
             read(no,*) F(kl)
 !           write(out_unitp,*) F(kl)
            END DO
-         CLOSE(no)
+         CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
          write(out_unitp,*) 'The file (',nom1,') does not exist !!'
