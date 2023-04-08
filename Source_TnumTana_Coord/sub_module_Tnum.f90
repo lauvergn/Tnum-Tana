@@ -2085,7 +2085,6 @@ MODULE mod_Tnum
 
   para_Tnum%KEO_TalyorOFQinact2n = -1
 
-  !CALL dealloc_PES_Frompara_Tnum(para_Tnum%para_PES_FromTnum)
   IF (allocated(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)) THEN
     deallocate(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)
   END IF

@@ -58,7 +58,6 @@ OS :=$(shell uname)
 LOC_path:= $(shell pwd)
 TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(LOC_path)/version-EVR-T)
 TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(LOC_path)/version-EVR-T)
-EVR_ver:=$(shell awk '/EVR/ {print $$3}' $(LOC_path)/version-EVR-T)
 
 # Extension for the object directory and the library
 ifeq ($(FFC),mpifort)
@@ -82,7 +81,6 @@ CPPSHELL = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
            -D__COMPILER="'$(FFC)'" \
            -D__COMPILER_VER="'$(FC_VER)'" \
            -D__EVRTPATH="'$(LOC_path)'" \
-           -D__EVR_VER="'$(EVR_ver)'" \
            -D__TNUM_VER="'$(TNUM_ver)'" \
            -D__TANA_VER="'$(TANA_ver)'"
 CPPSHELL_LAPACK  = -D__LAPACK="$(LLAPACK)"
@@ -122,7 +120,7 @@ EXTLib     = $(CONSTPHYSLIBA) $(FOREVRTLIBA) $(QMLLIBA) $(ADLIBA) $(QDLIBA)
 # gfortran (osx and linux)
 #ifeq ($(F90),gfortran)
 #===============================================================================
-ifeq ($(F90),$(filter $(F90),gfortran gfortran-8))
+ifeq ($(FFC),gfortran)
 
   # opt management
   ifeq ($(OOPT),1)
@@ -133,7 +131,7 @@ ifeq ($(F90),$(filter $(F90),gfortran gfortran-8))
 
   # integer kind management
   ifeq ($(INT),8)
-    FFLAGS += -fdefault-integer-8 -Dint8=1
+    FFLAGS += -fdefault-integer-8
   endif
 
   # omp management
@@ -151,9 +149,6 @@ ifeq ($(F90),$(filter $(F90),gfortran gfortran-8))
 
   # some cpreprocessing
   FFLAGS += -cpp $(CPPSHELL)
-  ifeq ($(OMP),1)
-    FFLAGS += -Drun_openMP=1
-  endif
 
   FLIB   = $(EXTLib)
   # OS management
