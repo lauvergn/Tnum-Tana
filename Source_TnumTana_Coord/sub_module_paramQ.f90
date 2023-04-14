@@ -85,6 +85,7 @@ CONTAINS
 !=======================================================================================
       SUBROUTINE read_RefGeom_CoordType(mole,para_Tnum)
       USE mod_MPI
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
@@ -506,7 +507,7 @@ CONTAINS
 !======================================================================
 !     IF Cart_transfo=t
 !======================================================================
-      IF (mole%tab_Qtransfo(1)%name_transfo == 'zmat'  .AND.            &
+      IF (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.) == 'zmat'  .AND. &
               mole%tab_Qtransfo(1)%ZmatTransfo%New_Orient .AND.         &
          sum(abs(mole%tab_Qtransfo(1)%ZmatTransfo%vAt1)) == ZERO .AND.  &
          sum(abs(mole%tab_Qtransfo(1)%ZmatTransfo%vAt2)) == ZERO .AND.  &
@@ -612,6 +613,7 @@ CONTAINS
       SUBROUTINE sub_QactTOQit(Qact,Qit,it_QTransfo,mole,print_Qtransfo)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -706,7 +708,7 @@ CONTAINS
         IF (print_Qtransfo_loc .OR. debug) THEN
 
           write(out_unitp,*) '-----------------------------------------'
-          write(out_unitp,*) 'name_transfo',it,mole%tab_Qtransfo(it)%name_transfo
+          write(out_unitp,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
 
           CALL Write_d0Q(it,'Qin  (Qact)',dnQin%d0 ,6)
           CALL Write_d0Q(it,'Qout (Qdyn)',dnQout%d0,6)
@@ -730,14 +732,15 @@ CONTAINS
         DO it=mole%nb_Qtransfo,it_QTransfo+1,-1 ! we add 1 to it_QTransfo,
                 ! because it_QTransfo is set for Qin and at a given iteration we get Qout
 
+          IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
+
           CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
 
-          CALL calc_Qtransfo(dnQin,dnQout,                              &
-                                    mole%tab_Qtransfo(it),nderiv,.TRUE.)
+          CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
 
           IF (print_Qtransfo_loc .OR. debug) THEN
             write(out_unitp,*) '-----------------------------------------'
-            write(out_unitp,*) 'name_transfo',it,mole%tab_Qtransfo(it)%name_transfo
+            write(out_unitp,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
             CALL Write_d0Q(it,'Qin ',dnQin%d0 ,6)
             CALL Write_d0Q(it,'Qout',dnQout%d0,6)
             flush(out_unitp)
@@ -774,6 +777,7 @@ CONTAINS
       SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -822,19 +826,20 @@ CONTAINS
         dnQout%d0(1:size(Qread)) = Qread(:)
 
         DO it=it_QoutRead,mole%nb_Qtransfo
+          IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
 
           CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
           IF (debug) THEN
-            CALL Write_d0Q(it,'Qout ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQout%d0,6)
-            write(out_unitp,*) 'Qout ',it,mole%tab_Qtransfo(it)%name_transfo,dnQout%d0
+            CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
+            write(out_unitp,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
             flush(out_unitp)
           END IF
 
           CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
 
           IF (debug) THEN
-            CALL Write_d0Q(it,'Qin  ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQin%d0,6)
+            CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
             flush(out_unitp)
           END IF
 
@@ -940,6 +945,7 @@ CONTAINS
       SUBROUTINE sub_QxyzTOexeyez(Qxyz,VT,mole)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -951,7 +957,7 @@ CONTAINS
 
 !     - working variables -------------------------
       logical           :: case1
-      integer :: i,it,nb_act,ncart,nc1,nc2,nc3
+      integer           :: i,it,nb_act,ncart,nc1,nc2,nc3
       TYPE (Type_dnVec) :: dnQin,dnQout
       real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
 
@@ -972,7 +978,7 @@ CONTAINS
           write(out_unitp,*) Qxyz(3*i-2:3*i)
         END DO
         write(out_unitp,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
-        write(out_unitp,*) 'name_transfo ',mole%tab_Qtransfo(1)%name_transfo
+        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
       END IF
 !     -----------------------------------------------------------------
 
@@ -982,7 +988,7 @@ CONTAINS
 
       VT(:) = ZERO
 
-      SELECT CASE (mole%tab_Qtransfo(1)%name_transfo)
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
       CASE ('zmat')
         IF (debug) write(out_unitp,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
@@ -1029,7 +1035,7 @@ CONTAINS
 
        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
-        CALL Write_d0Q(it,'Qxyz ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQout%d0,3)
+        CALL Write_d0Q(it,'Qxyz ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,3)
         CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
         DO i=1,3*mole%tab_Qtransfo(it)%BunchTransfo%nb_vect,3
           write(out_unitp,*) 'QVect',int(i/3)+1,                        &
@@ -1062,7 +1068,7 @@ CONTAINS
       CASE default ! ERROR: wrong transformation !
         write(out_unitp,*) 'ERROR in ',name_sub
         write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo',mole%tab_Qtransfo(1)%name_transfo
+        write(out_unitp,*) 'name_transfo',get_name_Qtransfo(mole%tab_Qtransfo(1))
         write(out_unitp,*) '  CHECK the fortran!!'
         STOP
       END SELECT
@@ -1093,6 +1099,7 @@ CONTAINS
       SUBROUTINE sub_vAtiTOexeyez(VT,mole)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -1137,7 +1144,7 @@ CONTAINS
 
       VT(:) = mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1(:)
 
-      SELECT CASE (mole%tab_Qtransfo(1)%name_transfo)
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
       CASE ('zmat')
         IF (debug) write(out_unitp,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
@@ -1182,7 +1189,7 @@ CONTAINS
       CASE default ! ERROR: wrong transformation !
         write(out_unitp,*) 'ERROR in ',name_sub
         write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo',mole%tab_Qtransfo(1)%name_transfo
+        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
         write(out_unitp,*) '  CHECK the fortran!!'
         STOP
       END SELECT
@@ -1212,6 +1219,7 @@ CONTAINS
       SUBROUTINE sub_Qxyz0TORot(Qxyz,Rot_initial,mole)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -1236,13 +1244,13 @@ CONTAINS
         write(out_unitp,*) 'BEGINNING ',name_sub
         write(out_unitp,*) 'Qxyz =',Qxyz
         write(out_unitp,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
-        write(out_unitp,*) 'name_transfo ',mole%tab_Qtransfo(1)%name_transfo
+        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
       END IF
 !     -----------------------------------------------------------------
 
       ncart = min(size(Qxyz),size(mole%d0sm))
 
-      SELECT CASE (mole%tab_Qtransfo(1)%name_transfo)
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
       CASE ('zmat')
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
         nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
@@ -1275,7 +1283,7 @@ CONTAINS
        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
         IF (debug) THEN
-          CALL Write_d0Q(it,'Qxyz ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQout%d0,3)
+          CALL Write_d0Q(it,'Qxyz ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,3)
         END IF
         CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
 
@@ -1313,7 +1321,7 @@ CONTAINS
       CASE default ! ERROR: wrong transformation !
         write(out_unitp,*) 'ERROR in ',name_sub
         write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo',mole%tab_Qtransfo(1)%name_transfo
+        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
         write(out_unitp,*) '  CHECK the fortran!!'
         STOP
       END SELECT
@@ -1508,6 +1516,7 @@ CONTAINS
                                      nderiv,Gcenter,Cart_Transfo,WriteCC)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -1666,8 +1675,8 @@ CONTAINS
 
         DO it=mole%nb_Qtransfo,1,-1
           IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
-          IF (WriteCC_loc .OR. debug) write(out_unitp,*) 'name_transfo',it,&
-                                  mole%tab_Qtransfo(it)%name_transfo
+          IF (WriteCC_loc .OR. debug) write(out_unitp,*) 'name_transfo',it,' ',&
+                                       get_name_Qtransfo(mole%tab_Qtransfo(it))
           flush(out_unitp)
 
           IF (WriteCC_loc .OR. debug) CALL Write_d0Q(it,'Qin ',dnQin%d0,6)
@@ -1820,6 +1829,7 @@ CONTAINS
       SUBROUTINE sub_d0xTOQact(Qxyz,Qact,mole)
       USE mod_system
       USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -1870,15 +1880,15 @@ CONTAINS
           CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
           IF (debug) THEN
-            CALL Write_d0Q(it,'Qout ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQout%d0,6)
-            write(out_unitp,*) 'Qout ',it,mole%tab_Qtransfo(it)%name_transfo,dnQout%d0
+            CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
+            write(out_unitp,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
             flush(out_unitp)
           END IF
 
           CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
 
           IF (debug) THEN
-            CALL Write_d0Q(it,'Qin  ' // trim(adjustl(mole%tab_Qtransfo(it)%name_transfo)),dnQin%d0,6)
+            CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
             flush(out_unitp)
           END IF
 

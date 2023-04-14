@@ -61,7 +61,7 @@
 
         TYPE, PUBLIC :: Type_Qtransfo
           logical                           :: print_done      = .FALSE.
-          character (len=Name_len)          :: name_transfo    = "identity"
+          character (len=:), allocatable, private    :: name_transfo
           integer                           :: num_transfo     = 0
           logical                           :: BeforeActive    = .FALSE. ! .TRUE. when it (or num_transfo) is nb_Qtransfo-1
           logical                           :: inTOout         = .TRUE.
@@ -119,6 +119,7 @@
       PUBLIC alloc_array,dealloc_array,dealloc_Qtransfo
       PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
       PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
+      PUBLIC set_name_Qtransfo,get_name_Qtransfo
 
       CONTAINS
 
@@ -216,7 +217,7 @@
           write(out_unitp,*) '   or you have forgotten a coordinate tranformation ...'
           write(out_unitp,*) '   or you have forgotten the "Cartesian transfo"'
           write(out_unitp,*) ' Check your data !!'
-          STOP
+          STOP 'ERROR in read_Qtransfo:  while reading the namelist "Coord_transfo"'
         END IF
         IF (err_io > 0) THEN
           write(out_unitp,Coord_transfo)
@@ -224,18 +225,18 @@
           write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
           write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
           write(out_unitp,*) ' Check your data !!'
-          STOP
+          STOP 'ERROR in read_Qtransfo:  while reading the namelist "Coord_transfo"'
         END IF
         write(out_unitp,*) '=========================================='
 
         IF (debug) write(out_unitp,Coord_transfo)
 
-        Qtransfo%name_transfo = name_transfo
+        Qtransfo%name_transfo = trim(adjustl(name_transfo))
         Qtransfo%inTOout      = inTOout
         Qtransfo%opt_transfo  = opt_transfo
         Qtransfo%skip_transfo = skip_transfo
         IF(MPI_id==0) THEN
-          write(out_unitp,'(a,a)' )  ' transfo:               ',Qtransfo%name_transfo
+          write(out_unitp,'(a,a)' )  ' transfo:               ',get_name_Qtransfo(Qtransfo)
           write(out_unitp,'(a,i0)')  ' Option of the transfo: ',Qtransfo%opt_transfo
           write(out_unitp,'(a,l1)' ) ' Skip the transfo:      ',Qtransfo%skip_transfo
           write(out_unitp,'(a,i0)')  ' num_transfo:           ',Qtransfo%num_transfo
@@ -244,8 +245,7 @@
         ENDIF
         flush(out_unitp)
 
-        name_transfo = Qtransfo%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
+        name_transfo = get_name_Qtransfo(Qtransfo,lower=.TRUE.)
 
         SELECT CASE (name_transfo)
         CASE ('identity')
@@ -269,7 +269,7 @@
              write(out_unitp,*) '  while reading "list_Qin_TO_Qout"'
              write(out_unitp,*) ' end of file or end of record'
              write(out_unitp,*) ' Check your data !!'
-             STOP
+             STOP 'ERROR in read_Qtransfo: while reading "list_Qin_TO_Qout"'
           END IF
           IF (print_level > 0) write(out_unitp,*) 'list_Qin_TO_Qout',Qtransfo%list_Qin_TO_Qout(:)
           Qtransfo%type_Qin(:) = 0
@@ -343,7 +343,7 @@
              write(out_unitp,*) '  Wrong number of transformation:',nb_transfo
              write(out_unitp,*) '  for the LC_projection_inv transformation'
              write(out_unitp,*) ' Check your data !!'
-             STOP
+             STOP 'ERROR in read_Qtransfo: nb_transfo < 1 for LC_projection_inv Transfo'
           END IF
           Qtransfo%nb_transfo = nb_transfo
           CALL Read_LC_projectionTransfo(Qtransfo%LinearTransfo,        &
@@ -436,7 +436,7 @@
              write(out_unitp,*) '  Wrong number of transformation:',nb_transfo
              write(out_unitp,*) '  for the oneD transformation'
              write(out_unitp,*) ' Check your data !!'
-             STOP
+             STOP 'ERROR in read_Qtransfo: nb_transfo < 1 for oneD Transfo'
           END IF
           Qtransfo%nb_transfo = nb_transfo
           CALL Read_oneDTransfo(Qtransfo%oneDTransfo,nb_transfo,nb_Qin)
@@ -536,7 +536,7 @@
               write(out_unitp,*) ' ERROR in ',name_sub
               write(out_unitp,*) ' nat < 2',nat
               write(out_unitp,*) ' Check your data !!'
-              STOP
+              STOP 'ERROR in read_Qtransfo: nat < 2 for zmat Transfo'
           END IF
           Qtransfo%Primitive_Coord    = .TRUE.
 
@@ -571,7 +571,7 @@
              write(out_unitp,*) ' ERROR in ',name_sub
              write(out_unitp,*) ' nb_vect < 1',nb_vect
              write(out_unitp,*) ' Check your data !!'
-             STOP
+             STOP 'ERROR in read_Qtransfo: nb_vect < 1 for Bunch Transfo'
           END IF
           IF (name_transfo == 'bunch_poly') with_vectors = .FALSE.
           IF (.NOT. with_vectors)       Qtransfo%inTOout = .FALSE.
@@ -638,7 +638,7 @@
             write(out_unitp,*) ' mole%tab_Qtransfo(1)%BunchTransfo.'
 
             write(out_unitp,*) ' Check the fortran !!'
-            STOP
+            STOP 'ERROR in read_Qtransfo: Problem with BunchTransfo for poly transfo'
           END IF
 
           Qtransfo%Primitive_Coord      = .TRUE.
@@ -718,13 +718,17 @@
 
           CALL Read_CartesianTransfo(Qtransfo%CartesianTransfo)
 
+        CASE ('not_allocated')
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) 'name_transfo is NOT allocated!'
+          write(out_unitp,*) ' Check the source!'
+          STOP 'ERROR in read_Qtransfo: name_transfo is NOT allocated'
+
         CASE default ! ERROR: wrong transformation !
           write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The transformation is UNKNOWN: ',        &
-                                                    trim(name_transfo)
+          write(out_unitp,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
           CALL Write_list_Qtransfo(out_unitp)
           STOP 'ERROR in read_Qtransfo: wrong coordinate transformation'
-
         END SELECT
 
 
@@ -747,9 +751,9 @@
         IF (debug) CALL Write_QTransfo(Qtransfo)
         write(out_unitp,*) '=========================================='
 
-      END SUBROUTINE read_Qtransfo
+  END SUBROUTINE read_Qtransfo
 
-      SUBROUTINE Write_list_Qtransfo(nio)
+  SUBROUTINE Write_list_Qtransfo(nio)
         integer, intent(in) :: nio
 
         write(nio,*) ' The possible coordinate transformations are:'
@@ -801,19 +805,18 @@
       SUBROUTINE dealloc_Qtransfo(Qtransfo)
         TYPE (Type_Qtransfo), intent(inout) :: Qtransfo
 
-        character (len=Name_len) :: name_transfo
         character (len=*),parameter :: name_sub='dealloc_Qtransfo'
         !logical, parameter :: debug = .TRUE.
         logical, parameter :: debug = .FALSE.
 
-        name_transfo = Qtransfo%name_transfo
+
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING : ',name_sub,' : ',name_transfo
+          write(out_unitp,*) 'BEGINNING : ',name_sub,' : ',get_name_Qtransfo(Qtransfo)
           flush(out_unitp)
         END IF
 
         Qtransfo%print_done      = .FALSE.
-        Qtransfo%name_transfo    = "identity"
+        IF (allocated(Qtransfo%name_transfo)) deallocate(Qtransfo%name_transfo)
         Qtransfo%num_transfo     = 0
         Qtransfo%BeforeActive    = .FALSE.
         Qtransfo%opt_transfo     = 0
@@ -823,8 +826,6 @@
         Qtransfo%skip_transfo    = .FALSE.
         Qtransfo%opt_param       = 0
         Qtransfo%Primitive_Coord = .FALSE.
-
-
 
         ! ==== LinearTransfo ========================
         CALL dealloc_LinearTransfo(Qtransfo%LinearTransfo)
@@ -888,8 +889,7 @@
 
         ! ==== orderTransfo ===========================
         IF (associated(Qtransfo%list_Qin_TO_Qout) ) THEN
-          CALL dealloc_array(Qtransfo%list_Qin_TO_Qout,                 &
-                            "Qtransfo%list_Qin_TO_Qout",name_sub)
+          CALL dealloc_array(Qtransfo%list_Qin_TO_Qout,"Qtransfo%list_Qin_TO_Qout",name_sub)
         END IF
 
         ! ==== activeTransfo ===========================
@@ -907,25 +907,23 @@
         Qtransfo%nb_Qout = 0
 
         IF (associated(Qtransfo%type_Qin) ) THEN
-          CALL dealloc_array(Qtransfo%type_Qin,                         &
-                            "Qtransfo%type_Qin",name_sub)
+          CALL dealloc_array(Qtransfo%type_Qin,"Qtransfo%type_Qin",name_sub)
         END IF
         nullify(Qtransfo%type_Qout) ! because it is a true pointer
 
         IF (associated(Qtransfo%name_Qin) ) THEN
-          CALL dealloc_array(Qtransfo%name_Qin,                         &
-                            "Qtransfo%name_Qin",name_sub)
+          CALL dealloc_array(Qtransfo%name_Qin,"Qtransfo%name_Qin",name_sub)
         END IF
         nullify(Qtransfo%name_Qout)  ! because it is a true pointer
 
         IF (debug) THEN
-          write(out_unitp,*) 'END : ',name_sub,' : ',name_transfo
+          write(out_unitp,*) 'END : ',name_sub,' : ',get_name_Qtransfo(Qtransfo)
           flush(out_unitp)
         END IF
-      END SUBROUTINE dealloc_Qtransfo
+  END SUBROUTINE dealloc_Qtransfo
 
-      SUBROUTINE alloc_array_OF_Qtransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
-      IMPLICIT NONE
+  SUBROUTINE alloc_array_OF_Qtransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
+  IMPLICIT NONE
 
       TYPE (Type_Qtransfo), pointer, intent(inout) :: tab(:)
       integer, intent(in) :: tab_ub(:)
@@ -960,9 +958,9 @@
        END IF
        CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_Qtransfo')
 
-      END SUBROUTINE alloc_array_OF_Qtransfodim1
-      SUBROUTINE dealloc_array_OF_Qtransfodim1(tab,name_var,name_sub)
-      IMPLICIT NONE
+  END SUBROUTINE alloc_array_OF_Qtransfodim1
+  SUBROUTINE dealloc_array_OF_Qtransfodim1(tab,name_var,name_sub)
+    IMPLICIT NONE
 
       TYPE (Type_Qtransfo), pointer, intent(inout) :: tab(:)
       character (len=*), intent(in) :: name_var,name_sub
@@ -983,29 +981,30 @@
        CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_Qtransfo')
        nullify(tab)
 
-      END SUBROUTINE dealloc_array_OF_Qtransfodim1
-      SUBROUTINE Qtransfo1TOQtransfo2(Qtransfo1,Qtransfo2)
+  END SUBROUTINE dealloc_array_OF_Qtransfodim1
+  SUBROUTINE Qtransfo1TOQtransfo2(Qtransfo1,Qtransfo2)
         TYPE (Type_Qtransfo), intent(in)    :: Qtransfo1
         TYPE (Type_Qtransfo), intent(inout) :: Qtransfo2
         integer :: it,n
-        character (len=Name_len) :: name_transfo
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='Qtransfo1TOQtransfo2'
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
 
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'name_transfo: ',Qtransfo1%name_transfo
+        write(out_unitp,*) 'name_transfo: ',get_name_Qtransfo(Qtransfo1)
         CALL Write_Qtransfo(Qtransfo1)
         flush(out_unitp)
       END IF
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       Qtransfo2%print_done      = .FALSE.
 
-      Qtransfo2%name_transfo    = Qtransfo1%name_transfo
+      IF (allocated(Qtransfo1%name_transfo)) THEN
+        Qtransfo2%name_transfo    = get_name_Qtransfo(Qtransfo1)
+      END IF
       Qtransfo2%inTOout         = Qtransfo1%inTOout
 
       Qtransfo2%nb_var          = Qtransfo1%nb_var
@@ -1036,21 +1035,16 @@
       ! for type_Qout and name_Qout, it will be done after (from another type_Qin, name_Qin)
       ! except for num_transfo=0
       IF (Qtransfo2%num_transfo == 0) THEN
-        CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),&
-                        "Qtransfo2%type_Qout",name_sub)
+        CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
         Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
 
-        CALL alloc_array(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),&
-                        "Qtransfo2%name_Qout",name_sub)
+        CALL alloc_array(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
         Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
       END IF
 
-      name_transfo = Qtransfo2%name_transfo
-      CALL string_uppercase_TO_lowercase(name_transfo)
-
-      SELECT CASE (name_transfo)
+      SELECT CASE (get_name_Qtransfo(Qtransfo1,lower=.TRUE.))
       CASE ('identity')
-        CONTINUE ! nothing !
+        CONTINUE ! nothing to do
 
       CASE ('order')
         n = size(Qtransfo1%list_Qin_TO_Qout)
@@ -1095,10 +1089,8 @@
 
       CASE ('rph_qml')
         IF (associated(Qtransfo1%RPHQMLTransfo)) THEN
-          CALL alloc_array(Qtransfo2%RPHQMLTransfo,                               &
-                          'Qtransfo2%RPHQMLTransfo',name_sub)
-          CALL RPHQMLTransfo1TORPHQMLTransfo2(Qtransfo1%RPHQMLTransfo,                &
-                                              Qtransfo2%RPHQMLTransfo)
+          CALL alloc_array(Qtransfo2%RPHQMLTransfo,'Qtransfo2%RPHQMLTransfo',name_sub)
+          CALL RPHQMLTransfo1TORPHQMLTransfo2(Qtransfo1%RPHQMLTransfo,Qtransfo2%RPHQMLTransfo)
         END IF
 
       CASE ('project')
@@ -1192,25 +1184,26 @@
       CASE ('cartesian')
         CALL CartesianTransfo1TOCartesianTransfo2(                      &
                   Qtransfo1%CartesianTransfo,Qtransfo2%CartesianTransfo)
+      CASE ('not_allocated')
+        CONTINUE ! nothing to do
 
       CASE default
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',          &
-                                     trim(Qtransfo1%name_transfo)
+        write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo1)
         CALL Write_list_Qtransfo(out_unitp)
         write(out_unitp,*) ' Check the source!'
         STOP
       END SELECT
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) 'END ',name_sub
         flush(out_unitp)
       END IF
-!     -----------------------------------------------------------------
-      END SUBROUTINE Qtransfo1TOQtransfo2
-      SUBROUTINE calc_Qtransfo(dnQin,dnQout,Qtransfo,nderiv,inTOout)
+      !-----------------------------------------------------------------
+  END SUBROUTINE Qtransfo1TOQtransfo2
+  SUBROUTINE calc_Qtransfo(dnQin,dnQout,Qtransfo,nderiv,inTOout)
         USE mod_MPI
 
         TYPE (Type_dnVec),    intent(inout)        :: dnQin,dnQout
@@ -1222,16 +1215,14 @@
         TYPE (Type_dnS)   :: dnR
         integer           :: iv,it,i,iQ,iQin,iQout
         TYPE (Type_dnVec), pointer :: tab_dnXVect(:)   ! dim: nb_vect_tot
-        character (len=Name_len) :: name_transfo
 
-
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       integer :: nderiv_debug = 1
       integer :: err_mem,memory
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='calc_Qtransfo'
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
 
       IF (present(inTOout)) THEN
         inTOout_loc = inTOout
@@ -1242,7 +1233,7 @@
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'New Qtransfo',it,Qtransfo%name_transfo
+        write(out_unitp,*) 'New Qtransfo',it,' ',get_name_Qtransfo(Qtransfo)
         write(out_unitp,*) 'nderiv',nderiv
         write(out_unitp,*) 'Qtransfo%nb_act',Qtransfo%nb_act
         write(out_unitp,*) 'inTOout',inTOout_loc
@@ -1255,19 +1246,23 @@
           write(out_unitp,*) 'dnOout :'
           CALL Write_dnSVM(dnQout,nderiv_debug)
         END IF
+        flush(out_unitp)
       END IF
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (inTOout_loc) THEN
         CALL alloc_dnSVM(dnQout,Qtransfo%nb_Qout,Qtransfo%nb_act,nderiv)
       ELSE
         CALL alloc_dnSVM(dnQin,Qtransfo%nb_Qin,Qtransfo%nb_act,nderiv)
       END IF
 
-      name_transfo = Qtransfo%name_transfo
-      CALL string_uppercase_TO_lowercase(name_transfo)
-      IF (Qtransfo%skip_transfo) name_transfo = 'identity' ! it should be done before
+      IF (Qtransfo%skip_transfo) THEN
+        write(out_unitp,*) ' ERROR in ',name_sub
+        write(out_unitp,*) 'skip_transfo=t MUST be treated before'
+        write(out_unitp,*) ' Check the source!'
+        STOP 'ERROR in calc_Qtransfo: skip_transfo=t MUST be treated before'
+      END IF
 
-      SELECT CASE (name_transfo)
+      SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
       CASE ('identity')
         IF (inTOout_loc) THEN
           CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv)
@@ -1294,18 +1289,15 @@
 
       CASE ('linear','linear_inv','lc_projection_inv',                          &
             'linear_transp','linear_transp_inv','linear_inv_transp','nm')
-        CALL calc_LinearTransfo(dnQin,dnQout,Qtransfo%LinearTransfo,            &
-                                nderiv,inTOout_loc)
+        CALL calc_LinearTransfo(dnQin,dnQout,Qtransfo%LinearTransfo,nderiv,inTOout_loc)
 
       CASE ('rph')
         IF (associated(Qtransfo%RPHTransfo)) THEN
             IF (Qtransfo%BeforeActive) THEN
               CALL calc_RPHTransfo_BeforeActive(dnQin,dnQout,                   &
-                                                Qtransfo%RPHTransfo,            &
-                                                     nderiv,inTOout_loc)
+                                                Qtransfo%RPHTransfo,nderiv,inTOout_loc)
             ELSE
-              CALL calc_RPHTransfo_gene(dnQin,dnQout,Qtransfo%RPHTransfo,&
-                                                     nderiv,inTOout_loc)
+              CALL calc_RPHTransfo_gene(dnQin,dnQout,Qtransfo%RPHTransfo,nderiv,inTOout_loc)
             END IF
         ELSE
           IF (inTOout_loc) THEN
@@ -1327,40 +1319,31 @@
         END IF
 
       CASE ('project')
-        CALL calc_ProjectTransfo(dnQin,dnQout,Qtransfo%ProjectTransfo,          &
-                                 nderiv,inTOout_loc)
+        CALL calc_ProjectTransfo(dnQin,dnQout,Qtransfo%ProjectTransfo,nderiv,inTOout_loc)
 
       CASE ('hyperspherical')
-        CALL calc_HyperSpheTransfo(dnQin,dnQout,Qtransfo%HyperSpheTransfo,      &
-                                   nderiv,inTOout_loc)
+        CALL calc_HyperSpheTransfo(dnQin,dnQout,Qtransfo%HyperSpheTransfo,nderiv,inTOout_loc)
 
       CASE ('oned','infrange','infiniterange')
-        CALL calc_oneDTransfo(dnQin,dnQout,Qtransfo%oneDTransfo,                &
-                              nderiv,inTOout_loc)
+        CALL calc_oneDTransfo(dnQin,dnQout,Qtransfo%oneDTransfo,nderiv,inTOout_loc)
 
       CASE ('threed')
-        CALL calc_ThreeDTransfo(dnQin,dnQout,Qtransfo%ThreeDTransfo,            &
-                                nderiv,inTOout_loc)
+        CALL calc_ThreeDTransfo(dnQin,dnQout,Qtransfo%ThreeDTransfo,nderiv,inTOout_loc)
 
       CASE ('twod')
-        CALL calc_TwoDTransfo(dnQin,dnQout,Qtransfo%TwoDTransfo,                &
-                              nderiv,inTOout_loc)
+        CALL calc_TwoDTransfo(dnQin,dnQout,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
 
       CASE ('rot2coord')
-        CALL calc_Rot2CoordTransfo(dnQin,dnQout,Qtransfo%Rot2CoordTransfo,      &
-                                   nderiv,inTOout_loc)
+        CALL calc_Rot2CoordTransfo(dnQin,dnQout,Qtransfo%Rot2CoordTransfo,nderiv,inTOout_loc)
 
       CASE ('flexible')
-        CALL calc_FlexibleTransfo(dnQin,dnQout,Qtransfo%FlexibleTransfo,        &
-                                  nderiv,inTOout_loc)
+        CALL calc_FlexibleTransfo(dnQin,dnQout,Qtransfo%FlexibleTransfo,nderiv,inTOout_loc)
 
       CASE ('gene')
-        CALL calc_GeneTransfo(dnQin,dnQout,Qtransfo%GeneTransfo,                &
-                              nderiv,inTOout_loc)
+        CALL calc_GeneTransfo(dnQin,dnQout,Qtransfo%GeneTransfo,nderiv,inTOout_loc)
 
       CASE ('active') ! it has to be the first one, but the last one read
-        CALL calc_ActiveTransfo(dnQin,dnQout,Qtransfo%ActiveTransfo,            &
-                                nderiv,inTOout_loc)
+        CALL calc_ActiveTransfo(dnQin,dnQout,Qtransfo%ActiveTransfo,nderiv,inTOout_loc)
 
       CASE ('zmat') ! it can be one of the last one
         IF (inTOout_loc) THEN
@@ -1375,23 +1358,20 @@
                                                      nderiv,inTOout_loc)
 
       CASE ('bunch','bunch_poly') ! it has to be one of the last one
-          CALL calc_BunchTransfo(dnQin,dnQout,Qtransfo%BunchTransfo,    &
-                                 nderiv,inTOout_loc)
+          CALL calc_BunchTransfo(dnQin,dnQout,Qtransfo%BunchTransfo,nderiv,inTOout_loc)
 
       CASE ('poly')
         IF (inTOout_loc) THEN
 
           ! initialization : allocation....
           nullify(tab_dnXVect)
-          CALL alloc_array(tab_dnXVect,[Qtransfo%BFTransfo%nb_vect_tot],&
-                          "tab_dnXVect",name_sub)
+          CALL alloc_array(tab_dnXVect,[Qtransfo%BFTransfo%nb_vect_tot],"tab_dnXVect",name_sub)
           DO iv=1,Qtransfo%BFTransfo%nb_vect_tot
             CALL alloc_dnSVM(tab_dnXVect(iv),3,dnQin%nb_var_deriv,nderiv)
           END DO
 
           iQin = 0
-          CALL calc_PolyTransfo(dnQin,iQin,dnQout,tab_dnXVect,0,        &
-                                Qtransfo%BFTransfo,nderiv)
+          CALL calc_PolyTransfo(dnQin,iQin,dnQout,tab_dnXVect,0,Qtransfo%BFTransfo,nderiv)
 
 
           DO iv=1,Qtransfo%BFTransfo%nb_vect_tot
@@ -1400,8 +1380,7 @@
           CALL dealloc_array(tab_dnXVect,"tab_dnXVect",name_sub)
 
         ELSE
-          CALL calc_PolyTransfo_outTOin(dnQin,dnQout,                   &
-                                        Qtransfo%BFTransfo,nderiv)
+          CALL calc_PolyTransfo_outTOin(dnQin,dnQout,Qtransfo%BFTransfo,nderiv)
         END IF
 
       CASE ('qtox_ana') ! it has to be one of the last one
@@ -1410,29 +1389,31 @@
            write(out_unitp,*) ' nderiv MUST = 0',nderiv
            write(out_unitp,*) ' USED, num_x=t and num_g=t in'
            write(out_unitp,*) ' the namelist "variables" or "geom"'
-           STOP
+           STOP 'ERROR in calc_Qtransfo: nderiv MUST = 0 with qtox_ana transfo'
         END IF
-        CALL Q_TO_X_ana(dnQin%d0, size(dnQin%d0),                       &
-                        dnQout%d0,size(dnQout%d0),inTOout_loc)
+        CALL Q_TO_X_ana(dnQin%d0, size(dnQin%d0),dnQout%d0,size(dnQout%d0),inTOout_loc)
 
       CASE ('cartesian') ! it has to be one of the last one
          write(out_unitp,*) ' ERROR in ',name_sub
          write(out_unitp,*) ' Do NOT use this subroutine'
          write(out_unitp,*) ' CALL directly "calc_CartesianTransfo_new"'
-         STOP
-        !CALL calc_CartesianTransfo(dnQin,dnQout,Qtransfo%CartesianTransfo,&
-        !                           nderiv,inTOout_loc)
+         STOP 'ERROR in calc_Qtransfo: Do NOT use this subroutine with cartesian transfo'
 
+         !CALL calc_CartesianTransfo(dnQin,dnQout,Qtransfo%CartesianTransfo,nderiv,inTOout_loc)
+      CASE ('not_allocated')
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) 'name_transfo is NOT allocated!'
+          write(out_unitp,*) ' Check the source!'
+          STOP 'ERROR in calc_Qtransfo: name_transfo is NOT allocated'
       CASE default
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',          &
-                                   trim(Qtransfo%name_transfo)
+        write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo)
         CALL Write_list_Qtransfo(out_unitp)
         write(out_unitp,*) ' Check the source!'
-        STOP
+        STOP 'ERROR in calc_Qtransfo: The transformation is UNKNOWN'
       END SELECT
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (debug) THEN
         IF (inTOout_loc) THEN
           write(out_unitp,*) 'dnOout :'
@@ -1443,21 +1424,21 @@
         END IF
         write(out_unitp,*)
         write(out_unitp,*) 'END ',name_sub
+        flush(out_unitp)
       END IF
-!     -----------------------------------------------------------------
 
-      END SUBROUTINE calc_Qtransfo
+  END SUBROUTINE calc_Qtransfo
 
-      !!@description: TODO
-      !!@param: TODO
-!===============================================================================
-      SUBROUTINE Write_Qtransfo(Qtransfo,force_print)
+  !!@description: TODO
+  !!@param: TODO
+  !===============================================================================
+  SUBROUTINE Write_Qtransfo(Qtransfo,force_print)
         USE mod_MPI
 
         TYPE (Type_Qtransfo) :: Qtransfo
         logical, optional    :: force_print
 
-        character (len=Name_len) :: name_transfo,name_dum
+        character (len=Name_len) :: name_dum
         integer :: nat,nb_var,nb_vect,nbcol,nb_flex_act
         integer :: err
         integer :: i,it,i_Q
@@ -1475,15 +1456,17 @@
           write(out_unitp,*) 'name_transfo,num_transfo: ',     &
                          trim(Qtransfo%name_transfo),Qtransfo%num_transfo
           write(out_unitp,*) ' Writing already done.'
+          flush(out_unitp)
           RETURN
         END IF
         write(out_unitp,*) 'BEGINNING ',name_sub
+        flush(out_unitp)
 
         Qtransfo%print_done = .TRUE.
 
         IF(MPI_id==0) THEN
           write(out_unitp,*) 'name_transfo,num_transfo: ',     &
-                         trim(Qtransfo%name_transfo),Qtransfo%num_transfo
+                        get_name_Qtransfo(Qtransfo),Qtransfo%num_transfo
           write(out_unitp,*) 'BeforeActive: ',Qtransfo%BeforeActive
           write(out_unitp,*) 'Primitive_Coord: ',Qtransfo%Primitive_Coord
 
@@ -1526,10 +1509,7 @@
           write(out_unitp,*) '---------------------------------------'
         ENDIF ! for MPI_id==0
 
-        name_transfo = Qtransfo%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
-
-        SELECT CASE (name_transfo)
+        SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
         CASE ('identity')
           CONTINUE ! nothing !
 
@@ -1627,21 +1607,22 @@
         CASE ('cartesian')
           CALL Write_CartesianTransfo(Qtransfo%CartesianTransfo)
 
+        CASE ('not_allocated')
+          write(out_unitp,*) 'name_transfo is NOT allocated!'
+
         CASE default ! ERROR: wrong transformation !
           write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The transformation is UNKNOWN: ',        &
-                                         trim(Qtransfo%name_transfo)
+          write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo)
           CALL Write_list_Qtransfo(out_unitp)
           write(out_unitp,*) ' Check the source!'
           STOP
         END SELECT
+
         write(out_unitp,*) 'END ',name_sub
-
         flush(out_unitp)
-      END SUBROUTINE Write_Qtransfo
-!===============================================================================
+  END SUBROUTINE Write_Qtransfo
 
-      SUBROUTINE sub_Type_Name_OF_Qin(Qtransfo,name_coord)
+  SUBROUTINE sub_Type_Name_OF_Qin(Qtransfo,name_coord)
         USE mod_Lib_QTransfo, ONLY : make_nameQ
         IMPLICIT NONE
         TYPE(type_qtransfo), intent(inout) :: Qtransfo
@@ -1667,19 +1648,18 @@
           Qtransfo%type_Qin(i) = 0
         END DO
 
-      END SUBROUTINE sub_Type_Name_OF_Qin
+  END SUBROUTINE sub_Type_Name_OF_Qin
 
-      SUBROUTINE Sub_Check_LinearTransfo(Qtransfo)
-      TYPE (Type_Qtransfo), intent(inout) :: Qtransfo
+  SUBROUTINE Sub_Check_LinearTransfo(Qtransfo)
+    TYPE (Type_Qtransfo), intent(inout) :: Qtransfo
 
+    integer        :: i_Qout,i_Qin,typ_Q
 
-       integer        :: i_Qout,i_Qin,typ_Q
-
-!      -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       character (len=*), parameter :: name_sub='Sub_Check_LinearTransfo'
-!      logical, parameter :: debug = .TRUE.
-       logical, parameter :: debug = .FALSE.
-!      -----------------------------------------------------------------
+      !logical, parameter :: debug = .TRUE.
+      logical, parameter :: debug = .FALSE.
+      !-----------------------------------------------------------------
        IF (.NOT. Qtransfo%LinearTransfo%check_LinearTransfo) RETURN
        IF (debug) THEN
          write(out_unitp,*) 'BEGINNING ',name_sub
@@ -1735,6 +1715,30 @@
        END IF
 !      -----------------------------------------------------------------
 
-      END SUBROUTINE Sub_Check_LinearTransfo
+  END SUBROUTINE Sub_Check_LinearTransfo
 
-      END MODULE mod_Qtransfo
+  FUNCTION get_name_Qtransfo(Qtransfo,lower) RESULT(name_Qtransfo)
+
+    character (len=:), allocatable                      :: name_Qtransfo ! RESULT
+    TYPE (Type_Qtransfo),          intent(in)           :: Qtransfo
+    logical,                       intent(in), optional :: lower
+
+    IF (allocated(Qtransfo%name_transfo)) THEN
+      name_Qtransfo = Qtransfo%name_transfo
+      IF (present(lower)) THEN
+        IF (lower) name_Qtransfo = TO_lowercase(Qtransfo%name_transfo)
+      END IF
+    ELSE
+      name_Qtransfo = 'not_allocated'
+    END IF
+  
+  END FUNCTION get_name_Qtransfo
+  SUBROUTINE set_name_Qtransfo(Qtransfo,name_Qtransfo)
+
+    character (len=*),      intent(in)     :: name_Qtransfo ! 
+    TYPE (Type_Qtransfo),   intent(inout)  :: Qtransfo
+
+    Qtransfo%name_transfo = trim(adjustl(name_Qtransfo))
+
+  END SUBROUTINE set_name_Qtransfo
+END MODULE mod_Qtransfo

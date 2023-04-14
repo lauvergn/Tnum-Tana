@@ -54,6 +54,8 @@ MODULE mod_Tana_keo
    SUBROUTINE compute_analytical_KEO(TWOxKEO,mole, para_Tnum, Qact)
       USE mod_Tana_OpEl , ONLY : opel
       USE mod_Tana_op,    ONLY : add_Vextr_new, Get_F2_F1_FROM_TWOxKEO, Get_Gana_FROM_TWOxKEO
+      USE mod_Qtransfo,   ONLY : get_name_Qtransfo
+ 
       IMPLICIT NONE
 
       TYPE(sum_opnd),        intent(inout)        :: TWOxKEO
@@ -108,7 +110,7 @@ MODULE mod_Tana_keo
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
-        if(mole%tab_Qtransfo(i)%name_transfo .eq. 'poly') then
+        if(get_name_Qtransfo(mole%tab_Qtransfo(i),lower=.TRUE.) == 'poly') then
           poly = .true.
           i_transfo = i
           exit
@@ -118,15 +120,17 @@ MODULE mod_Tana_keo
         CALL Write_CoordType(mole,.TRUE.)
         write(out_unitp,*) ' ERROR in ',routine_name
         write(out_unitp,*) "Tana works only with the polyspherical coordinates"
+        write(out_unitp,*) "poly=",poly
         write(out_unitp,*) " Check your data input"
-        STOP
+        STOP 'ERROR in compute_analytical_KEO: Tana=t and poly=f'
       end if
       frame =  mole%tab_Qtransfo(i_transfo)%BFTransfo%frame
       if (.not.frame) then
         CALL Write_CoordType(mole,.TRUE.)
         write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "The first vector should define a frame"
+        write(out_unitp,*) "The first vector MUST define a frame"
         write(out_unitp,*) " its corresponding data structure frame should be true"
+        STOP 'ERROR in compute_analytical_KEO: The first vector MUST define a frame'
         STOP
       end if
 
@@ -423,6 +427,7 @@ MODULE mod_Tana_keo
    SUBROUTINE compute_analytical_KEO_old(TWOxKEO,mole, para_Tnum, Qact)
       USE mod_Tana_OpEl , ONLY : opel
       USE mod_Tana_op,    ONLY : add_Vextr_new, Get_F2_F1_FROM_TWOxKEO
+      USE mod_Qtransfo,   ONLY : get_name_Qtransfo
       IMPLICIT NONE
 
       TYPE(sum_opnd),        intent(inout)        :: TWOxKEO
@@ -468,7 +473,7 @@ MODULE mod_Tana_keo
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
-        if(mole%tab_Qtransfo(i)%name_transfo .eq. 'poly') then
+        if(get_name_Qtransfo(mole%tab_Qtransfo(i),lower=.TRUE.) == 'poly') then
           poly = .true.
           i_transfo = i
           exit

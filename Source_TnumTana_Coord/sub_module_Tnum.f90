@@ -262,9 +262,7 @@ MODULE mod_Tnum
 
       PUBLIC :: Write_f2f1vep, Write_TcorTrot
 
-      PUBLIC :: CoordType
-      PUBLIC :: Write_CoordType, Read_CoordType,                        &
-                               dealloc_CoordType, CoordType1TOCoordType2
+      PUBLIC :: CoordType, Write_CoordType, Read_CoordType, dealloc_CoordType
       PUBLIC :: check_charge, type_var_analysis_OF_CoordType
       PUBLIC :: Sub_paraRPH_TO_CoordType, Sub_CoordType_TO_paraRPH,     &
                                             Sub_CoordType_TO_paraRPH_new
@@ -273,17 +271,15 @@ MODULE mod_Tnum
 
       PUBLIC :: get_CurviRPH
 
-
-
       CONTAINS
 !================================================================
 ! Transfert data from the 1st Qtransfo to the CoordType
 !================================================================
   SUBROUTINE Set_masses_Z_TO_CoordType(mole,Qtransfo)
-        TYPE (CoordType),     intent(inout) :: mole
-        TYPE (Type_Qtransfo), intent(in)    :: Qtransfo
+    USE mod_Qtransfo,         ONLY : set_name_Qtransfo,get_name_Qtransfo
 
-        character (len=Name_len) :: name_transfo
+    TYPE (CoordType),     intent(inout) :: mole
+    TYPE (Type_Qtransfo), intent(in)    :: Qtransfo
 
 !----- for debuging --------------------------------------------------
       integer :: err_mem,memory,err_io
@@ -296,11 +292,7 @@ MODULE mod_Tnum
       END IF
       !-----------------------------------------------------------
 
-
-        name_transfo = Qtransfo%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
-
-        SELECT CASE (name_transfo)
+        SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
 
         CASE ('zmat') ! It should be one of the first transfo read
 
@@ -629,13 +621,14 @@ MODULE mod_Tnum
   !!@description: read CoordType parameters for Tnum
   !!@param: TODO
   SUBROUTINE Read_CoordType(mole,para_Tnum,const_phys)
-    USE mod_Lib_QTransfo, ONLY : make_nameQ
-      USE mod_ActiveTransfo,    only : Read_ActiveTransfo
-      USE mod_ZmatTransfo,      only : Read_ZmatTransfo
-      USE mod_CartesianTransfo, only : Write_CartesianTransfo
-      USE mod_constant
-      USE mod_MPI
-      IMPLICIT NONE
+    USE mod_Lib_QTransfo,     ONLY : make_nameQ
+    USE mod_Qtransfo,         ONLY : set_name_Qtransfo,get_name_Qtransfo
+    USE mod_ActiveTransfo,    only : Read_ActiveTransfo
+    USE mod_ZmatTransfo,      only : Read_ZmatTransfo
+    USE mod_CartesianTransfo, only : Write_CartesianTransfo
+    USE mod_constant
+    USE mod_MPI
+    IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
       TYPE (CoordType), intent(inout)   :: mole
@@ -661,7 +654,7 @@ MODULE mod_Tnum
 !     - for Q_transfo ----------------------------------
       logical :: Old_Qtransfo,Cart_transfo,Rot_Dip_with_EC
       integer :: nb_Qtransfo,nb_Qin
-      character (len=Name_len) :: name_transfo
+      character (len=:), allocatable :: name_transfo
 
 !     - for NM_TO_sym ----------------------------------
       logical :: NM,NM_TO_sym,hessian_old,hessian_cart,hessian_onthefly
@@ -1004,12 +997,9 @@ MODULE mod_Tnum
 
           IF (mole%tab_Qtransfo(it)%Primitive_Coord) mole%itPrim = it
 
-          name_transfo = mole%tab_Qtransfo(it)%name_transfo
-          CALL string_uppercase_TO_lowercase(name_transfo)
-
           CALL Set_masses_Z_TO_CoordType(mole,mole%tab_Qtransfo(it))
 
-          SELECT CASE (name_transfo)
+          SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(it),lower=.TRUE.))
           CASE ('bunch','bunch_poly')
             ! because we need BunchTransfo for Poly transfo
             mole%tab_Qtransfo(it+1)%BunchTransfo => mole%tab_Qtransfo(it)%BunchTransfo
@@ -1030,7 +1020,7 @@ MODULE mod_Tnum
             IF (it /= nb_Qtransfo-1) THEN
                write(out_unitp,*) ' WARNNING in ',name_sub
                write(out_unitp,*) ' The RPH (Reaction Path Hamiltonian) transfortmation MUST be just before "active".'
-               write(out_unitp,*) 'it,name_transfo: ',it,mole%tab_Qtransfo(it)%name_transfo
+               write(out_unitp,*) 'it,name_transfo: ',it,get_name_Qtransfo(mole%tab_Qtransfo(it))
                !STOP
             END IF
             IF (mole%itRPH /= -1) THEN
@@ -1048,7 +1038,7 @@ MODULE mod_Tnum
             IF (it /= nb_Qtransfo) THEN
                write(out_unitp,*) ' ERROR in ',name_sub
                write(out_unitp,*) ' The active transfortmation MUST be the last one'
-               write(out_unitp,*) 'it,name_transfo: ',it,mole%tab_Qtransfo(it)%name_transfo
+               write(out_unitp,*) 'it,name_transfo: ',it,get_name_Qtransfo(mole%tab_Qtransfo(it))
                STOP
             END IF
             IF (associated(mole%ActiveTransfo)) THEN
@@ -1074,26 +1064,28 @@ MODULE mod_Tnum
 
         !=======================================================================
         ! analyzis of the transformations:
-        name_transfo = mole%tab_Qtransfo(1)%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
+        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.)
+
+
         IF (name_transfo /= 'zmat'  .AND. name_transfo /= 'bunch' .AND. &
             name_transfo /= 'bunch_poly' .AND.                          &
             name_transfo /= 'qtox_ana') THEN
            write(out_unitp,*) ' ERROR in ',name_sub
            write(out_unitp,*) ' The first transfortmation MUST be ',    &
                       '"zmat" or "bunch" or "bunch_poly" or "QTOX_ana".'
-           write(out_unitp,*) 'name_transfo: ',mole%tab_Qtransfo(1)%name_transfo
+           write(out_unitp,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(1))
            STOP
         END IF
         !=======================================================================
 
         !=======================================================================
-        name_transfo = mole%tab_Qtransfo(nb_Qtransfo)%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
+
+        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo),lower=.TRUE.)
+
         IF (name_transfo /= 'active') THEN
            write(out_unitp,*) ' ERROR in ',name_sub
            write(out_unitp,*) ' The last transfortmation MUST be "active".'
-           write(out_unitp,*) 'name_transfo: ',mole%tab_Qtransfo(nb_Qtransfo)%name_transfo
+           write(out_unitp,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo))
            STOP
         END IF
         !=======================================================================
@@ -1172,8 +1164,7 @@ MODULE mod_Tnum
           write(out_unitp,*) '================================================='
         ENDIF
 
-        CALL alloc_array(mole%tab_Qtransfo,[mole%nb_Qtransfo],        &
-                        "mole%tab_Qtransfo",name_sub)
+        CALL alloc_array(mole%tab_Qtransfo,[mole%nb_Qtransfo],"mole%tab_Qtransfo",name_sub)
 
         !===============================================================
         !===== FIRST TRANSFO : zmat ====================================
@@ -1181,12 +1172,12 @@ MODULE mod_Tnum
         it = 1
         mole%itPrim = it
 
-        mole%tab_Qtransfo(it)%name_transfo     = 'zmat'
+        CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'zmat')
         mole%tab_Qtransfo(it)%inTOout          = .TRUE.
         mole%tab_Qtransfo(it)%num_transfo      = it
         mole%tab_Qtransfo(it)%Primitive_Coord  = .TRUE.
 
-        write(out_unitp,*) ' transfo: ',mole%tab_Qtransfo(it)%name_transfo
+        write(out_unitp,*) ' transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
         write(out_unitp,*) ' num_transfo',mole%tab_Qtransfo(it)%num_transfo
 
         mole%tab_Qtransfo(it)%ZmatTransfo%cos_th = cos_th
@@ -1251,10 +1242,10 @@ MODULE mod_Tnum
           mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
           mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
 
-          mole%tab_Qtransfo(it)%name_transfo = 'linear'
+          CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'linear')
           mole%tab_Qtransfo(it)%inTOout      = .TRUE.
           mole%tab_Qtransfo(it)%num_transfo  = it
-          write(out_unitp,*) ' transfo: ',mole%tab_Qtransfo(it)%name_transfo
+          write(out_unitp,*) ' transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
           write(out_unitp,*) ' num_transfo',mole%tab_Qtransfo(it)%num_transfo
 
           mole%tab_Qtransfo(it)%nb_Qin  = mole%nb_var
@@ -1284,10 +1275,10 @@ MODULE mod_Tnum
           mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
           mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
 
-          mole%tab_Qtransfo(it)%name_transfo = 'NM'
+          CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'NM')
           mole%tab_Qtransfo(it)%inTOout      = .TRUE.
           mole%tab_Qtransfo(it)%num_transfo  = it
-          write(out_unitp,*) ' transfo: ',mole%tab_Qtransfo(it)%name_transfo
+          write(out_unitp,*) ' transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
           write(out_unitp,*) ' num_transfo',mole%tab_Qtransfo(it)%num_transfo
 
           mole%tab_Qtransfo(it)%nb_Qin  = mole%nb_var
@@ -1331,10 +1322,10 @@ MODULE mod_Tnum
         !===============================================================
         it = it + 1
 
-        mole%tab_Qtransfo(it)%name_transfo = 'active'
+        CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'active')
         mole%tab_Qtransfo(it)%inTOout      = .TRUE.
         mole%tab_Qtransfo(it)%num_transfo  = it
-        write(out_unitp,*) ' transfo: ',mole%tab_Qtransfo(it)%name_transfo
+        write(out_unitp,*) ' transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
         write(out_unitp,*) ' num_transfo',mole%tab_Qtransfo(it)%num_transfo
 
         IF (it /= mole%nb_Qtransfo) THEN
@@ -1509,8 +1500,8 @@ MODULE mod_Tnum
       !check is Tana is possible : nb_Qtransfo = 3
      para_Tnum%Tana = para_Tnum%Tana .AND. mole%nb_Qtransfo == 3
      !check is Tana is possible : 2st transfo poly
-     name_transfo = mole%tab_Qtransfo(2)%name_transfo
-     CALL string_uppercase_TO_lowercase(name_transfo)
+     name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(2),lower=.TRUE.)
+
      para_Tnum%Tana = para_Tnum%Tana .AND. name_transfo == "poly"
      ! we don't need to check the 1st and the last Qtransfo
 
@@ -1579,7 +1570,7 @@ MODULE mod_Tnum
          DO it=1,mole%nb_Qtransfo
            write(out_unitp,*) '========================='
            write(out_unitp,*) ' Qtransfo,name_transfo',it," : ",        &
-                                trim(mole%tab_Qtransfo(it)%name_transfo)
+                                get_name_Qtransfo(mole%tab_Qtransfo(it))
 
            write(out_unitp,*) 'asso name_Qout and type_Qout',           &
                associated(mole%tab_Qtransfo(it)%name_Qout),             &
@@ -1622,202 +1613,14 @@ MODULE mod_Tnum
 !================================================================
 !       Copy two CoordType variables
 !================================================================
-  SUBROUTINE CoordType1TOCoordType2(mole1,mole2)
-
-  ! for the CoordType and Tnum --------------------------------------
-  TYPE (CoordType), intent(in)    :: mole1
-  TYPE (CoordType), intent(inout) :: mole2
-
-      integer :: it
-      character (len=Name_len) :: name_transfo
-
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
-      character (len=*), parameter :: name_sub='CoordType1TOCoordType2'
-
-      IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
-      END IF
-
-
-      CALL dealloc_CoordType(mole2)
-
-      IF (mole1%nat < 3 .OR. mole1%nb_var < 1 .OR.                      &
-          mole1%nb_act < 1 .OR. mole1%ncart < 9) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' mole1 is probably not allocated !!'
-        write(out_unitp,*) 'nat',mole1%nat
-        write(out_unitp,*) 'nb_var',mole1%nb_var
-        write(out_unitp,*) 'nb_act',mole1%nb_act
-        write(out_unitp,*) 'ncart',mole1%ncart
-        write(out_unitp,*) ' Check the Fortran source !!!'
-        STOP
-      END IF
-
-      mole2%stepQ        = mole1%stepQ
-      mole2%num_x        = mole1%num_x
-
-
-      mole2%nb_act          = mole1%nb_act
-      mole2%nb_var          = mole1%nb_var
-      mole2%nb_extra_Coord  = mole1%nb_extra_Coord
-
-      mole2%ndimG        = mole1%ndimG
-      mole2%ncart        = mole1%ncart
-      mole2%ncart_act    = mole1%ncart_act
-      mole2%nat          = mole1%nat
-      mole2%nat0         = mole1%nat0
-      mole2%nat_act      = mole1%nat_act
-
-      ! for the ab initio calculation
-      mole2%charge       = mole1%charge
-      mole2%multiplicity = mole1%multiplicity
-      mole2%nb_elec      = mole1%nb_elec
-
-      mole2%WriteCC      = mole1%WriteCC
-
-      mole2%With_VecCOM     = mole1%With_VecCOM
-      mole2%Without_Rot     = mole1%Without_Rot
-      mole2%Centered_ON_CoM = mole1%Centered_ON_CoM
-      mole2%cos_th          = mole1%cos_th
-
-
-      mole2%Old_Qtransfo     = mole1%Old_Qtransfo
-      mole2%Cart_transfo     = mole1%Cart_transfo
-      mole2%nb_Qtransfo      = mole1%nb_Qtransfo
-      mole2%itNM             = mole1%itNM
-      mole2%itRPH            = mole1%itRPH
-      mole2%itPrim           = mole1%itPrim
-      mole2%opt_param        = mole1%opt_param
-
-      IF (allocated(mole1%opt_Qdyn)) THEN
-        CALL alloc_NParray(mole2%opt_Qdyn,shape(mole1%opt_Qdyn),        &
-                          "mole2%opt_Qdyn",name_sub)
-        mole2%opt_Qdyn(:) = mole1%opt_Qdyn(:)
-      END IF
-
-
-      CALL alloc_array(mole2%tab_Qtransfo,[mole2%nb_Qtransfo],        &
-                      "mole2%tab_Qtransfo",name_sub)
-      DO it=1,mole2%nb_Qtransfo
-        !write(out_unitp,*) 'it',it ; flush(out_unitp)
-        CALL Qtransfo1TOQtransfo2(mole1%tab_Qtransfo(it),               &
-                                  mole2%tab_Qtransfo(it))
-
-        name_transfo = mole2%tab_Qtransfo(it)%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
-        SELECT CASE (name_transfo)
-        CASE ("nm")
-          mole2%NMTransfo => mole2%tab_Qtransfo(it)%NMTransfo
-        CASE ("rph")
-          mole2%RPHTransfo => mole2%tab_Qtransfo(it)%RPHTransfo
-        CASE ('active')
-          mole2%ActiveTransfo => mole2%tab_Qtransfo(it)%ActiveTransfo
-        CASE ('zmat') ! it can be one of the last one
-          mole2%Z       => mole2%tab_Qtransfo(it)%ZmatTransfo%Z
-          mole2%symbole => mole2%tab_Qtransfo(it)%ZmatTransfo%symbole
-          mole2%masses  => mole2%tab_Qtransfo(it)%ZmatTransfo%masses
-        CASE ('bunch','bunch_poly') ! it has to be one of the last one
-          mole2%Z       => mole2%tab_Qtransfo(it)%BunchTransfo%Z
-          mole2%symbole => mole2%tab_Qtransfo(it)%BunchTransfo%symbole
-          mole2%masses  => mole2%tab_Qtransfo(it)%BunchTransfo%masses
-        CASE ('qtox_ana') ! it has to be one of the last one
-          mole2%Z       => mole2%tab_Qtransfo(it)%QTOXanaTransfo%Z
-          mole2%symbole => mole2%tab_Qtransfo(it)%QTOXanaTransfo%symbole
-          mole2%masses  => mole2%tab_Qtransfo(it)%QTOXanaTransfo%masses
-        CASE default
-          CONTINUE
-        END SELECT
-
-        IF (it > 1) THEN
-          mole2%tab_Qtransfo(it)%type_Qout => mole2%tab_Qtransfo(it-1)%type_Qin
-          mole2%tab_Qtransfo(it)%name_Qout => mole2%tab_Qtransfo(it-1)%name_Qin
-        END IF
-
-      END DO
-
-
-
-      IF (associated(mole1%RPHTransfo_inact2n)) THEN
-        CALL alloc_array(mole2%RPHTransfo_inact2n,                      &
-                        'mole2%RPHTransfo_inact2n',name_sub)
-        CALL RPHTransfo1TORPHTransfo2(mole1%RPHTransfo_inact2n,         &
-                                      mole2%RPHTransfo_inact2n)
-      END IF
-
-      CALL CurviRPH1_TO_CurviRPH2(mole1%CurviRPH,mole2%CurviRPH)
-
-      !IF (mole1%Cart_transfo .AND. associated(mole1%tab_Cart_transfo)) THEN
-      IF (associated(mole1%tab_Cart_transfo)) THEN
-
-        CALL alloc_array(mole2%tab_Cart_transfo,                        &
-                                         shape(mole1%tab_Cart_transfo), &
-                        "mole2%tab_Cart_transfo",name_sub)
-
-        DO it=1,size(mole1%tab_Cart_transfo)
-          !write(out_unitp,*) 'it',it ; flush(out_unitp)
-          CALL Qtransfo1TOQtransfo2(mole1%tab_Cart_transfo(it),         &
-                                    mole2%tab_Cart_transfo(it))
-        END DO
-      END IF
-
-
-      ! the 6 tables are true pointers
-      mole2%liste_QactTOQsym => mole2%ActiveTransfo%list_QactTOQdyn
-      mole2%liste_QactTOQdyn => mole2%ActiveTransfo%list_QactTOQdyn
-      mole2%liste_QsymTOQact => mole2%ActiveTransfo%list_QdynTOQact
-      mole2%liste_QdynTOQact => mole2%ActiveTransfo%list_QdynTOQact
-
-      mole2%name_Qact        => mole2%tab_Qtransfo(mole2%nb_Qtransfo)%name_Qin
-      mole2%name_Qdyn        => mole2%tab_Qtransfo(mole2%nb_Qtransfo)%name_Qout
-
-      CALL alloc_array(mole2%nrho_OF_Qact,[mole2%nb_var],             &
-                      "mole2%nrho_OF_Qact",name_sub)
-      mole2%nrho_OF_Qact(:)  = mole1%nrho_OF_Qact(:)
-
-      CALL alloc_array(mole2%nrho_OF_Qdyn,[mole2%nb_var],             &
-                      "mole2%nrho_OF_Qdyn",name_sub)
-      mole2%nrho_OF_Qdyn(:)  = mole1%nrho_OF_Qdyn(:)
-
-      mole2%nb_act1          = mole1%nb_act1
-      mole2%nb_inact2n       = mole1%nb_inact2n
-      mole2%nb_inact21       = mole1%nb_inact21
-      mole2%nb_inact22       = mole1%nb_inact22
-      mole2%nb_inact20       = mole1%nb_inact20
-      mole2%nb_inact         = mole1%nb_inact
-      mole2%nb_inact31       = mole1%nb_inact31
-      mole2%nb_rigid0        = mole1%nb_rigid0
-      mole2%nb_rigid100      = mole1%nb_rigid100
-      mole2%nb_rigid         = mole1%nb_rigid
-
-      CALL alloc_array(mole2%active_masses,[mole2%ncart],             &
-                      "mole2%active_masses",name_sub)
-      mole2%active_masses    = mole1%active_masses
-
-      CALL alloc_array(mole2%d0sm,[mole2%ncart],                      &
-                      "mole2%d0sm",name_sub)
-      mole2%d0sm             = mole1%d0sm
-      mole2%Mtot             = mole1%Mtot
-      mole2%Mtot_inv         = mole1%Mtot_inv
-
-
-      IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
-      END IF
-
-  END SUBROUTINE CoordType1TOCoordType2
-  !!@description: Copy two CoordType variables
-  !!@param: TODO
   SUBROUTINE CoordType2_TO_CoordType1(mole1,mole2)
+    USE mod_Qtransfo,         ONLY : set_name_Qtransfo,get_name_Qtransfo
 
-  ! for the CoordType and Tnum --------------------------------------
-  CLASS (CoordType), intent(inout) :: mole1
-  TYPE (CoordType),  intent(in)    :: mole2
+    ! for the CoordType and Tnum --------------------------------------
+    CLASS (CoordType), intent(inout) :: mole1
+    TYPE (CoordType),  intent(in)    :: mole2
 
-      integer :: it
-      character (len=Name_len) :: name_transfo
+    integer :: it
 
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
@@ -1893,9 +1696,7 @@ MODULE mod_Tnum
         CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),               &
                                   mole1%tab_Qtransfo(it))
 
-        name_transfo = mole1%tab_Qtransfo(it)%name_transfo
-        CALL string_uppercase_TO_lowercase(name_transfo)
-        SELECT CASE (name_transfo)
+        SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it),lower=.TRUE.))
         CASE ("nm")
           mole1%NMTransfo => mole1%tab_Qtransfo(it)%NMTransfo
         CASE ("rph")
@@ -2505,31 +2306,27 @@ MODULE mod_Tnum
 
       ! this subroutine eanbles to perform automatic contraction
   SUBROUTINE CoordTypeRPH_TO_CoordTypeFlex(mole)
-  USE mod_FlexibleTransfo, only : Read_FlexibleTransfo
+  USE mod_FlexibleTransfo, ONLY : Read_FlexibleTransfo
+  USE mod_Qtransfo,        ONLY : set_name_Qtransfo,get_name_Qtransfo
   IMPLICIT NONE
 
   TYPE (CoordType), intent(inout) :: mole
 
       integer :: nb_Qtransfo,nb_Qin
       integer, allocatable :: list_flex(:)
-      character (len=Name_len) :: name_transfo
 
-
-!----- for debuging --------------------------------------------------
+      !----- for debuging --------------------------------------------------
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub = "CoordTypeRPH_TO_CoordTypeFlex"
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
-
-
-
       IF (.NOT. associated(mole%RPHTransfo)) RETURN
-!-----------------------------------------------------------
-       IF (debug) THEN
+      !-----------------------------------------------------------
+      IF (debug) THEN
          write(out_unitp,*) 'BEGINNING ',name_sub
          write(out_unitp,*) 'RPHTransfo%QMLib',mole%RPHTransfo%QMLib
-       END IF
-!-----------------------------------------------------------
+      END IF
+      !-----------------------------------------------------------
 
       IF (mole%itRPH == -1) THEN
         write(out_unitp,*) ' ERROR in ',name_sub
@@ -2551,7 +2348,7 @@ MODULE mod_Tnum
         list_flex = 20
       END WHERE
       IF (debug) write(out_unitp,*) 'list_flex',list_flex(:)
-      mole%tab_Qtransfo(mole%itRPH)%name_transfo = 'flexible'
+      CALL set_name_Qtransfo(mole%tab_Qtransfo(mole%itRPH),'flexible')
 
       CALL Read_FlexibleTransfo(mole%tab_Qtransfo(mole%itRPH)%FlexibleTransfo,  &
                                 nb_Qin,.FALSE.,mole%RPHTransfo%QMLib,list_flex, &

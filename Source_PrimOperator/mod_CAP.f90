@@ -58,6 +58,8 @@
                                                                         ! defaut (itQtransfo=nb_Qtransfo, active coordinates)
         integer                       :: nb_Qtransfo          = -1      ! number of coordinate transformations
 
+        real (kind=Rkind)             :: mass                 = ZERO    ! for CAP inv
+        real (kind=Rkind)             :: Ecol_Min             = -ONE    ! for CAP inv
 
         integer                       :: iOp                  = 0       ! index of the Operator
 
@@ -183,26 +185,30 @@
      !flush(out_unitp)
   END SUBROUTINE CAP2_TO_CAP1
   SUBROUTINE Read_CAP(CAP_in,nb_Qtransfo)
-  IMPLICIT NONE
+    USE mod_Constant
+    IMPLICIT NONE
       CLASS (CAP_t),    intent(inout) :: CAP_in
       integer,          intent(in)    :: nb_Qtransfo
 
       character (len=Name_longlen)    :: Name_Cap
       integer                         :: Type_CAP,n_exp,ind_Q,itQtransfo
-      real(kind=Rkind)                :: A,Q0,LQ,Qmax
+      real(kind=Rkind)                :: A,Q0,LQ,Qmax,mass,Ene
       integer                         :: err_read
+      TYPE (REAL_WU)                  :: ECol_Min
 
-      namelist / CAP / Type_CAP,Name_CAP,n_exp,A,Q0,Qmax,LQ,ind_Q,itQtransfo
+      namelist / CAP / Type_CAP,Name_CAP,n_exp,A,Q0,Qmax,LQ,ECol_Min,mass,ind_Q,itQtransfo
 
       Type_CAP             = 0
       Name_Cap             = ""
       n_exp                = 2
-      A                    = ONE
+      A                    = -ONE
       Q0                   = ZERO
       Qmax                 = -ONE
       LQ                   = ONE
       ind_Q                = -1
       itQtransfo           = -1
+      ECol_Min             = REAL_WU(-ONE,'au','E')
+      mass                 = ZERO
       read(in_unitp,CAP,IOSTAT=err_read)
       IF (err_read < 0) THEN
         write(out_unitp,*) ' ERROR in Read_CAP'
@@ -221,28 +227,25 @@
       END IF
       IF (print_level > 1) write(out_unitp,CAP)
 
-      CALL Init_CAP(CAP_in,Type_CAP,Name_Cap,n_exp,A,Q0,Qmax,LQ,ind_Q,itQtransfo,nb_Qtransfo)
+      Ene = convRWU_TO_R_WITH_WorkingUnit(ECol_Min)
+      CALL Init_CAP(CAP_in,Type_CAP,Name_Cap,n_exp,A,Q0,Qmax,LQ,Ene,mass,ind_Q,itQtransfo,nb_Qtransfo)
 
       CALL Write_CAP(CAP_in)
 
   END SUBROUTINE Read_CAP
-  SUBROUTINE Init_CAP(CAP,Type_CAP,Name_Cap,n_exp,A,Q0,Qmax,LQ,ind_Q,itQtransfo,nb_Qtransfo)
+  SUBROUTINE Init_CAP(CAP,Type_CAP,Name_Cap,n_exp,A,Q0,Qmax,LQ,Ecol_Min,mass,ind_Q,itQtransfo,nb_Qtransfo)
   IMPLICIT NONE
       CLASS (CAP_t),                intent(inout) :: CAP
       character (len=Name_longlen), intent(in)    :: Name_Cap
       integer,                      intent(in)    :: Type_CAP,n_exp,ind_Q,itQtransfo,nb_Qtransfo
       real(kind=Rkind),             intent(in)    :: A,Q0,LQ,Qmax
-
-write(6,*) 'Type_CAP,Name_Cap',Type_CAP,' ',Name_Cap
-write(6,*) 'len(adjustl(trim(Name_Cap)))',len(adjustl(trim(Name_Cap)))
+      real(kind=Rkind),             intent(in)    :: Ecol_Min,mass
 
       IF ( len(adjustl(trim(Name_Cap))) == 0 .AND. Type_CAP == 0 ) THEN
         CAP%Type_CAP = 1
       ELSE IF ( Type_CAP == 0 ) THEN
-        write(6,*) 'coucou,Type_CAP,Name_Cap',Type_CAP,' ',Name_Cap
         CAP%Name_Cap = Name_Cap
-        CALL string_uppercase_TO_lowercase(CAP%Name_Cap)
-        SELECT CASE (CAP%Name_Cap)
+        SELECT CASE (TO_lowercase(CAP%Name_Cap))
         CASE("xn","x^n","-xn","-x^n","+xn","+x^n")
           CAP%Type_CAP = 1
         CASE("ws","woods-saxon","-ws","-woods-saxon","+ws","+woods-saxon")
@@ -252,6 +255,18 @@ write(6,*) 'len(adjustl(trim(Name_Cap)))',len(adjustl(trim(Name_Cap)))
         CASE("inv","-inv","+inv")
           CAP%Type_CAP = 4
         CASE default
+          write(out_unitp,*) ' ERROR in init_CAP'
+          write(out_unitp,*) ' The Name_Cap value is not defined. Name_Cap: ',CAP%Name_Cap
+          write(out_unitp,*) ' The possible values are:'
+          write(out_unitp,*) '    Type_CAP= 1  => Name_Cap="+x^n"'
+          write(out_unitp,*) '    Type_CAP=-1  => Name_Cap="-x^n"'
+          write(out_unitp,*) '    Type_CAP= 2  => Name_Cap="+Woods-Saxon" or "+WS"'
+          write(out_unitp,*) '    Type_CAP=-2  => Name_Cap="-Woods-Saxon" or "-WS"'
+          write(out_unitp,*) '    Type_CAP= 3  => Name_Cap="+exp"'
+          write(out_unitp,*) '    Type_CAP=-3  => Name_Cap="-exp"'
+          write(out_unitp,*) '    Type_CAP= 4  => Name_Cap="+inv"'
+          write(out_unitp,*) '    Type_CAP=-4  => Name_Cap="-inv"'
+          write(out_unitp,*) ' check your data!'
           STOP 'ERROR in Init_CAP: no Name_Cap default'
         END SELECT
         if (CAP%Name_Cap(1:1) == "-") CAP%Type_CAP = -CAP%Type_CAP
@@ -259,13 +274,19 @@ write(6,*) 'len(adjustl(trim(Name_Cap)))',len(adjustl(trim(Name_Cap)))
         CAP%Type_CAP = Type_CAP
       END IF
 
-      IF (itQtransfo < 0 .OR. itQtransfo > nb_Qtransfo) THEN
-        ! we keep itQtransfo= -1 and nb_Qtransfo = -1
-        CAP = CAP_t(Type_CAP=CAP%Type_CAP,n_exp=n_exp,A=A,Q0=Q0,Qmax=Qmax,LQ=LQ,ind_Q=ind_Q)
-      ELSE
-        CAP = CAP_t(Type_CAP=CAP%Type_CAP,n_exp=n_exp,A=A,Q0=Q0,Qmax=Qmax,LQ=LQ,&
-                    ind_Q=ind_Q,itQtransfo=itQtransfo,nb_Qtransfo=nb_Qtransfo)
+      CAP%n_exp    = n_exp
+      CAP%A        = A
+      CAP%Q0       = Q0
+      CAP%LQ       = LQ
+      CAP%ind_Q    = ind_Q
+      CAP%mass     = mass
+      CAP%Ecol_Min = Ecol_Min
+
+      IF (itQtransfo >= 0 .AND. itQtransfo <= nb_Qtransfo) THEN
+        CAP%itQtransfo = itQtransfo
+        CAP%nb_Qtransfo = nb_Qtransfo
       END IF
+
 
       SELECT CASE (CAP%Type_CAP)
       CASE(-1,1) ! as function of n_exp, B= 1 3/2 2 5/2 ...
@@ -280,46 +301,95 @@ write(6,*) 'len(adjustl(trim(Name_Cap)))',len(adjustl(trim(Name_Cap)))
       CASE(-4,4)
         CAP%B = ZERO
         CAP%Name_Cap = "inv"
+        IF (A > ZERO .AND. Ecol_Min > ZERO ) THEN
+          IF (abs(Ecol_Min-A) > ONETENTH**10 ) THEN
+            write(out_unitp,*) ' ERROR in init_CAP'
+            write(out_unitp,*) ' A and Ecol_Min are both defined and are different'
+            write(out_unitp,*) ' A       ',A
+            write(out_unitp,*) ' Ecol_Min',Ecol_Min
+            STOP 'ERROR in Init_CAP: inv CAP and A and Ecol_Min are both defined'
+          ELSE
+            write(out_unitp,*) ' WARNING in init_CAP'
+            write(out_unitp,*) ' A and Ecol_Min are both defined'
+            write(out_unitp,*) ' A       ',A
+            write(out_unitp,*) ' Ecol_Min',Ecol_Min
+          END IF
+        ELSE IF (A <= ZERO .AND. Ecol_Min > ZERO) THEN
+          CAP%A = Ecol_Min
+        ELSE IF (Ecol_Min <= ZERO .AND. A > ZERO) THEN
+          CAP%Ecol_Min = A
+        ELSE
+          write(out_unitp,*) ' ERROR in init_CAP'
+          write(out_unitp,*) ' A and Ecol_Min are not defined (or have negative values)'
+          write(out_unitp,*) ' A       ',A
+          write(out_unitp,*) ' Ecol_Min',Ecol_Min
+          STOP 'ERROR in Init_CAP: inv CAP and A and Ecol_Min are not defined'
+        END IF
       CASE default
+        write(out_unitp,*) ' ERROR in init_CAP'
+        write(out_unitp,*) ' The Type_CAP value is not defined. Type_CAP',CAP%Type_CAP
+        write(out_unitp,*) ' The possible values are:'
+        write(out_unitp,*) '    Type_CAP= 1  => Name_Cap="+x^n"'
+        write(out_unitp,*) '    Type_CAP=-1  => Name_Cap="-x^n"'
+        write(out_unitp,*) '    Type_CAP= 2  => Name_Cap="+Woods-Saxon" or "+WS"'
+        write(out_unitp,*) '    Type_CAP=-2  => Name_Cap="-Woods-Saxon" or "-WS"'
+        write(out_unitp,*) '    Type_CAP= 3  => Name_Cap="+exp"'
+        write(out_unitp,*) '    Type_CAP=-3  => Name_Cap="-exp"'
+        write(out_unitp,*) '    Type_CAP= 4  => Name_Cap="+inv"'
+        write(out_unitp,*) '    Type_CAP=-4  => Name_Cap="-inv"'
+        write(out_unitp,*) ' check your data!'
         STOP 'ERROR in Init_CAP: no Type_CAP default'
       END SELECT
 
-      if ( CAP%Type_CAP > 0 ) then
+      IF ( CAP%Type_CAP > 0 ) then
         CAP%Name_Cap = '+' // trim(CAP%Name_Cap)
-      else
+      ELSE
         CAP%Name_Cap = '-' // trim(CAP%Name_Cap)
-      end if
+      END IF
 
+      IF (abs(CAP%Type_CAP) == 4 .AND. mass > ZERO) THEN
+        write(out_unitp,*) ' WARNING in init_CAP'
+        write(out_unitp,*) ' LQ is redefined. Old value:',CAP%LQ
+        CAP%LQ = TWO*PI/sqrt(TWO*mass*ECol_min)
+        write(out_unitp,*) ' LQ is redefined. New value:',CAP%LQ
+        IF (CAP%Type_CAP < 0) THEN
+          CAP%Qmax = CAP%Q0 - 2.62206_Rkind*CAP%LQ
+        ELSE
+          CAP%Qmax = CAP%Q0 + 2.62206_Rkind*CAP%LQ
+        END IF
+      END IF
       !CALL Write_CAP(CAP)
 
   END SUBROUTINE Init_CAP
   SUBROUTINE dealloc_CAP(CAP)
-  IMPLICIT NONE
-      CLASS (CAP_t), intent(inout) :: CAP
+    IMPLICIT NONE
+    CLASS (CAP_t), intent(inout) :: CAP
 
-      !write(out_unitp,*) ' BEGINNING dealloc_CAP'
+    !write(out_unitp,*) ' BEGINNING dealloc_CAP'
 
-        CAP%Type_CAP             = 1       ! 1:  A*(B*x)**n_exp
-        CAP%Name_Cap             = "x^n"   ! 1:  A*(B*x)**n_exp
-        CAP%n_exp                = 2
-        CAP%A                    = ONE
-        CAP%B                    = THREE/TWO
+    CAP%Type_CAP             = 1       ! 1:  A*(B*x)**n_exp
+    CAP%Name_Cap             = "x^n"   ! 1:  A*(B*x)**n_exp
+    CAP%n_exp                = 2*pi
+    CAP%A                    = ONE
+    CAP%B                    = THREE/TWO
+                                         ! x = (Q-Q0)/LQ
+    CAP%Q0                   = ZERO
+    CAP%Qmax                 = -ONE
+    CAP%LQ                   = ONE
+    CAP%ind_Q                = 1
+    CAP%itQtransfo           = -1
+    CAP%nb_Qtransfo          = -1
 
-                                           ! x = (Q-Q0)/LQ
-        CAP%Q0                   = ZERO
-        CAP%Qmax                 = -ONE
-        CAP%LQ                   = ONE
-        CAP%ind_Q                = 1
-        CAP%itQtransfo           = -1
-        CAP%nb_Qtransfo          = -1
+    CAP%mass                 = -ONE
+    CAP%Ecol_Min             = -ONE
 
-        CAP%iOp                  = 0
-     !write(out_unitp,*) ' END dealloc_CAP'
-     !flush(out_unitp)
+    CAP%iOp                  = 0
+    !write(out_unitp,*) ' END dealloc_CAP'
+    !flush(out_unitp)
   END SUBROUTINE dealloc_CAP
 
   FUNCTION calc_CAP(CAP,Q)
-  IMPLICIT NONE
+    IMPLICIT NONE
       real (kind=Rkind)               :: calc_CAP
       CLASS (CAP_t),    intent(in)    :: CAP
       real(kind=Rkind), intent(in)    :: Q(:)
@@ -376,6 +446,8 @@ write(6,*) 'len(adjustl(trim(Name_Cap)))',len(adjustl(trim(Name_Cap)))
         STOP 'ERROR in calc_CAP: no default'
       END SELECT
 
+      ! we add this test, because some CAP (+/-4) can be negative when Q is larger(smaller) than Qmax
+      IF (calc_CAP < ZERO) calc_CAP = ONE
      !write(out_unitp,*) ' END calc_CAP'
      !flush(out_unitp)
   END FUNCTION calc_CAP
