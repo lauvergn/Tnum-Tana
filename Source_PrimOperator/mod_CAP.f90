@@ -35,6 +35,7 @@
 !===========================================================================
    MODULE mod_CAP
    USE mod_system
+   USE mod_OneDTransfo
    IMPLICIT NONE
    PRIVATE
 
@@ -49,19 +50,21 @@
         real (kind=Rkind)             :: B                    = ONE
 
                                                               ! x = (Q-Q0)/LQ
-        real (kind=Rkind)             :: Q0                   = ZERO
-        real (kind=Rkind)             :: Qmax                 = -ONE
-        real (kind=Rkind)             :: LQ                   = ONE
-        integer                       :: ind_Q                = 1       ! index of the coordinate (active order)
-        integer                       :: itQtransfo           = -1      ! index of the coordinate transformation
-                                                                        ! 0: cart, 1: primitive coord. ...
-                                                                        ! defaut (itQtransfo=nb_Qtransfo, active coordinates)
-        integer                       :: nb_Qtransfo          = -1      ! number of coordinate transformations
+        real (kind=Rkind)              :: Q0                   = ZERO
+        real (kind=Rkind)              :: Qmax                 = -ONE
+        real (kind=Rkind)              :: LQ                   = ONE
+        integer                        :: ind_Q                = 1       ! index of the coordinate (active order)
+        integer                        :: itQtransfo           = -1      ! index of the coordinate transformation
+                                                                         ! 0: cart, 1: primitive coord. ...
+                                                                         ! defaut (itQtransfo=nb_Qtransfo, active coordinates)
+        integer                        :: nb_Qtransfo          = -1      ! number of coordinate transformations
 
-        real (kind=Rkind)             :: mass                 = ZERO    ! for CAP inv
-        real (kind=Rkind)             :: Ecol_Min             = -ONE    ! for CAP inv
+        TYPE (Type_oneDTransfo), pointer :: OneDTransfo(:)     => null() ! add a transformation (experimental)
 
-        integer                       :: iOp                  = 0       ! index of the Operator
+        real (kind=Rkind)              :: mass                 = ZERO    ! for CAP inv
+        real (kind=Rkind)              :: Ecol_Min             = -ONE    ! for CAP inv
+
+        integer                        :: iOp                  = 0       ! index of the Operator
 
       CONTAINS
         PROCEDURE, PRIVATE, PASS(CAP1) :: CAP2_TO_CAP1
@@ -150,6 +153,12 @@
         write(out_unitp,*) 'ind_Q (order from itQtranfo)   ',CAP%ind_Q
       END IF
 
+      IF (associated(CAP%OneDTransfo)) THEN
+        write(out_unitp,*) ' -------------------------------'
+        write(out_unitp,*) ' Add a coordinate transformation'
+        CALL Write_oneDTransfo(CAP%OneDTransfo)
+        write(out_unitp,*) ' -------------------------------'
+      END IF
       write(out_unitp,*) 'Q0      ',CAP%Q0
       write(out_unitp,*) 'Qmax    ',CAP%Qmax
       write(out_unitp,*) 'LQ      ',CAP%LQ
@@ -165,6 +174,7 @@
       TYPE (CAP_t),  intent(in)    :: CAP2
 
       !write(out_unitp,*) ' BEGINNING CAP2_TO_CAP1'
+      !flush(out_unitp)
 
       CAP1%Type_CAP            = CAP2%Type_CAP
       CAP1%Name_CAP            = CAP2%Name_CAP
@@ -175,11 +185,16 @@
       CAP1%Q0                  = CAP2%Q0
       CAP1%Qmax                = CAP2%Qmax
       CAP1%LQ                  = CAP2%LQ
+      CAP1%mass                = CAP2%mass
+      CAP1%Ecol_Min            = CAP2%Ecol_Min
+
       CAP1%ind_Q               = CAP2%ind_Q
       CAP1%itQtransfo          = CAP2%itQtransfo
       CAP1%nb_Qtransfo         = CAP2%nb_Qtransfo
 
       CAP1%iOp                 = CAP2%iOp
+
+      CALL oneDTransfo1TOoneDTransfo2(CAP2%OneDTransfo,CAP1%OneDTransfo)
 
      !write(out_unitp,*) ' END CAP2_TO_CAP1'
      !flush(out_unitp)
@@ -195,8 +210,9 @@
       real(kind=Rkind)                :: A,Q0,LQ,Qmax,mass,Ene
       integer                         :: err_read
       TYPE (REAL_WU)                  :: ECol_Min
+      logical                         :: Add_OneD
 
-      namelist / CAP / Type_CAP,Name_CAP,n_exp,A,Q0,Qmax,LQ,ECol_Min,mass,ind_Q,itQtransfo
+      namelist / CAP / Type_CAP,Name_CAP,n_exp,A,Q0,Qmax,LQ,ECol_Min,mass,ind_Q,itQtransfo,Add_OneD
 
       Type_CAP             = 0
       Name_Cap             = ""
@@ -209,6 +225,7 @@
       itQtransfo           = -1
       ECol_Min             = REAL_WU(-ONE,'au','E')
       mass                 = ZERO
+      Add_OneD             = .FALSE.
       read(in_unitp,CAP,IOSTAT=err_read)
       IF (err_read < 0) THEN
         write(out_unitp,*) ' ERROR in Read_CAP'
@@ -226,6 +243,10 @@
         STOP ' ERROR in Read_CAP: probably wrong parameter(s)'
       END IF
       IF (print_level > 1) write(out_unitp,CAP)
+
+      IF (Add_OneD) THEN
+        CALL Read_oneDTransfo(CAP_in%OneDTransfo,nb_transfo=1,nb_Qin=1)
+      END IF
 
       Ene = convRWU_TO_R_WITH_WorkingUnit(ECol_Min)
       CALL Init_CAP(CAP_in,Type_CAP,Name_Cap,n_exp,A,Q0,Qmax,LQ,Ene,mass,ind_Q,itQtransfo,nb_Qtransfo)
@@ -300,7 +321,7 @@
         CAP%Name_Cap = "exp"
       CASE(-4,4)
         CAP%B = ZERO
-        CAP%Name_Cap = "inv"
+          CAP%Name_Cap = "inv"
         IF (A > ZERO .AND. Ecol_Min > ZERO ) THEN
           IF (abs(Ecol_Min-A) > ONETENTH**10 ) THEN
             write(out_unitp,*) ' ERROR in init_CAP'
@@ -366,6 +387,7 @@
     CLASS (CAP_t), intent(inout) :: CAP
 
     !write(out_unitp,*) ' BEGINNING dealloc_CAP'
+    !flush(out_unitp)
 
     CAP%Type_CAP             = 1       ! 1:  A*(B*x)**n_exp
     CAP%Name_Cap             = "x^n"   ! 1:  A*(B*x)**n_exp
@@ -384,60 +406,81 @@
     CAP%Ecol_Min             = -ONE
 
     CAP%iOp                  = 0
+
+    CALL dealloc_oneDTransfo(CAP%oneDTransfo)
+
     !write(out_unitp,*) ' END dealloc_CAP'
     !flush(out_unitp)
   END SUBROUTINE dealloc_CAP
 
   FUNCTION calc_CAP(CAP,Q)
+    USE mod_dnSVM
     IMPLICIT NONE
       real (kind=Rkind)               :: calc_CAP
       CLASS (CAP_t),    intent(in)    :: CAP
       real(kind=Rkind), intent(in)    :: Q(:)
 
-      real(kind=Rkind)    :: x,c
+      real(kind=Rkind)    :: QindQ,tQindQ,x,c
+      TYPE (Type_dnS)     :: dnR,dntR
+
 
       calc_CAP = ZERO
 
+      IF (associated(CAP%OneDTransfo)) THEN
+        CALL alloc_dnSVM(dnR,nb_var_deriv=1,nderiv=0)
+        CALL alloc_dnSVM(dntR,nb_var_deriv=1,nderiv=0)
+
+        dnR%d0 = Q(CAP%ind_Q)
+        CALL sub_dnS1_TO_dntR2(dnR,dntR,CAP%OneDTransfo(1)%type_oneD,nderiv=0,cte=CAP%OneDTransfo(1)%cte)
+        tQindQ = dntR%d0
+
+        CALL dealloc_dnSVM(dnR)
+        CALL dealloc_dnSVM(dntR)
+        !STOP 'OneDTransfo: not yet'
+      ELSE
+        tQindQ = Q(CAP%ind_Q)
+      END IF
+
       SELECT CASE (CAP%Type_CAP)
       CASE(1) ! x^n
-        IF ( Q(CAP%ind_Q) > CAP%Q0 ) THEN
-          x = (Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+        IF (tQindQ > CAP%Q0 ) THEN
+          x = (tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = CAP%A * CAP%B * x**CAP%n_exp
         END IF
       CASE(-1) ! x^n
-        IF ( Q(CAP%ind_Q) < CAP%Q0 ) THEN
-          x = -(Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+        IF (tQindQ < CAP%Q0 ) THEN
+          x = -(tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = CAP%A * CAP%B * x**CAP%n_exp
         END IF
 
       CASE(2) ! WS
-        IF ( Q(CAP%ind_Q) > CAP%Q0 ) THEN
-          x = (Q(CAP%ind_Q)-CAP%Qmax)/CAP%LQ
+        IF (tQindQ > CAP%Q0 ) THEN
+          x = (tQindQ-CAP%Qmax)/CAP%LQ
           calc_CAP = TWO*CAP%A/(ONE+Exp(-x))
         END IF
       CASE(-2)  ! WS
-        IF ( Q(CAP%ind_Q) < CAP%Q0 ) THEN
-          x = -(Q(CAP%ind_Q)-CAP%Qmax)/CAP%LQ
+        IF (tQindQ < CAP%Q0 ) THEN
+          x = -(tQindQ-CAP%Qmax)/CAP%LQ
           calc_CAP = TWO*CAP%A/(ONE+Exp(-x))
         END IF
 
       CASE(3)  ! exp
-          x = (Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+          x = (tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = CAP%A * CAP%B*exp(-TWO/x)
       CASE(-3) ! exp
-          x = -(Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+          x = -(tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = CAP%A * CAP%B*exp(-TWO/x)
 
       CASE(4)  ! inv
-        IF ( Q(CAP%ind_Q) > CAP%Q0 ) THEN
+        IF (tQindQ > CAP%Q0 ) THEN
           c = 2.62206_Rkind
-          x = (Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+          x = (tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = FOUR * CAP%A * ( ONE/(x+c)**2 + ONE/(x-c)**2 - TWO/c**2 )
         END IF
       CASE(-4) ! inv
-        IF ( Q(CAP%ind_Q) < CAP%Q0 ) THEN
+        IF (tQindQ < CAP%Q0 ) THEN
           c = 2.62206_Rkind
-          x = - (Q(CAP%ind_Q)-CAP%Q0)/CAP%LQ
+          x = - (tQindQ-CAP%Q0)/CAP%LQ
           calc_CAP = FOUR * CAP%A * ( ONE/(x+c)**2 + ONE/(x-c)**2 - TWO/c**2 )
         END IF
 
