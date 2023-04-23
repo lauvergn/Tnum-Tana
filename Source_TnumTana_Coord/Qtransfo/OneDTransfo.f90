@@ -175,7 +175,7 @@
       SUBROUTINE oneDTransfo1TOoneDTransfo2(oneDTransfo1,oneDTransfo2)
 
       !-- oneDTransfo --------------------------------------
-      TYPE (Type_oneDTransfo), pointer, intent(in) :: oneDTransfo1(:)
+      TYPE (Type_oneDTransfo), pointer, intent(in)    :: oneDTransfo1(:)
       TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo2(:)
 
       integer :: it
@@ -354,7 +354,7 @@
         ELSE
 
 
-        SELECT CASE (name_oneD)
+        SELECT CASE (TO_lowercase(name_oneD))
         CASE ('identity')
           oneDTransfo(i)%type_oneD = 0
         CASE ('affine')
@@ -385,7 +385,19 @@
           ELSE
             oneDTransfo(i)%type_oneD = 2
           END IF
-        CASE ('thetaTOx','thetatox')
+        CASE ('sinh')
+          IF (inTOout) THEN
+            oneDTransfo(i)%type_oneD =  1171
+          ELSE
+            oneDTransfo(i)%type_oneD = -1171
+          END IF
+        CASE ('asinh')
+          IF (inTOout) THEN
+            oneDTransfo(i)%type_oneD = -1171
+          ELSE
+            oneDTransfo(i)%type_oneD =  1171
+          END IF
+        CASE ('thetatox')
           IF ( cte(1) > ONE .OR. cte(1) < ZERO) THEN
             write(out_unitp,*) ' ERROR in ',name_sub
             write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
@@ -402,7 +414,7 @@
             ! t(x) = Pi/2 + c1*Atan(x) x E ]-inf,inf[
             oneDTransfo(i)%type_oneD = 71
           END IF
-        CASE ('xTOtheta','xtotheta')
+        CASE ('xtotheta')
           IF ( cte(1) > ONE .OR. cte(1) < ZERO) THEN
             write(out_unitp,*) ' ERROR in ',name_sub
             write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
@@ -417,7 +429,7 @@
           ELSE
             oneDTransfo(i)%type_oneD = -71  ! theta => x
           END IF
-        CASE ('xTOAB','xtoab')
+        CASE ('xtoab')
           IF ( cte(1) == cte(2)) THEN
             write(out_unitp,*) ' ERROR in ',name_sub
             write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
@@ -432,7 +444,7 @@
           ELSE
             oneDTransfo(i)%type_oneD = -76  ! Q => x
           END IF
-        CASE ('xTOR','xtor')
+        CASE ('xtor')
          !  transfo R ]0,inf[ => x ]-inf,inf[
          ! 111      =>    (-a + x^2)/x = x-a/x x E ]0,inf[
          !-111      =>    1/2(x+sqrt(4a+x^2)) x E ]-inf,inf[
@@ -452,7 +464,7 @@
             oneDTransfo(i)%type_oneD = -111  ! R => x
           END IF
 
-        CASE ('xTOconstX','xTOu','xtou','xtoconstx')
+        CASE ('xtou','xtoconstx')
          ! invers of R0.tanh(x/R0) x E ]-inf,inf[  (invers)
          ! t(x) = R0 atanh(x/R0) R0=cte(1)
           IF ( cte(1) == ZERO) THEN
@@ -470,7 +482,7 @@
             oneDTransfo(i)%type_oneD = -74  ! R => x
           END IF
 
-        CASE ('OneOverX','oneoverx','x_inv','R_inv','r_inv')
+        CASE ('oneoverx','x_inv','r_inv')
          ! R=1/x   x E ]0,inf[
          ! x=1/R   R E ]0,inf[
           IF (inTOout) THEN
@@ -614,5 +626,6 @@
       END IF
 !---------------------------------------------------------------------
       END SUBROUTINE calc_oneDTransfo
+
 
       END MODULE mod_OneDTransfo
