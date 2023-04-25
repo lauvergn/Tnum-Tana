@@ -276,6 +276,254 @@
         logical, intent(in)                           :: inTOout
 
 
+        TYPE (dnS_t)    :: dnR,dnZ,dnZp,dntR
+        TYPE (dnS_t)    :: dntho,dnctho,dnphio,  dnthn,dncthn,dnphin
+        TYPE (dnS_t)    :: dnXo,dnYo,dnZo,dnXn,dnYn,dnZn
+
+        TYPE (dnVec_t)  :: dnQin_new,dnQout_new
+
+        real(kind=Rkind) :: cte(20)
+
+        integer :: i,i1,i2
+        integer :: dnErr
+
+!----- for debuging ----------------------------------
+       character (len=*),parameter :: name_sub='calc_TwoDTransfo'
+       logical, parameter :: debug=.FALSE.
+       !logical, parameter :: debug=.TRUE.
+!----- for debuging ----------------------------------
+
+
+!---------------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unitp,*) 'with dnS_t and dnVec_t'
+        write(out_unitp,*) 'dnQin'
+        CALL Write_dnSVM(dnQin,nderiv)
+      END IF
+!---------------------------------------------------------------------
+
+      IF (.NOT. associated(TwoDTransfo)) THEN
+        write(out_unitp,*) ' ERROR in ',name_sub
+        write(out_unitp,*) ' TwoDTransfo is NOT associated'
+        write(out_unitp,*) ' Check source !!'
+        STOP
+      END IF
+
+      CALL check_alloc_dnVec(dnQin,'dnQin',name_sub)
+      CALL check_alloc_dnVec(dnQout,'dnQout',name_sub)
+
+
+      IF (inTOout) THEN
+        CALL sub_dnVec_TO_dnVect(dnQin,dnQin_new)
+        dnQout_new = dnQin_new
+
+        DO i=1,size(TwoDTransfo)
+          SELECT CASE (TwoDTransfo(i)%Type_2D)
+          CASE (0) ! identity
+            ! nothing
+          CASE (1) ! polar
+            STOP 'polar not yet'
+          CASE (2) ! Zundel: z,R => z'= z/(R-2d0) and R'=R
+                  ! {z',R'} => {z,R}: z=z'*(R'-2d0) and R=R'
+
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            CALL dnVec_TO_dnS(dnQout_new,dnZp,i1)
+            CALL dnVec_TO_dnS(dnQout_new,dnR,i2)
+
+
+            ! 100 (affine) =>    cte(1) * x + cte(2): => tR=R-2d0
+            dnZp = dnZp*(dnR-TwoDTransfo(i)%Twod0)
+ 
+            CALL dnS_TO_dnVec(dnZp,dnQout_new,i1)
+
+          CASE (3) ! spherical
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            CALL dnVec_TO_dnS(dnQout_new,dnthn,i1)
+            CALL dnVec_TO_dnS(dnQout_new,dnphin,i2)
+
+            dnXn = cos(dnphin) * sin(dnthn)
+            dnYn = sin(dnphin) * sin(dnthn)
+            dnZn = cos(dnthn)
+
+            dnXo = cos(TwoDTransfo(i)%theta) * dnXn - sin(TwoDTransfo(i)%theta) * dnZn
+            dnYo = dnYn
+            dnZo = sin(TwoDTransfo(i)%theta) * dnXn + cos(TwoDTransfo(i)%theta) * dnZn
+
+            dntho  = acos(dnZo)
+            dnphio = atan2(dnYo,dnXo)
+
+           ! transfert in dnQout
+            CALL dnS_TO_dnVec(dntho,dnQout_new,i1)
+            CALL dnS_TO_dnVec(dnphio,dnQout_new,i2)
+
+         CASE (-3) ! spherical
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            CALL dnVec_TO_dnS(dnQout_new,dncthn,i1)
+            CALL dnVec_TO_dnS(dnQout_new,dnphin,i2)
+            !write(out_unitp,*) 'i1,i2',i1,i2
+
+            dnXn = cos(dnphin) * sqrt(ONE-dncthn*dncthn)
+            dnYn = sin(dnphin) * sqrt(ONE-dncthn*dncthn)
+            dnZn = dncthn
+
+            dnXo = cos(TwoDTransfo(i)%theta) * dnXn - sin(TwoDTransfo(i)%theta) * dnZn
+            dnYo = dnYn
+            dnZo = sin(TwoDTransfo(i)%theta) * dnXn + cos(TwoDTransfo(i)%theta) * dnZn
+
+            dntho  = dnZo
+            dnphio = atan2(dnYo,dnXo)
+
+           ! transfert in dnQout
+           CALL dnS_TO_dnVec(dntho,dnQout_new,i1)
+           CALL dnS_TO_dnVec(dnphio,dnQout_new,i2)
+
+          CASE default ! ERROR: wrong transformation !
+            write(out_unitp,*) ' ERROR in ',name_sub
+            write(out_unitp,*) ' The type of TwoD transformation is UNKNOWN: ',TwoDTransfo%Type_2D
+            write(out_unitp,*) ' The possible values are:'
+            write(out_unitp,*) '    0: identity: x,y'
+            write(out_unitp,*) '    1: Polar: R,theta'
+            write(out_unitp,*) '    2: Zundel: z,R'
+            write(out_unitp,*) '    3: Spherical: rotation of the spherical angles'
+            write(out_unitp,*) ' Check your data !!'
+            STOP
+
+          END SELECT
+        END DO
+        CALL sub_dnVect_TO_dnVec(dnQout_new,dnQout)
+
+      ELSE
+        CALL sub_dnVec_TO_dnVect(dnQout,dnQout_new)
+        dnQin_new = dnQout_new
+
+        DO i=size(TwoDTransfo),1,-1
+
+          SELECT CASE (TwoDTransfo(i)%Type_2D)
+          CASE (0) ! identity
+            ! nothing
+          CASE (1) ! polar
+            STOP 'polar not yet'
+          CASE (2) ! Zundel: z,R => z'= z/(R-2d0) and R'=R
+
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            !write(out_unitp,*) 'i1,i2',i1,i2
+            CALL dnVec_TO_dnS(dnQin_new,dnz,i1)
+            CALL dnVec_TO_dnS(dnQin_new,dnR,i2)
+
+            dnz = dnz/(dnR-TwoDTransfo(i)%Twod0)
+
+            ! transfert dnZp in dnQin
+            CALL dnS_TO_dnVec(dnz,dnQin_new,i1)
+
+          CASE (3) ! spherical
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            !write(out_unitp,*) 'i1,i2',i1,i2
+            CALL dnVec_TO_dnS(dnQin_new,dntho, i1)
+            CALL dnVec_TO_dnS(dnQin_new,dnphio,i2)
+
+            dnXo = cos(dnphio) * sin(dntho)
+            dnYo = sin(dnphio) * sin(dntho)
+            dnZo = cos(dntho)
+
+            dnXn = cos(-TwoDTransfo(i)%theta) * dnXo - sin(-TwoDTransfo(i)%theta) * dnZo
+            dnYn = dnYo
+            dnZn = sin(-TwoDTransfo(i)%theta) * dnXo + cos(-TwoDTransfo(i)%theta) * dnZo
+
+            dnthn  = acos(dnZn)
+            dnphin = atan2(dnYn,dnXn)
+
+           ! transfert in dnQout
+           CALL dnS_TO_dnVec(dnthn,dnQin_new,i1)
+           CALL dnS_TO_dnVec(dnphin,dnQin_new,i2)
+
+           CALL dealloc_dnS(dnthn)
+           CALL dealloc_dnS(dnphin)
+           CALL dealloc_dnS(dnXn)
+           CALL dealloc_dnS(dnYn)
+           CALL dealloc_dnS(dnZn)
+           CALL dealloc_dnS(dntho)
+           CALL dealloc_dnS(dnphio)
+           CALL dealloc_dnS(dnXo)
+           CALL dealloc_dnS(dnYo)
+           CALL dealloc_dnS(dnZo)
+         CASE (-3) ! spherical
+            i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+            i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+            !write(out_unitp,*) 'i1,i2',i1,i2
+            CALL dnVec_TO_dnS(dnQin_new,dnctho, i1)
+            CALL dnVec_TO_dnS(dnQin_new,dnphio,i2)
+
+            dnXo = cos(dnphio) * sqrt(ONE-dnctho*dnctho)
+            dnYo = sin(dnphio) * sqrt(ONE-dnctho*dnctho)
+            dnZo = dnctho
+
+            dnXn = cos(-TwoDTransfo(i)%theta) * dnXo - sin(-TwoDTransfo(i)%theta) * dnZo
+            dnYn = dnYo
+            dnZn = sin(-TwoDTransfo(i)%theta) * dnXo + cos(-TwoDTransfo(i)%theta) * dnZo
+
+            dnthn  = dnZn
+            dnphin = atan2(dnYn,dnXn)
+
+           ! transfert in dnQout
+           CALL dnS_TO_dnVec(dnthn,dnQin_new,i1)
+           CALL dnS_TO_dnVec(dnphin,dnQin_new,i2)
+
+           CALL dealloc_dnS(dncthn)
+           CALL dealloc_dnS(dnphin)
+           CALL dealloc_dnS(dnXn)
+           CALL dealloc_dnS(dnYn)
+           CALL dealloc_dnS(dnZn)
+           CALL dealloc_dnS(dnctho)
+           CALL dealloc_dnS(dnphio)
+           CALL dealloc_dnS(dnXo)
+           CALL dealloc_dnS(dnYo)
+           CALL dealloc_dnS(dnZo)
+          CASE default ! ERROR: wrong transformation !
+            write(out_unitp,*) ' ERROR in ',name_sub
+            write(out_unitp,*) ' The type of TwoD transformation is UNKNOWN: ',TwoDTransfo%Type_2D
+            write(out_unitp,*) ' The possible values are:'
+            write(out_unitp,*) '    0: identity: x,y'
+            write(out_unitp,*) '    1: Polar: R,theta'
+            write(out_unitp,*) '    2: Zundel: z,R'
+            write(out_unitp,*) '    3: Spherical: rotation of the spherical angles'
+            write(out_unitp,*) ' Check your data !!'
+            STOP
+
+          END SELECT
+        END DO
+        CALL sub_dnVect_TO_dnVec(dnQin_new,dnQin)
+
+      END IF
+
+
+!---------------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unitp,*) 'END ',name_sub
+      END IF
+!---------------------------------------------------------------------
+      END SUBROUTINE calc_TwoDTransfo
+
+      SUBROUTINE calc0_TwoDTransfo(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
+        USE ADdnSVM_m
+
+        TYPE (Type_dnVec), intent(inout)              :: dnQin,dnQout
+        TYPE (Type_TwoDTransfo),pointer, intent(in)   :: TwoDTransfo(:)
+        integer, intent(in)                           :: nderiv
+        logical, intent(in)                           :: inTOout
+
+
         TYPE (Type_dnS) :: dnR,dnZ,dnZp,dntR
         TYPE (dnS_t)    :: dntho,dnctho,dnphio,  dnthn,dncthn,dnphin
         TYPE (dnS_t)    :: dnXo,dnYo,dnZo,dnXn,dnYn,dnZn
@@ -286,7 +534,7 @@
         integer :: dnErr
 
 !----- for debuging ----------------------------------
-       character (len=*),parameter :: name_sub='calc_TwoDTransfo'
+       character (len=*),parameter :: name_sub='calc0_TwoDTransfo'
        logical, parameter :: debug=.FALSE.
 !       logical, parameter :: debug=.TRUE.
 !----- for debuging ----------------------------------
@@ -547,8 +795,7 @@
         write(out_unitp,*) 'END ',name_sub
       END IF
 !---------------------------------------------------------------------
-      END SUBROUTINE calc_TwoDTransfo
-
+      END SUBROUTINE calc0_TwoDTransfo
       SUBROUTINE TwoDTransfo1TOTwoDTransfo2(TwoDTransfo1,TwoDTransfo2)
         TYPE (Type_TwoDTransfo),pointer, intent(in)    :: TwoDTransfo1(:)
         TYPE (Type_TwoDTransfo),pointer, intent(inout) :: TwoDTransfo2(:)
