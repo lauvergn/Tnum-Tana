@@ -1,3 +1,4 @@
+#!/bin/bash
 
 here=`pwd`
 DIR_EVRT=$here/..
@@ -10,7 +11,7 @@ $DIR_EVRT/Tnum90.exe << ** > res
 1000. 1 2
 
  &Coord_transfo name_transfo='TwoD' /
-   &TwoD name_2D='zundel' list_TwoD_coord=1,2 d0=1. / #tQ1=Q1/(Q2-2*d0) ; tQ2=Q2
+   &TwoD name_2D='x1-x2_rho-s' list_TwoD_coord=1,2 /
 
  &Coord_transfo name_transfo='active' /
 1 1 1
