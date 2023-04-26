@@ -44,7 +44,7 @@
       USE mod_RectilinearNM_Transfo
       USE mod_OneDTransfo
       USE mod_ThreeDTransfo
-      USE mod_TwoDTransfo
+      USE TwoDTransfo_m
       USE mod_Rot2CoordTransfo
       USE mod_FlexibleTransfo
       USE mod_GeneTransfo
@@ -88,7 +88,7 @@
           TYPE (Type_ProjectTransfo),   pointer :: ProjectTransfo      => null()
           TYPE (Type_oneDTransfo),      pointer :: oneDTransfo(:)      => null()
           TYPE (Type_ThreeDTransfo),    pointer :: ThreeDTransfo       => null()
-          TYPE (Type_TwoDTransfo),      pointer :: TwoDTransfo(:)      => null()
+          TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
           TYPE (Type_Rot2CoordTransfo), pointer :: Rot2CoordTransfo(:) => null()
           TYPE (Type_HyperSpheTransfo)          :: HyperSpheTransfo
           integer,                      pointer :: list_Qin_TO_Qout(:) => null() ! "order" transfo
@@ -1128,8 +1128,9 @@
                                             Qtransfo2%ThreeDTransfo)
 
       CASE ('twod')
-        CALL TwoDTransfo1TOTwoDTransfo2(Qtransfo1%TwoDTransfo,    &
-                                        Qtransfo2%TwoDTransfo)
+        Qtransfo2%TwoDTransfo = Qtransfo1%TwoDTransfo
+        !CALL TwoDTransfo1TOTwoDTransfo2(Qtransfo1%TwoDTransfo,    &
+         !                               Qtransfo2%TwoDTransfo)
 
       CASE ('rot2coord')
         CALL Rot2CoordTransfo1TORot2CoordTransfo2(                      &
