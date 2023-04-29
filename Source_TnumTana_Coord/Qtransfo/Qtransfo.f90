@@ -1203,12 +1203,15 @@
       !-----------------------------------------------------------------
   END SUBROUTINE Qtransfo1TOQtransfo2
   SUBROUTINE calc_Qtransfo(dnQin,dnQout,Qtransfo,nderiv,inTOout)
-        USE mod_MPI
+    USE ADdnSVM_m
+    USE mod_MPI
 
         TYPE (Type_dnVec),    intent(inout)        :: dnQin,dnQout
         TYPE (Type_Qtransfo), intent(in)           :: Qtransfo
         integer,              intent(in)           :: nderiv
         logical,              intent(in), optional :: inTOout
+
+        TYPE (dnVec_t)    :: dnQin_new,dnQout_new
 
         logical           :: inTOout_loc
         TYPE (Type_dnS)   :: dnR
@@ -1330,7 +1333,13 @@
         CALL calc_ThreeDTransfo(dnQin,dnQout,Qtransfo%ThreeDTransfo,nderiv,inTOout_loc)
 
       CASE ('twod')
-        CALL calc_TwoDTransfo(dnQin,dnQout,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
+        !CALL calc_TwoDTransfo(dnQin,dnQout,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
+
+        CALL sub_dnVec_TO_dnVect(dnQin,dnQin_new)
+        CALL sub_dnVec_TO_dnVect(dnQout,dnQout_new)
+        CALL calc_TwoDTransfo_new(dnQin_new,dnQout_new,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
+        CALL sub_dnVect_TO_dnVec(dnQin_new,dnQin)
+        CALL sub_dnVect_TO_dnVec(dnQout_new,dnQout)
 
       CASE ('rot2coord')
         CALL calc_Rot2CoordTransfo(dnQin,dnQout,Qtransfo%Rot2CoordTransfo,nderiv,inTOout_loc)

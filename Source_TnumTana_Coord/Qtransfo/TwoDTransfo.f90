@@ -47,7 +47,7 @@ MODULE TwoDTransfo_m
   END TYPE TwoDTransfo_t
 
   PUBLIC :: TwoDTransfo_t, alloc_TwoDTransfo, dealloc_TwoDTransfo
-  PUBLIC :: Read_TwoDTransfo, Write_TwoDTransfo, calc_TwoDTransfo
+  PUBLIC :: Read_TwoDTransfo, Write_TwoDTransfo, calc_TwoDTransfo,calc_TwoDTransfo_new
 
 CONTAINS
 
@@ -225,16 +225,16 @@ CONTAINS
   SUBROUTINE Write_TwoDTransfo(TwoDTransfo)
     IMPLICIT NONE
 
-      TYPE (TwoDTransfo_t), allocatable, intent(in) :: TwoDTransfo(:)
+    TYPE (TwoDTransfo_t), allocatable, intent(in) :: TwoDTransfo(:)
 
-      integer :: i,err_mem,memory
-      character (len=*), parameter :: name_sub='Write_TwoDTransfo'
+    integer :: i,err_mem,memory
+    character (len=*), parameter :: name_sub='Write_TwoDTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'alloc TwoDTransfo: ',allocated(TwoDTransfo)
-      write(out_unitp,*) 'nb_transfo:        ',size(TwoDTransfo)
+    write(out_unitp,*) 'BEGINNING ',name_sub
+    write(out_unitp,*) 'alloc TwoDTransfo: ',allocated(TwoDTransfo)
+    write(out_unitp,*) 'nb_transfo:        ',size(TwoDTransfo)
 
-      IF (allocated(TwoDTransfo)) THEN
+    IF (allocated(TwoDTransfo)) THEN
       DO i=1,size(TwoDTransfo)
         write(out_unitp,*) 'Type_2D:           ',TwoDTransfo(i)%Type_2D
         IF (allocated(TwoDTransfo(i)%name_Transfo_2D)) THEN
@@ -251,10 +251,101 @@ CONTAINS
           write(out_unitp,*) 'theta,phi:         ',TwoDTransfo(i)%theta,TwoDTransfo(i)%phi
         END IF
       END DO
-      END IF
-      write(out_unitp,*) 'END ',name_sub
+    END IF
+    write(out_unitp,*) 'END ',name_sub
 
   END SUBROUTINE Write_TwoDTransfo
+  SUBROUTINE calc_TwoDTransfo_new(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
+    USE ADdnSVM_m
+    USE mod_dnSVM
+    IMPLICIT NONE
+
+    TYPE (dnVec_t),                   intent(inout) :: dnQin,dnQout
+    TYPE (TwoDTransfo_t),allocatable, intent(in)    :: TwoDTransfo(:)
+    integer, intent(in)                             :: nderiv
+    logical, intent(in)                             :: inTOout
+
+
+    TYPE (dnS_t)    :: dnQ1,dnQ2
+    TYPE (dnS_t)    :: dntQ1,dntQ2
+
+    integer :: i,i1,i2,Type_2D
+    integer :: dnErr
+
+    !----- for debuging ----------------------------------
+    character (len=*),parameter :: name_sub='calc_TwoDTransfo_new'
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !----- for debuging ----------------------------------
+
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'with dnS_t and dnVec_t'
+      IF (inTOout) THEN
+        CALL Write_dnVec(dnQin,info='dnQin')
+      ELSE
+        CALL Write_dnVec(dnQout,info='dnQout')
+      END IF
+    END IF
+    !---------------------------------------------------------------------
+
+    IF (.NOT. allocated(TwoDTransfo)) THEN
+      write(out_unitp,*) ' ERROR in ',name_sub
+      write(out_unitp,*) ' TwoDTransfo is NOT allocated'
+      write(out_unitp,*) ' Check source !!'
+      STOP 'ERROR in calc_TwoDTransfo: TwoDTransfo is NOT allocated'
+    END IF
+
+    IF (inTOout) THEN
+      dnQout = dnQin
+
+      DO i=size(TwoDTransfo),1,-1
+        Type_2D = TwoDTransfo(i)%Type_2D
+
+        i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+        i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+        CALL dnVec_TO_dnS(dnQout,dnQ1,i1)
+        CALL dnVec_TO_dnS(dnQout,dnQ2,i2)
+
+        CALL calc_One_TwoDTransfo(dntQ1,dntQ2,dnQ1,dnQ2,TwoDTransfo(i),Type_2D)
+
+        CALL dnS_TO_dnVec(dntQ1,dnQout,i1)
+        CALL dnS_TO_dnVec(dntQ2,dnQout,i2)
+      END DO
+
+    ELSE
+      dnQin = dnQout
+
+      DO i=1,size(TwoDTransfo)
+        Type_2D = -TwoDTransfo(i)%Type_2D
+
+        i1 = TwoDTransfo(i)%list_TwoD_coord(1)
+        i2 = TwoDTransfo(i)%list_TwoD_coord(2)
+
+        CALL dnVec_TO_dnS(dnQin,dnQ1,i1)
+        CALL dnVec_TO_dnS(dnQin,dnQ2,i2)
+
+        CALL calc_One_TwoDTransfo(dntQ1,dntQ2,dnQ1,dnQ2,TwoDTransfo(i),Type_2D)
+
+        CALL dnS_TO_dnVec(dntQ1,dnQin,i1)
+        CALL dnS_TO_dnVec(dntQ2,dnQin,i2)
+      END DO
+    END IF
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      IF (inTOout) THEN
+        CALL Write_dnVec(dnQout,info='dnQout')
+      ELSE
+        CALL Write_dnVec(dnQin,info='dnQin')
+      END IF
+      write(out_unitp,*) 'END ',name_sub
+    END IF
+    !---------------------------------------------------------------------
+  END SUBROUTINE calc_TwoDTransfo_new
   SUBROUTINE calc_TwoDTransfo(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
     USE ADdnSVM_m
     USE mod_dnSVM
