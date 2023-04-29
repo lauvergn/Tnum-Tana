@@ -297,7 +297,7 @@
 
       integer :: i,it,nb_flex_act,err,nbcol
 
-      logical                    :: inTOout,skip_transfo
+      logical                    :: inTOout,skip_transfo,Reverse
       integer                    :: iQin,type_oneD
       character (len=Name_len)   :: name_oneD
       real (kind=Rkind)          :: cte(20)

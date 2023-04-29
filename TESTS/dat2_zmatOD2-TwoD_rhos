@@ -11,8 +11,8 @@ $DIR_EVRT/Tnum90.exe << ** > res
 1000. 1 2
 
  &Coord_transfo name_transfo='TwoD' nb_Transfo=2 /
-   &TwoD name_2D='rho-s_x1-x2' list_TwoD_coord=1,2 /
    &TwoD name_2D='x1-x2_rho-s' list_TwoD_coord=1,2 /
+   &TwoD name_2D='rho-s_x1-x2' list_TwoD_coord=1,2 /
 
  &Coord_transfo name_transfo='active' /
 1 1 1

@@ -1129,8 +1129,6 @@
 
       CASE ('twod')
         Qtransfo2%TwoDTransfo = Qtransfo1%TwoDTransfo
-        !CALL TwoDTransfo1TOTwoDTransfo2(Qtransfo1%TwoDTransfo,    &
-         !                               Qtransfo2%TwoDTransfo)
 
       CASE ('rot2coord')
         CALL Rot2CoordTransfo1TORot2CoordTransfo2(                      &
