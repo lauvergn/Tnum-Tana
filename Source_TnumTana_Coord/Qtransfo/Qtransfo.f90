@@ -43,11 +43,9 @@
       USE mod_ZmatTransfo
       USE mod_RectilinearNM_Transfo
       USE mod_OneDTransfo
-      USE mod_ThreeDTransfo
       USE TwoDTransfo_m
-      USE mod_Rot2CoordTransfo
+      USE Rot2CoordTransfo_m
       USE mod_FlexibleTransfo
-      USE mod_GeneTransfo
       USE mod_HyperSpheTransfo
       USE mod_LinearNMTransfo
       USE mod_ProjectTransfo
@@ -83,13 +81,11 @@
 
           TYPE (Type_LinearTransfo)         :: LinearTransfo
           TYPE (Type_FlexibleTransfo)       :: FlexibleTransfo
-          TYPE (Type_GeneTransfo)           :: GeneTransfo
 
           TYPE (Type_ProjectTransfo),   pointer :: ProjectTransfo      => null()
           TYPE (Type_oneDTransfo),      pointer :: oneDTransfo(:)      => null()
-          TYPE (Type_ThreeDTransfo),    pointer :: ThreeDTransfo       => null()
           TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
-          TYPE (Type_Rot2CoordTransfo), pointer :: Rot2CoordTransfo(:) => null()
+          TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
           TYPE (Type_HyperSpheTransfo)          :: HyperSpheTransfo
           integer,                      pointer :: list_Qin_TO_Qout(:) => null() ! "order" transfo
 
@@ -471,15 +467,6 @@
           CALL sub_Type_Name_OF_Qin(Qtransfo,"InfiniteRange")
           Qtransfo%type_Qin(:) = 0
 
-        CASE ('threed')
-          Tana_Is_Possible = .FALSE.
-          Qtransfo%nb_Qin  = nb_Qin
-
-          CALL Read_ThreeDTransfo(Qtransfo%ThreeDTransfo,nb_Qin)
-
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Q3D")
-          Qtransfo%type_Qin(:) =0
-
         CASE ('twod')
           Tana_Is_Possible = .FALSE.
           Qtransfo%nb_Qin  = nb_Qin
@@ -507,14 +494,6 @@
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qflex")
           Qtransfo%type_Qin(:) = Qtransfo%type_Qout(:)
-
-        CASE ('gene')
-          Tana_Is_Possible = .FALSE.
-          Qtransfo%nb_Qin  = nb_Qin
-          CALL Read_GeneTransfo(Qtransfo%GeneTransfo,nb_Qin)
-
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qgene")
-          Qtransfo%type_Qin(:) = 0
 
         CASE ('active') ! the last read transformation
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
@@ -856,9 +835,6 @@
           CALL dealloc_array(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
         END IF
 
-        ! ==== geneTransfo ========================
-        CALL dealloc_GeneTransfo(Qtransfo%GeneTransfo)
-
         ! ==== HyperSpheTransfo ========================
         Qtransfo%HyperSpheTransfo%nb_HyperSphe = 0
         IF (associated(Qtransfo%HyperSpheTransfo%list_HyperSphe) ) THEN
@@ -868,9 +844,6 @@
 
         ! ==== oneDTransfo ========================
         CALL dealloc_oneDTransfo(Qtransfo%oneDtransfo)
-
-        ! ==== ThreeDTransfo ========================
-        CALL dealloc_ThreeDTransfo(Qtransfo%ThreeDTransfo)
         ! ==== TwoDTransfo ========================
         CALL dealloc_TwoDTransfo(Qtransfo%TwoDTransfo)
         ! ==== Rot2CoordTransfo ========================
@@ -1123,24 +1096,15 @@
         CALL oneDTransfo1TOoneDTransfo2(Qtransfo1%oneDTransfo,          &
                                         Qtransfo2%oneDTransfo)
 
-      CASE ('threed')
-        CALL ThreeDTransfo1TOThreeDTransfo2(Qtransfo1%ThreeDTransfo,    &
-                                            Qtransfo2%ThreeDTransfo)
-
       CASE ('twod')
         Qtransfo2%TwoDTransfo = Qtransfo1%TwoDTransfo
 
       CASE ('rot2coord')
-        CALL Rot2CoordTransfo1TORot2CoordTransfo2(                      &
-                  Qtransfo1%Rot2CoordTransfo,Qtransfo2%Rot2CoordTransfo)
+        Qtransfo2%Rot2CoordTransfo = Qtransfo1%Rot2CoordTransfo
 
       CASE ('flexible')
         CALL FlexibleTransfo1TOFlexibleTransfo2(                        &
                     Qtransfo1%FlexibleTransfo,Qtransfo2%FlexibleTransfo)
-
-      CASE ('gene')
-        CALL GeneTransfo1TOGeneTransfo2(Qtransfo1%GeneTransfo,          &
-                                        Qtransfo2%GeneTransfo)
 
       CASE ('active')
         IF (associated(Qtransfo1%ActiveTransfo)) THEN
@@ -1329,26 +1293,36 @@
       CASE ('oned','infrange','infiniterange')
         CALL calc_oneDTransfo(dnQin,dnQout,Qtransfo%oneDTransfo,nderiv,inTOout_loc)
 
-      CASE ('threed')
-        CALL calc_ThreeDTransfo(dnQin,dnQout,Qtransfo%ThreeDTransfo,nderiv,inTOout_loc)
-
       CASE ('twod')
         !CALL calc_TwoDTransfo(dnQin,dnQout,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
 
-        CALL sub_dnVec_TO_dnVect(dnQin,dnQin_new)
-        CALL sub_dnVec_TO_dnVect(dnQout,dnQout_new)
+        IF (inTOout_loc) THEN
+          CALL sub_dnVec_TO_dnVect(dnQin,dnQin_new)
+        ELSE
+          CALL sub_dnVec_TO_dnVect(dnQout,dnQout_new)
+        END IF
         CALL calc_TwoDTransfo_new(dnQin_new,dnQout_new,Qtransfo%TwoDTransfo,nderiv,inTOout_loc)
-        CALL sub_dnVect_TO_dnVec(dnQin_new,dnQin)
-        CALL sub_dnVect_TO_dnVec(dnQout_new,dnQout)
+        IF (inTOout_loc) THEN
+          CALL sub_dnVect_TO_dnVec(dnQout_new,dnQout)
+        ELSE
+          CALL sub_dnVect_TO_dnVec(dnQin_new,dnQin)
+        END IF
 
       CASE ('rot2coord')
-        CALL calc_Rot2CoordTransfo(dnQin,dnQout,Qtransfo%Rot2CoordTransfo,nderiv,inTOout_loc)
+        IF (inTOout_loc) THEN
+          CALL sub_dnVec_TO_dnVect(dnQin,dnQin_new)
+        ELSE
+          CALL sub_dnVec_TO_dnVect(dnQout,dnQout_new)
+        END IF
+        CALL calc_Rot2CoordTransfo(dnQin_new,dnQout_new,Qtransfo%Rot2CoordTransfo,nderiv,inTOout_loc)
+        IF (inTOout_loc) THEN
+          CALL sub_dnVect_TO_dnVec(dnQout_new,dnQout)
+        ELSE
+          CALL sub_dnVect_TO_dnVec(dnQin_new,dnQin)
+        END IF
 
       CASE ('flexible')
         CALL calc_FlexibleTransfo(dnQin,dnQout,Qtransfo%FlexibleTransfo,nderiv,inTOout_loc)
-
-      CASE ('gene')
-        CALL calc_GeneTransfo(dnQin,dnQout,Qtransfo%GeneTransfo,nderiv,inTOout_loc)
 
       CASE ('active') ! it has to be the first one, but the last one read
         CALL calc_ActiveTransfo(dnQin,dnQout,Qtransfo%ActiveTransfo,nderiv,inTOout_loc)
@@ -1578,9 +1552,6 @@
           END IF
           CALL Write_oneDTransfo(Qtransfo%oneDTransfo)
 
-        CASE ('threed')
-          CALL Write_ThreeDTransfo(Qtransfo%ThreeDTransfo)
-
         CASE ('twod')
           CALL Write_TwoDTransfo(Qtransfo%TwoDTransfo)
 
@@ -1593,9 +1564,6 @@
                  Qtransfo%FlexibleTransfo%list_act(1:nb_flex_act)
           write(out_unitp,*) 'flex: ',                                  &
                                Qtransfo%FlexibleTransfo%list_flex(:)
-
-        CASE ('gene')
-          CALL Write_GeneTransfo(Qtransfo%GeneTransfo)
 
         CASE ('active')
           CALL Write_ActiveTransfo(Qtransfo%ActiveTransfo)

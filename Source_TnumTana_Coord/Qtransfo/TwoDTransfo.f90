@@ -257,7 +257,6 @@ CONTAINS
   END SUBROUTINE Write_TwoDTransfo
   SUBROUTINE calc_TwoDTransfo_new(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
     USE ADdnSVM_m
-    USE mod_dnSVM
     IMPLICIT NONE
 
     TYPE (dnVec_t),                   intent(inout) :: dnQin,dnQout
