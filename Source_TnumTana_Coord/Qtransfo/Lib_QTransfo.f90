@@ -52,7 +52,7 @@ MODULE mod_Lib_QTransfo
       PUBLIC :: calc_vector, calc_vector2, calc_cross_product
       PUBLIC :: calc_angle, calc_angle_d, calc_OutOfPlane
       PUBLIC :: check_Valence, func_ic, func_iat
-      PUBLIC :: calc_Tab_dnQflex_gene,calc_Tab_dnGradHess_gene
+      PUBLIC :: calc_Tab_dnQflex_QML,calc_Tab_dnQflex_NotQML,calc_Tab_dnQflex_gene,calc_Tab_dnGradHess_gene
       PUBLIC :: make_nameQ
 
       CONTAINS
@@ -1231,8 +1231,209 @@ MODULE mod_Lib_QTransfo
         STOP 'ERROR in func_iat, if<1'
       END IF
 
-      end function func_iat
+  end function func_iat
 
+
+  SUBROUTINE calc_Tab_dnQflex_QML(Tab_dnQflex,dnQact,nderiv,list_Type_var,list_QMLMapping)
+    USE mod_system
+    USE ADdnSVM_m
+    USE Model_m
+    IMPLICIT NONE
+
+    TYPE (dnS_t),       intent(inout)  :: Tab_dnQflex(:)
+    TYPE (dnS_t),       intent(inout)  :: dnQact(:)
+
+    integer,            intent(in)     :: nderiv
+    integer,            intent(in)     :: list_Type_var(:)
+    integer,            intent(in)     :: list_QMLMapping(:)
+
+    integer :: i_Qdyn,type_var
+
+    ! for QML
+    integer :: ndim,nsurf,nb_Func,ndimFunc,ifunc
+    TYPE (dnS_t), allocatable  :: dnFunc(:)
+
+
+    !----- for debuging ----------------------------------
+    character (len=*), parameter :: name_sub='calc_Tab_dnQflex_QML'
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !----- for debuging ----------------------------------
+
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'Qact',get_d0(dnQact)
+      write(out_unitp,*) 'nderiv',nderiv
+      write(out_unitp,*) 'list_Type_var',list_Type_var
+      write(out_unitp,*) 'list_QMLMapping',list_QMLMapping
+      flush(out_unitp)
+    END IF
+    !---------------------------------------------------------------------
+    
+    IF (debug) write(out_unitp,*) 'in ',name_sub,' with QML'
+
+    CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
+
+    IF (debug) write(out_unitp,*) 'nb_Func,ndimFunc',nb_Func,ndimFunc
+
+    allocate(dnFunc(nb_Func))
+    CALL QuantumModel%QM%EvalFunc_QModel(dnFunc,dnQact,nderiv=nderiv)
+
+    DO i_Qdyn=1,size(list_Type_var)
+      type_var = list_Type_var(i_Qdyn)
+      ifunc = list_QMLMapping(i_Qdyn)
+      IF (type_var == 20 .OR. type_var == 21) THEN
+        IF (debug) write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+        Tab_dnQflex(i_Qdyn) = dnFunc(ifunc)
+      ELSE IF (type_var == 200) THEN ! just the value. No derivative
+        IF (debug) write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+        CALL set_dnS(Tab_dnQflex(i_Qdyn),get_d0(dnFunc(ifunc)))
+      END IF
+    END DO
+
+    CALL dealloc_dnS(dnFunc)
+    deallocate(dnFunc)
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      DO i_Qdyn=1,size(list_Type_var)
+        write(out_unitp,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
+        CALL write_dnS(tab_dnQflex(i_Qdyn))
+      END DO
+      write(out_unitp,*) 'END ',name_sub
+      flush(out_unitp)
+    END IF
+  END SUBROUTINE calc_Tab_dnQflex_QML
+
+
+  SUBROUTINE calc_Tab_dnQflex_NotQML(Tab_dnQflex,nb_var,dnQact,nb_act1,nderiv,it,list_Type_var,With_Tab_dnQflex)
+    USE mod_system
+    USE mod_dnSVM
+    USE ADdnSVM_m
+    IMPLICIT NONE
+
+    TYPE (dnS_t),       intent(inout)  :: Tab_dnQflex(:)
+
+    integer,            intent(in)     :: nb_var,nb_act1
+    TYPE (dnS_t),       intent(in)     :: dnQact(:)
+    integer,            intent(in)     :: nderiv,it
+    integer,            intent(in)     :: list_Type_var(:)
+    logical,            intent(in)     :: With_Tab_dnQflex
+
+
+    TYPE (Type_dnS)         :: Tab_dnQflex_loc(nb_var)
+    real (kind=Rkind)       :: Qact(nb_act1)
+    integer                 :: i,j,i_Qdyn,type_var,nVarBig
+    TYPE (dnS_t) :: dnQflex
+    real(kind=Rkind), allocatable  :: d0
+    real(kind=Rkind), allocatable  :: d1(:)
+    real(kind=Rkind), allocatable  :: d2(:,:)
+    real(kind=Rkind), allocatable  :: d3(:,:,:)
+  
+
+    !----- for debuging ----------------------------------
+    character (len=*), parameter :: name_sub='calc_Tab_dnQflex_NotQML'
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !----- for debuging ----------------------------------
+
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'Qact',get_d0(dnQact)
+      write(out_unitp,*) 'nb_var,nb_act1',nb_var,nb_act1
+      write(out_unitp,*) 'nderiv,it',nderiv,it
+      write(out_unitp,*) 'list_Type_var',list_Type_var
+      write(out_unitp,*) 'With_Tab_dnQflex',With_Tab_dnQflex
+      flush(out_unitp)
+    END IF
+    !---------------------------------------------------------------------
+
+    Qact(:) = get_d0(dnQact)
+
+    DO i_Qdyn=1,nb_var
+      type_var = list_Type_var(i_Qdyn)
+      IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
+        CALL alloc_dnSVM(Tab_dnQflex_loc(i_Qdyn),nb_act1,nderiv)
+        IF (debug) write(out_unitp,*) 'i_Qdyn,type_var',i_Qdyn,type_var
+      END IF
+    END DO
+
+    IF (With_Tab_dnQflex) THEN
+      IF (debug) write(out_unitp,*) 'in ',name_sub,' with Tab_dnQflex'
+      CALL Calc_tab_dnQflex(Tab_dnQflex_loc,nb_var,Qact,nb_act1,nderiv,it)
+    ELSE
+      IF (debug) write(out_unitp,*) 'in ',name_sub,' with dnQflex'
+    
+      DO i_Qdyn=1,nb_var
+        type_var = list_Type_var(i_Qdyn)
+    
+        IF (type_var == 20 .OR. type_var == 21) THEN
+          CALL calc_dnQflex(i_Qdyn,Tab_dnQflex_loc(i_Qdyn),Qact,nb_act1,nderiv,it)
+        ELSE IF (type_var == 200) THEN
+          CALL calc_dnQflex(i_Qdyn,Tab_dnQflex_loc(i_Qdyn),Qact,nb_act1,0,it)
+        END IF
+
+      END DO
+
+    END IF
+
+    !- Tab_dnQflex_loc => Tab_dnQflex  --------------------------------
+    nVarBig = get_nVar(Tab_dnQflex(1))
+    IF (nderiv > 0) allocate(d1(nVarBig))
+    IF (nderiv > 1) THEN
+      allocate(d2(nVarBig,nVarBig))
+      d2 = ZERO
+    END IF
+    IF (nderiv > 2) THEN
+      allocate(d3(nVarBig,nVarBig,nVarBig))
+      d3 = ZERO
+    END IF
+STOP 'calc_Tab_dnQflex_NotQML: not yet'
+    DO i_Qdyn=1,nb_var
+      type_var = list_Type_var(i_Qdyn)
+      IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
+        !CALL sub_dnVec_TO_dnSt(Tab_dnQflex_loc,dnQflex,i_Qdyn) ! here the derivative are only along Qact(:)
+        IF (get_nVar(dnQflex) /= size(dnQact)) STOP 'ERROR in calc_Tab_dnQflex_NotQML: wrong size'
+        IF (nderiv > 0) THEN
+          d1 = ZERO
+          DO i=1,nb_act1
+!            d1(:) = d1 + dnQflex%d1(i) * get_d1(dnQact(i))
+          END DO
+        END IF
+        IF (nderiv > 1) THEN
+          d2 = ZERO
+          DO i=1,nb_act1
+          DO j=1,nb_act1
+!            d2(:,:) = d2 + dnQflex%d1(i) * get_d1(dnQact(i))
+          END DO
+          END DO
+        END IF
+      END IF
+    END DO
+    !------------------------------------------------------------------
+
+    !- deallocation -----------------------------------------------------
+    DO i_Qdyn=1,nb_var
+      type_var = list_Type_var(i_Qdyn)
+      IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
+        CALL dealloc_dnSVM(Tab_dnQflex_loc(i_Qdyn))
+      END IF
+    END DO
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      DO i_Qdyn=1,nb_var
+        write(out_unitp,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
+        !CALL write_dnS(tab_dnQflex(i_Qdyn),nderiv)
+      END DO
+      write(out_unitp,*) 'END ',name_sub
+      flush(out_unitp)
+    END IF
+
+END SUBROUTINE calc_Tab_dnQflex_NotQML
 SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     &
                                  list_Type_var,list_QMLMapping,QMlib,With_Tab_dnQflex)
   USE mod_system

@@ -1103,8 +1103,7 @@
         Qtransfo2%Rot2CoordTransfo = Qtransfo1%Rot2CoordTransfo
 
       CASE ('flexible')
-        CALL FlexibleTransfo1TOFlexibleTransfo2(                        &
-                    Qtransfo1%FlexibleTransfo,Qtransfo2%FlexibleTransfo)
+        Qtransfo2%FlexibleTransfo = Qtransfo1%FlexibleTransfo
 
       CASE ('active')
         IF (associated(Qtransfo1%ActiveTransfo)) THEN
@@ -1322,7 +1321,9 @@
         END IF
 
       CASE ('flexible')
-        CALL calc_FlexibleTransfo(dnQin,dnQout,Qtransfo%FlexibleTransfo,nderiv,inTOout_loc)
+        !CALL calc_FlexibleTransfo(dnQin,dnQout,Qtransfo%FlexibleTransfo,nderiv,inTOout_loc)
+        CALL calc_FlexibleTransfo_new(dnQin,dnQout,Qtransfo%FlexibleTransfo,nderiv,inTOout_loc)
+        
 
       CASE ('active') ! it has to be the first one, but the last one read
         CALL calc_ActiveTransfo(dnQin,dnQout,Qtransfo%ActiveTransfo,nderiv,inTOout_loc)

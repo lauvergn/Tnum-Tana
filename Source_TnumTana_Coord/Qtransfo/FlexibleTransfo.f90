@@ -32,42 +32,41 @@
 !
 !===========================================================================
 !===========================================================================
-      MODULE mod_FlexibleTransfo
-      use mod_system
-      use mod_dnSVM, only: type_dnvec, type_dns, check_alloc_dnvec,    &
+MODULE mod_FlexibleTransfo
+  use mod_system
+  use mod_dnSVM, only: type_dnvec, type_dns, check_alloc_dnvec,    &
                            alloc_dnsvm, sub_dnvec1_to_dnvec2_withivec, &
                            dealloc_dnsvm, write_dnvec, sub_dnS1_TO_dnS2
-      IMPLICIT NONE
+  IMPLICIT NONE
 
-      PRIVATE
+  PRIVATE
 
-      !!@description: TODO
-      !!@param: TODO
-      TYPE Type_FlexibleTransfo
-        integer              :: nb_flex_act  = 0
-        integer, allocatable :: list_flex(:)
-        integer, allocatable :: list_QMLMapping(:) ! mapping ifunc of QML and list_flex
-        integer, allocatable :: list_act(:)
+  !!@description: TODO
+  !!@param: TODO
+  TYPE Type_FlexibleTransfo
+    integer              :: nb_flex_act  = 0
+    integer, allocatable :: list_flex(:)
+    integer, allocatable :: list_QMLMapping(:) ! mapping ifunc of QML and list_flex
+    integer, allocatable :: list_act(:)
 
-        logical              :: With_Tab_dnQflex    = .FALSE.
-        logical              :: QMLib               = .FALSE.
+    logical              :: With_Tab_dnQflex    = .FALSE.
+    logical              :: QMLib               = .FALSE.
 
-        CONTAINS
-            PROCEDURE :: Read_FlexibleTransfo
-            GENERIC :: QtransfoRead => Read_FlexibleTransfo
-      END TYPE Type_FlexibleTransfo
+  CONTAINS
+    PROCEDURE :: Read_FlexibleTransfo
+    GENERIC :: QtransfoRead => Read_FlexibleTransfo
+  END TYPE Type_FlexibleTransfo
 
-      PUBLIC :: Type_FlexibleTransfo, Read_FlexibleTransfo
-      PUBLIC :: alloc_FlexibleTransfo, dealloc_FlexibleTransfo
-      PUBLIC :: FlexibleTransfo1TOFlexibleTransfo2
-      PUBLIC :: calc_FlexibleTransfo
+  PUBLIC :: Type_FlexibleTransfo, Read_FlexibleTransfo
+  PUBLIC :: alloc_FlexibleTransfo, dealloc_FlexibleTransfo
+  PUBLIC :: calc_FlexibleTransfo, calc_FlexibleTransfo_new
 
-      CONTAINS
+CONTAINS
 
 !=======================================================================
 !     Felxible transfo
 !=======================================================================
-      SUBROUTINE alloc_FlexibleTransfo(FlexibleTransfo,nb_Qin)
+  SUBROUTINE alloc_FlexibleTransfo(FlexibleTransfo,nb_Qin)
       TYPE (Type_FlexibleTransfo), intent(inout) :: FlexibleTransfo
       integer                    , intent(in)    :: nb_Qin
       integer :: err_mem,memory
@@ -86,9 +85,9 @@
                         "FlexibleTransfo%list_QMLMapping","alloc_FlexibleTransfo")
       FlexibleTransfo%list_QMLMapping(:) = 0
 
-      END SUBROUTINE alloc_FlexibleTransfo
+  END SUBROUTINE alloc_FlexibleTransfo
 
-      SUBROUTINE dealloc_FlexibleTransfo(FlexibleTransfo)
+  SUBROUTINE dealloc_FlexibleTransfo(FlexibleTransfo)
       TYPE (Type_FlexibleTransfo), intent(inout) :: FlexibleTransfo
       integer :: err_mem,memory
 
@@ -109,32 +108,9 @@
                             "FlexibleTransfo%list_QMLMapping","dealloc_FlexibleTransfo")
       END IF
 
-      END SUBROUTINE dealloc_FlexibleTransfo
+  END SUBROUTINE dealloc_FlexibleTransfo
 
-      SUBROUTINE FlexibleTransfo1TOFlexibleTransfo2(FlexibleTransfo1,FlexibleTransfo2)
-
-      !-- FlexibleTransfo --------------------------------------
-      TYPE (Type_FlexibleTransfo), intent(in)    :: FlexibleTransfo1
-      TYPE (Type_FlexibleTransfo), intent(inout) :: FlexibleTransfo2
-
-      integer :: nb_Qin
-      character (len=*), parameter :: name_sub = 'FlexibleTransfo1TOFlexibleTransfo2'
-
-      nb_Qin = size(FlexibleTransfo1%list_flex)
-
-      CALL alloc_FlexibleTransfo(FlexibleTransfo2,nb_Qin)
-
-      FlexibleTransfo2%nb_flex_act      = FlexibleTransfo1%nb_flex_act
-      FlexibleTransfo2%list_flex        = FlexibleTransfo1%list_flex
-      FlexibleTransfo2%list_QMLMapping  = FlexibleTransfo1%list_QMLMapping
-      FlexibleTransfo2%list_act         = FlexibleTransfo1%list_act
-
-      FlexibleTransfo2%With_Tab_dnQflex = FlexibleTransfo1%With_Tab_dnQflex
-      FlexibleTransfo2%QMLib            = FlexibleTransfo1%QMLib
-
-      END SUBROUTINE FlexibleTransfo1TOFlexibleTransfo2
-
-      SUBROUTINE Read_FlexibleTransfo(FlexibleTransfo,nb_Qin,                   &
+  SUBROUTINE Read_FlexibleTransfo(FlexibleTransfo,nb_Qin,                   &
                                       With_Tab_dnQflex,QMLib,list_flex,         &
                                       list_QMLMapping)
 
@@ -229,11 +205,11 @@
 
       END IF
 
-      END SUBROUTINE Read_FlexibleTransfo
+  END SUBROUTINE Read_FlexibleTransfo
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE calc_FlexibleTransfo(dnQin,dnQout,FlexibleTransfo,nderiv,inTOout)
+  SUBROUTINE calc_FlexibleTransfo(dnQin,dnQout,FlexibleTransfo,nderiv,inTOout)
         USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_gene
 
         TYPE (Type_dnVec),           intent(inout)  :: dnQin,dnQout
@@ -434,6 +410,109 @@
       END IF
       !stop
 !---------------------------------------------------------------------
-      END SUBROUTINE calc_FlexibleTransfo
+  END SUBROUTINE calc_FlexibleTransfo
+  SUBROUTINE calc_FlexibleTransfo_new(dnQin,dnQout,FlexibleTransfo,nderiv,inTOout)
+    USE ADdnSVM_m
+    use mod_dnSVM
+    USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_NotQML,calc_Tab_dnQflex_QML
 
-      END MODULE mod_FlexibleTransfo
+    TYPE (Type_dnVec),           intent(inout)  :: dnQin,dnQout
+    TYPE (Type_flexibleTransfo), intent(in)     :: FlexibleTransfo
+    integer,                     intent(in)     :: nderiv
+    logical                                     :: inTOout
+
+    TYPE (dnS_t), allocatable  :: tab_dnQflex(:)
+    TYPE (dnS_t)               :: dnQact_flex(FlexibleTransfo%nb_flex_act)
+    TYPE (dnS_t)               :: dnQ
+
+    integer           :: nb_flex_act
+    integer           :: list_act(FlexibleTransfo%nb_flex_act)
+    integer           :: iQ,nb_flex
+
+    !----- for debuging ----------------------------------
+    character (len=*),parameter :: name_sub='calc_FlexibleTransfo_new'
+    !logical, parameter :: debug=.FALSE.
+    logical, parameter :: debug=.TRUE.
+    !----- for debuging ----------------------------------
+
+    nb_flex_act = FlexibleTransfo%nb_flex_act
+    list_act(:) = FlexibleTransfo%list_act(1:nb_flex_act)
+
+    IF (debug) THEN
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'nb_flex_act',nb_flex_act
+      write(out_unitp,*) 'list_act ',FlexibleTransfo%list_act
+      write(out_unitp,*) 'list_flex',FlexibleTransfo%list_flex
+      flush(out_unitp)
+    END IF
+    !---------------------------------------------------------------------
+
+    CALL check_alloc_dnVec(dnQin,'dnQin',name_sub)
+    CALL check_alloc_dnVec(dnQout,'dnQout',name_sub)
+
+    IF (inTOout) THEN
+      DO iQ=1,size(list_act)
+        CALL sub_dnVec_TO_dnSt(dnQin,dnQact_flex(iQ),list_act(iQ))
+      END DO
+    ELSE
+      DO iQ=1,size(list_act)
+        CALL sub_dnVec_TO_dnSt(dnQout,dnQact_flex(iQ),list_act(iQ))
+      END DO
+    END IF
+
+    nb_flex = count(FlexibleTransfo%list_flex == 20)
+    IF (nb_flex > 0) THEN
+      IF (FlexibleTransfo%QMLib) THEN
+        allocate(tab_dnQflex(dnQin%nb_var_vec))
+        CALL calc_Tab_dnQflex_QML(Tab_dnQflex,dnQact_flex,nderiv,             &
+                                  FlexibleTransfo%list_flex,                  &
+                                  FlexibleTransfo%list_QMLMapping)
+      ELSE
+        STOP 'calc_Tab_dnQflex_NotQML not yet'
+        !CALL calc_Tab_dnQflex_NotQML(Tab_dnQflex,dnQact_flex,nb_flex_act,nderiv,-1,       &
+        !                          FlexibleTransfo%list_flex,                  &
+        !                          FlexibleTransfo%With_Tab_dnQflex)
+      END IF
+    END IF
+
+    IF (inTOout) THEN
+
+      !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+      DO iQ=1,dnQin%nb_var_vec
+        IF (FlexibleTransfo%list_flex(iQ) == 20) THEN
+          CALL sub_dnVec_TO_dnSt(dnQin,dnQ,iQ)
+          dnQ = dnQ + Tab_dnQflex(iQ)
+          CALL sub_dnSt_TO_dnVec(dnQ,dnQout,iQ)
+        ELSE
+          CALL sub_dnVec1_TO_dnVec2_WithIvec(dnQin,dnQout,iQ,nderiv)
+        END IF
+      END DO
+
+    ELSE
+         !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+      DO iQ=1,dnQin%nb_var_vec
+        IF (FlexibleTransfo%list_flex(iQ) == 20) THEN
+          CALL sub_dnVec_TO_dnSt(dnQout,dnQ,iQ)
+          dnQ = dnQ - Tab_dnQflex(iQ)
+          CALL sub_dnSt_TO_dnVec(dnQ,dnQin,iQ)
+        ELSE
+          CALL sub_dnVec1_TO_dnVec2_WithIvec(dnQout,dnQin,iQ,nderiv)
+        END IF
+      END DO
+    END IF
+
+    IF (allocated(tab_dnQflex)) THEN
+     CALL dealloc_dnS(tab_dnQflex)
+      deallocate(tab_dnQflex)
+    END IF
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'dnQout'
+      CALL Write_dnVec(dnQout)
+      write(out_unitp,*) 'END ',name_sub
+      flush(out_unitp)
+    END IF
+    !stop
+  END SUBROUTINE calc_FlexibleTransfo_new
+END MODULE mod_FlexibleTransfo
