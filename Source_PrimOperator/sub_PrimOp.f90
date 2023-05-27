@@ -75,7 +75,6 @@
 
 !===============================================================================
 ! Sub_init_dnOp:
-! Init_d0MatOp, get_d0MatOp_AT_Qact
 !===============================================================================
       SUBROUTINE Sub_init_dnOp(mole,para_Tnum,PrimOp)
       USE mod_system
@@ -116,20 +115,6 @@
        END IF
        print_level_EVRT = print_level
 !-----------------------------------------------------------
-!     allocate(d0MatOp(PrimOp%nb_scalar_Op+2))
-!
-!      nb_Op = size(d0MatOp)
-!
-!      CALL Init_d0MatOp(d0MatOp(1),PrimOp%Type_HamilOp,mole%nb_act,   &
-!                        PrimOp%nb_elec,JRot=para_Tnum%JJ,             &
-!                        cplx=PrimOp%pot_cplx,direct_KEO=PrimOp%direct_KEO) ! H
-!
-!      DO k=2,nb_Op
-!        CALL Init_d0MatOp(d0MatOp(k),0,mole%nb_act,PrimOp%nb_elec,    &
-!                          JRot=para_Tnum%JJ,cplx=.FALSE.,direct_KEO=.FALSE.) ! Scalar Operator
-!      END DO
-!
-!      Qact(:) = mole%ActiveTransfo%Qact0(:)
 
       IF (PrimOp%QMLib) THEN
         IF (debug) write(out_unitp,*) 'Initialization with Quantum Model Lib'
@@ -1211,15 +1196,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (print_level > 1) write(out_unitp,*) 'nb_thread in ',name_sub,' : ',nb_thread
       flush(out_unitp)
 
-
-
       nb_Op = size(Tab_dnMatOp)
 
       allocate(d0MatOp_th(nb_Op,nb_thread))
       DO ith=1,nb_thread
-        CALL Init_Tab_OF_d0MatOp(d0MatOp_th(:,ith),mole%nb_act,PrimOp%nb_elec, &
-                                 PrimOp%Type_HamilOp,JRot=para_Tnum%JJ, &
-                                 cplx=PrimOp%pot_cplx,direct_KEO=PrimOp%direct_KEO) ! H
+        DO iOp=1,nb_Op
+          CALL Init_d0MatOp(d0MatOp_th(iOp,ith),             &
+                 para_TypeOp=Tab_dnMatOp(iOp)%param_TypeOp,nb_ie=PrimOp%nb_elec)
+        END DO
       END DO
 
       !-- pot0 Qact(i) ------------------
@@ -3802,14 +3786,16 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
         write(out_unitp,*) '================================================='
         CALL get_Qact0(Qact,mole%ActiveTransfo)
 
-        nb_Op = 2 + PrimOp%nb_scalar_Op + PrimOp%nb_CAP + PrimOp%nb_FluxOp
+        !nb_Op = 2 + PrimOp%nb_scalar_Op + PrimOp%nb_CAP + PrimOp%nb_FluxOp ! here we dont't need the other operators
+        nb_Op = 2
+
         allocate(d0MatOp(nb_Op))
 
         CALL Init_d0MatOp(d0MatOp(1),type_Op=1,nb_Qact=mole%nb_act1,            &
-                          nb_ie=PrimOp%nb_elec)
-        DO iOp=2,size(d0MatOp) ! for the scalar operators
+                          nb_ie=PrimOp%nb_elec,iQact=0)
+        DO iOp=2,size(d0MatOp) ! for the scalar operators: S
           CALL Init_d0MatOp(d0MatOp(iOp),type_Op=0,nb_Qact=mole%nb_act1,        &
-                            nb_ie=PrimOp%nb_elec)
+                            nb_ie=PrimOp%nb_elec,iQact=0)
         END DO
 
         CALL get_d0MatOp_AT_Qact(Qact,d0MatOp,mole,para_Tnum,PrimOp)

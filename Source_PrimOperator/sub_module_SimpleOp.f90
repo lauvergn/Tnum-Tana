@@ -47,6 +47,7 @@
                                                    ! 0 : Scalar
                                                    ! 1 : H: F2.d^2 + F1.d^1 + V + (Cor+Rot)
                                                    ! 10: H: d^1 G d^1 +V
+                                                   ! 20: P_i
 
           integer                  :: n_Op  = 0  ! type of Operator :
                                                  ! 0 => H
@@ -64,6 +65,7 @@
           integer                  :: nb_Term_Vib = 0
           integer                  :: nb_Term_Rot = 0
           integer                  :: nb_Qact     = 0
+          integer                  :: iQact       = 0 ! for typeOOp = 20
           integer                  :: Jrot        = 0
 
           integer, allocatable     :: derive_termQact(:,:)      ! derive_termQact(2,nb_term)
@@ -108,7 +110,7 @@
 
    PUBLIC :: param_TypeOp, param_d0MatOp, param_dnMatOp
    PUBLIC :: dealloc_TypeOp, dealloc_d0MatOp, dealloc_Tab_OF_d0MatOp, dealloc_Tab_OF_dnMatOp
-   PUBLIC :: Init_TypeOp, Init_d0MatOp, Init_Tab_OF_d0MatOp, Init_Tab_OF_dnMatOp, Get_iOp_FROM_n_Op
+   PUBLIC :: Init_TypeOp, Init_d0MatOp, Init_Tab_OF_dnMatOp, Get_iOp_FROM_n_Op
    PUBLIC :: Write_TypeOp,Write_d0MatOp,Write_dnMatOp
    PUBLIC :: Set_ZERO_TO_Tab_OF_dnMatOp, Write_Tab_OF_dnMatOp, Write_Tab_OF_d0MatOp
    PUBLIC :: derive_termQact_TO_derive_termQdyn
@@ -119,7 +121,7 @@
 
    CONTAINS
 
-   SUBROUTINE Init_TypeOp(para_TypeOp,type_Op,nb_Qact,cplx,JRot,                &
+   SUBROUTINE Init_TypeOp(para_TypeOp,type_Op,nb_Qact,cplx,JRot,iQact,          &
                           direct_KEO,direct_ScalOp,QML_Vib_adia)
 
     TYPE (param_TypeOp),  intent(inout)         :: para_TypeOp
@@ -127,7 +129,7 @@
     logical,              intent(in), optional  :: cplx,direct_KEO,direct_ScalOp
     logical,              intent(in), optional  :: QML_Vib_adia
 
-    integer,              intent(in), optional  :: JRot
+    integer,              intent(in), optional  :: JRot,iQact
 
 
     integer :: iterm,i,j,nb_term,nb_term_Vib,nb_term_Rot
@@ -186,6 +188,23 @@
       !   para_TypeOp%Op_WithContracRVec = .FALSE.
       ! END IF
 
+      IF (Type_Op == 20) THEN
+        IF (.NOT. present(iQact)) THEN
+          write(out_unitp,*) 'ERROR in ',name_sub
+          write(out_unitp,*) 'Type_Op = 20 and iQact is not present'
+          write(out_unitp,*) 'Check the Fortran source code'
+          STOP 'ERROR in Init_TypeOp: Type_Op = 20 and iQact is not present'
+        END IF
+        IF (iQact < 0 .OR. iQact > nb_Qact) THEN
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) 'Type_Op = 20 and iQact is out of range: [0:',nb_Qact,']'
+          write(out_unitp,*) 'iQact',iQact
+          write(out_unitp,*) 'Check the Fortran source code'
+          STOP 'ERROR in Init_TypeOp: Type_Op = 20 and iQact is out of range'
+        END IF
+        para_TypeOp%iQact = iQact
+      END IF
+
       para_TypeOp%nb_Qact = nb_Qact
 
       para_TypeOp%Type_Op = Type_Op
@@ -225,6 +244,9 @@
             STOP
           END IF
         END IF
+      CASE (20) ! P_iQact: 1 term
+        nb_term_Vib = 1 ! (iQact,0)
+        nb_term_Rot = 0
       CASE DEFAULT
         nb_term_Vib = 1 ! (0,0)
         nb_term_Rot = 0
@@ -357,10 +379,14 @@
           write(out_unitp,*) 'iterm,nb_term',iterm,nb_term
           STOP
         END IF
-
+      CASE (20) ! P_iQact operator
+        para_TypeOp%derive_term_TO_iterm(:,:)     = -1
+        para_TypeOp%derive_term_TO_iterm(iQact,0) = 1
+        para_TypeOp%derive_term_TO_iterm(0,iQact) = 1
+        para_TypeOp%derive_termQact(:,1)          = [iQact,0]
       CASE DEFAULT
         write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) '  para_TypeOp%Type_Op MUST be equal to 0, 1 or 10', &
+        write(out_unitp,*) '  para_TypeOp%Type_Op MUST be equal to 0, 1, 10 or 20', &
                               para_TypeOp%Type_Op
         write(out_unitp,*) '  check the fortran!!'
         STOP
@@ -408,6 +434,7 @@
       para_TypeOp%nb_term_Rot         = 0
 
       para_TypeOp%nb_Qact             = 0
+      para_TypeOp%iQact               = 0
       para_TypeOp%Jrot                = 0
 
       para_TypeOp%cplx                = .FALSE.
@@ -441,6 +468,7 @@
       write(out_unitp,*) ' nb_Term_Vib:             ',para_TypeOp%nb_Term_Vib
       write(out_unitp,*) ' nb_Term_Rot:             ',para_TypeOp%nb_Term_Rot
       write(out_unitp,*) ' nb_Qact:                 ',para_TypeOp%nb_Qact
+      write(out_unitp,*) ' iQact:                   ',para_TypeOp%iQact
       write(out_unitp,*) ' Jrot:                    ',para_TypeOp%Jrot
       write(out_unitp,*) ' alloc ? derive_termQact: ',allocated(para_TypeOp%derive_termQact)
       write(out_unitp,*) ' alloc ? zero_term:       ',allocated(para_TypeOp%zero_term)
@@ -482,12 +510,29 @@
         write(out_unitp,*) ' BEGINNING: ',name_sub
       END IF
 
-      CALL Init_TypeOp(para_TypeOp1,para_TypeOp2%type_Op,               &
-               para_TypeOp2%nb_Qact,para_TypeOp2%cplx,para_TypeOp2%JRot,&
-               para_TypeOp2%direct_KEO,para_TypeOp2%direct_ScalOp,      &
-               para_TypeOp2%QML_Vib_adia)
+      para_TypeOp1%type_Op       = para_TypeOp2%type_Op
+      para_TypeOp1%n_Op          = para_TypeOp2%n_Op
+      para_TypeOp1%name_Op       = para_TypeOp2%name_Op
 
-      para_TypeOp1%zero_term(:) = para_TypeOp2%zero_term(:)
+      para_TypeOp1%direct_KEO    = para_TypeOp2%direct_KEO
+      para_TypeOp1%direct_ScalOp = para_TypeOp2%direct_ScalOp
+
+      para_TypeOp1%QML_Vib_adia  = para_TypeOp2%QML_Vib_adia
+
+      para_TypeOp1%nb_term       = para_TypeOp2%nb_term
+      para_TypeOp1%nb_Term_Vib   = para_TypeOp2%nb_Term_Vib
+      para_TypeOp1%nb_Term_Rot   = para_TypeOp2%nb_Term_Rot
+      para_TypeOp1%nb_Qact       = para_TypeOp2%nb_Qact
+      para_TypeOp1%iQact         = para_TypeOp2%iQact
+      para_TypeOp1%Jrot          = para_TypeOp2%Jrot
+
+      IF (allocated(para_TypeOp2%derive_termQact))      &
+          para_TypeOp1%derive_termQact = para_TypeOp2%derive_termQact
+      IF (allocated(para_TypeOp2%derive_term_TO_iterm)) &
+          para_TypeOp1%derive_term_TO_iterm  = para_TypeOp2%derive_term_TO_iterm
+      IF (allocated(para_TypeOp2%zero_term))            &
+          para_TypeOp1%zero_term = para_TypeOp2%zero_term
+      para_TypeOp1%cplx          = para_TypeOp2%cplx
 
       IF (debug) THEN
         CALL Write_TypeOp(para_TypeOp1)
@@ -580,9 +625,9 @@
 
    END SUBROUTINE dealloc_d0MatOp
 
-   SUBROUTINE Init_d0MatOp_with_var(d0MatOp,type_Op,nb_Qact,nb_ie,cplx,JRot,direct_KEO)
+   SUBROUTINE Init_d0MatOp_with_var(d0MatOp,type_Op,nb_Qact,nb_ie,iQact,cplx,JRot,direct_KEO)
       TYPE (param_d0MatOp), intent(inout) :: d0MatOp
-      integer, intent(in) :: type_Op,nb_Qact,nb_ie
+      integer, intent(in) :: type_Op,nb_Qact,nb_ie,iQact
       logical, intent(in), optional :: cplx,direct_KEO
       integer, intent(in), optional :: JRot
 
@@ -597,6 +642,7 @@
         write(out_unitp,*) ' BEGINNING: ',name_sub
         write(out_unitp,*) ' nb_Qact: ',nb_Qact
         write(out_unitp,*) ' nb_ie: ',nb_ie
+        write(out_unitp,*) ' iQact: ',iQact
         write(out_unitp,*) ' type_Op: ',type_Op
         IF (present(cplx)) write(out_unitp,*) ' cplx: ',cplx
         IF (present(JRot)) write(out_unitp,*) ' JRot: ',JRot
@@ -620,7 +666,7 @@
         JRot_loc = 0
       END IF
 
-      CALL Init_TypeOp(d0MatOp%param_TypeOp,type_Op,nb_Qact,cplx_loc,JRot_loc,direct_KEO_loc)
+      CALL Init_TypeOp(d0MatOp%param_TypeOp,type_Op,nb_Qact,cplx_loc,JRot_loc,iQact,direct_KEO_loc)
 
       CALL alloc_d0MatOp(d0MatOp,nb_ie)
 
@@ -723,63 +769,6 @@
 
    END SUBROUTINE Write_d0MatOp
 
-   SUBROUTINE Init_Tab_OF_d0MatOp(d0MatOp,nb_Qact,nb_ie,Type_HamilOp,cplx,JRot,direct_KEO)
-      TYPE (param_d0MatOp), intent(inout) :: d0MatOp(:)
-      integer, intent(in) :: nb_Qact,nb_ie,Type_HamilOp
-      logical, intent(in), optional :: cplx,direct_KEO
-      integer, intent(in), optional :: JRot
-
-      integer :: iOp,JRot_loc,nb_Op
-      logical :: cplx_loc,direct_KEO_loc
-
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
-      character (len=*), parameter :: name_sub='Init_Tab_OF_d0MatOp'
-
-      IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
-        write(out_unitp,*) ' nb_Qact: ',nb_Qact
-        write(out_unitp,*) ' nb_ie:   ',nb_ie
-        IF (present(cplx)) write(out_unitp,*) ' cplx: ',cplx
-        IF (present(JRot)) write(out_unitp,*) ' JRot: ',JRot
-      END IF
-
-      IF (present(cplx)) THEN
-        cplx_loc = cplx
-      ELSE
-        cplx_loc = .FALSE.
-      END IF
-
-      IF (present(direct_KEO)) THEN
-        direct_KEO_loc = direct_KEO
-      ELSE
-        direct_KEO_loc = .FALSE.
-      END IF
-
-      IF (present(JRot)) THEN
-        JRot_loc = JRot
-      ELSE
-        JRot_loc = 0
-      END IF
-
-      nb_Op = size(d0MatOp)
-      IF (nb_Op < 1) RETURN
-
-      CALL Init_d0MatOp(d0MatOp(1),Type_HamilOp,nb_Qact,nb_ie,          &
-                        cplx=cplx_loc,JRot=JRot_loc,direct_KEO=direct_KEO_loc) ! H
-      DO iOp=2,nb_Op
-        CALL Init_d0MatOp(d0MatOp(iOp),0,nb_Qact,nb_ie,                 &
-                          cplx=.FALSE.,JRot=JRot_loc,direct_KEO=.FALSE.) ! Scalar Operator
-      END DO
-
-
-      IF (debug) THEN
-        CALL Write_Tab_OF_d0MatOp(d0MatOp)
-        write(out_unitp,*) ' END: ',name_sub
-      END IF
-
-
-   END SUBROUTINE Init_Tab_OF_d0MatOp
    FUNCTION Get_iOp_FROM_n_Op(n_Op)
       integer               :: Get_iOp_FROM_n_Op
       integer, intent(in)   :: n_Op
@@ -922,9 +911,9 @@
 
    END SUBROUTINE dealloc_dnMatOp
 
-   SUBROUTINE Init_dnMatOp(dnMatOp,type_Op,nb_Qact,nb_ie,nderiv,cplx,JRot)
+   SUBROUTINE Init_dnMatOp(dnMatOp,type_Op,nb_Qact,nb_ie,iQact,nderiv,cplx,JRot)
       TYPE (param_dnMatOp), intent(inout) :: dnMatOp
-      integer, intent(in) :: type_Op,nb_Qact,nb_ie
+      integer, intent(in) :: type_Op,nb_Qact,nb_ie,iQact
       integer, intent(in), optional :: nderiv
       logical, intent(in), optional :: cplx
       integer, intent(in), optional :: JRot
@@ -959,7 +948,7 @@
         JRot_loc = 0
       END IF
 
-      CALL Init_TypeOp(dnMatOp%param_TypeOp,type_Op,nb_Qact,cplx_loc,JRot_loc)
+      CALL Init_TypeOp(dnMatOp%param_TypeOp,type_Op,nb_Qact,cplx_loc,JRot_loc,iQact)
 
       CALL alloc_dnMatOp(dnMatOp,nb_ie,nderiv_loc)
 
@@ -1040,7 +1029,7 @@
       logical, intent(in), optional :: cplx
       integer, intent(in), optional :: JRot
 
-      integer :: iOp,JRot_loc,nb_Op,nderiv_loc
+      integer :: iOp,JRot_loc,nb_Op,nderiv_loc,iQact
       logical :: cplx_loc
 
       !logical, parameter :: debug = .TRUE.
@@ -1073,14 +1062,15 @@
       ELSE
         JRot_loc = 0
       END IF
+      iQact = 0
 
       nb_Op = size(dnMatOp)
       IF (nb_Op < 1) RETURN
 
-      CALL Init_dnMatOp(dnMatOp(1),1,nb_Qact,nb_ie,                     &
+      CALL Init_dnMatOp(dnMatOp(1),1,nb_Qact,nb_ie,iQact,              &
                           nderiv=nderiv_loc,cplx=cplx_loc,JRot=JRot_loc) ! H
       DO iOp=2,nb_Op
-        CALL Init_dnMatOp(dnMatOp(iOp),0,nb_Qact,nb_ie,                 &
+        CALL Init_dnMatOp(dnMatOp(iOp),0,nb_Qact,nb_ie,iQact,            &
                            nderiv=nderiv_loc,cplx=.FALSE.,JRot=JRot_loc) ! Scalar Operator
       END DO
 
