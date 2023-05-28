@@ -233,7 +233,7 @@ CONTAINS
   END SUBROUTINE Write_TwoDTransfo
   SUBROUTINE calc_TwoDTransfo(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
     USE ADdnSVM_m
-    USE mod_dnSVM
+    USE mod_dnSVM, ONLY: Type_dnVec, Write_dnSVM, check_alloc_dnVec, sub_dnVec_TO_dnVect, sub_dnVect_TO_dnVec
     IMPLICIT NONE
 
         TYPE (Type_dnVec),                intent(inout) :: dnQin,dnQout
@@ -517,27 +517,5 @@ CONTAINS
     END IF
     !---------------------------------------------------------------------
   END SUBROUTINE calc_TwoDTransfo
-
-  SUBROUTINE TwoDTransfo1TOTwoDTransfo2(TwoDTransfo1,TwoDTransfo2)
-    IMPLICIT NONE
-
-    CLASS (TwoDTransfo_t),allocatable, intent(in)    :: TwoDTransfo1(:)
-    CLASS (TwoDTransfo_t),allocatable, intent(inout) :: TwoDTransfo2(:)
-
-    integer :: i
-
-    IF (.NOT. allocated(TwoDTransfo1)) RETURN
-
-    CALL alloc_TwoDTransfo(TwoDTransfo2,nb_transfo=size(TwoDTransfo1))
-    DO i=1,size(TwoDTransfo1)
-      TwoDTransfo2(i)%Type_2D            = TwoDTransfo1(i)%Type_2D
-      TwoDTransfo2(i)%name_Transfo_2D    = TwoDTransfo1(i)%name_Transfo_2D
-      TwoDTransfo2(i)%list_TwoD_coord(:) = TwoDTransfo1(i)%list_TwoD_coord(:)
-      TwoDTransfo2(i)%Twod0              = TwoDTransfo1(i)%Twod0
-      TwoDTransfo2(i)%theta              = TwoDTransfo1(i)%theta
-      TwoDTransfo2(i)%phi                = TwoDTransfo1(i)%phi
-    END DO
-
-  END SUBROUTINE TwoDTransfo1TOTwoDTransfo2
 
 END MODULE TwoDTransfo_m
