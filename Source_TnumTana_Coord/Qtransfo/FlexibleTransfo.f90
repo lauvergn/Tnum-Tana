@@ -431,8 +431,8 @@ CONTAINS
 
     !----- for debuging ----------------------------------
     character (len=*),parameter :: name_sub='calc_FlexibleTransfo_new'
-    !logical, parameter :: debug=.FALSE.
-    logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
     !----- for debuging ----------------------------------
 
     nb_flex_act = FlexibleTransfo%nb_flex_act

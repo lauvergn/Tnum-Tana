@@ -227,12 +227,12 @@
 
         IF (debug) write(out_unitp,Coord_transfo)
 
-        Qtransfo%name_transfo = trim(adjustl(name_transfo))
+        Qtransfo%name_transfo = TO_lowercase(trim(adjustl(name_transfo)))
         Qtransfo%inTOout      = inTOout
         Qtransfo%opt_transfo  = opt_transfo
         Qtransfo%skip_transfo = skip_transfo
         IF(MPI_id==0) THEN
-          write(out_unitp,'(a,a)' )  ' transfo:               ',get_name_Qtransfo(Qtransfo)
+          write(out_unitp,'(a,a)' )  ' transfo:               ',Qtransfo%name_transfo
           write(out_unitp,'(a,i0)')  ' Option of the transfo: ',Qtransfo%opt_transfo
           write(out_unitp,'(a,l1)' ) ' Skip the transfo:      ',Qtransfo%skip_transfo
           write(out_unitp,'(a,i0)')  ' num_transfo:           ',Qtransfo%num_transfo
@@ -241,9 +241,7 @@
         ENDIF
         flush(out_unitp)
 
-        name_transfo = get_name_Qtransfo(Qtransfo,lower=.TRUE.)
-
-        SELECT CASE (name_transfo)
+        SELECT CASE (Qtransfo%name_transfo)
         CASE ('identity')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
           Qtransfo%nb_Qin  = nb_Qin
@@ -784,13 +782,17 @@
       SUBROUTINE dealloc_Qtransfo(Qtransfo)
         TYPE (Type_Qtransfo), intent(inout) :: Qtransfo
 
+        character (len=:), allocatable :: name_transfo
+
         character (len=*),parameter :: name_sub='dealloc_Qtransfo'
         !logical, parameter :: debug = .TRUE.
         logical, parameter :: debug = .FALSE.
 
-
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING : ',name_sub,' : ',get_name_Qtransfo(Qtransfo)
+          name_transfo = 'not_allocated'
+          IF (allocated(Qtransfo%name_transfo)) name_transfo = Qtransfo%name_transfo
+
+          write(out_unitp,*) 'BEGINNING : ',name_sub,' : ',name_transfo
           flush(out_unitp)
         END IF
 
@@ -890,8 +892,9 @@
         nullify(Qtransfo%name_Qout)  ! because it is a true pointer
 
         IF (debug) THEN
-          write(out_unitp,*) 'END : ',name_sub,' : ',get_name_Qtransfo(Qtransfo)
+          write(out_unitp,*) 'END : ',name_sub,' : ',name_transfo
           flush(out_unitp)
+          deallocate(name_transfo)
         END IF
   END SUBROUTINE dealloc_Qtransfo
 
@@ -959,16 +962,20 @@
         TYPE (Type_Qtransfo), intent(in)    :: Qtransfo1
         TYPE (Type_Qtransfo), intent(inout) :: Qtransfo2
         integer :: it,n
-      !-----------------------------------------------------------------
+        character (len=:), allocatable :: name_transfo
+
+        !-----------------------------------------------------------------
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='Qtransfo1TOQtransfo2'
       !-----------------------------------------------------------------
 
+      name_transfo = 'not_allocated'
+      IF (allocated(Qtransfo1%name_transfo)) name_transfo = Qtransfo1%name_transfo
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'name_transfo: ',get_name_Qtransfo(Qtransfo1)
+        write(out_unitp,*) 'name_transfo: ',name_transfo
         CALL Write_Qtransfo(Qtransfo1)
         flush(out_unitp)
       END IF
@@ -976,7 +983,7 @@
       Qtransfo2%print_done      = .FALSE.
 
       IF (allocated(Qtransfo1%name_transfo)) THEN
-        Qtransfo2%name_transfo    = get_name_Qtransfo(Qtransfo1)
+        Qtransfo2%name_transfo    = Qtransfo1%name_transfo
       END IF
       Qtransfo2%inTOout         = Qtransfo1%inTOout
 
@@ -997,12 +1004,10 @@
       Qtransfo2%Primitive_Coord = Qtransfo1%Primitive_Coord
 
 
-      CALL alloc_array(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),    &
-                      "Qtransfo2%type_Qin",name_sub)
+      CALL alloc_array(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),"Qtransfo2%type_Qin",name_sub)
       Qtransfo2%type_Qin(:) = Qtransfo1%type_Qin(:)
 
-      CALL alloc_array(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),    &
-                      "Qtransfo2%name_Qin",name_sub)
+      CALL alloc_array(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),"Qtransfo2%name_Qin",name_sub)
       Qtransfo2%name_Qin(:) = Qtransfo1%name_Qin(:)
 
       ! for type_Qout and name_Qout, it will be done after (from another type_Qin, name_Qin)
@@ -1015,7 +1020,7 @@
         Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
       END IF
 
-      SELECT CASE (get_name_Qtransfo(Qtransfo1,lower=.TRUE.))
+      SELECT CASE (name_transfo)
       CASE ('identity')
         CONTINUE ! nothing to do
 
@@ -1093,8 +1098,7 @@
           STOP
         END IF
 
-        CALL oneDTransfo1TOoneDTransfo2(Qtransfo1%oneDTransfo,          &
-                                        Qtransfo2%oneDTransfo)
+        CALL oneDTransfo1TOoneDTransfo2(Qtransfo1%oneDTransfo,Qtransfo2%oneDTransfo)
 
       CASE ('twod')
         Qtransfo2%TwoDTransfo = Qtransfo1%TwoDTransfo
@@ -1151,12 +1155,11 @@
 
       CASE default
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo1)
+        write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
         CALL Write_list_Qtransfo(out_unitp)
         write(out_unitp,*) ' Check the source!'
         STOP
       END SELECT
-
       !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unitp,*)
@@ -1164,7 +1167,9 @@
         flush(out_unitp)
       END IF
       !-----------------------------------------------------------------
-  END SUBROUTINE Qtransfo1TOQtransfo2
+      deallocate(name_transfo)
+
+    END SUBROUTINE Qtransfo1TOQtransfo2
   SUBROUTINE calc_Qtransfo(dnQin,dnQout,Qtransfo,nderiv,inTOout)
     USE ADdnSVM_m
     USE mod_MPI
@@ -1180,6 +1185,7 @@
         TYPE (Type_dnS)   :: dnR
         integer           :: iv,it,i,iQ,iQin,iQout
         TYPE (Type_dnVec), pointer :: tab_dnXVect(:)   ! dim: nb_vect_tot
+        character (len=:), allocatable :: name_transfo
 
       !-----------------------------------------------------------------
       integer :: nderiv_debug = 1
@@ -1195,10 +1201,13 @@
         inTOout_loc = .TRUE.
       END IF
 
+      name_transfo = 'not_allocated'
+      IF (allocated(Qtransfo%name_transfo)) name_transfo = Qtransfo%name_transfo
+
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'New Qtransfo',it,' ',get_name_Qtransfo(Qtransfo)
+        write(out_unitp,*) 'New Qtransfo',it,' ',name_transfo
         write(out_unitp,*) 'nderiv',nderiv
         write(out_unitp,*) 'Qtransfo%nb_act',Qtransfo%nb_act
         write(out_unitp,*) 'inTOout',inTOout_loc
@@ -1227,7 +1236,7 @@
         STOP 'ERROR in calc_Qtransfo: skip_transfo=t MUST be treated before'
       END IF
 
-      SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
+      SELECT CASE (name_transfo)
       CASE ('identity')
         IF (inTOout_loc) THEN
           CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv)
@@ -1390,7 +1399,7 @@
           STOP 'ERROR in calc_Qtransfo: name_transfo is NOT allocated'
       CASE default
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo)
+        write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
         CALL Write_list_Qtransfo(out_unitp)
         write(out_unitp,*) ' Check the source!'
         STOP 'ERROR in calc_Qtransfo: The transformation is UNKNOWN'
@@ -1409,6 +1418,7 @@
         write(out_unitp,*) 'END ',name_sub
         flush(out_unitp)
       END IF
+      deallocate(name_transfo)
 
   END SUBROUTINE calc_Qtransfo
 
@@ -1426,8 +1436,12 @@
         integer :: err
         integer :: i,it,i_Q
         logical :: force_print_loc
+        character (len=:), allocatable :: name_transfo
 
         character (len=*), parameter :: name_sub = "Write_Qtransfo"
+
+        name_transfo = 'not_allocated'
+        IF (allocated(Qtransfo%name_transfo)) name_transfo = Qtransfo%name_transfo
 
         IF (present(force_print)) THEN
           force_print_loc = force_print
@@ -1436,8 +1450,7 @@
         END IF
 
         IF (Qtransfo%print_done .AND. .NOT. force_print_loc) THEN
-          write(out_unitp,*) 'name_transfo,num_transfo: ',     &
-                         trim(Qtransfo%name_transfo),Qtransfo%num_transfo
+          write(out_unitp,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
           write(out_unitp,*) ' Writing already done.'
           flush(out_unitp)
           RETURN
@@ -1448,8 +1461,7 @@
         Qtransfo%print_done = .TRUE.
 
         IF(MPI_id==0) THEN
-          write(out_unitp,*) 'name_transfo,num_transfo: ',     &
-                        get_name_Qtransfo(Qtransfo),Qtransfo%num_transfo
+          write(out_unitp,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
           write(out_unitp,*) 'BeforeActive: ',Qtransfo%BeforeActive
           write(out_unitp,*) 'Primitive_Coord: ',Qtransfo%Primitive_Coord
 
@@ -1492,7 +1504,7 @@
           write(out_unitp,*) '---------------------------------------'
         ENDIF ! for MPI_id==0
 
-        SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
+        SELECT CASE (name_transfo)
         CASE ('identity')
           CONTINUE ! nothing !
 
@@ -1589,15 +1601,17 @@
 
         CASE default ! ERROR: wrong transformation !
           write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The transformation is UNKNOWN: ',get_name_Qtransfo(Qtransfo)
+          write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
           CALL Write_list_Qtransfo(out_unitp)
           write(out_unitp,*) ' Check the source!'
           STOP
         END SELECT
+        deallocate(name_transfo)
 
         write(out_unitp,*) 'END ',name_sub
         flush(out_unitp)
-  END SUBROUTINE Write_Qtransfo
+
+      END SUBROUTINE Write_Qtransfo
 
   SUBROUTINE sub_Type_Name_OF_Qin(Qtransfo,name_coord)
         USE mod_Lib_QTransfo, ONLY : make_nameQ
@@ -1694,17 +1708,13 @@
 
   END SUBROUTINE Sub_Check_LinearTransfo
 
-  FUNCTION get_name_Qtransfo(Qtransfo,lower) RESULT(name_Qtransfo)
+  FUNCTION get_name_Qtransfo(Qtransfo) RESULT(name_Qtransfo)
 
     character (len=:), allocatable                      :: name_Qtransfo ! RESULT
     TYPE (Type_Qtransfo),          intent(in)           :: Qtransfo
-    logical,                       intent(in), optional :: lower
 
     IF (allocated(Qtransfo%name_transfo)) THEN
       name_Qtransfo = Qtransfo%name_transfo
-      IF (present(lower)) THEN
-        IF (lower) name_Qtransfo = TO_lowercase(Qtransfo%name_transfo)
-      END IF
     ELSE
       name_Qtransfo = 'not_allocated'
     END IF

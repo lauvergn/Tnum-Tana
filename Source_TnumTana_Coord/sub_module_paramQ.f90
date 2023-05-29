@@ -507,7 +507,7 @@ CONTAINS
 !======================================================================
 !     IF Cart_transfo=t
 !======================================================================
-      IF (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.) == 'zmat'  .AND. &
+      IF (get_name_Qtransfo(mole%tab_Qtransfo(1)) == 'zmat'  .AND. &
               mole%tab_Qtransfo(1)%ZmatTransfo%New_Orient .AND.         &
          sum(abs(mole%tab_Qtransfo(1)%ZmatTransfo%vAt1)) == ZERO .AND.  &
          sum(abs(mole%tab_Qtransfo(1)%ZmatTransfo%vAt2)) == ZERO .AND.  &
@@ -988,7 +988,7 @@ CONTAINS
 
       VT(:) = ZERO
 
-      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
         IF (debug) write(out_unitp,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
@@ -1144,7 +1144,7 @@ CONTAINS
 
       VT(:) = mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1(:)
 
-      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
         IF (debug) write(out_unitp,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
@@ -1250,7 +1250,7 @@ CONTAINS
 
       ncart = min(size(Qxyz),size(mole%d0sm))
 
-      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.))
+      SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
         nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)

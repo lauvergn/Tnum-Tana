@@ -292,7 +292,7 @@ MODULE mod_Tnum
       END IF
       !-----------------------------------------------------------
 
-        SELECT CASE (get_name_Qtransfo(Qtransfo,lower=.TRUE.))
+        SELECT CASE (get_name_Qtransfo(Qtransfo))
 
         CASE ('zmat') ! It should be one of the first transfo read
 
@@ -999,7 +999,7 @@ MODULE mod_Tnum
 
           CALL Set_masses_Z_TO_CoordType(mole,mole%tab_Qtransfo(it))
 
-          SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(it),lower=.TRUE.))
+          SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(it)))
           CASE ('bunch','bunch_poly')
             ! because we need BunchTransfo for Poly transfo
             mole%tab_Qtransfo(it+1)%BunchTransfo => mole%tab_Qtransfo(it)%BunchTransfo
@@ -1064,7 +1064,7 @@ MODULE mod_Tnum
 
         !=======================================================================
         ! analyzis of the transformations:
-        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(1),lower=.TRUE.)
+        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(1))
 
 
         IF (name_transfo /= 'zmat'  .AND. name_transfo /= 'bunch' .AND. &
@@ -1080,7 +1080,7 @@ MODULE mod_Tnum
 
         !=======================================================================
 
-        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo),lower=.TRUE.)
+        name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo))
 
         IF (name_transfo /= 'active') THEN
            write(out_unitp,*) ' ERROR in ',name_sub
@@ -1500,7 +1500,7 @@ MODULE mod_Tnum
       !check is Tana is possible : nb_Qtransfo = 3
      para_Tnum%Tana = para_Tnum%Tana .AND. mole%nb_Qtransfo == 3
      !check is Tana is possible : 2st transfo poly
-     name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(2),lower=.TRUE.)
+     name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(2))
 
      para_Tnum%Tana = para_Tnum%Tana .AND. name_transfo == "poly"
      ! we don't need to check the 1st and the last Qtransfo
@@ -1696,7 +1696,7 @@ MODULE mod_Tnum
         CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),               &
                                   mole1%tab_Qtransfo(it))
 
-        SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it),lower=.TRUE.))
+        SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
         CASE ("nm")
           mole1%NMTransfo => mole1%tab_Qtransfo(it)%NMTransfo
         CASE ("rph")

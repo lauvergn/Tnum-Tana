@@ -110,7 +110,7 @@ MODULE mod_Tana_keo
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
-        if(get_name_Qtransfo(mole%tab_Qtransfo(i),lower=.TRUE.) == 'poly') then
+        if(get_name_Qtransfo(mole%tab_Qtransfo(i)) == 'poly') then
           poly = .true.
           i_transfo = i
           exit
@@ -473,7 +473,7 @@ MODULE mod_Tana_keo
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
-        if(get_name_Qtransfo(mole%tab_Qtransfo(i),lower=.TRUE.) == 'poly') then
+        if(get_name_Qtransfo(mole%tab_Qtransfo(i)) == 'poly') then
           poly = .true.
           i_transfo = i
           exit
