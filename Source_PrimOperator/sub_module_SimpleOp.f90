@@ -47,7 +47,7 @@
                                                    ! 0 : Scalar
                                                    ! 1 : H: F2.d^2 + F1.d^1 + V + (Cor+Rot)
                                                    ! 10: H: d^1 G d^1 +V
-                                                   ! 20: P_i
+                                                   ! 21 and 22: P_i and P^2_i
 
           integer                  :: n_Op  = 0  ! type of Operator :
                                                  ! 0 => H
@@ -65,7 +65,7 @@
           integer                  :: nb_Term_Vib = 0
           integer                  :: nb_Term_Rot = 0
           integer                  :: nb_Qact     = 0
-          integer                  :: iQact       = 0 ! for typeOOp = 20
+          integer                  :: iQact       = 0 ! for typeOOp = 21 or 22
           integer                  :: Jrot        = 0
 
           integer, allocatable     :: derive_termQact(:,:)      ! derive_termQact(2,nb_term)
@@ -188,19 +188,19 @@
       !   para_TypeOp%Op_WithContracRVec = .FALSE.
       ! END IF
 
-      IF (Type_Op == 20) THEN
+      IF (Type_Op == 21 .OR. Type_Op == 22) THEN
         IF (.NOT. present(iQact)) THEN
           write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'Type_Op = 20 and iQact is not present'
+          write(out_unitp,*) 'Type_Op = 21 or 22 and iQact is not present'
           write(out_unitp,*) 'Check the Fortran source code'
-          STOP 'ERROR in Init_TypeOp: Type_Op = 20 and iQact is not present'
+          STOP 'ERROR in Init_TypeOp: Type_Op = 21 or 22 and iQact is not present'
         END IF
         IF (iQact < 0 .OR. iQact > nb_Qact) THEN
           write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) 'Type_Op = 20 and iQact is out of range: [0:',nb_Qact,']'
+          write(out_unitp,*) 'Type_Op = 21 or 22 and iQact is out of range: [0:',nb_Qact,']'
           write(out_unitp,*) 'iQact',iQact
           write(out_unitp,*) 'Check the Fortran source code'
-          STOP 'ERROR in Init_TypeOp: Type_Op = 20 and iQact is out of range'
+          STOP 'ERROR in Init_TypeOp: Type_Op = 21 or 22 and iQact is out of range'
         END IF
         para_TypeOp%iQact = iQact
       END IF
@@ -244,7 +244,7 @@
             STOP
           END IF
         END IF
-      CASE (20) ! P_iQact: 1 term
+      CASE (21,22) ! P_iQact and P^2_iQact: 1 term
         nb_term_Vib = 1 ! (iQact,0)
         nb_term_Rot = 0
       CASE DEFAULT
@@ -379,15 +379,19 @@
           write(out_unitp,*) 'iterm,nb_term',iterm,nb_term
           STOP
         END IF
-      CASE (20) ! P_iQact operator
+      CASE (21) ! P_iQact operator
         para_TypeOp%derive_term_TO_iterm(:,:)     = -1
         para_TypeOp%derive_term_TO_iterm(iQact,0) = 1
         para_TypeOp%derive_term_TO_iterm(0,iQact) = 1
         para_TypeOp%derive_termQact(:,1)          = [iQact,0]
+      CASE (22) ! P_iQact operator
+        para_TypeOp%derive_term_TO_iterm(:,:)         = -1
+        para_TypeOp%derive_term_TO_iterm(iQact,iQact) = 1
+        para_TypeOp%derive_termQact(:,1)              = [iQact,iQact]
       CASE DEFAULT
         write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) '  para_TypeOp%Type_Op MUST be equal to 0, 1, 10 or 20', &
-                              para_TypeOp%Type_Op
+        write(out_unitp,*) ' Type_Op MUST be equal to: 0, 1, 10, 21, 22'
+        write(out_unitp,*) '    Type_Op value: ',para_TypeOp%Type_Op
         write(out_unitp,*) '  check the fortran!!'
         STOP
       END SELECT
