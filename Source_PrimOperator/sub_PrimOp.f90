@@ -101,7 +101,7 @@
       integer                           :: get_Qmodel_ndim ! function
       integer                           :: print_level_EVRT
 
-      integer (kind=Ik4)             :: ndimI4,nsurfI4 ! for QML
+      integer                           :: ndim,nsurf ! for QML
 
 !----- for debuging --------------------------------------------------
       character (len=*), parameter :: name_sub='Sub_init_dnOp'
@@ -120,35 +120,35 @@
         IF (debug) write(out_unitp,*) 'Initialization with Quantum Model Lib'
 
         IF (PrimOp%pot_itQtransfo == 0) THEN ! Cartesian coordinates
-          ndimI4  = int(mole%ncart_act,kind=Ik4)
-          nsurfI4 = int(PrimOp%nb_elec,kind=Ik4)
+          ndim  = mole%ncart_act
+          nsurf = PrimOp%nb_elec
 
-          CALL sub_Init_Qmodel_Cart(ndimI4,nsurfI4,'read_model',.FALSE.,int(0,kind=Ik4))
+          CALL sub_Init_Qmodel_Cart(ndim,nsurf,'read_model',.FALSE.,0)
           write(out_unitp,*) ' ncart_act        ',mole%ncart_act
-          write(out_unitp,*) ' ndim from  Qmodel',ndimI4
+          write(out_unitp,*) ' ndim from  Qmodel',ndim
           write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
-          IF (ndimI4 /= int(mole%ncart_act,kind=Ik4)) THEN
+          IF (ndim /= mole%ncart_act) THEN
             write(out_unitp,*) ' different from mole%ncart_act.'
             write(out_unitp,*) ' It is not possible!'
             write(out_unitp,*) 'ERROR in ',name_sub
             STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
           END IF
 
-          PrimOp%nb_elec = nsurfI4
+          PrimOp%nb_elec = nsurf
 
         ELSE
-          nsurfI4 = int(PrimOp%nb_elec,kind=Ik4)
+          nsurf = PrimOp%nb_elec
 
           IF (PrimOp%Hard) THEN
-            ndimI4  = int(mole%nb_act1,kind=Ik4)
-            CALL sub_Init_Qmodel(ndimI4,nsurfI4,'read_model',.FALSE.,int(0,kind=Ik4))
+            ndim  = mole%nb_act1
+            CALL sub_Init_Qmodel(ndim,nsurf,'read_model',.FALSE.,0)
             write(out_unitp,*) ' nb_act1          ',mole%nb_act1
-            write(out_unitp,*) ' ndim from  Qmodel',ndimI4
+            write(out_unitp,*) ' ndim from  Qmodel',ndim
             write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
 
-            IF (ndimI4 == int(mole%nb_act1,kind=Ik4)) THEN
+            IF (ndim == mole%nb_act1) THEN
               write(out_unitp,*) ' equal to mole%nb_act1.'
-            ELSE IF (ndimI4 > int(mole%nb_act1,kind=Ik4)) THEN
+            ELSE IF (ndim > mole%nb_act1) THEN
               write(out_unitp,*) ' larger than mole%nb_act1.'
               write(out_unitp,*) ' You MUST use type 100 and 1 coordinates.'
             ELSE ! ndim < mole%nb_act1
@@ -158,15 +158,15 @@
               STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
             END IF
           ELSE
-            ndimI4  = int(mole%nb_act,kind=Ik4)
-            CALL sub_Init_Qmodel(ndimI4,nsurfI4,'read_model',.FALSE.,int(0,kind=Ik4))
+            ndim  = mole%nb_act
+            CALL sub_Init_Qmodel(ndim,nsurf,'read_model',.FALSE.,0)
             write(out_unitp,*) ' nb_act           ',mole%nb_act
-            write(out_unitp,*) ' ndim from  Qmodel',ndimI4
+            write(out_unitp,*) ' ndim from  Qmodel',ndim
             write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
 
-            IF (ndimI4 == int(mole%nb_act,kind=Ik4)) THEN
+            IF (ndim == mole%nb_act) THEN
               write(out_unitp,*) ' equal to mole%nb_act.'
-            ELSE IF (ndimI4 > int(mole%nb_act,kind=Ik4)) THEN
+            ELSE IF (ndim > mole%nb_act) THEN
               write(out_unitp,*) ' larger than mole%nb_act.'
               write(out_unitp,*) ' You MUST use type 100 and 1 coordinates.'
             ELSE ! ndim < mole%nb_act
@@ -177,18 +177,18 @@
             END IF
           END IF
 
-          PrimOp%nb_elec = nsurfI4
+          PrimOp%nb_elec = nsurf
 
         END IF
-        IF (print_level > 0 .OR. debug) CALL sub_Write_Qmodel(int(out_unitp,kind=Ik4))
-        IF (debug) CALL set_Qmodel_Print_level(int(min(1,print_level),kind=Ik4))
+        IF (print_level > 0 .OR. debug) CALL sub_Write_Qmodel(out_unitp)
+        IF (debug) CALL set_Qmodel_Print_level(min(1,print_level))
 
-        ndimI4 = get_Qmodel_ndim()
-        IF (ndimI4 > int(mole%nb_var,kind=Ik4)) THEN
+        ndim = get_Qmodel_ndim()
+        IF (ndim > mole%nb_var) THEN
           write(out_unitp,*) 'ERROR in ',name_sub
           write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
           write(out_unitp,*) '  larger than mole%nb_var!'
-          write(out_unitp,*) '  ndim,mole%nb_var',ndimI4,mole%nb_var
+          write(out_unitp,*) '  ndim,mole%nb_var',ndim,mole%nb_var
           STOP 'ndim from QML is too large'
         END IF
 
@@ -199,8 +199,8 @@
           CALL alloc_NParray(PrimOp%Qit_TO_QQMLib,[mole%ncart_act],'Qit_TO_QQMLib',name_sub)
           PrimOp%Qit_TO_QQMLib(:) = [ (k,k=1,mole%ncart_act) ]
         ELSE
-          CALL alloc_NParray(PrimOp%Qit_TO_QQMLib,[ndimI4],'Qit_TO_QQMLib',name_sub)
-          PrimOp%Qit_TO_QQMLib(:) = [ (k,k=1,ndimI4) ]
+          CALL alloc_NParray(PrimOp%Qit_TO_QQMLib,[ndim],'Qit_TO_QQMLib',name_sub)
+          PrimOp%Qit_TO_QQMLib(:) = [ (k,k=1,ndim) ]
 
           IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo-1) THEN ! Qdyn Coord
             read(in_unitp,*,IOSTAT=err_io) name_dum,PrimOp%Qit_TO_QQMLib
