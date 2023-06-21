@@ -212,13 +212,12 @@ Coord_SRCFILES = \
   FlexibleTransfo.f90 \
   HyperSpheTransfo.f90 LinearNMTransfo.f90 RectilinearNM_Transfo.f90 \
   sub_freq.f90 RPHTransfo.f90 RPHQMLTransfo.f90 ProjectTransfo.f90 \
-  ActiveTransfo.f90 Qtransfo.f90 \
-  Calc_Tab_dnQflex.f90
+  ActiveTransfo.f90 Qtransfo.f90
 
 #Minimize Only list: OK
 Tnum_SRCFILES = \
   sub_module_Tnum.f90 sub_module_paramQ.f90 \
-  calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 sub_dnDetGG_dnDetg.f90 sub_dnRho.f90 \
+  sub_dnDetGG_dnDetg.f90 sub_dnRho.f90 \
   calc_dng_dnGG.f90 sub_export_KEO.f90
 
 #Tana objects
@@ -232,6 +231,13 @@ TnumTana_SRCFILES = calc_f2_f1Q_num.f90 sub_module_Tana_Tnum.f90
 
 #Minimize Only list: OK
 Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(Tana_SRCFILES) $(TnumTana_SRCFILES) sub_module_Coord_KEO.f90
+#
+#
+Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90
+Coord_KEO_EXT_SRCFILES_OBJ0 = ${Coord_KEO_EXT_SRCFILES:.f90=.o}
+Coord_KEO_EXT_SRCFILES_OBJ  = $(addprefix $(OBJ_DIR)/, $(Coord_KEO_EXT_SRCFILES_OBJ0))
+$(info ************ Coord_KEO_EXT_SRCFILES_OBJ: $(Coord_KEO_EXT_SRCFILES_OBJ))
+
 #============================================================================
 #============================================================================
 #Primitive Operators
@@ -259,8 +265,8 @@ TNUMMAIN = Tnum90
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
 #
-$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(LIBA) $(FLIB)
+$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
 #===============================================
 #============= TESTS ===========================
 #===============================================
@@ -383,7 +389,7 @@ ifeq ($(FFC),ifort)
   # opt management
   ifeq ($(OOPT),1)
       #F90FLAGS = -O -parallel -g -traceback
-      FFLAGS = -O  -g -traceback
+      FFLAGS = -O  -g -traceback -heap-arrays
   else
       FFLAGS = -O0 -check all -g -traceback
   endif
