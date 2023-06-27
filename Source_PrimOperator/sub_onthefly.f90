@@ -420,8 +420,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: fchk_name
-      TYPE (File_t)        :: file_FChk
+      character (len=*)        :: fchk_name
+      TYPE (File_t)            :: file_FChk
       TYPE(Type_dnS)           :: dnFCC
 
 !----- for the files -------------------------------------------------
@@ -464,8 +464,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: fchk_name
-      TYPE (File_t)        :: file_FChk
+      character (len=*)        :: fchk_name
+      TYPE (File_t)            :: file_FChk
       TYPE(Type_dnS)           :: dnECC
 
 !----- for the files -------------------------------------------------
@@ -584,8 +584,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer, intent(in)      :: nderiv,ncart_act
-      character (len=Line_len) :: fchk_name
-      TYPE (File_t)        :: file_FChk
+      character (len=*)        :: fchk_name
+      TYPE (File_t)            :: file_FChk
       TYPE(Type_dnS)           :: dnDipCC(3)
 
 !----- for the files -------------------------------------------------
@@ -683,8 +683,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer, intent(in)      :: nderiv,ncart_act
-      character (len=Line_len) :: fchk_name
-      TYPE (File_t)        :: file_FChk
+      character (len=*)        :: fchk_name
+      TYPE (File_t)            :: file_FChk
       TYPE(Type_dnS)           :: dnPolarCC(6) ! αxx, αxy, αyy, αxz, αyz, αzz
 
 !----- for the files -------------------------------------------------
@@ -977,8 +977,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: log_name,pun_name
-      TYPE (File_t)        :: file_log,file_pun
+      character (len=*)        :: log_name,pun_name
+      TYPE (File_t)            :: file_log,file_pun
       TYPE(Type_dnS)           :: dnECC
 
 !----- for the files -------------------------------------------------
@@ -1111,8 +1111,8 @@ END IF
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: pun_name
-      TYPE (File_t)        :: file_pun
+      character (len=*)        :: pun_name
+      TYPE (File_t)            :: file_pun
       TYPE(Type_dnS)           :: dnDipCC(3)
 
 !----- for the files -------------------------------------------------
@@ -1438,8 +1438,8 @@ SUBROUTINE Read_dnECC_Molpro(dnECC,outm_name,nderiv,ncart_act)
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: outm_name
-      TYPE (File_t)        :: file_outm
+      character (len=*)        :: outm_name
+      TYPE (File_t)            :: file_outm
       TYPE(Type_dnS)           :: dnECC
 
 !----- for the files -------------------------------------------------
@@ -1512,8 +1512,8 @@ SUBROUTINE Read_GradHess_Molpro(dnFCC,outm_name,nderiv,ncart_act)
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act
-      character (len=Line_len) :: outm_name
-      TYPE (File_t)        :: file_outm
+      character (len=*)        :: outm_name
+      TYPE (File_t)            :: file_outm
       TYPE(Type_dnS)           :: dnFCC
 
 !----- for the files -------------------------------------------------
@@ -1838,8 +1838,8 @@ END SUBROUTINE Read_GradHess_Molpro
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,ncart_act,nb_elec
-      character (len=Line_len) :: log_name
-      TYPE (File_t)        :: file_log
+      character (len=*)        :: log_name
+      TYPE (File_t)            :: file_log
       TYPE(Type_dnS)           :: MatdnECC(nb_elec,nb_elec)
 
 !----- for the files -------------------------------------------------
@@ -1932,9 +1932,9 @@ END SUBROUTINE Read_GradHess_Molpro
 
 !----- input output variables ----------------------------------------
       integer                  :: nderiv,nb_elec,ncart_act
-      character (len=Line_len) :: log_name
-      TYPE (File_t)        :: file_log
-      TYPE(Type_dnS) :: MatdnDipCC(nb_elec,nb_elec,3)
+      character (len=*)        :: log_name
+      TYPE (File_t)            :: file_log
+      TYPE(Type_dnS)           :: MatdnDipCC(nb_elec,nb_elec,3)
 
 !----- for the files -------------------------------------------------
       integer :: nio
