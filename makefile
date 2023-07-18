@@ -264,9 +264,45 @@ TNUMMAIN = Tnum90
 .PHONY: tnum Tnum tnum-dist Tnum-dist
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
-#
+
 $(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
 	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+#
+#  Drivers (c and f90)
+#
+Main_TnumTana_FDriverEXE=Main_TnumTana_FDriver.exe
+Main_TnumTana_cDriverEXE=Main_TnumTana_cDriver.exe
+
+.PHONY: Tnum_FDriver Tnum_cDriver
+Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
+	@echo "Main_TnumTana_FDriver OK"
+Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
+	@echo "Main_TnumTana_cDriver OK"
+
+$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+$(Main_TnumTana_FDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_FDriver.o).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+#
+#
+TNUMMCTDHEXE = Tnum90_MCTDH.exe
+TNUMMCTDHMAIN = Tnum90_MCTDH
+.PHONY: Tnum_MCTDH
+Tnum_MCTDH: $(TNUMMCTDHEXE)
+	@echo "Tnum_MCTDH OK"
+#
+$(TNUMMCTDHEXE):  $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(TNUMMCTDHEXE) $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+#
+#
+TNUM_MiddasCppEXE  = Tnum90_MidasCpp.exe
+TNUM_MiddasCppMAIN = Tnum90_MidasCpp
+.PHONY: Tnum_MidasCpp Midas midas
+Tnum_MidasCpp Midas midas: $(TNUM_MiddasCppEXE)
+	@echo "Tnum_MidasCpp OK"
+#
+$(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
 #===============================================
 #============= TESTS ===========================
 #===============================================

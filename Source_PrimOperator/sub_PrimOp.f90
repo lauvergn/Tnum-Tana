@@ -136,6 +136,14 @@
 
           PrimOp%nb_elec = nsurf
 
+          ndim = get_Qmodel_ndim()
+          IF (ndim /= mole%ncart_act) THEN
+            write(out_unitp,*) 'ERROR in ',name_sub
+            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unitp,*) '  different from mole%ncart_act!'
+            write(out_unitp,*) '  ndim,mole%ncart_act',ndim,mole%ncart_act
+            STOP 'ndim from QML is not equal to mole%ncart_act'
+          END IF
         ELSE
           nsurf = PrimOp%nb_elec
 
@@ -179,18 +187,18 @@
 
           PrimOp%nb_elec = nsurf
 
+          ndim = get_Qmodel_ndim()
+          IF (ndim > mole%nb_var) THEN
+            write(out_unitp,*) 'ERROR in ',name_sub
+            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unitp,*) '  larger than mole%nb_var!'
+            write(out_unitp,*) '  ndim,mole%nb_var',ndim,mole%nb_var
+            STOP 'ndim from QML is larger than mole%nb_var'
+          END IF
         END IF
         IF (print_level > 0 .OR. debug) CALL sub_Write_Qmodel(out_unitp)
         IF (debug) CALL set_Qmodel_Print_level(min(1,print_level))
 
-        ndim = get_Qmodel_ndim()
-        IF (ndim > mole%nb_var) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
-          write(out_unitp,*) '  larger than mole%nb_var!'
-          write(out_unitp,*) '  ndim,mole%nb_var',ndim,mole%nb_var
-          STOP 'ndim from QML is too large'
-        END IF
 
         IF (allocated(PrimOp%Qit_TO_QQMLib)) THEN
           CALL dealloc_NParray(PrimOp%Qit_TO_QQMLib,'Qit_TO_QQMLib',name_sub)

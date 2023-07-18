@@ -473,7 +473,6 @@ CONTAINS
       CALL Write_dnS(dnQ2,info='dnQ2')
     END IF
     !---------------------------------------------------------------------
-    write(out_unitp,*) 'Type_2D',Type_2D
 
     SELECT CASE (Type_2D)
     CASE (0) ! identity

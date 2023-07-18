@@ -16,5 +16,3 @@ The exactness is guaranteed by the automatic differentiation procedures used for
 
 The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran or ifort need to be recent.
 
-You have to select or define your compiler in the "makefile" (the default is gfortran).
-Then, you have to compile the program with the unix command "make".

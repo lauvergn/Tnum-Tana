@@ -1,0 +1,49 @@
+here=`pwd`
+DIR_EVRT=$here/..
+
+cd $DIR_EVRT
+  make tnum-dist OPT=0
+cd $here
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables
+         nrho=2
+         Old_Qtransfo=f
+         nb_Qtransfo=4
+         Tana=f Write_QMotions=t
+ /
+ &Coord_transfo name_transfo='bunch_poly' nb_vect=3 nb_X=0 inTOout=f /
+N N H H
+1 2 3 4
+
+ &Coord_transfo name_transfo='poly' cos_th=f /
+     &vector nb_vect=2 Frame=t iAtA=1 iAtB=2 /   : R1(BF) (N1N2) => zBF
+         &vector iAtA=1 iAtB=3 /                 : R2 (N1H3) xBF
+         &vector iAtA=4 iAtB=2 Spherical_convention='x-zy' /                 : R3 (N2H4)
+
+ &Coord_transfo name_transfo='oneD' skip_transfo=t /
+   &oneD iQin=5 name_oneD='xtotheta' /
+
+
+ &Coord_transfo name_transfo='active' /
+ 1 1 1    1 1 1
+
+ &minimum pot0=-110.166752330284 pot_itQtransfo=0 unit='bohr' QMLib=t /
+QoneD3_1                2.203379
+QoneD3_2                1.966372
+QoneD3_3                2.152901
+QoneD3_4                2.
+QoneD3_5                0.0001
+QoneD3_6                0.5
+
+    7       0.000000000           0.000000000           0.000000000
+    7       0.000000000           0.000000000           2.203379146
+    1       1.642525755           0.000000000          -1.081077922
+    1      -1.642525755           0.000000000           3.284457068
+
+ &potential  pot_name='HNNHp' /
+   Qdyn_TO_QQMLib 1 2 3 4 5 6
+
+ &calculation calc_Tnum=f calc_gG=t nderivGg=0 /
+
+**

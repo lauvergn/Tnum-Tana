@@ -1806,7 +1806,7 @@
 
             !-----------------------------------------------------------
           END IF
-
+          !write(out_unitp,*) 'dnf1,dnf2,dnf3:',dnf1%d0,dnf2%d0,dnf3%d0
           SELECT CASE(BFTransfo%Spherical_convention)
           CASE ('zxy')
             CALL sub_dnS_TO_dnVec(dnf1,tab_dnXVect(1),1,nderiv) !x
@@ -1823,7 +1823,7 @@
             write(out_unitp,*) '  Check the fortran'
             STOP
           END SELECT
-
+          !write(out_unitp,*) 'Vector :',tab_dnXVect(1)%d0
         ELSE
           write(out_unitp,*) ' ERROR in ',name_sub
           write(out_unitp,*) '  Wrong iv_in for Frame = F',iv_in,BFTransfo%Frame
