@@ -68,8 +68,8 @@
 !===========================================================
       !para_mem%mem_debug = .TRUE.
       CALL versionEVRT(.TRUE.)
-      !print_level=-1
-      print_level=2
+      CALL set_print_level(2)
+
       !-----------------------------------------------------------------
       !     - read the coordinate transformations :
       !     -   zmatrix, polysperical, bunch...
