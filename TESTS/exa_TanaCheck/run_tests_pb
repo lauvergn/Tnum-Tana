@@ -1,0 +1,31 @@
+#!/bin/bash
+
+here=`pwd`
+EVRT=../..
+
+cd $EVRT
+  make Tnum_MCTDH OPT=0
+cd $here
+
+v=$1
+if test -z "$1"
+then
+  v=4
+fi
+
+./clean
+
+gfortran -o split_block.exe rec_vec_m.f90 split_block.f90
+
+type100=f
+
+zmat_order=f
+nrho=2
+type_vec=0
+
+# new tests
+cos_th=f
+cart=f
+frame0vec=f
+SpheConv_xzy=t
+./run_Tnum_Tana.job $v $cos_th $cart $frame0vec $type_vec $nrho $type100 $zmat_order $SpheConv_xzy
