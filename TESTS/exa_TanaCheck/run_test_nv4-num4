@@ -1,0 +1,11 @@
+#!/bin/bash
+
+here=`pwd`
+EVRT=../..
+
+cd $EVRT
+  make Tnum_MCTDH OPT=0
+cd $here
+
+../../Tnum90_MCTDH.exe < dat_nv4-num4 > res_nv4-num4
+grep "max error:" res_nv4-num4

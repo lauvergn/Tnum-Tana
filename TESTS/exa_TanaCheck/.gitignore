@@ -1,6 +1,7 @@
 run_all.log
 freq.xyz
 dat*
+save_dat_error
 res*
 keo.op
 rec_vec_m.mod
