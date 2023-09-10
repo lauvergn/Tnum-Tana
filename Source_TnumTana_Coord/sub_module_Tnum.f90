@@ -778,8 +778,8 @@ MODULE mod_Tnum
       nrho                 = 1
       vep_type             = -1
       KEO_TalyorOFQinact2n = -1
-      GTaylor_Order        = -1
-      vepTaylor_Order      = -1
+      GTaylor_Order        = para_Tnum%GTaylor_Order   ! so that it is possible to change the default
+      vepTaylor_Order      = para_Tnum%vepTaylor_Order ! so that it is possible to change the default
       f2f1_ana             = .FALSE.
 
       With_VecCOM          = .FALSE.

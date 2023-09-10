@@ -60,12 +60,13 @@ PROGRAM Tnum90_MidasCpp
   real (kind=Rkind), parameter :: epsi_G = ONETENTH**10
   real (kind=Rkind), parameter :: epsi_Vep = ONETENTH**10
   logical           :: Tana_FROM_para_Tnum,Gcenter,Tana,Taylor
+  integer           :: vepTaylor_Order,GTaylor_Order
 
 
   !     ------------------------------------------------------
 
 
-  NAMELIST /NewQ/ Gcenter,Tana,Taylor
+  NAMELIST /NewQ/ Gcenter,Tana,Taylor,vepTaylor_Order,GTaylor_Order
 
 
 !     - working parameters ------------------------------------------
@@ -82,6 +83,7 @@ PROGRAM Tnum90_MidasCpp
   !     -   zmatrix, polysperical, bunch...
   !     ------------------------------------------------------------
   CALL Read_CoordType(mole,para_Tnum,const_phys)
+
   para_Tnum%MidasCppForm = .TRUE.
   Tana_FROM_para_Tnum = para_Tnum%Tana
   !     ------------------------------------------------------------
@@ -124,9 +126,11 @@ PROGRAM Tnum90_MidasCpp
 !-------------------------------------------------
 !  Evaluation of Qact TO xyz (Once)
 !-------------------------------------------------
-  Gcenter = .FALSE.
-  Tana    = .FALSE.
-  Taylor  = .FALSE.
+  Gcenter         = .FALSE.
+  Tana            = .FALSE.
+  Taylor          = .FALSE.
+  vepTaylor_Order = 2
+  GTaylor_Order   = 2
   read(in_unitp,NewQ,IOSTAT=err_io)
   IF (err_io == 0) THEN
     read(in_unitp,*,IOSTAT=err_io) Qact
@@ -138,6 +142,8 @@ PROGRAM Tnum90_MidasCpp
      Tana   = .TRUE.
      Taylor = .TRUE.
   END IF
+  vepTaylor_Order = min(2,vepTaylor_Order)
+  GTaylor_Order   = min(2,GTaylor_Order)
 !-------------------------------------------------
 !-------------------------------------------------
 
@@ -185,16 +191,27 @@ PROGRAM Tnum90_MidasCpp
     write(out_unitp,*) "======================================"
     write(out_unitp,*) "======================================"
     CALL time_perso('Taylor expansion of G and Vep')
+
+    IF (GTaylor_Order >= 0) THEN
+      ! calculation of the G matrix. Then print the diagonal elements
+      para_Tnum%WriteT    = .FALSE.
+      CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderiv=GTaylor_Order)
+
+      CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=GTaylor_Order)
+      CALL export_Taylor_dnG(dnGG,Qact,epsi_G,file_name='Taylor_G.keo')
+      !CALL export_Taylor_dnG(dnGG,Qact,ZERO,file_name='Taylor_G.keo')
+
+      CALL dealloc_dnSVM(dnGG)
+    END IF
+
+    IF (vepTaylor_Order >= 0) THEN
+
+      CALL Set_dnVepTaylor(dnVep,Qact,mole,para_Tnum,TaylorOrder=vepTaylor_Order)
+      CALL export_Taylor_dnVep(dnVep,Qact,epsi_Vep=epsi_Vep,file_name='Taylor_Vep.keo')
  
-    para_Tnum%WriteT    = .FALSE.
-    CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=2)
-    CALL export_Taylor_dnG(dnGG,Qact,epsi_G,file_name='Taylor_G.keo')
-    !CALL export_Taylor_dnG(dnGG,Qact,ZERO,file_name='Taylor_G.keo')
- 
-    CALL Set_dnVepTaylor(dnVep,Qact,mole,para_Tnum,TaylorOrder=2)
-    CALL export_Taylor_dnVep(dnVep,Qact,epsi_Vep=epsi_Vep,file_name='Taylor_Vep.keo')
- 
-    CALL dealloc_dnSVM(dnGG)
+      CALL dealloc_dnSVM(dnVep)
+    END IF
+
     CALL time_perso('Taylor expansion of G and Vep')
     write(out_unitp,*) "======================================"
     write(out_unitp,*) "======================================"
