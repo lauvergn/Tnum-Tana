@@ -1725,7 +1725,7 @@
     character (len=*),      intent(in)     :: name_Qtransfo ! 
     TYPE (Type_Qtransfo),   intent(inout)  :: Qtransfo
 
-    Qtransfo%name_transfo = trim(adjustl(name_Qtransfo))
+    Qtransfo%name_transfo = TO_lowercase(trim(adjustl(name_Qtransfo)))
 
   END SUBROUTINE set_name_Qtransfo
 END MODULE mod_Qtransfo

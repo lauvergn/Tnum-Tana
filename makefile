@@ -74,6 +74,7 @@ MOD_DIR=$(OBJ_DIR)
 #
 # library name
 LIBA=libTnum-Tana$(extlibwi_obj).a
+LIBAF=libTnumTanaFull$(extlibwi_obj).a
 #=================================================================================
 # cpp preprocessing
 CPPSHELL = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
@@ -125,8 +126,10 @@ ifeq ($(FFC),gfortran)
   # opt management
   ifeq ($(OOPT),1)
     FFLAGS = -O5 -g -fbacktrace -funroll-loops -ftree-vectorize -falign-loops=16
+    CFLAGS = -O5 -g             -funroll-loops -ftree-vectorize -falign-loops=16
   else
     FFLAGS = -Og -g -fbacktrace -fcheck=all -fwhole-file -fcheck=pointer -Wuninitialized -finit-real=nan -finit-integer=nan
+    CFLAGS = -O0 -g                         -fwhole-file -Wuninitialized
   endif
 
   # integer kind management
@@ -137,6 +140,7 @@ ifeq ($(FFC),gfortran)
   # omp management
   ifeq ($(OOMP),1)
     FFLAGS += -fopenmp
+    CFLAGS += -fopenmp
   endif
   FFLAGS0 := $(FFLAGS)
 
@@ -151,25 +155,29 @@ ifeq ($(FFC),gfortran)
   FFLAGS += -cpp $(CPPSHELL)
 
   FLIB   = $(EXTLib)
+  FSLIB  = 
   # OS management
   ifeq ($(LLAPACK),1)
     ifeq ($(OS),Darwin)    # OSX
       # OSX libs (included lapack+blas)
-      FLIB += -framework Accelerate
+      FSLIB += -framework Accelerate
     else                   # Linux
       # linux libs
-      FLIB += -llapack -lblas
+      FSLIB += -llapack -lblas
       #
       # linux libs with mkl and with openmp
       #FLIB = -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread
       # linux libs with mkl and without openmp
       #FLIB = -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
     endif
+    FLIB += $(FSLIB)
   endif
 
   FC_VER = $(shell $(FFC) --version | head -1 )
 
 endif
+#CompC=/usr/bin/gcc
+CompC=/usr/local/Cellar/gcc/13.2.0/bin/gcc-13
 #=================================================================================
 
 #===============================================================================
@@ -230,10 +238,9 @@ Tana_SRCFILES = \
 TnumTana_SRCFILES = calc_f2_f1Q_num.f90 sub_module_Tana_Tnum.f90
 
 #Minimize Only list: OK
-Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(Tana_SRCFILES) $(TnumTana_SRCFILES) sub_module_Coord_KEO.f90
+Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(Tana_SRCFILES) $(TnumTana_SRCFILES)
 #
-#
-Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90
+Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90 TnumTana_Lib.f90 sub_module_Coord_KEO.f90 Module_ForTnumTana_Driver.f90
 Coord_KEO_EXT_SRCFILES_OBJ0 = ${Coord_KEO_EXT_SRCFILES:.f90=.o}
 Coord_KEO_EXT_SRCFILES_OBJ  = $(addprefix $(OBJ_DIR)/, $(Coord_KEO_EXT_SRCFILES_OBJ0))
 $(info ************ Coord_KEO_EXT_SRCFILES_OBJ: $(Coord_KEO_EXT_SRCFILES_OBJ))
@@ -265,13 +272,16 @@ TNUMMAIN = Tnum90
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
 
-$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+$(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF)
+	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF) $(FSLIB)
 #
 #  Drivers (c and f90)
 #
 Main_TnumTana_FDriverEXE=Main_TnumTana_FDriver.exe
+Main_TnumTana_FDriver   =Main_TnumTana_FDriver
+
 Main_TnumTana_cDriverEXE=Main_TnumTana_cDriver.exe
+Main_TnumTana_cDriver   =Main_TnumTana_cDriver
 
 .PHONY: Tnum_FDriver Tnum_cDriver
 Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
@@ -279,10 +289,11 @@ Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
 Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
 	@echo "Main_TnumTana_cDriver OK"
 
-$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
-$(Main_TnumTana_FDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/TnumTana_Lib.o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+	$(FFC) $(FFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+	$(CompC) $(CFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB) -lgfortran -lm
+$(Main_TnumTana_FDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF)
+	$(FFC) $(FFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF) $(FSLIB)
 #
 #
 TNUMMCTDHEXE = Tnum90_MCTDH.exe
@@ -291,8 +302,8 @@ TNUMMCTDHMAIN = Tnum90_MCTDH
 Tnum_MCTDH: $(TNUMMCTDHEXE)
 	@echo "Tnum_MCTDH OK"
 #
-$(TNUMMCTDHEXE):  $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(TNUMMCTDHEXE) $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+$(TNUMMCTDHEXE):  $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(LIBAF)
+	$(FFC) $(FFLAGS) -o $(TNUMMCTDHEXE) $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(LIBAF) $(FSLIB)
 #
 #
 TNUM_MiddasCppEXE  = Tnum90_MidasCpp.exe
@@ -301,8 +312,9 @@ TNUM_MiddasCppMAIN = Tnum90_MidasCpp
 Tnum_MidasCpp Midas midas: $(TNUM_MiddasCppEXE)
 	@echo "Tnum_MidasCpp OK"
 #
-$(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
+$(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF)
+	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF) $(FSLIB)
+#===============================================
 #===============================================
 #============= TESTS ===========================
 #===============================================
@@ -316,12 +328,21 @@ UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
 #===============================================
 #============= Library: lib_FOR_EVRT.a  ========
 #===============================================
+#OBJext= $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o
+OBJext=$(shell ls $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o)
+$(info ***********OBJext:               $(OBJext))
+
 .PHONY: lib
-lib: $(LIBA)
+lib: $(LIBA) $(LIBAF)
 
 $(LIBA): $(OBJ)
 	ar -cr $(LIBA) $(OBJ)
 	@echo "  done Library: "$(LIBA)
+$(LIBAF):
+	ar -cr $(LIBAF) $(OBJ) $(Coord_KEO_EXT_SRCFILES_OBJ) $(OBJext)
+	rm libTnumTanaFull.a
+	ln -s $(LIBAF) libTnumTanaFull.a
+	@echo "  done Library: "$(LIBAF)
 #
 #===============================================
 #============= compilation =====================
@@ -341,6 +362,15 @@ sub_pot/sub_system.$(extf): sub_pot/sub_system_save.$(extf)
 	cp sub_pot/sub_system_save.$(extf) sub_pot/sub_system.$(extf)
 #===============================================
 #===============================================
+#
+#===============================================
+#  C driver compilation
+#===============================================
+$(OBJ_DIR)/Main_TnumTana_cDriver.o:Source_TnumTana_Coord/Main_TnumTana_cDriver.c
+	$(CompC) $(CFLAGS)  -c Source_TnumTana_Coord/Main_TnumTana_cDriver.c
+#===============================================
+#===============================================
+#
 #================ cleaning =====================
 .PHONY: clean cleanall
 clean:
@@ -414,6 +444,7 @@ clean_extlib:
 #add dependence for parallelization
 $(OBJ):                     $(EXTLib)
 $(LIBA):                    $(OBJ)
+$(LIBAF):                   $(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)
 $(OBJ_DIR)/$(TNUMMAIN).o:   $(LIBA)
 
 $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/$(Main_TnumTana_cDriver).o : $(EXTLib) $(LIBA)

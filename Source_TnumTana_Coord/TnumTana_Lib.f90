@@ -55,7 +55,7 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
   IF (Init == 0) THEN
     Init = 1
     CALL versionEVRT(.TRUE.)
-    print_level=-1
+    CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
     !     -   zmatrix, polysperical, bunch...
@@ -131,7 +131,7 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
   IF (Init == 0) THEN
     Init = 1
     CALL versionEVRT(.TRUE.)
-    print_level=-1
+    CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
     !     -   zmatrix, polysperical, bunch...
@@ -204,7 +204,7 @@ SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
   IF (Init == 0) THEN
     Init = 1
     CALL versionEVRT(.TRUE.)
-    print_level=-1
+    CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
     !     -   zmatrix, polysperical, bunch...
@@ -348,8 +348,14 @@ SUBROUTINE Tnum_Set_active_masses(active_masses,ncart_act)
 
   CALL Check_TnumInit(name_sub)
 
+  write(6,*) 'size(mole%active_masses)',size(mole%active_masses)
+  write(6,*) 'mole%ncart_act',mole%ncart_act
+  write(6,*) 'size(active_masses)',size(active_masses)
+  write(6,*) 'ncart_act',ncart_act
+  flush(6)
+
   IF (ncart_act == mole%ncart_act) THEN
-    mole%active_masses(:) = active_masses
+    mole%active_masses(1:ncart_act) = active_masses
   ELSE
     write(out_unitp,*) ' ERROR in ',name_sub
     write(out_unitp,*) ' Wrong ncart_act value. It MUST be: ',mole%ncart_act
@@ -591,7 +597,7 @@ SUBROUTINE InitTnum3_NM_TO_LinearTransfo(Qact,nb_act,Hess,nb_cart)
     CALL Check_TnumInit(name_sub)
 
     CALL Tnum_Set_skip_NM(0) ! To be able to initialize the Normal Modes
-    print_level=0
+    CALL set_print_level(0)
 
     IF (nb_act <= mole%nb_var) THEN
       allocate(Qact_loc(mole%nb_var))
@@ -628,7 +634,7 @@ SUBROUTINE Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
     init_sub = 1
 
     CALL versionEVRT(.TRUE.)
-    print_level=-1
+    CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
     !     -   zmatrix, polysperical, bunch...
@@ -763,3 +769,29 @@ SUBROUTINE Qcart_TO_Qact_TnumTanaDriver_FOR_c(Qact,nb_act,Qcart,nb_cart) BIND(C,
 
 
 END SUBROUTINE Qcart_TO_Qact_TnumTanaDriver_FOR_c
+
+
+SUBROUTINE get_GG_TnumTanaDriver_FOR_c(Qact,nb_act,GG,ndimG) BIND(C, name="get_GG_TnumTanaDriver_FOR_c")
+  USE, INTRINSIC :: ISO_C_BINDING,             ONLY : C_INT,C_DOUBLE
+  USE            :: mod_system
+  IMPLICIT NONE
+
+  integer (kind=C_INT), intent(in)     :: nb_act,ndimG
+
+  real (kind=C_DOUBLE), intent(in)     :: Qact(nb_act)
+  real (kind=C_DOUBLE), intent(inout)  :: GG(ndimG,ndimG)
+
+
+  !- local parameters for para_Tnum -----------------------
+  real (kind=Rkind)      :: Qact_loc(nb_act)
+  real (kind=Rkind)      :: GG_loc(ndimG,ndimG)
+  logical                :: def_loc = .TRUE.
+
+
+  character (len=*), parameter :: name_sub='get_GG_TnumTanaDriver_FOR_c'
+
+  Qact_loc(:)  = Qact
+  CALL Tnum_get_GG(Qact_loc,nb_act,GG_loc,ndimG,def_loc)
+  GG(:,:)      = GG_loc
+
+END SUBROUTINE get_GG_TnumTanaDriver_FOR_c
