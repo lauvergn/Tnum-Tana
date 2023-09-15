@@ -235,12 +235,12 @@ Tana_SRCFILES = \
   sub_module_Tana_NumKEO.f90 sub_module_Tana_keo.f90
 
 #Minimize Only list: OK
-TnumTana_SRCFILES = calc_f2_f1Q_num.f90 sub_module_Tana_Tnum.f90
+TnumTana_SRCFILES = calc_f2_f1Q_num.f90 sub_module_Tana_Tnum.f90 sub_module_Coord_KEO.f90
 
 #Minimize Only list: OK
 Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(Tana_SRCFILES) $(TnumTana_SRCFILES)
 #
-Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90 TnumTana_Lib.f90 sub_module_Coord_KEO.f90 Module_ForTnumTana_Driver.f90
+Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90  Module_ForTnumTana_Driver.f90 TnumTana_Lib.f90
 Coord_KEO_EXT_SRCFILES_OBJ0 = ${Coord_KEO_EXT_SRCFILES:.f90=.o}
 Coord_KEO_EXT_SRCFILES_OBJ  = $(addprefix $(OBJ_DIR)/, $(Coord_KEO_EXT_SRCFILES_OBJ0))
 $(info ************ Coord_KEO_EXT_SRCFILES_OBJ: $(Coord_KEO_EXT_SRCFILES_OBJ))
@@ -260,7 +260,7 @@ SRCFILES= $(Coord_KEO_SRCFILES) $(PrimOperator_SRCFILES)
 
 OBJ0=${SRCFILES:.f90=.o}
 OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0))
-#$(info ************ OBJ: $(OBJ))
+$(info ************ OBJ: $(OBJ))
 #
 #===============================================
 #============= Several mains ===================
@@ -340,7 +340,7 @@ $(LIBA): $(OBJ)
 	@echo "  done Library: "$(LIBA)
 $(LIBAF):
 	ar -cr $(LIBAF) $(OBJ) $(Coord_KEO_EXT_SRCFILES_OBJ) $(OBJext)
-	rm libTnumTanaFull.a
+	rm -f libTnumTanaFull.a
 	ln -s $(LIBAF) libTnumTanaFull.a
 	@echo "  done Library: "$(LIBAF)
 #
