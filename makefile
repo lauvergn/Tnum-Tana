@@ -289,7 +289,7 @@ Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
 Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
 	@echo "Main_TnumTana_cDriver OK"
 
-$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/TnumTana_Lib.o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(EXTLib)
+$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/TnumTana_Lib.o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) | $(EXTLib)
 	$(FFC) $(FFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
 	$(CompC) $(CFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB) -lgfortran -lm
 $(Main_TnumTana_FDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF)
@@ -442,12 +442,12 @@ clean_extlib:
 #=======================================================================================
 #=======================================================================================
 #add dependence for parallelization
-$(OBJ):                     $(EXTLib)
+$(OBJ):                     | $(EXTLib)
 $(LIBA):                    $(OBJ)
 $(LIBAF):                   $(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)
 $(OBJ_DIR)/$(TNUMMAIN).o:   $(LIBA)
 
-$(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/$(Main_TnumTana_cDriver).o : $(EXTLib) $(LIBA)
+$(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/$(Main_TnumTana_cDriver).o : $(LIBA) | $(EXTLib) 
 
 #=================================================================================
 #=================================================================================
