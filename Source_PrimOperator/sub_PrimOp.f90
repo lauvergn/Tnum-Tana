@@ -2707,10 +2707,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL get_Qact0(Qact,mole%ActiveTransfo)
 
       !-----------------------------------------------------------------
-      !- calc G_1
+      !- calc new G and hessian
       IF (print_level > 1 .OR. debug) THEN
         write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== New G matrix ==================='
+        write(out_unitp,*) '======== New G and hessain matrix ======='
         write(out_unitp,*) '========================================='
 
         CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
@@ -2719,10 +2719,30 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         write(out_unitp,*) 'New d0GG',mole%nb_act
         CALL Write_Mat(dnGG%d0,out_unitp,5)
+
+        CALL dealloc_dnSVM(dnGG)
         write(out_unitp,*) '========================================='
         write(out_unitp,*) '========================================='
 
-        CALL dealloc_dnSVM(dnGG)
+        nb_NM = mole%nb_act
+        Ind_Coord_AtBlock  = [(i,i=1,nb_NM)]
+        Ind_Coord_PerBlock = [(i,i=1,nb_NM)]
+
+        CALL alloc_NParray(d0k,     [nb_NM,nb_NM],"d0k",     name_sub)
+        CALL alloc_NParray(d0h,     [nb_NM,nb_NM],"d0h",     name_sub)
+        CALL get_hess_k(d0k,d0h,nb_NM,Qact,mole,para_Tnum,              &
+                        Ind_Coord_AtBlock(i_Block),Ind_Coord_PerBlock,  &
+                        PrimOp,hCC_loc,l_hCC_loc)
+
+        write(out_unitp,*) 'New d0h',mole%nb_act
+        CALL Write_Mat(d0h,out_unitp,5)
+
+        CALL dealloc_NParray(d0k,"d0k",     name_sub)
+        CALL dealloc_NParray(d0h,"d0h",     name_sub)
+        deallocate(Ind_Coord_AtBlock)
+        deallocate(Ind_Coord_PerBlock)
+        write(out_unitp,*) '========================================='
+        write(out_unitp,*) '========================================='
       END IF
       !-----------------------------------------------------------------
 
@@ -2941,7 +2961,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           CALL alloc_NParray(d0h,     [nb_NM,nb_NM],"d0h",     name_sub)
           CALL alloc_NParray(d0k_save,[nb_NM,nb_NM],"d0k_save",name_sub)
           CALL alloc_NParray(d0c_ini, [nb_NM,nb_NM],"d0c_ini", name_sub)
-          CALL alloc_NParray(d0eh,    [nb_NM],    "d0eh",    name_sub)
+          CALL alloc_NParray(d0eh,    [nb_NM],    "d0eh",      name_sub)
 
 
           CALL get_hess_k(d0k,d0h,nb_NM,Qact,mole_1,para_Tnum,          &
@@ -3169,10 +3189,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL get_Qact0(Qact,mole%ActiveTransfo)
 
       !-----------------------------------------------------------------
-      !- calc G_1
+      !- calc new G and hessian
       IF (print_level > 1 .OR. debug) THEN
         write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== New G matrix ==================='
+        write(out_unitp,*) '======== New G and hessain matrix ======='
         write(out_unitp,*) '========================================='
 
         CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
@@ -3181,10 +3201,30 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         write(out_unitp,*) 'New d0GG',mole%nb_act
         CALL Write_Mat(dnGG%d0,out_unitp,5)
+
+        CALL dealloc_dnSVM(dnGG)
         write(out_unitp,*) '========================================='
         write(out_unitp,*) '========================================='
 
-        CALL dealloc_dnSVM(dnGG)
+        nb_NM = mole%nb_act
+        Ind_Coord_AtBlock  = [(i,i=1,nb_NM)]
+        Ind_Coord_PerBlock = [(i,i=1,nb_NM)]
+
+        CALL alloc_NParray(d0k,     [nb_NM,nb_NM],"d0k",     name_sub)
+        CALL alloc_NParray(d0h,     [nb_NM,nb_NM],"d0h",     name_sub)
+        CALL get_hess_k(d0k,d0h,nb_NM,Qact,mole,para_Tnum,              &
+                        Ind_Coord_AtBlock(i_Block),Ind_Coord_PerBlock,  &
+                        PrimOp,hCC_loc,l_hCC_loc)
+
+        write(out_unitp,*) 'New d0h',mole%nb_act
+        CALL Write_Mat(d0h,out_unitp,5)
+
+        CALL dealloc_NParray(d0k,"d0k",     name_sub)
+        CALL dealloc_NParray(d0h,"d0h",     name_sub)
+        deallocate(Ind_Coord_AtBlock)
+        deallocate(Ind_Coord_PerBlock)
+        write(out_unitp,*) '========================================='
+        write(out_unitp,*) '========================================='
       END IF
       !-----------------------------------------------------------------
 
@@ -3243,8 +3283,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       !-----------------------------------------------------------------
       integer :: err_mem,memory
-      !logical, parameter :: debug=.FALSE.
-      logical, parameter :: debug=.TRUE.
+      logical, parameter :: debug=.FALSE.
+      !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'get_hess_k'
       !-----------------------------------------------------------------
       IF (debug) THEN
@@ -3256,8 +3296,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unitp,*) 'hessian_old',mole%NMTransfo%hessian_old
         write(out_unitp,*) 'hessian_onthefly',mole%NMTransfo%hessian_onthefly
         write(out_unitp,*) 'hessian_cart',mole%NMTransfo%hessian_cart
-        write(out_unitp,*) 'mole%...list_act_OF_Qdyn',                          &
-                                mole%ActiveTransfo%list_act_OF_Qdyn(:)
+        write(out_unitp,*) 'mole%...list_act_OF_Qdyn',mole%ActiveTransfo%list_act_OF_Qdyn(:)
         write(out_unitp,*)
         CALL Write_CoordType(mole)
         write(out_unitp,*)
