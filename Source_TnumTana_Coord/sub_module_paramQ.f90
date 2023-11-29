@@ -1371,9 +1371,15 @@ CONTAINS
 !     -----------------------------------------------------------------
       integer :: nderiv_debug = 0
       logical, parameter :: debug = .FALSE.
-!      logical, parameter :: debug = .TRUE.
+      !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='sub_QplusDQ_TO_Cart'
 !     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unitp,*)
+        write(out_unitp,*) 'BEGINNING ',name_sub
+      END IF
+      !-----------------------------------------------------------------
 
 !     -----------------------------------------------------------------
       ! Some initializations
@@ -1407,7 +1413,6 @@ CONTAINS
         iZ = iZ + 1
         write(out_unitp,112) Z_act(iZ),dnx0%d0(i:i+2)*a0
  112    format(2x,i5,3(2x,f12.5))
-
       END DO
 
       write(out_unitp,*) '= END XYZ format ============================='
@@ -1416,14 +1421,25 @@ CONTAINS
       file_freq%name='freq.xyz'
       CALL file_open(file_freq,niofreq)
       ! loop on all the coordinates (active order)
+      IF (debug) write(out_unitp,*) 0,'Qact0',mole%ActiveTransfo%Qact0
+
       DO iQ=1,mole%nb_var
 
         Qact = mole%ActiveTransfo%Qact0
         Qact(iQ) = Qact(iQ) + ONETENTH
+        IF (debug) write(out_unitp,*) iQ,'Qact',Qact(:)
         CALL sub_QactTOdnx(Qact,dnx,mole,0,Gcenter=.TRUE.)
+        IF (debug) write(out_unitp,*) iQ,'d0x', dnx%d0
+
         dnx%d0 = dnx%d0 - dnx0%d0 ! dxyz
+        IF (debug) write(out_unitp,*) iQ,'Delta d0x', dnx%d0
+
         Norm = sqrt(dot_product(dnx%d0,dnx%d0))
-        dnx%d0 = dnx%d0/Norm
+        IF (debug) write(out_unitp,*) iQ,'Norm of Delta d0x',Norm
+
+        IF (Norm > ONETENTH**4) dnx%d0 = dnx%d0/Norm
+        IF (debug) write(out_unitp,*) iQ,'Delta d0x (renorm)', dnx%d0
+
         write(niofreq,*) mole%nat_act
         write(niofreq,*) '  Coord: ',iQ
 
@@ -1439,6 +1455,12 @@ CONTAINS
 
       Qact = mole%ActiveTransfo%Qact0
 
+      !-----------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unitp,*)
+        write(out_unitp,*) 'END ',name_sub
+      END IF
+      !-----------------------------------------------------------------
       END SUBROUTINE sub_QplusDQ_TO_Cart
 
 !================================================================

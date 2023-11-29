@@ -3687,6 +3687,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
       END IF
 
+      write(6,*) 'coucou DML'
   IF (para_Tnum%Write_QMotions) THEN
     CALL get_Qact0(Qact,mole%ActiveTransfo)
     CALL sub_QplusDQ_TO_Cart(Qact,mole)
