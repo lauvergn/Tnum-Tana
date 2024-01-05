@@ -512,7 +512,7 @@
           END IF
 
             ! CAP Op
-          IF (PrimOp%nb_CAP > 0) THEN
+          IF (PrimOp%nb_CAP > 0 .AND. nb_Op > 1) THEN
             DO i=1,PrimOp%nb_CAP
               iterm = d0MatOp(iOpCAP+i)%derive_term_TO_iterm(0,0)
 
@@ -534,7 +534,7 @@
           END IF
 
             ! flux Op
-          IF (PrimOp%nb_FluxOp > 0) THEN
+          IF (PrimOp%nb_FluxOp > 0 .AND. nb_Op > 1) THEN
             DO i=1,PrimOp%nb_FluxOp
               iterm = d0MatOp(iOpFluxOp+i)%derive_term_TO_iterm(0,0)
               HStep_val = calc_HStep(PrimOp%tab_HStep(i),Qact)
