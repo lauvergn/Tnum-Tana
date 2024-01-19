@@ -85,6 +85,7 @@
         logical                       :: QMLib   = .FALSE.
         logical                       :: QMLib_G = .FALSE.
         integer, allocatable          :: Qit_TO_QQMLib(:)
+        integer, allocatable          :: QQMLib_TO_Qit(:)
 
 
         ! For the nDfit
@@ -162,6 +163,9 @@
       IF (allocated(PrimOp%Qit_TO_QQMLib)) THEN
         write(out_unitp,*) 'PrimOp%Qit_TO_QQMLib',PrimOp%Qit_TO_QQMLib
       END IF
+      IF (allocated(PrimOp%QQMLib_TO_Qit)) THEN
+        write(out_unitp,*) 'PrimOp%QQMLib_TO_Qit',PrimOp%QQMLib_TO_Qit
+      END IF
 
       write(out_unitp,*) 'PrimOp%Type_HamilOp',PrimOp%Type_HamilOp
       write(out_unitp,*) 'PrimOp%direct_KEO',PrimOp%direct_KEO
@@ -229,6 +233,9 @@
       PrimOp1%QMLib                 = PrimOp2%QMLib
       IF (allocated(PrimOp2%Qit_TO_QQMLib)) THEN
         PrimOp1%Qit_TO_QQMLib         = PrimOp2%Qit_TO_QQMLib
+      END IF
+      IF (allocated(PrimOp2%QQMLib_TO_Qit)) THEN
+        PrimOp1%QQMLib_TO_Qit         = PrimOp2%QQMLib_TO_Qit
       END IF
 
       PrimOp1%nDfit_Op              = PrimOp2%nDfit_Op
@@ -311,7 +318,9 @@
 
       PrimOp%QMLib                 = .FALSE.
       IF (allocated(PrimOp%Qit_TO_QQMLib)) deallocate(PrimOp%Qit_TO_QQMLib)
+      IF (allocated(PrimOp%QQMLib_TO_Qit)) deallocate(PrimOp%QQMLib_TO_Qit)
 
+      
       PrimOp%nDfit_Op              = .FALSE.
       CALL dealloc_nDFit(PrimOp%para_nDFit_V)
       IF (allocated(PrimOp%para_nDFit_Scalar_Op)) THEN

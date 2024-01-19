@@ -763,6 +763,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical             :: Gcenter,Cart_transfo
 
       integer             :: i,i1,i2,ie,je,io,iOpE,itermE,iOpS,iOpScal,itermS,iOp,iterm
+      integer             ::  iQML,iQdyn,iQact
 
 !     - for the conversion gCC -> gzmt=d1pot -----------
       TYPE(Type_dnS) :: MatdnECC(PrimOp%nb_elec,PrimOp%nb_elec)
@@ -915,15 +916,26 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
            write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
         END IF
 
+        ndimQML = get_Qmodel_ndim()
         IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo) THEN ! Qact
           list_QactTOQML = PrimOp%Qit_TO_QQMLib(1:mole%nb_act)
         ELSE IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo-1) THEN ! Qdyn
-          list_QactTOQML = PrimOp%Qit_TO_QQMLib(mole%liste_QactTOQdyn(1:mole%nb_act))
+          allocate(list_QactTOQML(mole%nb_act))
+          DO iQML=1,ndimQML
+            iQdyn = PrimOp%Qit_TO_QQMLib(iQML)
+            iQact = mole%liste_QdynTOQact(iQdyn)
+            IF (iQact < 0 .OR. iQact > mole%nb_act) CYCLE
+            !THEN
+            !  write(out_unitp,*) 'iQML,iQdyn,iQact,mole%nb_act',iQML,iQdyn,iQact,mole%nb_act
+            !  STOP 'ERROR in list_QactTOQML'
+            !END IF
+            list_QactTOQML(iQact) = iQML
+          END DO
+          !list_QactTOQML = PrimOp%Qit_TO_QQMLib(mole%liste_QactTOQdyn(1:mole%nb_act))
         ELSE IF (nderivE > 0) THEN
           STOP 'ERROR in get_dnMatOp_AT_Qact: The gradient or hessian cannot be obtained'
         END IF
 
-        ndimQML = get_Qmodel_ndim()
         IF (nderivE > 0) THEN
           allocate(mat_g(PrimOp%nb_elec,PrimOp%nb_elec,ndimQML))
         END IF
