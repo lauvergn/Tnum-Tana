@@ -492,6 +492,16 @@
             oneDTransfo(i)%type_oneD = -74  ! R => x
           END IF
 
+        CASE ('xtou2')
+          !  x E ]-inf,inf[  => u E ]-1,1[ (with atan) or the invers
+          oneDTransfo(i)%cte(1) = -ONE
+          oneDTransfo(i)%cte(2) =  ONE
+ 
+           IF (inTOout) THEN
+             oneDTransfo(i)%type_oneD = 761   ! x => u
+           ELSE
+             oneDTransfo(i)%type_oneD = -761  ! u => x
+           END IF
         CASE ('oneoverx','x_inv','r_inv')
          ! R=1/x   x E ]0,inf[
          ! x=1/R   R E ]0,inf[
@@ -584,7 +594,7 @@
         DO i=1,size(oneDTransfo)
           IF (oneDTransfo(i)%skip_transfo) CYCLE
 
-          iQin   = oneDTransfo(i)%iQin
+          iQin      = oneDTransfo(i)%iQin
           name_oneD = oneDTransfo(i)%name_oneD
           type_oneD = oneDTransfo(i)%type_oneD
 
