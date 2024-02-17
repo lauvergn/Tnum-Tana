@@ -70,7 +70,7 @@
    PUBLIC ::  param_dnMatOp,Init_Tab_OF_dnMatOp,                        &
               Get_Scal_FROM_Tab_OF_dnMatOp,dealloc_tab_of_dnmatop,      &
               get_grad_from_tab_of_dnmatop,get_hess_from_tab_of_dnmatop,&
-              set_zero_to_tab_of_dnmatop
+              set_zero_to_tab_of_dnmatop,Write_Tab_OF_dnMatOp
    CONTAINS
 
 !===============================================================================
@@ -512,7 +512,7 @@
           END IF
 
             ! CAP Op
-          IF (PrimOp%nb_CAP > 0) THEN
+          IF (PrimOp%nb_CAP > 0 .AND. nb_Op > 1) THEN
             DO i=1,PrimOp%nb_CAP
               iterm = d0MatOp(iOpCAP+i)%derive_term_TO_iterm(0,0)
 
@@ -534,7 +534,7 @@
           END IF
 
             ! flux Op
-          IF (PrimOp%nb_FluxOp > 0) THEN
+          IF (PrimOp%nb_FluxOp > 0 .AND. nb_Op > 1) THEN
             DO i=1,PrimOp%nb_FluxOp
               iterm = d0MatOp(iOpFluxOp+i)%derive_term_TO_iterm(0,0)
               HStep_val = calc_HStep(PrimOp%tab_HStep(i),Qact)
@@ -763,6 +763,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical             :: Gcenter,Cart_transfo
 
       integer             :: i,i1,i2,ie,je,io,iOpE,itermE,iOpS,iOpScal,itermS,iOp,iterm
+      integer             ::  iQML,iQdyn,iQact
 
 !     - for the conversion gCC -> gzmt=d1pot -----------
       TYPE(Type_dnS) :: MatdnECC(PrimOp%nb_elec,PrimOp%nb_elec)
@@ -772,9 +773,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       real (kind=Rkind) :: mat_imV(PrimOp%nb_elec,PrimOp%nb_elec)
       real (kind=Rkind) :: mat_ScalOp(PrimOp%nb_elec,PrimOp%nb_elec,PrimOp%nb_scalar_Op)
 
-      real (kind=Rkind) :: mat_g(PrimOp%nb_elec,PrimOp%nb_elec,mole%nb_act)
-      real (kind=Rkind) :: mat_h(PrimOp%nb_elec,PrimOp%nb_elec,mole%nb_act,mole%nb_act)
+      real (kind=Rkind), allocatable :: mat_g(:,:,:)
+      real (kind=Rkind), allocatable :: mat_h(:,:,:,:)
       real (kind=Rkind), allocatable :: Qit(:)
+      integer :: ndimQML
+      integer                           :: get_Qmodel_ndim ! function
+      integer, allocatable :: list_QactTOQML(:)
 
 
       real (kind=Rkind) :: Vinact(PrimOp%nb_elec) ! for HarD
@@ -906,11 +910,37 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         END DO
         !----------------------------------------------------------------
 
-      ELSE IF (PrimOp%QMLib .AND.                                               &
-               (nderivE == 0 .OR. .NOT. PrimOp%deriv_WITH_FiniteDiff)) THEN
+      ELSE IF (PrimOp%QMLib .AND. (nderivE == 0 .OR. .NOT. PrimOp%deriv_WITH_FiniteDiff)) THEN
         IF (debug) THEN
            write(out_unitp,*) 'With Quantum Model Lib'
            write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
+        END IF
+
+        ndimQML = get_Qmodel_ndim()
+        IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo) THEN ! Qact
+          list_QactTOQML = PrimOp%Qit_TO_QQMLib(1:mole%nb_act)
+        ELSE IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo-1) THEN ! Qdyn
+          allocate(list_QactTOQML(mole%nb_act))
+          DO iQML=1,ndimQML
+            iQdyn = PrimOp%Qit_TO_QQMLib(iQML)
+            iQact = mole%liste_QdynTOQact(iQdyn)
+            IF (iQact < 0 .OR. iQact > mole%nb_act) CYCLE
+            !THEN
+            !  write(out_unitp,*) 'iQML,iQdyn,iQact,mole%nb_act',iQML,iQdyn,iQact,mole%nb_act
+            !  STOP 'ERROR in list_QactTOQML'
+            !END IF
+            list_QactTOQML(iQact) = iQML
+          END DO
+          !list_QactTOQML = PrimOp%Qit_TO_QQMLib(mole%liste_QactTOQdyn(1:mole%nb_act))
+        ELSE IF (nderivE > 0) THEN
+          STOP 'ERROR in get_dnMatOp_AT_Qact: The gradient or hessian cannot be obtained'
+        END IF
+
+        IF (nderivE > 0) THEN
+          allocate(mat_g(PrimOp%nb_elec,PrimOp%nb_elec,ndimQML))
+        END IF
+        IF (nderivE > 1) THEN
+          allocate(mat_h(PrimOp%nb_elec,PrimOp%nb_elec,ndimQML,ndimQML))
         END IF
 
         SELECT CASE (nderivE)
@@ -919,20 +949,37 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           Tab_dnMatOp(iOpE)%tab_dnMatOp(:,:,itermE)%d0 = mat_V
         CASE (1)
           CALL sub_Qmodel_VG(mat_V,mat_g,Qit(PrimOp%Qit_TO_QQMLib))
+          Tab_dnMatOp(iOpE)%tab_dnMatOp(:,:,itermE)%d0 = mat_V
           DO ie=1,PrimOp%nb_elec
           DO je=1,PrimOp%nb_elec
-            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d0 = mat_V(je,ie)
-            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d1 = mat_g(je,ie,1:mole%nb_act)
+            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d1 = mat_g(je,ie,list_QactTOQML)
           END DO
           END DO
-          !STOP 'ERROR in get_dnMatOp_AT_Qact: nderivE=1 not yet'
         CASE (2)
           CALL sub_Qmodel_VGH(mat_V,mat_g,mat_h,Qit(PrimOp%Qit_TO_QQMLib))
+
+          ! write(6,*) 'shape list_QactTOQML',shape(list_QactTOQML)
+          ! write(6,*) 'list_QactTOQML',list_QactTOQML
+          ! write(6,*) 'shape mat_g',shape(mat_g)
+          ! write(6,*) 'mat_g',mat_g(1,1,list_QactTOQML)
+          ! write(6,*) 'shape mat_h',shape(mat_h)
+          ! write(6,*) 'mat_h',mat_h(1,1,list_QactTOQML,list_QactTOQML)
+          ! write(6,*) 'asso Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1', &
+          !       associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1), &
+          !       associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)
+          ! IF (associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1)) &
+          !       write(6,*) 'shape Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1', &
+          !       shape(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1)
+          ! IF (associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)) &
+          !       write(6,*) 'shape Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2', &
+          !       shape(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)
+          ! flush(6)
+
           DO ie=1,PrimOp%nb_elec
           DO je=1,PrimOp%nb_elec
             Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d0 = mat_V(je,ie)
-            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d1 = mat_g(je,ie,1:mole%nb_act)
-            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d2 = mat_h(je,ie,1:mole%nb_act,1:mole%nb_act)
+            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d1 = mat_g(je,ie,list_QactTOQML)
+            Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d2 = mat_h(je,ie,list_QactTOQML,list_QactTOQML)
           END DO
           END DO
           !STOP 'ERROR in get_dnMatOp_AT_Qact: nderivE=2 not yet'
@@ -1124,6 +1171,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unitp,*) 'tab_dnMatOp'
         CALL Write_Tab_OF_dnMatOp(Tab_dnMatOp)
         write(out_unitp,*) 'END ',name_sub
+        flush(out_unitp)
       END IF
 !-----------------------------------------------------------
 
@@ -3687,6 +3735,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
       END IF
 
+      write(6,*) 'coucou DML'
   IF (para_Tnum%Write_QMotions) THEN
     CALL get_Qact0(Qact,mole%ActiveTransfo)
     CALL sub_QplusDQ_TO_Cart(Qact,mole)

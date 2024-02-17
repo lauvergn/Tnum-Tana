@@ -445,15 +445,25 @@
             oneDTransfo(i)%type_oneD = -76  ! Q => x
           END IF
         CASE ('xtor')
-         !  transfo R ]0,inf[ => x ]-inf,inf[
-         ! 111      =>    (-a + x^2)/x = x-a/x x E ]0,inf[
-         !-111      =>    1/2(x+sqrt(4a+x^2)) x E ]-inf,inf[
-         ! a = cte(1)^2
+          !  transfo R ]Rmin,inf[ => x ]-inf,inf[
+          !        111      =>    (-a^2 + Dx^2)/Dx with Dx=x-Rmin  x E ]Rmin,inf[
+          !       -111      =>    Rmin+1/2(x+sqrt(4a+x^2))         x E ]-inf,inf[
+          !         a    = cte(1)**2
+          !         Rmin = cte(2)
           IF ( cte(1) == ZERO) THEN
             write(out_unitp,*) ' ERROR in ',name_sub
             write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
             write(out_unitp,*) '    wrong value of cte(1):',cte(1)
             write(out_unitp,*) '    It has to be:  cte(1) /= 0'
+            write(out_unitp,*) ' Check your data !!'
+            STOP
+          END IF
+
+          IF ( cte(2) < ZERO) THEN
+            write(out_unitp,*) ' ERROR in ',name_sub
+            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unitp,*) '    wrong value of cte(2):',cte(2)
+            write(out_unitp,*) '    It has to be:  cte(2) >= 0'
             write(out_unitp,*) ' Check your data !!'
             STOP
           END IF
@@ -482,6 +492,16 @@
             oneDTransfo(i)%type_oneD = -74  ! R => x
           END IF
 
+        CASE ('xtou2')
+          !  x E ]-inf,inf[  => u E ]-1,1[ (with atan) or the invers
+          oneDTransfo(i)%cte(1) = -ONE
+          oneDTransfo(i)%cte(2) =  ONE
+ 
+           IF (inTOout) THEN
+             oneDTransfo(i)%type_oneD = 761   ! x => u
+           ELSE
+             oneDTransfo(i)%type_oneD = -761  ! u => x
+           END IF
         CASE ('oneoverx','x_inv','r_inv')
          ! R=1/x   x E ]0,inf[
          ! x=1/R   R E ]0,inf[
@@ -574,7 +594,7 @@
         DO i=1,size(oneDTransfo)
           IF (oneDTransfo(i)%skip_transfo) CYCLE
 
-          iQin   = oneDTransfo(i)%iQin
+          iQin      = oneDTransfo(i)%iQin
           name_oneD = oneDTransfo(i)%name_oneD
           type_oneD = oneDTransfo(i)%type_oneD
 

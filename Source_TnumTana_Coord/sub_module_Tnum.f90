@@ -1796,7 +1796,7 @@ MODULE mod_Tnum
         flush(out_unitp)
       END IF
 
-     END SUBROUTINE CoordType2_TO_CoordType1
+  END SUBROUTINE CoordType2_TO_CoordType1
 
   SUBROUTINE Tnum2_TO_Tnum1(Tnum1,Tnum2)
 
@@ -1941,8 +1941,9 @@ MODULE mod_Tnum
 !
 !       analysis of list_act_OF_Qdyn(.) to define ActiveTransfo%list_QactTOQdyn(.) and ActiveTransfo%list_QdynTOQact(.)
 !================================================================
-  SUBROUTINE type_var_analysis_OF_CoordType(mole)
-  TYPE (CoordType), intent(inout) :: mole
+  SUBROUTINE type_var_analysis_OF_CoordType(mole,print_lev)
+  TYPE (CoordType), intent(inout)         :: mole
+  logical,          intent(in),  optional :: print_lev
 
 
       integer :: iv_inact20,iv_rigid0,iv_inact21,iv_act1,iv_inact22
@@ -1950,14 +1951,18 @@ MODULE mod_Tnum
       integer :: n_test
       integer :: i,ii,i_Q,iQin,iQout
       integer :: nb_Qtransfo,it
+      logical :: print_loc
 
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub = 'type_var_analysis_OF_CoordType'
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
+      print_loc = (print_level > 0 .OR. debug)
+      IF (present(print_lev)) print_loc = print_lev
+
       IF (debug) write(out_unitp,*) 'BEGINNING ',name_sub
-      IF (print_level > 0 .OR. debug) THEN
+      IF (print_loc) THEN
          write(out_unitp,*) '-analysis of the variable type ---'
          write(out_unitp,*) '  mole%list_act_OF_Qdyn',                  &
                                      mole%ActiveTransfo%list_act_OF_Qdyn
@@ -2102,7 +2107,7 @@ MODULE mod_Tnum
 
       mole%tab_Qtransfo(:)%nb_act = mole%nb_act
 
-      IF (print_level > 0 .OR. debug) THEN
+      IF (print_loc) THEN
         write(out_unitp,*) 'mole%nrho_OF_Qact(:)    ',mole%nrho_OF_Qact(:)
         write(out_unitp,*) 'mole%...%list_QactTOQdyn',mole%ActiveTransfo%list_QactTOQdyn
         write(out_unitp,*) 'mole%...%list_QdynTOQact',mole%ActiveTransfo%list_QdynTOQact
