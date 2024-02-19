@@ -3617,8 +3617,8 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 !----- for debuging --------------------------------------------------
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub = 'Finalize_TnumTana_Coord_PrimOp'
-      !logical, parameter :: debug = .FALSE.
-      logical, parameter :: debug = .TRUE.
+      logical, parameter :: debug = .FALSE.
+      !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
   IF (debug) THEN
     write(out_unitp,*) 'BEGINNING ',name_sub
@@ -3726,16 +3726,15 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
           flush(out_unitp)
           IF (debug) CALL Write_RPHTransfo(mole%RPHTransfo)
 
-          DO iact=1,nb_act1_RPH
-            CALL get_Qact0(Qact,mole%ActiveTransfo)
-            CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
-                                      Qact,para_Tnum,mole)
-          END DO
+          ! DO iact=1,nb_act1_RPH ! for what for ?
+          !   CALL get_Qact0(Qact,mole%ActiveTransfo)
+          !   CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
+          !                             Qact,para_Tnum,mole)
+          ! END DO
 
       END IF
       END IF
 
-      write(6,*) 'coucou DML'
   IF (para_Tnum%Write_QMotions) THEN
     CALL get_Qact0(Qact,mole%ActiveTransfo)
     CALL sub_QplusDQ_TO_Cart(Qact,mole)
@@ -3746,7 +3745,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
   IF (associated(mole%RPHTransfo)) THEN
     Gref = Gref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
   END IF
-  !Gref = .FALSE.
+
   IF (Gref) THEN
     write(out_unitp,*) 'nb_act,nb_rigid100',mole%nb_act,mole%nb_rigid100
     CALL alloc_NPArray(GGdef,[mole%nb_act,mole%nb_act],'GGdef',name_sub)
@@ -3797,9 +3796,10 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
     ELSE
       write(out_unitp,*) ' Gref from Tnum-Tana'
+      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      !write(out_unitp,*) ' Qact',Qact
       CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     END IF
-
     IF (para_Tnum%Gcte) THEN
       CALL alloc_array(para_Tnum%Gref,[mole%ndimG,mole%ndimG],    &
                       'para_Tnum%Gref',name_sub)
@@ -3845,7 +3845,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
         END IF
 
         IF (para_Tnum%Compa_TanaTnum > 1) THEN
-          ! second comparison with the reading of the KEO in MCTDH format
+          ! second comparison with reading of the KEO in MCTDH format
           write(out_unitp,*) '--- Second comparison with MCTDH read KEO'
           CALL comparison_G_FROM_Tnum_ReadKEO(mole,para_Tnum,Qact)
           flush(out_unitp)
@@ -3867,7 +3867,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
       IF (Qref) THEN
         write(out_unitp,*) '================================================='
-        write(out_unitp,*) '=== Reference geometry (not recenter) ==========='
+        write(out_unitp,*) '=== Reference geometry (not recentered) ========='
         flush(out_unitp)
         CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
 

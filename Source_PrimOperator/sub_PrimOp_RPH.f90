@@ -64,8 +64,8 @@
     !-----------------------------------------------------------
     integer :: err_mem,memory
     character (len=*), parameter :: name_sub='CoordQact_TO_RPHQact1'
-    logical, parameter :: debug = .FALSE.
-    !logical, parameter :: debug = .TRUE.
+    !logical, parameter :: debug = .FALSE.
+    logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
       write(out_unitp,*) 'BEGINNING ',name_sub
@@ -384,6 +384,7 @@
      !-----------------------------------------------------------
      IF (debug) THEN
        write(out_unitp,*) 'BEGINNING ',name_sub
+       write(out_unitp,*) 'Qact: ',Qact
        flush(out_unitp)
      END IF
      !-----------------------------------------------------------
@@ -492,8 +493,7 @@
     CALL sub_freq_RPH(RPHpara_AT_Qact1,pot0_corgrad,para_Tnum,mole,RPHTransfo,cHAC)
 
     ! save RPHpara_AT_Qact1 => RPHpara_AT_Qact1_save (for the numerical derivatives)
-    CALL RPHpara1_AT_Qact1_TO_RPHpara2_AT_Qact1(RPHpara_AT_Qact1,       &
-                                                  RPHpara_AT_Qact1_save)
+    CALL RPHpara1_AT_Qact1_TO_RPHpara2_AT_Qact1(RPHpara_AT_Qact1,RPHpara_AT_Qact1_save)
 
     ! update RPHpara_AT_Qact1_save from RPHpara_AT_Qact1
     CALL FiniteDiff_AddVec_TO_dnVec(RPHpara_AT_Qact1_save%dnQopt,       &

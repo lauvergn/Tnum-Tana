@@ -1520,11 +1520,13 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
         type_var = list_Type_var(i_Qdyn)
         !ifunc = IndexFunc_Qop - 1 + i_Qdyn - nb_act1
         ifunc = list_QMLMapping(i_Qdyn)
+        IF (ifunc < 1) CYCLE
         IF (type_var == 20 .OR. type_var == 21) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
         ELSE IF (type_var == 200) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
         END IF
+        IF (debug) write(out_unitp,*) 'i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0',i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0
       END DO
 
       deallocate(d0Func)
@@ -1540,6 +1542,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
         type_var = list_Type_var(i_Qdyn)
         !ifunc = IndexFunc_Qop - 1 + i_Qdyn - nb_act1
         ifunc = list_QMLMapping(i_Qdyn)
+        IF (ifunc < 1) CYCLE
         IF (type_var == 20 .OR. type_var == 21) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
           Tab_dnQflex(i_Qdyn)%d1 = d1Func(:,ifunc)
@@ -1563,6 +1566,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
         type_var = list_Type_var(i_Qdyn)
         !ifunc = IndexFunc_Qop - 1 + i_Qdyn - nb_act1
         ifunc = list_QMLMapping(i_Qdyn)
+        IF (ifunc < 1) CYCLE
         IF (type_var == 20 .OR. type_var == 21) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
           Tab_dnQflex(i_Qdyn)%d1 = d1Func(:,ifunc)
@@ -1589,6 +1593,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
         type_var = list_Type_var(i_Qdyn)
         !ifunc = IndexFunc_Qop - 1 + i_Qdyn - nb_act1
         ifunc = list_QMLMapping(i_Qdyn)
+        IF (ifunc < 1) CYCLE
         IF (type_var == 20 .OR. type_var == 21) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
           Tab_dnQflex(i_Qdyn)%d1 = d1Func(:,ifunc)
@@ -1683,19 +1688,36 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
     CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
     CALL get_Qmodel_IndexesFunc(IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess)
 
+    IF (debug) write(out_unitp,*) 'IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess', &
+                                   IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess
+
     iG = IndexFunc_Grad
     fG = IndexFunc_Grad-1+nb_inact21
     iH = IndexFunc_Hess
     fH = IndexFunc_Hess-1+nb_inact21**2
 
+    IF (debug) write(out_unitp,*) 'iG,fG,iH,fH',iG,fG,iH,fH
 
     Grad = (IndexFunc_Grad > 0 .AND. IndexFunc_Grad+nb_inact21 == IndexFunc_Hess)
     Hess = (IndexFunc_Hess > 0 .AND. IndexFunc_Hess-1+nb_inact21**2 <= nb_Func)
+    IF (debug) write(out_unitp,*) 'Grad,Hess',Grad,Hess
+
+    IF (Grad) THEN
+      DO i=1,nb_inact21
+        CALL alloc_dnS(Tab_dnGrad(i),ndimFunc,nderiv)
+      END DO
+    END IF
+    IF (Hess) THEN
+      DO i=1,nb_inact21**2
+        CALL alloc_dnS(Tab_dnHess(i),ndimFunc,nderiv)
+      END DO
+    END IF
 
     SELECT CASE (nderiv)
     CASE (0)
       allocate(d0Func(nb_Func))
       CALL get_Qmodel_d0Func(d0Func,Qact,nb_Func,ndimFunc)
+      IF (debug) write(out_unitp,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1714,6 +1736,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d0Func(nb_Func))
       allocate(d1Func(ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1Func(d0Func,d1Func,Qact,nb_Func,ndimFunc)
+      IF (debug) write(out_unitp,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1736,6 +1759,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d1Func(ndimFunc,nb_Func))
       allocate(d2Func(ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2Func(d0Func,d1Func,d2Func,Qact,nb_Func,ndimFunc)
+      IF (debug) write(out_unitp,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1762,6 +1786,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d2Func(ndimFunc,ndimFunc,nb_Func))
       allocate(d3Func(ndimFunc,ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2d3Func(d0Func,d1Func,d2Func,d3Func,Qact,nb_Func,ndimFunc)
+      IF (debug) write(out_unitp,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1789,12 +1814,13 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
 
   !---------------------------------------------------------------------
   IF (debug) THEN
+    write(out_unitp,*) 'Qact (for Tab_dnGrad and Tab_dnHess) : ',Qact
     DO i=1,size(Tab_dnGrad)
-      write(out_unitp,*) 'Tab_dnGrad : ',i,Qact
+      write(out_unitp,*) 'Tab_dnGrad : ',i,Tab_dnGrad(i)%alloc
       IF (Tab_dnGrad(i)%alloc) CALL write_dnS(Tab_dnGrad(i),nderiv)
     END DO
     DO i=1,size(Tab_dnHess)
-      write(out_unitp,*) 'Tab_dnHess : ',i,Qact
+      write(out_unitp,*) 'Tab_dnHess : ',i,Tab_dnHess(i)%alloc
       IF (Tab_dnHess(i)%alloc) CALL write_dnS(Tab_dnHess(i),nderiv)
     END DO
     write(out_unitp,*) 'END ',name_sub

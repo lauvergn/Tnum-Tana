@@ -647,7 +647,7 @@ IMPLICIT NONE
 
     SELECT CASE (typ_var_act)
     CASE (1,-1,21,22,31)
-      ! active coordinate, nothing here, because it is one Qact coord
+      ! active coordinate, nothing here, because it is a Qact coord
       ! except if With_All_loc=.TRUE.
       IF (With_act_loc) Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
     CASE (20,200)
