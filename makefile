@@ -214,6 +214,7 @@ TanaPrim_SRCFILES = sub_module_Tana_OpEl.f90 \
   sub_module_Tana_PiEulerRot.f90
 
 Coord_SRCFILES = \
+  Qtransfo_m.f90 \
   Lib_QTransfo.f90 \
   BunchPolyTransfo.f90 ZmatTransfo.f90 QTOXanaTransfo.f90 CartesianTransfo.f90 \
   OneDTransfo.f90 TwoDTransfo.f90 Rot2CoordTransfo.f90 \

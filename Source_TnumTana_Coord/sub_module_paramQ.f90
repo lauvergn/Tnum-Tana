@@ -1540,6 +1540,7 @@ CONTAINS
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
+      USE Qtransfo_m
       IMPLICIT NONE
 
       real (kind=Rkind), intent(in)           :: Qact(:)
