@@ -45,6 +45,7 @@
                                 get_dng_dnGG,sub_QplusDQ_TO_Cart,           &
                                 sub_dnFCC_TO_dnFcurvi,dealloc_CoordType
       use mod_PrimOp
+      USE ADdnSVM_m
 
       IMPLICIT NONE
 
@@ -90,6 +91,7 @@
 
       integer :: nderiv,i,j,i1,i2,icart,idum
       character (len=Name_longlen) :: name_i,name_j
+
 !     ------------------------------------------------------
 
 !     - for the coordinate values ----------------------------------
@@ -100,14 +102,15 @@
 
       logical :: calc_QTOx,calc_Tnum,calc_gG
       logical :: calc_grad,calc_hessian
-      logical :: OnTheFly,calc_freq
+      logical :: OnTheFly,calc_freq,OOP
       integer :: nderivGg,n_eval
       character (len=*), parameter :: name_sub='Tnum_f90'
 
 
       NAMELIST /calculation/ calc_QTOx,calc_Tnum,calc_gG,nderivGg,      &
                              calc_freq,OnTheFly,n_eval,                 &
-                             calc_grad,calc_hessian,outm_name,fchk_name
+                             calc_grad,calc_hessian,outm_name,fchk_name,&
+                             OOP
 
 !=======================================================================
 !=======================================================================
@@ -145,6 +148,7 @@
 !===========================================================
 
       write(out_unitp,*) "======================================"
+      OOP          = .FALSE.
       calc_QTOx    = .TRUE.
       calc_Tnum    = .TRUE.
       calc_gG      = .FALSE.
@@ -495,72 +499,127 @@
 
       write(out_unitp,*) 'END Tnum'
 
-      END PROGRAM Tnum_f90
-      SUBROUTINE read_arg(Read_PhysConst)
-        USE mod_system
-        IMPLICIT NONE
+    !test new OOP Qtransfo
+  IF (OOP) CALL OOP_Qtransfo()
 
-        logical, intent(inout) :: Read_PhysConst
+END PROGRAM Tnum_f90
+SUBROUTINE OOP_Qtransfo()
+  use mod_system
+  USE Qtransfo_m
+  USE ADdnSVM_m
+  IMPLICIT NONE
+
+  integer :: it,iq,nb_transfo
+  TYPE(Qtransfo_t),  allocatable :: Qtransfo(:)
+  TYPE(dnVec_t)                  :: Qin,Qout
+  real(kind=Rkind),  allocatable :: d0(:),d1(:,:)
+  real(kind=Rkind),  allocatable :: Qact(:)
 
 
-        character(len=:), allocatable :: arg,arg2
-        integer :: i,arg_len
+  write(out_unitp,*) 'TEST OOP Qtransfo'
+  nb_transfo = 2
+  allocate(Qtransfo(nb_transfo))
+  DO it=1,size(Qtransfo)
+    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=3,nb_Qout=3,QMLib_in=.FALSE.)
+    CALL Qtransfo(it)%Write()
+  END DO
+
+  Qact = [(real(iq,kind=Rkind),iq=1,Qtransfo(nb_transfo)%Qtransfo%nb_Qout)]
+  CALL set_Qdyn0(Qtransfo(nb_transfo)%Qtransfo,Qact)
+  CALL Qtransfo(nb_transfo)%Write()
+
+  Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=1)
+
+  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) 'Qact',Qact
+  CALL Write_dnVec(Qin,info='first Qin')
+  write(out_unitp,*) '==========================================='
+
+  DO it=size(Qtransfo),1,-1
+    Qout = Qtransfo(it)%Qtransfo%QinTOQout(Qin)
+    Qin  = Qout
+    CALL Write_dnVec(Qout,info='Qout' // TO_string(it))
+    write(out_unitp,*) '--------------------------------------------'
+  END DO
+  write(out_unitp,*) '==========================================='
+
+  DO it=1,size(Qtransfo)
+    Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
+    Qout = Qin
+    CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
+    write(out_unitp,*) '--------------------------------------------'
+  END DO
+  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) 'Qact',get_Flatten(Qin,i_der=0)
+  write(out_unitp,*) '==========================================='
+
+END SUBROUTINE OOP_Qtransfo
+
+SUBROUTINE read_arg(Read_PhysConst)
+  USE mod_system
+  IMPLICIT NONE
+
+  logical, intent(inout) :: Read_PhysConst
 
 
+  character(len=:), allocatable :: arg,arg2
+  integer :: i,arg_len
+
+
+  Read_PhysConst = .FALSE.
+
+  IF (COMMAND_ARGUMENT_COUNT() /= 0 .AND. COMMAND_ARGUMENT_COUNT() /= 2) THEN
+    write(out_unitp,*) ' ERROR in read_arg'
+    write(out_unitp,*) ' Wrong ElVibRot argument number!'
+    write(out_unitp,*) 'argument number',COMMAND_ARGUMENT_COUNT()
+    write(out_unitp,*) ' You can have 0 or 2 arguments.'
+    STOP 'Wrong ElVibRot argument number'
+  END IF
+
+
+  DO i=1, COMMAND_ARGUMENT_COUNT(),2
+
+    CALL GET_COMMAND_ARGUMENT( NUMBER=i, LENGTH=arg_len )
+    allocate( character(len=arg_len) :: arg )
+    CALL GET_COMMAND_ARGUMENT( NUMBER=i, VALUE=arg )
+
+    CALL GET_COMMAND_ARGUMENT( NUMBER=i+1, LENGTH=arg_len )
+    allocate( character(len=arg_len) :: arg2 )
+    CALL GET_COMMAND_ARGUMENT( NUMBER=i+1, VALUE=arg2 )
+
+    SELECT CASE(arg)
+    CASE("-pc","--Read_PhysConst","--read_physconst","--PhysConst","--physconst")
+      CALL string_uppercase_TO_lowercase(arg2)
+      IF (arg2 == 't' .OR. arg2 == '.true.') THEN
+        Read_PhysConst = .TRUE.
+      ELSE IF (arg2 == 'f' .OR. arg2 == '.false.') THEN
         Read_PhysConst = .FALSE.
+      ELSE
+        write(out_unitp,*) ' ERROR in read_arg'
+        write(out_unitp,*) ' Wrong Tnum argument!'
+        write(out_unitp,*) '   arg2: "',arg2,'"'
+        write(out_unitp,*) ' The possibilities are:'
+        write(out_unitp,*) '    T or .TRUE. or F or .FALSE.'
+        STOP 'Wrong Tnum argument'
+      END IF
+    CASE Default
+      write(out_unitp,*) ' ERROR in read_arg'
+      write(out_unitp,*) ' Wrong Tnum argument!'
+      write(out_unitp,*) '   arg: "',arg,'"'
+      write(out_unitp,*) ' The possibilities are:'
+      write(out_unitp,*) '    -pc or --PhysConst'
+      STOP 'Wrong Tnum argument'
+    END SELECT
 
-        IF (COMMAND_ARGUMENT_COUNT() /= 0 .AND. COMMAND_ARGUMENT_COUNT() /= 2) THEN
-          write(out_unitp,*) ' ERROR in read_arg'
-          write(out_unitp,*) ' Wrong ElVibRot argument number!'
-          write(out_unitp,*) 'argument number',COMMAND_ARGUMENT_COUNT()
-          write(out_unitp,*) ' You can have 0 or 2 arguments.'
-          STOP 'Wrong ElVibRot argument number'
-        END IF
+    write(out_unitp,*) 'Argument number: ',i,' ==> arg: "',arg,'", arg2: "',arg2,'"'
 
+    deallocate(arg)
+    deallocate(arg2)
+  END DO
 
-        DO i=1, COMMAND_ARGUMENT_COUNT(),2
+  IF (Read_PhysConst) write(out_unitp,*) ' Physical Constant namelist is read'
 
-          CALL GET_COMMAND_ARGUMENT( NUMBER=i, LENGTH=arg_len )
-          allocate( character(len=arg_len) :: arg )
-          CALL GET_COMMAND_ARGUMENT( NUMBER=i, VALUE=arg )
+  write(out_unitp,*) '=================================='
+  write(out_unitp,*) '=================================='
 
-          CALL GET_COMMAND_ARGUMENT( NUMBER=i+1, LENGTH=arg_len )
-          allocate( character(len=arg_len) :: arg2 )
-          CALL GET_COMMAND_ARGUMENT( NUMBER=i+1, VALUE=arg2 )
-
-          SELECT CASE(arg)
-          CASE("-pc","--Read_PhysConst","--read_physconst","--PhysConst","--physconst")
-            CALL string_uppercase_TO_lowercase(arg2)
-            IF (arg2 == 't' .OR. arg2 == '.true.') THEN
-              Read_PhysConst = .TRUE.
-            ELSE IF (arg2 == 'f' .OR. arg2 == '.false.') THEN
-              Read_PhysConst = .FALSE.
-            ELSE
-              write(out_unitp,*) ' ERROR in read_arg'
-              write(out_unitp,*) ' Wrong Tnum argument!'
-              write(out_unitp,*) '   arg2: "',arg2,'"'
-              write(out_unitp,*) ' The possibilities are:'
-              write(out_unitp,*) '    T or .TRUE. or F or .FALSE.'
-              STOP 'Wrong Tnum argument'
-            END IF
-          CASE Default
-            write(out_unitp,*) ' ERROR in read_arg'
-            write(out_unitp,*) ' Wrong Tnum argument!'
-            write(out_unitp,*) '   arg: "',arg,'"'
-            write(out_unitp,*) ' The possibilities are:'
-            write(out_unitp,*) '    -pc or --PhysConst'
-            STOP 'Wrong Tnum argument'
-          END SELECT
-
-          write(out_unitp,*) 'Argument number: ',i,' ==> arg: "',arg,'", arg2: "',arg2,'"'
-
-          deallocate(arg)
-          deallocate(arg2)
-        END DO
-
-        IF (Read_PhysConst) write(out_unitp,*) ' Physical Constant namelist is read'
-
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-
-      END SUBROUTINE read_arg
+END SUBROUTINE read_arg

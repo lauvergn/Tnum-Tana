@@ -204,7 +204,7 @@ $(info ************************************************************************)
 
 #==========================================
 VPATH = Source_PrimOperator sub_pot \
-        Source_TnumTana_Coord Source_TnumTana_Coord/Qtransfo Source_TnumTana_Coord/Tana \
+        Source_TnumTana_Coord Source_TnumTana_Coord/Qtransfo Source_TnumTana_Coord/QtransfoOOP Source_TnumTana_Coord/Tana \
         Source_TnumTana_Coord/Tnum Source_TnumTana_Coord/sub_operator_T
 
 #Coordinates + KEO
@@ -214,8 +214,8 @@ TanaPrim_SRCFILES = sub_module_Tana_OpEl.f90 \
   sub_module_Tana_PiEulerRot.f90
 
 Coord_SRCFILES = \
-  Qtransfo_m.f90 \
   Lib_QTransfo.f90 \
+  QtransfoBase_m.f90 IdentityTransfo_m.f90 ActiveTransfo_m.f90 Qtransfo_m.f90 \
   BunchPolyTransfo.f90 ZmatTransfo.f90 QTOXanaTransfo.f90 CartesianTransfo.f90 \
   OneDTransfo.f90 TwoDTransfo.f90 Rot2CoordTransfo.f90 \
   FlexibleTransfo.f90 \
@@ -240,6 +240,8 @@ TnumTana_SRCFILES = calc_f2_f1Q_num.f90 sub_module_Tana_Tnum.f90 sub_module_Coor
 
 #Minimize Only list: OK
 Coord_KEO_SRCFILES = $(TanaPrim_SRCFILES) $(Coord_SRCFILES) $(Tnum_SRCFILES) $(Tana_SRCFILES) $(TnumTana_SRCFILES)
+$(info ************ Coord_KEO_SRCFILES: $(Coord_KEO_SRCFILES))
+
 #
 Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90  Module_ForTnumTana_Driver.f90 TnumTana_Lib.f90
 Coord_KEO_EXT_SRCFILES_OBJ0 = ${Coord_KEO_EXT_SRCFILES:.f90=.o}

@@ -1,0 +1,30 @@
+
+here=`pwd`
+DIR_EVRT=$here/..
+
+cd $DIR_EVRT
+  make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM FOREVRT_DIR=/Users/lauvergn/git/FOR_EVRT
+cd $here
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=2  /
+ &Coord_transfo name_transfo='zmat' nat=3 /
+O
+H 1
+H 1 -2
+
+ &Coord_transfo name_transfo='active' /
+1 1 1
+
+ &minimum  /
+ROH 1. angs
+ROH 1. angs
+u   -0.5
+
+ &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
+# for OOP
+  &Coord_transfo name_transfo='identity' /
+
+  &Coord_transfo name_transfo='active' /
+1 0 1
+**

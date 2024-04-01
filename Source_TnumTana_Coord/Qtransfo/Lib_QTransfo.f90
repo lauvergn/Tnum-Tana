@@ -52,7 +52,9 @@ MODULE mod_Lib_QTransfo
       PUBLIC :: calc_vector, calc_vector2, calc_cross_product
       PUBLIC :: calc_angle, calc_angle_d, calc_OutOfPlane
       PUBLIC :: check_Valence, func_ic, func_iat
-      PUBLIC :: calc_Tab_dnQflex_QML,calc_Tab_dnQflex_NotQML,calc_Tab_dnQflex_gene,calc_Tab_dnGradHess_gene
+      PUBLIC :: calc_Tab_dnQflex_QML,calc_Tab_dnQflex_NotQML,calc_Tab_dnQflex_gene,calc_Tab_dnQflex_gene2
+      PUBLIC :: calc_Tab_dnGradHess_gene
+
       PUBLIC :: make_nameQ
 
       CONTAINS
@@ -1642,6 +1644,36 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
   !---------------------------------------------------------------------
 
 END SUBROUTINE calc_Tab_dnQflex_gene
+SUBROUTINE calc_Tab_dnQflex_gene2(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     &
+                                  list_act_OF_Qdyn,list_QMLMapping,QMlib,With_Tab_dnQflex)
+  USE mod_system
+  USE mod_dnSVM
+  USE ADdnSVM_m
+  IMPLICIT NONE
+
+  TYPE (dnS_t),       intent(inout)  :: Tab_dnQflex(:)
+  integer,            intent(in)     :: nb_var,nb_act1
+  real (kind=Rkind),  intent(in)     :: Qact(:)
+  integer,            intent(in)     :: nderiv,it
+  integer,            intent(in)     :: list_act_OF_Qdyn(:)
+  integer,            intent(in)     :: list_QMLMapping(:)
+  logical,            intent(in)     :: QMlib,With_Tab_dnQflex
+  
+  TYPE (Type_dnS), allocatable  :: Tab_dnQflex_loc(:)
+  integer                       :: i
+
+  allocate(Tab_dnQflex_loc(nb_var))
+  CALL calc_Tab_dnQflex_gene(Tab_dnQflex_loc,nb_var,Qact,nb_act1,nderiv,-1, &
+                             list_act_OF_Qdyn,list_QMLMapping,              &
+                             QMlib=QMLib,With_Tab_dnQflex=With_Tab_dnQflex)
+  DO i=1,nb_var
+    CALL sub_dnS_TO_dnSt(Tab_dnQflex_loc(i),Tab_dnQflex(i))
+    !Tab_dnQflex(i) = Tab_dnQflex_loc(i)
+    CALL dealloc_dnSVM(Tab_dnQflex_loc(i))
+  END DO
+  deallocate(Tab_dnQflex_loc)
+
+END SUBROUTINE calc_Tab_dnQflex_gene2
 
 SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act1,nderiv,QMlib)
   USE mod_system
