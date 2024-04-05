@@ -412,7 +412,7 @@ CONTAINS
 !---------------------------------------------------------------------
   END SUBROUTINE calc_FlexibleTransfo
   SUBROUTINE calc_FlexibleTransfo_new(dnQin,dnQout,FlexibleTransfo,nderiv,inTOout)
-    USE ADdnSVM_m
+    USE ADdnSVM_m, ONLY : dnS_t, dealloc_dnS
     use mod_dnSVM
     USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_NotQML,calc_Tab_dnQflex_QML
 

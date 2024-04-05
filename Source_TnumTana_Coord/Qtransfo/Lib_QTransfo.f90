@@ -57,7 +57,10 @@ MODULE mod_Lib_QTransfo
 
       PUBLIC :: make_nameQ
 
-      CONTAINS
+      INTERFACE Write_dnx
+        MODULE PROCEDURE Write_dnx_dnVec,Write_dnx_dnVect
+      END INTERFACE
+CONTAINS
 
 !================================================================
 !       atom 1 : d0x(0 , 0, 0)
@@ -916,14 +919,68 @@ MODULE mod_Lib_QTransfo
       END IF
 
       END SUBROUTINE Write_Cart
-      SUBROUTINE Write_dnx(ic,ncart_e,dnx,nderiv)
+      SUBROUTINE Write_dnx_dnVect(ic,ncart_e,dnx,nderiv)
+        USE ADdnSVM_m
+        IMPLICIT NONE
+  
+          integer :: ic,ncart_e,ncart,nb_act,nderiv,nderiv_loc,nsize
+          TYPE (dnVec_t) :: dnx
+  
+          integer :: i,j,k
+          character (len=*), parameter :: name_sub = 'Write_dnx_dnVect'
+  
+          IF (.NOT. check_alloc_dnVec(dnx)) RETURN
+  
+          nderiv_loc = min(nderiv,get_nderiv(dnx))
+          nb_act     = get_nVar(dnx)
+          nsize      = get_size(dnx)
+  
+          IF (ncart_e > nsize) THEN
+            write(out_unitp,*) ' ERROR in write_dnx'
+            write(out_unitp,*) ' ncart_e > vector size',ncart_e,nsize
+            write(out_unitp,*) ' Check the fortran !!!!'
+            STOP
+          END IF
+  
+           write(out_unitp,*) 'd0x ='
+           CALL Write_Cart(ncart_e,dnx%d0(ic:ic+ncart_e-1))
+  
+           IF (nderiv_loc >= 1) THEN
+             DO i=1,nb_act
+               write(out_unitp,*) 'd1x =',i
+               CALL Write_Cart(ncart_e,dnx%d1(ic:ic+ncart_e-1,i))
+             END DO
+           END IF
+  
+           IF (nderiv_loc >= 2 ) THEN
+             DO i=1,nb_act
+             DO j=i,nb_act
+               write(out_unitp,*) 'd2x =',i,j
+               CALL Write_Cart(ncart_e,dnx%d2(ic:ic+ncart_e-1,i,j))
+             END DO
+             END DO
+           END IF
+  
+           IF (nderiv_loc >= 3) THEN
+             DO i=1,nb_act
+             DO j=i,nb_act
+             DO k=k,nb_act
+               write(out_unitp,*) 'd3x =',i,j,k
+               CALL Write_Cart(ncart_e,dnx%d3(ic:ic+ncart_e-1,i,j,k))
+             END DO
+             END DO
+             END DO
+           END IF
+  
+      END SUBROUTINE Write_dnx_dnVect
+      SUBROUTINE Write_dnx_dnVec(ic,ncart_e,dnx,nderiv)
       IMPLICIT NONE
 
         integer :: ic,ncart_e,ncart,nb_act,nderiv,nderiv_loc
         TYPE (Type_dnVec) :: dnx
 
         integer :: i,j,k
-        character (len=*), parameter :: name_sub = 'write_dnx'
+        character (len=*), parameter :: name_sub = 'Write_dnx_dnVec'
 
         CALL check_alloc_dnVec(dnx,'dnx',name_sub)
 
@@ -967,7 +1024,7 @@ MODULE mod_Lib_QTransfo
            END DO
          END IF
 
-      END SUBROUTINE write_dnx
+      END SUBROUTINE Write_dnx_dnVec
 
 !================================================================
 !       vector n1-n2

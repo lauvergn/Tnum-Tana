@@ -62,7 +62,7 @@ MODULE IdentityTransfo_m
     this%nb_Qout      = nb_Qout
     this%inTOout      = inTOout
     this%skip_transfo = skip_transfo
-    this%name_transfo = 'indentity'
+    this%name_transfo = 'identity'
 
   END FUNCTION Tnum_Init_IdentityTransfo
 END MODULE IdentityTransfo_m

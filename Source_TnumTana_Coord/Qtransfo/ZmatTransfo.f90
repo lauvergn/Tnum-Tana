@@ -236,7 +236,7 @@
        character (len=*), parameter :: name_sub = 'Read_ZmatTransfo'
 
 
-!-----------------------------------------------------------------------
+       !-----------------------------------------------------------------------
        IF (print_level > 1) THEN
          write(out_unitp,*) 'BEGINNING ',name_sub
          write(out_unitp,*) 'nat0,nat',ZmatTransfo%nat0,ZmatTransfo%nat
@@ -446,7 +446,7 @@
                 ZmatTransfo%ind2_zmat(5,i)=0
 
                 IF (n1 == 0) THEN
-!                 l'atome est defini en coordonnees cartesiennes
+                  ! l'atome est defini en coordonnees cartesiennes
                   IF (print_level > 1) write(out_unitp,*) at,'cart'
                   IF (at > ZERO) THEN
                    ZmatTransfo%nat_act          = ZmatTransfo%nat_act + 1
@@ -473,7 +473,7 @@
                   CALL make_nameQ(ZmatTransfo%name_Qin(iz),"Qzmat_z",iz,it)
 
                 ELSE
-!                 at en coord internes
+                  ! at en coord internes
                   IF (print_level > 1) write(out_unitp,*) at,n1,n2,n3
                   IF (at > ZERO) THEN
                     ZmatTransfo%nat_act          = ZmatTransfo%nat_act + 1
@@ -536,16 +536,9 @@
           STOP
         END IF
 
-!       ncart_act number of active cartesian coordinates (without dummy atom and G)
+        ! ncart_act number of active cartesian coordinates (without dummy atom and G)
         ZmatTransfo%ncart_act = 3 * ZmatTransfo%nat_act
 
-!--------------------------------------------------------------
-!     -------------------------------------------------------
-!     Mtot_inv and sqrt(masses(i)) calculations
-!     -------------------------------------------------------
-
-!     -------------------------------------------------------
-!--------------------------------------------------------------
        ZmatTransfo%Z(:)       = Z(:)
        ZmatTransfo%symbole(:) = symbole(:)
        ZmatTransfo%masses(:)  = masses(:)

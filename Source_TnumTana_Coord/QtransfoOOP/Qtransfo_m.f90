@@ -35,11 +35,12 @@
 MODULE Qtransfo_m
   use mod_system
   USE QtransfoBase_m
+  USE ZmatTransfo_m
   USE IdentityTransfo_m
   USE ActiveTransfo_m
   IMPLICIT NONE
 
-  PRIVATE :: Tnum_Init_Qtransfo,Tnum_Read_Qtransfo
+  PRIVATE :: TnumQtransfo_Read
   PRIVATE :: Tnum_Write_Qtransfo,Tnum_dealloc_Qtransfo
   PRIVATE :: Tnum_QinTOQout_Qtransfo,Tnum_QoutTOQin_Qtransfo
   PRIVATE :: TnumQTransfo_QactTOdnQact,TnumQTransfo_set_Qdyn0
@@ -56,10 +57,10 @@ MODULE Qtransfo_m
   END TYPE Qtransfo_t
 
   INTERFACE Init_Qtransfo
-    MODULE PROCEDURE Tnum_Init_Qtransfo
+    MODULE PROCEDURE TnumQtransfo_Read
   END INTERFACE
   INTERFACE Read_Qtransfo
-    MODULE PROCEDURE Tnum_Read_Qtransfo
+    MODULE PROCEDURE TnumQtransfo_Read
   END INTERFACE
   INTERFACE QactTOdnQact
     MODULE PROCEDURE TnumQTransfo_QactTOdnQact
@@ -145,7 +146,7 @@ CONTAINS
 
     SELECT TYPE (this)
     TYPE IS(ActiveTransfo_t)
-      nb_var = this%nb_var
+      nb_var     = this%nb_var
       this%Qdyn0 = Qact(this%list_QactTOQdyn)
     CLASS DEFAULT
       write(out_unitp,*) "ERROR in ",name_sub
@@ -163,30 +164,18 @@ CONTAINS
 
 
   END SUBROUTINE TnumQTransfo_set_Qdyn0
-  SUBROUTINE Tnum_Init_Qtransfo(this,nb_Qin,nb_Qout,inTOout)
-    IMPLICIT NONE
 
-    TYPE(Qtransfo_t),   intent(inout) :: this
-    integer,            intent(in)    :: nb_Qin,nb_Qout
-    logical,            intent(in)    :: inTOout
-
-    integer :: i_Q
-    character (len=*), parameter :: name_sub = "Tnum_Init_Qtransfo"
-
-    ! to test
-    allocate(QtransfoBase_t :: this%Qtransfo)
-    this%Qtransfo = Init_QtransfoBase(nb_Qin,nb_Qout,inTOout,skip_transfo=.FALSE.)
-
-  END SUBROUTINE Tnum_Init_Qtransfo
-  SUBROUTINE Tnum_Read_Qtransfo(this,nb_Qin,nb_Qout,QMLib_in)
+  SUBROUTINE TnumQtransfo_Read(this,nb_Qin,nb_Qout,nb_extra_Coord,QMLib_in,mendeleev)
+    USE mod_Constant,     only: table_atom
     USE QtransfoBase_m
     USE ActiveTransfo_m
     IMPLICIT NONE
 
 
     TYPE(Qtransfo_t),   intent(inout) :: this
-    integer,            intent(in)    :: nb_Qin,nb_Qout
+    integer,            intent(in)    :: nb_Qin,nb_Qout,nb_extra_Coord
     logical,            intent(in)    :: QMLib_in
+    TYPE (table_atom),  intent(in)    :: mendeleev
 
 
     character (len=Name_len) :: name_transfo
@@ -305,26 +294,10 @@ CONTAINS
           write(out_unitp,*) ' ERROR in ',name_sub
           write(out_unitp,*) ' nat < 2',nat
           write(out_unitp,*) ' Check your data !!'
-          STOP 'ERROR in read_Qtransfo: nat < 2 for zmat Transfo'
+          STOP 'ERROR in Tnum_Read_Qtransfo: nat < 2 for zmat Transfo'
       END IF
-      ! Qtransfo%Primitive_Coord    = .TRUE.
-
-      ! Qtransfo%ZmatTransfo%cos_th = cos_th
-      ! Qtransfo%ZmatTransfo%nat0   = nat
-      ! Qtransfo%ZmatTransfo%nat    = nat + 1
-      ! Qtransfo%ZmatTransfo%nb_var = max(1,3*nat-6)+nb_extra_Coord
-      ! Qtransfo%ZmatTransfo%ncart  = 3*(nat+1)
-      ! Qtransfo%nb_Qin             = max(1,3*nat-6)+nb_extra_Coord
-      ! Qtransfo%nb_Qout            = 3*(nat+1)
-      ! IF (debug) write(out_unitp,*) 'nat0,nat,nb_var,ncart',        &
-      !            Qtransfo%ZmatTransfo%nat0,Qtransfo%ZmatTransfo%nat,&
-      !         Qtransfo%ZmatTransfo%nb_var,Qtransfo%ZmatTransfo%ncart
-
-      ! CALL sub_Type_Name_OF_Qin(Qtransfo,"Qzmat")
-      ! Qtransfo%ZmatTransfo%type_Qin => Qtransfo%type_Qin
-      ! Qtransfo%ZmatTransfo%name_Qin => Qtransfo%name_Qin
-
-      ! CALL Read_ZmatTransfo(Qtransfo%ZmatTransfo,mendeleev)
+      allocate(ZmatTransfo_t :: this%Qtransfo)
+      this%Qtransfo = Init_ZmatTransfo(nat,cos_th,nb_extra_Coord,mendeleev)
 
     CASE DEFAULT ! ERROR: wrong transformation !
       write(out_unitp,*) ' ERROR in ',name_sub
@@ -333,14 +306,13 @@ CONTAINS
       STOP 'ERROR in Tnum_Read_Qtransfo: wrong coordinate transformation'
     END SELECT
 
-  END SUBROUTINE Tnum_Read_Qtransfo
+  END SUBROUTINE TnumQtransfo_Read
   SUBROUTINE Tnum_dealloc_Qtransfo(this)
     IMPLICIT NONE
 
     CLASS(Qtransfo_t), intent(inout) :: this
 
     character (len=*), parameter :: name_sub = "Tnum_dealloc_Qtransfo"
-
 
     CALL this%Qtransfo%dealloc()
     deallocate(this%Qtransfo)

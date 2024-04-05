@@ -40,20 +40,20 @@ MODULE QtransfoBase_m
   PUBLIC :: QtransfoBase_t,Init_QtransfoBase
 
   TYPE, PUBLIC :: QtransfoBase_t
-    character (len=:), allocatable :: name_transfo
-    logical                        :: inTOout         = .TRUE.
-    integer                        :: nb_transfo      = 0
-    integer                        :: opt_transfo     = 0 ! option for the transformation
-    logical                        :: skip_transfo    = .FALSE.
-    integer                        :: opt_param       = 0
-    logical                        :: Primitive_coord = .FALSE.
+    character (len=:),        allocatable :: name_transfo
+    logical                               :: inTOout         = .TRUE.
+    integer                               :: nb_transfo      = 0
+    integer                               :: opt_transfo     = 0 ! option for the transformation
+    logical                               :: skip_transfo    = .FALSE.
+    integer                               :: opt_param       = 0
+    logical                               :: Primitive_coord = .FALSE.
 
-    integer                        :: nb_Qin          = 0 ! size the input coordinates
-    integer                        :: nb_Qout         = 0 ! size the output coordinates
-    integer,           allocatable :: type_Qin(:)
-    integer,           allocatable :: type_Qout(:)
-    character (len=:), allocatable :: name_Qin(:)
-    character (len=:), allocatable :: name_Qout(:)
+    integer                               :: nb_Qin          = 0 ! size the input coordinates
+    integer                               :: nb_Qout         = 0 ! size the output coordinates
+    integer,                  allocatable :: type_Qin(:)
+    integer,                  allocatable :: type_Qout(:)
+    character (len=Name_len), allocatable :: name_Qin(:)
+    character (len=Name_len), allocatable :: name_Qout(:)
 
   CONTAINS
     PROCEDURE :: Write           => Tnum_Write_QtransfoBase
@@ -99,18 +99,19 @@ CONTAINS
           write(out_unitp,*) 'i_Q,name_Qout,type_Qout',i_Q," ",       &
                  trim(this%name_Qout(i_Q)),this%type_Qout(i_Q)
           flush(out_unitp)
-  
         END DO
       ELSE
         write(out_unitp,*) 'alloc name_Qout and type_Qout',            &
               allocated(this%name_Qout),allocated(this%type_Qout)
       END IF
-  
+      flush(out_unitp)
+
       IF (allocated(this%name_Qin) .AND. allocated(this%type_Qin)) THEN
         write(out_unitp,*) '---------------------------------------'
         DO i_Q=1,min(size(this%name_Qin),size(this%type_Qin))
           write(out_unitp,*) 'i_Q,name_Qin,type_Qin',i_Q," ",         &
                  trim(this%name_Qin(i_Q)),this%type_Qin(i_Q)
+          flush(out_unitp)
         END DO
       ELSE
         write(out_unitp,*) 'asso name_Qin and type_Qin',              &

@@ -504,27 +504,35 @@
 
 END PROGRAM Tnum_f90
 SUBROUTINE OOP_Qtransfo()
-  use mod_system
-  USE Qtransfo_m
+  USE mod_system
   USE ADdnSVM_m
+  use mod_Constant
+  USE Qtransfo_m
   IMPLICIT NONE
 
-  integer :: it,iq,nb_transfo
+  integer :: it,iq,nb_transfo,nb_extra_Coord
+  TYPE (constant)  :: const_phys
   TYPE(Qtransfo_t),  allocatable :: Qtransfo(:)
   TYPE(dnVec_t)                  :: Qin,Qout
-  real(kind=Rkind),  allocatable :: d0(:),d1(:,:)
   real(kind=Rkind),  allocatable :: Qact(:)
 
 
   write(out_unitp,*) 'TEST OOP Qtransfo'
-  nb_transfo = 2
+  nb_transfo     = 2
+  nb_extra_Coord = 0
+  write(out_unitp,*) 'nb_transfo,nb_extra_Coord',nb_transfo,nb_extra_Coord
+  CALL sub_constantes(const_phys,Read_Namelist=.FALSE.)
+
+
   allocate(Qtransfo(nb_transfo))
   DO it=1,size(Qtransfo)
-    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=3,nb_Qout=3,QMLib_in=.FALSE.)
+    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=3,nb_Qout=3, &
+         nb_extra_Coord=0,QMLib_in=.FALSE.,mendeleev=const_phys%mendeleev)
     CALL Qtransfo(it)%Write()
   END DO
 
-  Qact = [(real(iq,kind=Rkind),iq=1,Qtransfo(nb_transfo)%Qtransfo%nb_Qout)]
+  !Qact = [(real(iq,kind=Rkind),iq=1,Qtransfo(nb_transfo)%Qtransfo%nb_Qout)]
+  Qact = [2._Rkind,-0.5_Rkind,2.1_Rkind]
   CALL set_Qdyn0(Qtransfo(nb_transfo)%Qtransfo,Qact)
   CALL Qtransfo(nb_transfo)%Write()
 
@@ -536,6 +544,7 @@ SUBROUTINE OOP_Qtransfo()
   write(out_unitp,*) '==========================================='
 
   DO it=size(Qtransfo),1,-1
+    write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
     Qout = Qtransfo(it)%Qtransfo%QinTOQout(Qin)
     Qin  = Qout
     CALL Write_dnVec(Qout,info='Qout' // TO_string(it))
@@ -544,6 +553,7 @@ SUBROUTINE OOP_Qtransfo()
   write(out_unitp,*) '==========================================='
 
   DO it=1,size(Qtransfo)
+    write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
     Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
     Qout = Qin
     CALL Write_dnVec(Qin,info='Qin' // TO_string(it))

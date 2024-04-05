@@ -3,7 +3,10 @@ here=`pwd`
 DIR_EVRT=$here/..
 
 cd $DIR_EVRT
+  rm -f /Users/lauvergn/git/AD_dnSVM/lib*.a
   make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM FOREVRT_DIR=/Users/lauvergn/git/FOR_EVRT
+ #make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM
+
 cd $here
 
 $DIR_EVRT/Tnum90.exe << ** > res
@@ -17,13 +20,16 @@ H 1 -2
 1 1 1
 
  &minimum  /
-ROH 1. angs
-ROH 1. angs
+ROH 2. bohr
+ROH 2.1 bohr
 u   -0.5
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
 # for OOP
-  &Coord_transfo name_transfo='identity' /
+  &Coord_transfo name_transfo='zmat' nat=3 /
+    O
+    H 1
+    H 1 -2
 
   &Coord_transfo name_transfo='active' /
 1 0 1

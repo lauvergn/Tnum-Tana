@@ -361,7 +361,7 @@ END SUBROUTINE RPHQMLTransfo1TORPHQMLTransfo2
 SUBROUTINE calc_RPHQMLTransfo(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
   USE mod_dnSVM, only : Type_dnVec,Write_dnVec,check_alloc_dnVec,               &
                         sub_dnVec_TO_dnSt,sub_dnSt_TO_dnVec,sub_dnVec1_TO_dnVec2
-  USE ADdnSVM_m
+  USE ADdnSVM_m, ONLY : dnS_t, Write_dnS, get_Jacobian, matmul
   USE Model_m
   IMPLICIT NONE
 
@@ -514,7 +514,7 @@ END SUBROUTINE calc_RPHQMLTransfo
 SUBROUTINE calc_RPHQMLTransfo_v0(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
   USE mod_dnSVM, only : Type_dnVec,Write_dnVec,check_alloc_dnVec,               &
                         sub_dnVec_TO_dnSt,sub_dnSt_TO_dnVec,sub_dnVec1_TO_dnVec2
-  USE ADdnSVM_m
+  USE ADdnSVM_m, ONLY : dnS_t, Write_dnS, matmul
   USE Model_m
   IMPLICIT NONE
 

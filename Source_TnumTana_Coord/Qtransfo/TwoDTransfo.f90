@@ -346,7 +346,7 @@ CONTAINS
     !---------------------------------------------------------------------
   END SUBROUTINE calc_TwoDTransfo_new
   SUBROUTINE calc_TwoDTransfo(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
-    USE ADdnSVM_m
+    USE ADdnSVM_m, ONLY: dnS_t
     USE mod_dnSVM, ONLY: Type_dnVec, Write_dnSVM, check_alloc_dnVec, &
                          sub_dnVec_TO_dnVect, sub_dnVect_TO_dnVec,   &
                          sub_dnVec_TO_dnSt, sub_dnSt_TO_dnVec
