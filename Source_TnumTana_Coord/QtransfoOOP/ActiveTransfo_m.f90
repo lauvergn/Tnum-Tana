@@ -112,12 +112,13 @@ CONTAINS
     flush(out_unitp)
 
   END SUBROUTINE Tnum_Write_ActiveTransfo
-  FUNCTION Tnum_Init_ActiveTransfo(nb_Qout) RESULT(this)
+  FUNCTION Tnum_Init_ActiveTransfo(nb_Qin,nb_Qout) RESULT(this)
     IMPLICIT NONE
 
     TYPE (ActiveTransfo_t)                 :: this
 
     integer,                 intent(in)    :: nb_Qout ! it should be nb_var
+    integer,                 intent(inout) :: nb_Qin  ! it should be nb_act
 
     integer :: iQ,err
     logical :: flex
@@ -175,7 +176,7 @@ CONTAINS
 
     CALL Tnum_Coordinates_Type_Analysis(this)
     this%nb_Qin = this%nb_act
-
+    nb_Qin      = this%nb_Qin
     flush(out_unitp)
 
   END FUNCTION Tnum_Init_ActiveTransfo
@@ -200,8 +201,8 @@ CONTAINS
 
     integer :: err_mem,memory
     character (len=*), parameter :: name_sub = 'Tnum_Coordinates_Type_Analysis'
-    logical, parameter :: debug = .TRUE.
-    !logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
 
     print_loc = (print_level > 0 .OR. debug)
     IF (present(print_lev)) print_loc = print_lev

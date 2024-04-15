@@ -960,9 +960,9 @@
       SUBROUTINE calc_ZmatTransfo_outTOin(dnQzmat,dnx,ZmatTransfo,nderiv)
       IMPLICIT NONE
 
-      TYPE (Type_dnVec), intent(inout) :: dnQzmat,dnx
-      TYPE (Type_ZmatTransfo),intent(in) :: ZmatTransfo
-      integer, intent(in)              :: nderiv
+      TYPE (Type_dnVec),       intent(inout) :: dnQzmat,dnx
+      TYPE (Type_ZmatTransfo), intent(in)    :: ZmatTransfo
+      integer,                 intent(in)    :: nderiv
 
        integer           :: ncart0
        real (kind=Rkind) :: v1(3),norm1,v2(3),norm2,v3(3),norm3

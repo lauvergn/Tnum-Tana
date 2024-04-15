@@ -83,7 +83,7 @@
       real (kind=Rkind), pointer :: d0c(:,:)=>null()
       real (kind=Rkind), pointer :: d0eh(:)=>null()
       real (kind=Rkind), pointer :: freq(:)=>null()
-      real (kind=Rkind), allocatable :: grad(:),hess(:,:)
+      real (kind=Rkind), allocatable :: gradient(:),hess(:,:)
 
       real (kind=Rkind)  :: norme
       character (len=50) :: wqi,mqi
@@ -201,16 +201,16 @@
          Get_Scal_FROM_Tab_OF_dnMatOp(Tab_dnMatOp,4),Get_Scal_FROM_Tab_OF_dnMatOp(Tab_dnMatOp,5)
 
         IF (nderiv > 0) THEN
-          allocate(Grad(mole%nb_act))
-          CALL Get_Grad_FROM_Tab_OF_dnMatOp(Grad,Tab_dnMatOp,1)
-          write(out_unitp,*) "Grad of E: ",Grad
-          CALL Get_Grad_FROM_Tab_OF_dnMatOp(Grad,Tab_dnMatOp,3)
-          write(out_unitp,*) "Grad of Dipx: ",Grad
-          CALL Get_Grad_FROM_Tab_OF_dnMatOp(Grad,Tab_dnMatOp,4)
-          write(out_unitp,*) "Grad of Dipy: ",Grad
-          CALL Get_Grad_FROM_Tab_OF_dnMatOp(Grad,Tab_dnMatOp,5)
-          write(out_unitp,*) "Grad of Dipz: ",Grad
-          deallocate(Grad)
+          allocate(gradient(mole%nb_act))
+          CALL Get_Grad_FROM_Tab_OF_dnMatOp(gradient,Tab_dnMatOp,1)
+          write(out_unitp,*) "Grad of E: ",gradient
+          CALL Get_Grad_FROM_Tab_OF_dnMatOp(gradient,Tab_dnMatOp,3)
+          write(out_unitp,*) "Grad of Dipx: ",gradient
+          CALL Get_Grad_FROM_Tab_OF_dnMatOp(gradient,Tab_dnMatOp,4)
+          write(out_unitp,*) "Grad of Dipy: ",gradient
+          CALL Get_Grad_FROM_Tab_OF_dnMatOp(gradient,Tab_dnMatOp,5)
+          write(out_unitp,*) "Grad of Dipz: ",gradient
+          deallocate(gradient)
         END IF
         IF (nderiv > 1) THEN
           allocate(hess(mole%nb_act,mole%nb_act))
@@ -510,7 +510,7 @@ SUBROUTINE OOP_Qtransfo()
   USE Qtransfo_m
   IMPLICIT NONE
 
-  integer :: it,iq,nb_transfo,nb_extra_Coord
+  integer :: it,iq,nb_transfo,nb_extra_Coord,nb_Qin,nb_Qout
   TYPE (constant)  :: const_phys
   TYPE(Qtransfo_t),  allocatable :: Qtransfo(:)
   TYPE(dnVec_t)                  :: Qin,Qout
@@ -523,16 +523,20 @@ SUBROUTINE OOP_Qtransfo()
   write(out_unitp,*) 'nb_transfo,nb_extra_Coord',nb_transfo,nb_extra_Coord
   CALL sub_constantes(const_phys,Read_Namelist=.FALSE.)
 
-
+  nb_Qin = -1
   allocate(Qtransfo(nb_transfo))
-  DO it=1,size(Qtransfo)
-    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=3,nb_Qout=3, &
+  DO it=1,size(Qtransfo) ! here the loop go from the "out" to "in" direction
+    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=nb_Qin,nb_Qout=nb_Qout, &
          nb_extra_Coord=0,QMLib_in=.FALSE.,mendeleev=const_phys%mendeleev)
+
+    nb_Qout = nb_Qin
     CALL Qtransfo(it)%Write()
   END DO
 
   !Qact = [(real(iq,kind=Rkind),iq=1,Qtransfo(nb_transfo)%Qtransfo%nb_Qout)]
-  Qact = [2._Rkind,-0.5_Rkind,2.1_Rkind]
+  !Qdyn = [ONE,2._Rkind,-0.5_Rkind,2.1_Rkind,-0.6_Rkind,ZERO]
+  Qact = [2._Rkind,-0.5_Rkind,2.1_Rkind,-0.6_Rkind,ONE,ZERO]
+  write(out_unitp,*) 'Qact',Qact
   CALL set_Qdyn0(Qtransfo(nb_transfo)%Qtransfo,Qact)
   CALL Qtransfo(nb_transfo)%Write()
 
@@ -544,20 +548,28 @@ SUBROUTINE OOP_Qtransfo()
   write(out_unitp,*) '==========================================='
 
   DO it=size(Qtransfo),1,-1
+    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '==========================================='
     write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+    write(out_unitp,*) '==========================================='
     Qout = Qtransfo(it)%Qtransfo%QinTOQout(Qin)
+    write(out_unitp,*) '==========================================='
     Qin  = Qout
     CALL Write_dnVec(Qout,info='Qout' // TO_string(it))
-    write(out_unitp,*) '--------------------------------------------'
+    write(out_unitp,*) '==========================================='
   END DO
   write(out_unitp,*) '==========================================='
 
   DO it=1,size(Qtransfo)
+    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '==========================================='
     write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+    write(out_unitp,*) '==========================================='
     Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
+    write(out_unitp,*) '==========================================='
     Qout = Qin
     CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-    write(out_unitp,*) '--------------------------------------------'
+    write(out_unitp,*) '==========================================='
   END DO
   write(out_unitp,*) '==========================================='
   write(out_unitp,*) 'Qact',get_Flatten(Qin,i_der=0)

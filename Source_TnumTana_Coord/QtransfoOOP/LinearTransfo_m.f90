@@ -32,39 +32,43 @@
 !
 !===========================================================================
 !===========================================================================
-MODULE IdentityTransfo_m
+MODULE LinearTransfo_m
   USE mod_system
   USE QtransfoBase_m
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: IdentityTransfo_t,Init_IdentityTransfo
+  PUBLIC :: LinearTransfo_t,Init_LinearTransfo
 
-  TYPE, EXTENDS (QtransfoBase_t) :: IdentityTransfo_t
+  TYPE, EXTENDS (QtransfoBase_t) :: LinearTransfo_t
+    real (kind=Rkind), allocatable  :: mat(:,:)     ! for Qout to Qin
+    real (kind=Rkind), allocatable  :: mat_inv(:,:) ! for Qin to Qout
+    logical :: inv                 = .FALSE.
+    logical :: transp              = .FALSE.
+    logical :: check_LinearTransfo = .TRUE.
+  END TYPE LinearTransfo_t
 
-  END TYPE IdentityTransfo_t
-
-  INTERFACE Init_IdentityTransfo
-    MODULE PROCEDURE Tnum_Init_IdentityTransfo
+  INTERFACE Init_LinearTransfo
+    MODULE PROCEDURE Tnum_Init_LinearTransfo
   END INTERFACE
 
   CONTAINS
-  FUNCTION Tnum_Init_IdentityTransfo(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
+  FUNCTION Tnum_Init_LinearTransfo(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
     IMPLICIT NONE
 
-    TYPE (IdentityTransfo_t)              :: this  
+    TYPE (LinearTransfo_t)                :: this  
     integer,                intent(inout) :: nb_Qin
     integer,                intent(in)    :: nb_Qout
     logical,                intent(in)    :: inTOout,skip_transfo
 
-    character (len=*), parameter :: name_sub = "Tnum_Init_IdentityTransfo"
+    character (len=*), parameter :: name_sub = "Tnum_Init_LinearTransfo"
 
     this%nb_Qin       = nb_Qout
     this%nb_Qout      = nb_Qout
     this%inTOout      = inTOout
     this%skip_transfo = skip_transfo
-    this%name_transfo = 'identity'
+    this%name_transfo = 'Linear'
 
     nb_Qin            = this%nb_Qin
-  END FUNCTION Tnum_Init_IdentityTransfo
-END MODULE IdentityTransfo_m
+  END FUNCTION Tnum_Init_LinearTransfo
+END MODULE LinearTransfo_m

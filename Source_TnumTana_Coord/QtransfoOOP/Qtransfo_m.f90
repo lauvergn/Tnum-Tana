@@ -146,22 +146,20 @@ CONTAINS
 
     SELECT TYPE (this)
     TYPE IS(ActiveTransfo_t)
-      nb_var     = this%nb_var
-      this%Qdyn0 = Qact(this%list_QactTOQdyn)
+      IF (size(Qact) /= this%nb_var) THEN
+        write(out_unitp,*) ' ERROR in ',name_sub
+        write(out_unitp,*) 'Qact size and nb_var differ'
+        write(out_unitp,*) 'size(Qact), nb_var',size(Qact),nb_var
+        STOP 'ERROR in TnumQTransfo_set_Qdyn0: Qact size and nb_var differ'
+      END IF
+
+      this%Qdyn0 = Qact(this%list_QdynTOQact)
     CLASS DEFAULT
       write(out_unitp,*) "ERROR in ",name_sub
       write(out_unitp,*) " Wrong dynamical type."
       write(out_unitp,*) " It should be 'ActiveTransfo_t'"
       STOP 'ERROR in TnumQTransfo_set_Qdyn0: Wrong dynamical type'
     END SELECT
-
-    IF (size(Qact) /= nb_var) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) 'Qact size and nb_var differ'
-      write(out_unitp,*) 'size(Qact), nb_var',size(Qact),nb_var
-      STOP 'ERROR in Tnum_QactTOdnQact_QTransfo: Qact size and nb_var differ'
-    END IF
-
 
   END SUBROUTINE TnumQTransfo_set_Qdyn0
 
@@ -173,7 +171,9 @@ CONTAINS
 
 
     TYPE(Qtransfo_t),   intent(inout) :: this
-    integer,            intent(in)    :: nb_Qin,nb_Qout,nb_extra_Coord
+    integer,            intent(in)    :: nb_extra_Coord
+    integer,            intent(inout) :: nb_Qin
+    integer,            intent(in)    :: nb_Qout
     logical,            intent(in)    :: QMLib_in
     TYPE (table_atom),  intent(in)    :: mendeleev
 
@@ -204,8 +204,8 @@ CONTAINS
     !----- for debuging --------------------------------------------------
     integer :: err_mem,memory,err_io
     character (len=*), parameter :: name_sub = "Tnum_Read_Qtransfo"
-    logical, parameter :: debug=.FALSE.
-    !logical, parameter :: debug=.TRUE.
+    !logical, parameter :: debug=.FALSE.
+    logical, parameter :: debug=.TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
       write(out_unitp,*) 'BEGINNING ',name_sub
@@ -278,7 +278,7 @@ CONTAINS
 
     CASE ('active') ! the last read transformation
       allocate(ActiveTransfo_t :: this%Qtransfo)
-      this%Qtransfo = Init_ActiveTransfo(nb_Qout)
+      this%Qtransfo = Init_ActiveTransfo(nb_Qin,nb_Qout)
 
       !Qtransfo%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
       !Qtransfo%ActiveTransfo%QMLib            = QMLib
@@ -297,7 +297,7 @@ CONTAINS
           STOP 'ERROR in Tnum_Read_Qtransfo: nat < 2 for zmat Transfo'
       END IF
       allocate(ZmatTransfo_t :: this%Qtransfo)
-      this%Qtransfo = Init_ZmatTransfo(nat,cos_th,nb_extra_Coord,mendeleev)
+      this%Qtransfo = Init_ZmatTransfo(nb_Qin,nb_Qout,nat,cos_th,nb_extra_Coord,mendeleev)
 
     CASE DEFAULT ! ERROR: wrong transformation !
       write(out_unitp,*) ' ERROR in ',name_sub
@@ -306,6 +306,13 @@ CONTAINS
       STOP 'ERROR in Tnum_Read_Qtransfo: wrong coordinate transformation'
     END SELECT
 
+    !-----------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'this%Qtransfo%nb_Qin',this%Qtransfo%nb_Qin
+      write(out_unitp,*) 'this%Qtransfo%nb_Qout',this%Qtransfo%nb_Qout
+      write(out_unitp,*) 'END ',name_sub
+    END IF
+    !-----------------------------------------------------------
   END SUBROUTINE TnumQtransfo_Read
   SUBROUTINE Tnum_dealloc_Qtransfo(this)
     IMPLICIT NONE

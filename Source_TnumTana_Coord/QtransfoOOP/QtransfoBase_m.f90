@@ -60,6 +60,10 @@ MODULE QtransfoBase_m
     PROCEDURE :: dealloc         => Tnum_dealloc_QtransfoBase
     PROCEDURE :: QinTOQout       => Tnum_QinTOQout_QtransfoBase
     PROCEDURE :: QoutTOQin       => Tnum_QoutTOQin_QtransfoBase
+    PROCEDURE :: get_nb_Qin      => Tnum_get_nb_Qin
+    PROCEDURE :: get_nb_Qout     => Tnum_get_nb_Qout
+    PROCEDURE :: set_nb_Qin      => Tnum_set_nb_Qin
+    PROCEDURE :: set_nb_Qout     => Tnum_set_nb_Qout
   END TYPE QtransfoBase_t
 
   INTERFACE Init_QtransfoBase
@@ -194,4 +198,39 @@ CONTAINS
     Qin = Qout
 
   END FUNCTION Tnum_QoutTOQin_QtransfoBase
+
+  FUNCTION Tnum_get_nb_Qin(this) RESULT(nb_Qin)
+
+    integer    :: nb_Qin
+    CLASS (QtransfoBase_t),  intent(in)   :: this
+
+    nb_Qin = this%nb_Qin
+
+  END FUNCTION Tnum_get_nb_Qin
+  FUNCTION Tnum_get_nb_Qout(this) RESULT(nb_Qout)
+
+    integer    :: nb_Qout
+    CLASS (QtransfoBase_t),  intent(in)   :: this
+
+    nb_Qout = this%nb_Qout
+
+  END FUNCTION Tnum_get_nb_Qout
+
+
+  SUBROUTINE Tnum_set_nb_Qin(this,nb_Qin)
+
+    integer,                intent(in)    :: nb_Qin
+    CLASS (QtransfoBase_t),  intent(inout) :: this
+
+    this%nb_Qin = nb_Qin
+
+  END SUBROUTINE Tnum_set_nb_Qin
+  SUBROUTINE Tnum_set_nb_Qout(this,nb_Qout)
+
+    integer,                intent(in)    :: nb_Qout
+    CLASS (QtransfoBase_t),  intent(inout) :: this
+
+    this%nb_Qout = nb_Qout
+
+  END SUBROUTINE Tnum_set_nb_Qout
 END MODULE QtransfoBase_m

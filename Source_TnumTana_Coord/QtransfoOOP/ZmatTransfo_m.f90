@@ -121,13 +121,14 @@ CONTAINS
     flush(out_unitp)
 
   END SUBROUTINE Write_ZmatTransfo_Tnum
-  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev) RESULT(this)
+  FUNCTION Init_ZmatTransfo_Tnum(nb_Qin,nb_Qout,nat0,cos_th,nb_extra_Coord,mendeleev) RESULT(this)
     USE mod_Constant,     only: table_atom, get_mass_Tnum
     USE mod_Lib_QTransfo
     IMPLICIT NONE
 
     TYPE (ZmatTransfo_t)                   :: this
-
+    integer,                 intent(inout) :: nb_Qin
+    integer,                 intent(in)    :: nb_Qout
     integer,                 intent(in)    :: nat0,nb_extra_Coord
     logical,                 intent(in)    :: cos_th
     TYPE (table_atom),       intent(in)    :: mendeleev
@@ -171,6 +172,8 @@ CONTAINS
     this%ncart           = 3*(nat0+1)
     this%nb_Qin          = this%nb_var
     this%nb_Qout         = this%ncart
+
+    nb_Qin               = this%nb_Qin
 
     !-----------------------------------------------------------------------
     IF (print_loc) THEN
@@ -527,15 +530,14 @@ CONTAINS
 
     integer :: ic,ic1,ic2,ic3,icf,icG,i1,i2,i3
     integer :: i_q
-    integer :: i
+    integer :: i,iAtf
     integer :: nb_act,nderiv
-
     logical :: check
 
     !-----------------------------------------------------------------
     integer :: nderiv_debug = 0
-    !logical, parameter :: debug = .FALSE.
-    logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub='QinTOQout_ZmatTransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
@@ -564,22 +566,23 @@ CONTAINS
       !=================================================
       ! first atom
       !=================================================
-      i   = 1
-      icf = this%ind_zmat(1,i)
+      i    = 1
+      icf  = this%ind_zmat(1,i)
+      iAtf = (icf+2)/3
 
       IF (this%New_Orient) THEN
-        dnAt(i) = this%vAt1(:)
+        dnAt(iAtf) = this%vAt1(:)
       ELSE
-        dnAt(i) = [ZERO,ZERO,ZERO]
+        dnAt(iAtf) = [ZERO,ZERO,ZERO]
       END IF
-      CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(i),icf,icf+2)
+      CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
 
       !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unitp,*)
         write(out_unitp,*) '-------------------------------------------------'
-        write(out_unitp,*) 'atom :',i
-        CALL write_dnx(1,3,dnAt(i),nderiv_debug)
+        write(out_unitp,*) 'atom :',iAtf
+        CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
       END IF
       !-----------------------------------------------------------------
 
@@ -596,9 +599,10 @@ CONTAINS
         !CALL Write_dnS(dnd)
         CALL check_Valence(i_q,get_d0(dnd),this%type_Qin(i_q))
 
-        i   = 2
-        i1  = this%ind2_zmat(2,i)
-        icf = this%ind_zmat(1,i)
+        i    = 2
+        i1   = (this%ind_zmat(2,i)+2)/3
+        icf  = this%ind_zmat(1,i)
+        iAtf = (icf+2)/3
         !  write(out_unitp,*) 'icf,ic1',icf,ic1
 
         IF (this%New_Orient) THEN
@@ -611,15 +615,15 @@ CONTAINS
         END IF
         !write(out_unitp,*) 'Ez2',Ez2
 
-        dnAt(i) = dnAt(i1) + dnd * Ez2
+        dnAt(iAtf) = dnAt(i1) + dnd * Ez2
 
-        CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(i),icf,icf+2)
+        CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
         !-----------------------------------------------------------------
         IF (debug) THEN
           write(out_unitp,*)
           write(out_unitp,*) '-------------------------------------------------'
-          write(out_unitp,*) 'atom :',i
-          CALL write_dnx(1,3,dnAt(i),nderiv_debug)
+          write(out_unitp,*) 'atom :',iAtf
+          CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
         END IF
         !-----------------------------------------------------------------
 
@@ -650,7 +654,8 @@ CONTAINS
           icf = this%ind_zmat(1,i)
           ic1 = this%ind_zmat(2,i)
           ic2 = this%ind_zmat(3,i)
-          i1  = this%ind2_zmat(2,i)
+          i1   = (this%ind_zmat(2,i)+2)/3
+          iAtf = (icf+2)/3
 
           IF (ic2 == 0) THEN    ! polyspherical
             Ex3 = [ONE,  ZERO, ZERO]
@@ -688,16 +693,16 @@ CONTAINS
           !write(out_unitp,*) 'New_Orient',this%New_Orient
           !write(out_unitp,*) 'Ex3',Ex3
           !write(out_unitp,*) 'Ez3',Ez3
-          dnAt(i) = dnAt(i1) + dnd*(Ez3 * dnCval + Ex3 * dnSval)
+          dnAt(iAtf) = dnAt(i1) + dnd*(Ez3 * dnCval + Ex3 * dnSval)
 
-          CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(i),icf,icf+2)
+          CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
 
           !-----------------------------------------------------------------
           IF (debug) THEN
             write(out_unitp,*)
             write(out_unitp,*) '-------------------------------------------------'
-            write(out_unitp,*) 'atom :',i
-            CALL write_dnx(1,3,dnAt(i),nderiv_debug)
+            write(out_unitp,*) 'atom :',iAtf
+            CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
           END IF
           !-----------------------------------------------------------------
 
@@ -705,13 +710,18 @@ CONTAINS
           !we used nat0(=nat-1), because the atom "nat" is the center of masse
           DO i=4,this%nat0 ! 4th ... atom
 
-            icf = this%ind_zmat(1,i)
-            ic1 = this%ind_zmat(2,i)
-            ic2 = this%ind_zmat(3,i)
-            ic3 = this%ind_zmat(4,i)
-            i1 = this%ind2_zmat(2,i)
-            i2 = this%ind2_zmat(3,i)
-            i3 = this%ind2_zmat(4,i)
+            icf  = this%ind_zmat(1,i)
+            ic1  = this%ind_zmat(2,i)
+            ic2  = this%ind_zmat(3,i)
+            ic3  = this%ind_zmat(4,i)
+            i1   = (ic1+2)/3
+            i2   = (abs(ic2)+2)/3
+            i3   = (ic3+2)/3
+            iAtf = (icf+2)/3
+
+            IF (debug) write(out_unitp,*) 'icf,ic1,ic2,ic3',icf,ic1,ic2,ic3
+            IF (debug) write(out_unitp,*) 'iAtf,i1,i2,i3',iAtf,i1,i2,i3
+
 
             IF (ic1 == 0) THEN !  atome en cartesiennes
 
@@ -753,15 +763,15 @@ CONTAINS
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnz,i_q)
 
-              dnAt(i) = [dnx*Ex3(1) + dny*Ey3(1) + dnz*Ez3(1), &
-                         dnx*Ex3(2) + dny*Ey3(2) + dnz*Ez3(2), &
-                         dnx*Ex3(3) + dny*Ey3(3) + dnz*Ez3(3)]
+              dnAt(iAtf) = [dnx*Ex3(1) + dny*Ey3(1) + dnz*Ez3(1), &
+                            dnx*Ex3(2) + dny*Ey3(2) + dnz*Ez3(2), &
+                            dnx*Ex3(3) + dny*Ey3(3) + dnz*Ez3(3)]
 
               IF (this%New_Orient) THEN
-                dnAt(i) = dnAt(i) + this%vAt1(:)
+                dnAt(iAtf) = dnAt(iAtf) + this%vAt1(:)
               END IF
 
-            ELSE IF (ic2 == 0) THEN    ! polyspherical
+            ELSE IF (ic2 == 0) THEN    ! spherical coordinate in the BF frame
 
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnd,i_q)
@@ -786,21 +796,34 @@ CONTAINS
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnQdih,i_q)
 
-              dnAt(i) = [dnd*dnSval*cos(dnQdih), dnd*dnSval*sin(dnQdih), dnd*dnCval]
+              dnAt(iAtf) = [dnd*dnSval*cos(dnQdih), dnd*dnSval*sin(dnQdih), dnd*dnCval]
 
             ELSE                  ! true zmat
 
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnd,i_q)
               CALL check_Valence(i_q,get_d0(dnd),this%type_Qin(i_q))
+              IF (debug) CALL Write_dnS(dnd,info='d')
 
-
+              i_q = i_q + 1
+              CALL dnVec_TO_dnS(Qin,dnQval,i_q)
+              IF (debug) CALL Write_dnS(dnQval,info='uth or th')
+              IF (this%type_Qin(i_q) == 3) THEN
+                dnCval = cos(dnQval)
+                dnSval = sin(dnQval)
+              ELSE ! type_Qin(i_q) == -3 (using Q=cos(val) as coordinate)
+                dnCval = dnQval
+                dnSval = sqrt(ONE - dnCval*dnCval)
+              END IF
+              IF (debug) CALL Write_dnS(dnCval,info='cos(th)')
+              IF (debug) CALL Write_dnS(dnSval,info='sin(th)')
               IF (this%ind_zmat(2,i) /= 0) THEN
                 CALL check_Valence(i_q,get_d0(dnQval),this%type_Qin(i_q))
               END IF
 
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnQdih,i_q)
+              IF (debug) CALL Write_dnS(dnQdih,info='dih')
 
               ! the frame dnv1,dnv2,dnv3
               dnv1 = dnAt(i3) - dnAt(i2)
@@ -813,19 +836,18 @@ CONTAINS
               dnv2 = dnv2/sqrt(dot_product(dnv2,dnv2)) ! -z
               dnv3 = dnv3/sqrt(dot_product(dnv3,dnv3)) ! y
 
-
-              dnAt(i) = dnAt(i1) -dnv2*(dnd*dnCval) + dnv1*(dnd*dnSval*cos(dnQdih)) + dnv3*(dnd*dnSval*sin(dnQdih))
- 
-              CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(i),icf,icf+2)
+              dnAt(iAtf) = dnAt(i1) -dnv2*(dnd*dnCval) + dnv1*(dnd*dnSval*cos(dnQdih)) + &
+                                                         dnv3*(dnd*dnSval*sin(dnQdih))
 
             END IF
+            CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
 
             !-----------------------------------------------------------------
             IF (debug) THEN
               write(out_unitp,*)
               write(out_unitp,*) '-------------------------------------------------'
-              write(out_unitp,*) 'atom :',i
-              CALL write_dnx(1,3,dnAt(i),nderiv_debug)
+              write(out_unitp,*) 'atom :',iAtf
+              CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
             END IF
             !-----------------------------------------------------------------
           END DO
@@ -850,6 +872,10 @@ CONTAINS
       CALL dealloc_dnVec(dnv2)
       CALL dealloc_dnVec(dnv3)
 
+      DO i=1,size(dnAt)
+        CALL dealloc_dnVec(dnAt(i))
+      END DO
+      deallocate(dnat)
       !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unitp,*) 'Final Cartesian coordinates:'
@@ -863,19 +889,303 @@ CONTAINS
   END FUNCTION QinTOQout_ZmatTransfo_Tnum
   FUNCTION QoutTOQin_ZmatTransfo_Tnum(this,Qout) RESULT(Qin)
     USE ADdnSVM_m
+    USE mod_Lib_QTransfo
     IMPLICIT NONE
 
-    TYPE (dnVec_t)                    :: Qin
+    TYPE (dnVec_t)                    :: Qin ! old dnQzmat
 
     CLASS (ZmatTransfo_t), intent(in) :: this
     TYPE (dnVec_t),        intent(in) :: Qout
 
-    character (len=*), parameter :: name_sub = "QoutTOQin_ZmatTransfo_Tnum"
 
-    STOP 'QoutTOQin_ZmatTransfo_Tnum: not yet!'
-    Qin = Qout
+    integer           :: nderiv,nb_act
+    real (kind=Rkind) :: angle_d
+    integer           :: nc0,nc1,nc2,nc3,nc4,idum,iqz,i
+    integer           :: i0,i1,i2,i3,i4
 
-    !write(6,*) ' END ',name_sub
+    real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
+
+    TYPE (dnVec_t)  :: dnv1,dnv2,dnv3,dnv4,dnv5
+    TYPE (dnS_t)    ::      nv2, nv3, nv4, nv5
+    TYPE (dnS_t)    :: dnd
+    TYPE (dnS_t)    :: dnQval,dnCval,dnSval
+    TYPE (dnS_t)    :: dnQdih,dnCdih,dnSdih
+    TYPE (dnS_t)    :: dnx,dny,dnz
+    TYPE (dnVec_t), allocatable  :: dnAt(:) ! it will contain the atomic position
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 0
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='QoutTOQin_ZmatTransfo_Tnum'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*)
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'nderiv',get_nderiv(Qout)
+      write(out_unitp,*)
+      CALL this%Write()
+      write(out_unitp,*) 'Qout (dnx)'
+      CALL Write_dnVec(Qout)
+    END IF
+    !-----------------------------------------------------------------
+
+    nderiv = get_nderiv(Qout)
+    nb_act = get_nVar(Qout)
+
+    allocate(dnAt(this%nat0))
+    DO i=1,this%nat0
+      IF (debug) write(out_unitp,*) 'atom i',i ; flush(out_unitp)
+      CALL subvector_dnVec2_TO_dnVec1(dnAt(i),Qout,lb=3*i-2,ub=3*i)
+      IF (debug)  CALL write_dnx(1,3,dnAt(i),nderiv_debug)
+    END DO
+    CALL alloc_dnVec(Qin,this%nb_Qin,nb_act,nderiv)
+
+    iqz = 0
+    DO i=2,this%nat0
+      nc1 = this%ind_zmat(1,i)
+      nc2 = this%ind_zmat(2,i)
+      nc3 = abs(this%ind_zmat(3,i))
+      nc4 = this%ind_zmat(4,i)
+
+      i1  = (nc1+2)/3
+      i2  = (nc2+2)/3
+      i3  = (nc3+2)/3
+      i4  = (nc4+2)/3
+
+      IF (debug) write(out_unitp,*) '-------------------',i
+      IF (debug) write(out_unitp,*) 'nc1,nc2,nc3,nc4',nc1,nc2,nc3,nc4
+      IF (debug) write(out_unitp,*) 'i1,i2,i3,i4',i1,i2,i3,i4
+
+
+      IF (i == 2) THEN
+
+        IF (nc2==0) THEN
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) ' Your zmatrix are using:'
+          write(out_unitp,*) ' cartesian coordinates for the 2d atom'
+          write(out_unitp,*) 'zmat at:',i,this%ind2_zmat(:,i)
+          STOP
+        END IF
+
+        dnv1 = dnAt(i1)-dnAt(i2)
+        dnd  = sqrt(dot_product(dnv1,dnv1))
+
+        iqz = iqz + 1
+        CALL dnS_TO_dnVec(dnd,Qin,iqz)
+        ez(:) = get_d0(dnv1) / get_d0(dnd)
+        IF (debug) write(out_unitp,*) ' i1,i2,v1',i1,i2,get_d0(dnv1)
+        IF (debug) write(out_unitp,*) ' i1,i2,d',i1,i2,get_d0(dnd)
+
+      ELSE IF (i == 3) THEN
+
+        IF (nc2==0) THEN
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) ' Your zmatrix are using:'
+          write(out_unitp,*) ' cartesian coordinates for the 3d atom'
+          write(out_unitp,*) 'zmat at:',i,this%ind2_zmat(:,i)
+          STOP
+        END IF
+
+        dnv1 = dnAt(i1)-dnAt(i2)
+        dnd  = sqrt(dot_product(dnv1,dnv1))
+        dnv2 = dnAt(i3)-dnAt(i2)
+        nv2  = sqrt(dot_product(dnv2,dnv2))
+
+        IF (debug) write(out_unitp,*) ' i1,i2,v1,norm1',i1,i2,get_d0(dnv1),get_d0(dnd)
+        IF (debug) write(out_unitp,*) ' i3,i2,v2,norm2',i3,i2,get_d0(dnv2),get_d0(nv2)
+
+        iqz = iqz + 1
+        CALL dnS_TO_dnVec(dnd,Qin,iqz)
+
+        dnCval = dot_product(dnv1,dnv2)/(dnd*nv2) ! compute the cos(th)
+        IF ( abs(sqrt(ONE-get_d0(dnQval)**2)) < ONETENTH**5 ) THEN
+          write(out_unitp,*) ' WARNNING in ',name_sub
+          write(out_unitp,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+          write(out_unitp,*) ' I cannot calculate the valence angle'
+          write(out_unitp,*) ' angle,cos(angle)',acos(get_d0(dnCval)),get_d0(dnCval)
+          write(out_unitp,*) ' Check your data !'
+          DO idum=1,this%nat0
+            write(out_unitp,*) idum,get_d0(dnAt(idum))
+          END DO
+        END IF
+        iqz = iqz + 1
+        IF (this%type_Qin(iqz) == 3) THEN
+          CALL dnS_TO_dnVec(acos(dnCval),Qin,iqz)
+        ELSE
+          CALL dnS_TO_dnVec(dnCval,Qin,iqz)
+        END IF
+
+        ex(:) = get_d0(dnv1)-ez(:)*dot_product(get_d0(dnv1),ez)
+        ex(:) = ex(:)/sqrt(dot_product(ex,ex))
+        CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+
+        IF (debug) write(out_unitp,*) ' ex(:)',ex(:)
+        IF (debug) write(out_unitp,*) ' ey(:)',ey(:)
+        IF (debug) write(out_unitp,*) ' ez(:)',ez(:)
+
+
+        IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,d,angle', &
+                    nc1,nc2,nc3,get_d0(dnd),acos(get_d0(dnCval))
+
+      ELSE ! i>3
+
+        IF (nc2==0 .AND. nc3==0 .AND. nc4==0) THEN
+          i0 = (this%ind_zmat(1,1)+2)/2 ! first atom (can be dummy)
+          dnv1 = dnAt(i1)-dnAt(i0)
+
+          IF (debug) write(out_unitp,*) ' i1,i0,v1,norm1',i1,i0,get_d0(dnv1)
+
+          dnx = dot_product(dnv1,ex)
+          dny = dot_product(dnv1,ey)
+          dnz = dot_product(dnv1,ez)
+
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnx,Qin,iqz)
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dny,Qin,iqz)
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnz,Qin,iqz)
+ 
+          IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,x,y,z',         &
+                                      nc1,nc2,nc3,get_d0(dnx),get_d0(dny),get_d0(dnz)
+        ELSE IF (nc2 /= 0 .AND. nc3 == 0 .AND. nc4 == 0) THEN
+          dnv1 = dnAt(i1)-dnAt(i2)
+          dnd  = sqrt(dot_product(dnv1,dnv1))
+
+          IF (debug) write(out_unitp,*) ' v1,norm1',get_d0(dnv1),get_d0(dnd)
+
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnd,Qin,iqz)
+
+          dnCval = dot_product(dnv1,ez)/(dnd) ! compute the cos(th)
+          IF ( abs(sqrt(ONE-get_d0(dnQval)**2)) < ONETENTH**5 ) THEN
+            write(out_unitp,*) ' WARNNING in ',name_sub
+            write(out_unitp,*) ' the third atom is along the z BF axis'
+            write(out_unitp,*) ' I cannot calculate the valence angle'
+            write(out_unitp,*) ' angle,cos(angle)',acos(get_d0(dnCval)),get_d0(dnCval)
+            write(out_unitp,*) ' Check your data !'
+            DO idum=1,this%nat0
+              write(out_unitp,*) idum,get_d0(dnAt(idum))
+            END DO
+          END IF
+
+          iqz = iqz + 1
+          IF (this%cos_th) THEN
+            CALL dnS_TO_dnVec(dnCval,Qin,iqz)
+          ELSE
+            CALL dnS_TO_dnVec(acos(dnCval),Qin,iqz)
+          END IF
+
+          !angle_d = atan2(dot_product(v1,ey),dot_product(v1,ex))
+          dnSdih = dot_product(dnv1,ey)
+          dnCdih = dot_product(dnv1,ex)
+    
+          dnQdih = atan2(dnSdih,dnCdih)
+          dnQdih = modulo(dnQdih,TWO*pi) ! [0:2pi]
+          !angle_d = get_d0(dnQdih)
+          !CALL dihedral_range(angle_d,2) ! [0:2pi]
+          !CALL set_d0S(dnQdih,angle_d)
+
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnQdih,Qin,iqz)
+
+
+          IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,R,th,phi',      &
+                                      nc1,nc2,nc3,get_d0(dnd),get_d0(dnCval),get_d0(dnQdih)
+        ELSE
+          dnv1 = dnAt(i1)-dnAt(i2)
+          dnd  = sqrt(dot_product(dnv1,dnv1))
+          dnv2 = dnAt(i3)-dnAt(i2)
+          nv2  = sqrt(dot_product(dnv2,dnv2))
+          dnv3 = dnAt(i4)-dnAt(i3)
+          nv3  = sqrt(dot_product(dnv3,dnv3))
+
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnd,Qin,iqz)
+  
+          dnCval = dot_product(dnv1,dnv2)/(dnd*nv2) ! compute the cos(th)
+          IF ( abs(sqrt(ONE-get_d0(dnQval)**2)) < ONETENTH**5 ) THEN
+            write(out_unitp,*) ' WARNNING in ',name_sub
+            write(out_unitp,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+            write(out_unitp,*) ' I cannot calculate the valence angle'
+            write(out_unitp,*) ' angle,cos(angle)',acos(get_d0(dnCval)),get_d0(dnCval)
+            write(out_unitp,*) ' Check your data !'
+            DO idum=1,this%nat0
+              write(out_unitp,*) idum,get_d0(dnAt(idum))
+            END DO
+          END IF
+
+          iqz = iqz + 1
+          IF (this%type_Qin(iqz) == 3) THEN
+            CALL dnS_TO_dnVec(acos(dnCval),Qin,iqz)
+          ELSE
+            CALL dnS_TO_dnVec(dnCval,Qin,iqz)
+          END IF
+
+          dnv4 = cross_product(dnv1,dnv2)
+          nv4  = sqrt(dot_product(dnv4,dnv4))
+          dnv5 = cross_product(dnv3,dnv2)
+          nv5  = sqrt(dot_product(dnv5,dnv5))
+
+          dnCdih = dot_product(dnv4,dnv5)/(nv4*nv5)
+
+          !dnSval : determinant of (dnv4,dnv5,dnv2) = (dnv4 X dnv5).dnv2
+          dnv1   = cross_product(dnv4,dnv5)
+          dnSdih = dot_product(dnv1,dnv2) / (nv4*nv5*nv2)
+    
+          dnQdih = atan2(dnSdih,dnCdih)
+          dnQdih = modulo(dnQdih,TWO*pi) ! [0:2pi]
+          !angle_d = get_d0(dnQdih)
+          !CALL dihedral_range(angle_d,2) ! [0:2pi]
+          !CALL set_d0S(dnQdih,angle_d)
+
+          iqz = iqz + 1
+          CALL dnS_TO_dnVec(dnQdih,Qin,iqz)
+  
+          IF (debug) write(out_unitp,*) 'nc1,nc2,nc3,nc4,angle_d',nc1,nc2,nc3,nc4,angle_d
+        END IF
+
+      END IF
+    END DO
+
+    CALL dealloc_dnS(nv2)
+    CALL dealloc_dnS(nv3)
+    CALL dealloc_dnS(nv4)
+    CALL dealloc_dnS(nv5)
+
+    CALL dealloc_dnS(dnd)
+    CALL dealloc_dnS(dnQval)
+    CALL dealloc_dnS(dnCval)
+    CALL dealloc_dnS(dnSval)
+    CALL dealloc_dnS(dnQdih)
+    CALL dealloc_dnS(dnCdih)
+    CALL dealloc_dnS(dnSdih)
+    CALL dealloc_dnS(dnx)
+    CALL dealloc_dnS(dny)
+    CALL dealloc_dnS(dnz)
+
+    CALL dealloc_dnVec(dnv1)
+    CALL dealloc_dnVec(dnv2)
+    CALL dealloc_dnVec(dnv3)
+    CALL dealloc_dnVec(dnv4)
+    CALL dealloc_dnVec(dnv5)
+
+    DO i=1,size(dnAt)
+      CALL dealloc_dnVec(dnAt(i))
+    END DO
+    deallocate(dnat)
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'Qin (dnQzmat)'
+      CALL write_dnVec(Qin,nderiv_debug)
+      write(out_unitp,*) 'END ',name_sub
+      write(out_unitp,*)
+      flush(out_unitp)
+    END IF
+    !-----------------------------------------------------------------
 
   END FUNCTION QoutTOQin_ZmatTransfo_Tnum
+
 END MODULE ZmatTransfo_m
