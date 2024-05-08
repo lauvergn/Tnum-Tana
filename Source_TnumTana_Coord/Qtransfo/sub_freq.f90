@@ -1432,7 +1432,10 @@ end subroutine calc_freq_new
         IF ( abs(v(i)-v(i+1)) < epsi) THEN
 
           j = i+1
-!         determination of max_ci and max_cj
+          IF (debug) write(out_unitp,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
+          IF (debug) write(out_unitp,*) 'old c(:,i)  ',c(:,i)
+          IF (debug) write(out_unitp,*) 'old c(:,i+1)',c(:,i+1)
+          ! determination of max_ci and max_cj
           max_ci = ZERO
           DO k=1,n
             IF ( abs(c(k,i)) > max_ci ) THEN
@@ -1461,7 +1464,8 @@ end subroutine calc_freq_new
            c(k,j) = -ss * ai + cc * aj
 
           END DO
-
+          IF (debug) write(out_unitp,*) 'new c(:,i)  ',c(:,i)
+          IF (debug) write(out_unitp,*) 'new c(:,i+1)',c(:,i+1)
         END IF
       END DO
 
@@ -1534,6 +1538,7 @@ end subroutine calc_freq_new
       DO i=1,n-1
 
         IF ( abs(v(i)-v(i+1)) < degenerate_freq%epsi) THEN
+          IF (debug) write(out_unitp,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
 
           j = i+1
           !determination of max_ci and max_cj
