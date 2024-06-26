@@ -319,6 +319,7 @@
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
+      !STOP 'coucou'
       nb_Op = size(d0MatOp)
       IF (debug) THEN
         write(out_unitp,*) 'BEGINNING ',name_sub

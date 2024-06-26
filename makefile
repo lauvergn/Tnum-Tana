@@ -322,8 +322,8 @@ $(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF)
 #============= TESTS ===========================
 #===============================================
 #
-.PHONY: UT_Tnum ut_Tnum UT_tnum ut_tnum
-UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
+.PHONY: ut UT_Tnum ut_Tnum UT_tnum ut_tnum
+ut UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
 	@echo "---------------------------------------"
 	@echo "Unitary tests for the Tnum"
 	@cd TESTS ; ./run_tests
