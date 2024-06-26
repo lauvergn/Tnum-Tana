@@ -39,7 +39,7 @@ MODULE QtransfoBase_m
   PRIVATE
   PUBLIC :: QtransfoBase_t,Init_QtransfoBase
 
-  TYPE, PUBLIC :: QtransfoBase_t
+  TYPE :: QtransfoBase_t
     character (len=:),        allocatable :: name_transfo
     logical                               :: inTOout         = .TRUE.
     integer                               :: nb_transfo      = 0

@@ -47,7 +47,7 @@ MODULE Qtransfo_m
 
   PUBLIC :: Qtransfo_t,Init_Qtransfo,Read_Qtransfo,QactTOdnQact,set_Qdyn0
 
-  TYPE, PUBLIC :: Qtransfo_t
+  TYPE :: Qtransfo_t
     CLASS (QtransfoBase_t), allocatable :: Qtransfo
   CONTAINS
     PROCEDURE :: Write           => Tnum_Write_Qtransfo
