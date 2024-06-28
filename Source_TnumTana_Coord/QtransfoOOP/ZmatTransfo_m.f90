@@ -67,6 +67,7 @@ MODULE ZmatTransfo_m
 
   CONTAINS
     PROCEDURE :: Write           => Write_ZmatTransfo_Tnum
+    PROCEDURE :: Read_Q          => Read_Q_ZmatTransfo_Tnum
     PROCEDURE :: dealloc         => dealloc_ZmatTransfo_Tnum
     PROCEDURE :: QinTOQout       => QinTOQout_ZmatTransfo_Tnum
     PROCEDURE :: QoutTOQin       => QoutTOQin_ZmatTransfo_Tnum
@@ -121,14 +122,106 @@ CONTAINS
     flush(out_unitp)
 
   END SUBROUTINE Write_ZmatTransfo_Tnum
-  FUNCTION Init_ZmatTransfo_Tnum(nb_Qin,nb_Qout,nat0,cos_th,nb_extra_Coord,mendeleev) RESULT(this)
+  SUBROUTINE Read_Q_ZmatTransfo_Tnum(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
+    USE mod_MPI
+    USE mod_Constant,         ONLY: REAL_WU,convRWU_TO_R_WITH_WorkingUnit
+    IMPLICIT NONE
+
+
+    CLASS (ZmatTransfo_t),          intent(inout) :: this
+    real (kind=Rkind), allocatable, intent(out)   :: Q(:) ! read coordinates
+    integer,                        intent(in)    :: nb_var
+    character (len=Name_len),       intent(in)    :: unit ! for the default unit
+    character (len=:), allocatable, intent(in)    :: info
+    logical, optional,              intent(in)    :: xyz,xyz_with_dummy,xyz_TnumOrder ! these are used only for the first Qtransfo (with zmat, bunch ...)
+
+
+
+    !- working variables -------------------------
+    integer                  :: i,nat_read,err_ioQ
+    TYPE (REAL_WU)           :: QWU
+    character (len=Name_len) :: name_at
+    logical                  :: xyz_loc,xyz_with_dummy_loc,xyz_TnumOrder_loc
+
+    integer :: err_mem,memory,err_io
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub = "Read_Q_ZmatTransfo_Tnum"
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*)
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unitp,*) 'nb_var',nb_var
+      write(out_unitp,*) 'type_Qin',this%type_Qin
+      write(out_unitp,*) 'nb_Qin,nb_Qout',this%nb_Qin,this%nb_Qout
+
+      write(out_unitp,*) 'unit: ',unit
+      write(out_unitp,*) 'xyz,xyz_with_dummy,xyz_TnumOrder',xyz,xyz_with_dummy,xyz_TnumOrder
+    END IF
+    !-----------------------------------------------------------------
+
+    xyz_loc = .FALSE. ;             IF (present(xyz))            xyz_loc            = xyz
+    xyz_with_dummy_loc = .FALSE. ;  IF (present(xyz_with_dummy)) xyz_with_dummy_loc = xyz_with_dummy
+    xyz_TnumOrder_loc = .FALSE. ;   IF (present(xyz_TnumOrder))  xyz_TnumOrder_loc  = xyz_TnumOrder
+
+
+    IF (xyz_loc) THEN
+      CALL alloc_NParray(Q,[this%nb_Qout],'Q0',name_sub)
+      Q(:) = ZERO
+  
+      IF (xyz_with_dummy_loc) THEN 
+        nat_read = this%nat0
+      ELSE
+        nat_read = this%nat_act
+      END IF
+  
+      DO i=1,nat_read
+  
+        read(in_unitp,*,IOSTAT=err_io) name_at,Q(3*i-2:3*i)
+        !write(out_unitp,*) name_at,Q(3*i-2:3*i)*.52d0
+  
+        IF (err_io /= 0) THEN
+          write(out_unitp,*) ' ERROR in ',name_sub
+          write(out_unitp,*) '  while reading the Cartessian reference geometry ...'
+          write(out_unitp,*) '   ... just after the namelist "minimum".'
+          write(out_unitp,'(a,i0,a,i0,a)') '  Trying to read the atom:',i,' among ',size(Q)/3,'.'
+          write(out_unitp,*) ' Check your data !!'
+          STOP 'ERROR in Read_Q_ZmatTransfo_Tnum: while reading the Cartessian reference geometry'
+        END IF
+
+      END DO
+
+      IF (unit == 'angs' ) THEN ! conversion of unit if needed
+        DO i=1,size(Q)
+          QWU = REAL_WU(Q(i),'Angs', 'L')
+          Q(i) = convRWU_TO_R_WITH_WorkingUnit(QWU)
+        END DO
+      END IF
+
+      IF (debug) THEN 
+        CALL Write_Q_WU(Q,this%name_Qout,this%type_Qout,info)
+      END IF
+
+    ELSE
+      CALL this%QtransfoBase_t%Read_Q(Q,nb_var,unit,info)
+    END IF
+
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'END ',name_sub
+      write(out_unitp,*)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE Read_Q_ZmatTransfo_Tnum
+  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev) RESULT(this)
     USE mod_Constant,     only: table_atom, get_mass_Tnum
     USE mod_Lib_QTransfo
     IMPLICIT NONE
 
     TYPE (ZmatTransfo_t)                   :: this
-    integer,                 intent(inout) :: nb_Qin
-    integer,                 intent(in)    :: nb_Qout
     integer,                 intent(in)    :: nat0,nb_extra_Coord
     logical,                 intent(in)    :: cos_th
     TYPE (table_atom),       intent(in)    :: mendeleev
@@ -147,8 +240,8 @@ CONTAINS
 
     !------------------------------------------------------------------
     integer :: err_mem,memory,err_io
-    !logical, parameter :: debug=.FALSE.
-    logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
     character (len=*), parameter :: name_sub = "Init_ZmatTransfo_Tnum"
     !------------------------------------------------------------------
 
@@ -173,8 +266,6 @@ CONTAINS
     this%nb_Qin          = this%nb_var
     this%nb_Qout         = this%ncart
 
-    nb_Qin               = this%nb_Qin
-
     !-----------------------------------------------------------------------
     IF (print_loc) THEN
       write(out_unitp,*) 'nat0,nat',this%nat0,this%nat
@@ -184,7 +275,8 @@ CONTAINS
       flush(out_unitp)
     END IF
 
-    ! allocation of the variables:
+    !-----------------------------------------------------------------------
+    ! allocation and initialization
     CALL alloc_ZmatTransfo_Tnum(this)
     this%Z(:)       = -1
     this%symbol(:)  = ""
@@ -194,8 +286,14 @@ CONTAINS
     allocate(this%type_Qin(this%nb_var))
     this%type_Qin(:) = -1
 
+    allocate(this%name_Qout(3*this%nat))
+    this%name_Qout(:) = ""
+    allocate(this%type_Qout(3*this%nat))
+    this%type_Qout(:) = 1 ! all in Cartesian
+
     this%nat_act = 0
-    nat_dum = this%nat
+    nat_dum = this%nat+1
+    !-----------------------------------------------------------------------
 
     IF (this%nat0 >= 1) THEN
       iz  = 0
@@ -204,8 +302,7 @@ CONTAINS
       read(in_unitp,*,IOSTAT=err_io) name_at
       IF (err_io /= 0) THEN
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the first line ',       &
-                                     'of the "Zmat" transformation.'
+        write(out_unitp,*) '  while reading the first line of the "Zmat" transformation.'
         write(out_unitp,*) ' Check your data !!'
         STOP
       END IF
@@ -228,6 +325,9 @@ CONTAINS
       END IF
       this%masses(icf+0:icf+2) = at
       this%ind_zmat(:,i)       = [icf,0,0,0,0]
+      this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
+      this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
+      this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
 
       IF (this%nat0 >= 2) THEN
 
@@ -271,6 +371,10 @@ CONTAINS
         ic1 = this%ind_zmat(1,n1)
         this%masses(icf+0:icf+2) = at
         this%ind_zmat(:,i)       = [icf,ic1,0,0,0]
+        this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
+        this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
+        this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
+  
 
         IF (this%nat0 >= 3) THEN
 
@@ -336,6 +440,10 @@ CONTAINS
           END IF
           this%masses(icf+0:icf+2) = at
           this%ind_zmat(:,i)       = [icf,ic1,ic2,0,0]
+          this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
+          this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
+          this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
+    
 
           DO i=4,this%nat0
 
@@ -432,7 +540,10 @@ CONTAINS
             ENDIF
             this%masses(icf+0:icf+2) = at
             this%ind_zmat(:,i)       = [icf,ic1,ic2,ic3,0]
-
+            this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
+            this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
+            this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
+      
           END DO
         END IF
       END IF
@@ -445,6 +556,18 @@ CONTAINS
     ! ncart_act number of active cartesian coordinates (without dummy atom and G)
     this%ncart_act = 3 * this%nat_act
 
+    ! for the center of mass
+    i                    = this%nat
+    nat_dum              = nat_dum - 1
+    this%symbol(nat_dum) = 'G'
+    this%Z(nat_dum)      = 0
+    icf                  = func_ic(nat_dum)
+
+    this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(this%symbol(nat_dum)))
+    this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(this%symbol(nat_dum)))
+    this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(this%symbol(nat_dum)))
+
+    IF (debug) CALL Write_ZmatTransfo_Tnum(this)
     IF (print_loc) write(out_unitp,*) 'END ',name_sub
     flush(out_unitp)
 
@@ -559,8 +682,8 @@ CONTAINS
     CALL alloc_dnVec(dnv2,3,nb_act,nderiv)
     CALL alloc_dnVec(dnv3,3,nb_act,nderiv)
 
-    allocate(dnAt(this%nat0))
-    DO i=1,this%nat0
+    allocate(dnAt(this%nat))
+    DO i=1,this%nat
       CALL alloc_dnVec(dnAt(i),3,nb_act,nderiv) ! atom associated to nf
     END DO
       !=================================================
@@ -933,8 +1056,8 @@ CONTAINS
     nderiv = get_nderiv(Qout)
     nb_act = get_nVar(Qout)
 
-    allocate(dnAt(this%nat0))
-    DO i=1,this%nat0
+    allocate(dnAt(this%nat))
+    DO i=1,this%nat
       IF (debug) write(out_unitp,*) 'atom i',i ; flush(out_unitp)
       CALL subvector_dnVec2_TO_dnVec1(dnAt(i),Qout,lb=3*i-2,ub=3*i)
       IF (debug)  CALL write_dnx(1,3,dnAt(i),nderiv_debug)

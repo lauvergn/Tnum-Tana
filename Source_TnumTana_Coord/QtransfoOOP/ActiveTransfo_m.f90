@@ -68,6 +68,9 @@ MODULE ActiveTransfo_m
     PROCEDURE :: dealloc         => Tnum_dealloc_ActiveTransfo
     PROCEDURE :: QinTOQout       => Tnum_QinTOQout_ActiveTransfo
     PROCEDURE :: QoutTOQin       => Tnum_QoutTOQin_ActiveTransfo
+    PROCEDURE :: get_Qact0       => get_Qact0_ActiveTransfo_Tnum
+    PROCEDURE :: get_nb_act      => get_nb_act_ActiveTransfo_Tnum
+    PROCEDURE :: get_nb_var      => get_nb_var_ActiveTransfo_Tnum
   END TYPE ActiveTransfo_t
 
   INTERFACE Init_ActiveTransfo
@@ -112,25 +115,25 @@ CONTAINS
     flush(out_unitp)
 
   END SUBROUTINE Tnum_Write_ActiveTransfo
-  FUNCTION Tnum_Init_ActiveTransfo(nb_Qin,nb_Qout) RESULT(this)
+  FUNCTION Tnum_Init_ActiveTransfo(QtBase_old) RESULT(this)
     IMPLICIT NONE
 
     TYPE (ActiveTransfo_t)                 :: this
-
-    integer,                 intent(in)    :: nb_Qout ! it should be nb_var
-    integer,                 intent(inout) :: nb_Qin  ! it should be nb_act
+    TYPE (QtransfoBase_t),   intent(in)    :: QtBase_old
 
     integer :: iQ,err
     logical :: flex
     character (len=*), parameter :: name_sub = "Tnum_Init_ActiveTransfo"
 
     this%name_transfo = 'active'
-    this%nb_Qout      = nb_Qout
     this%inTOout      = .TRUE.
 
-    !this%nb_Qout is nb_act (before nb_var as well)
-    this%nb_var = nb_Qout
-    allocate(this%list_act_OF_Qdyn(this%nb_var))
+    this%nb_Qout      = QtBase_old%nb_Qin
+    this%name_Qout    = QtBase_old%name_Qin
+    this%type_Qout    = QtBase_old%type_Qin
+
+    this%nb_var       = this%nb_Qout
+    allocate(this%list_act_OF_Qdyn(this%nb_Qout))
     
     read(in_unitp,*,IOSTAT=err) this%list_act_OF_Qdyn(:)
     IF(MPI_id==0) write(out_unitp,*) 'list_act_OF_Qdyn or type_var',this%list_act_OF_Qdyn(:)
@@ -174,9 +177,12 @@ CONTAINS
       END DO
     END IF
 
+
     CALL Tnum_Coordinates_Type_Analysis(this)
-    this%nb_Qin = this%nb_act
-    nb_Qin      = this%nb_Qin
+
+    this%type_Qin = this%type_Qout(this%list_QdynTOQact)
+    this%name_Qin = this%name_Qout(this%list_QdynTOQact)
+    this%nb_Qin   = this%nb_act
     flush(out_unitp)
 
   END FUNCTION Tnum_Init_ActiveTransfo
@@ -308,6 +314,7 @@ CONTAINS
       write(out_unitp,*) '- End analysis of the variable type ---'
     END IF
     IF (debug) write(out_unitp,*) 'END ',name_sub
+    flush(out_unitp)
   
   END SUBROUTINE Tnum_Coordinates_Type_Analysis
 
@@ -386,6 +393,12 @@ CONTAINS
                                   With_Tab_dnQflex=this%With_Tab_dnQflex)
     END IF
 
+    IF (.NOT. allocated(this%Qdyn0)) THEN
+      write(out_unitp,*) ' ERROR in ',name_sub
+      write(out_unitp,*) ' Qdyn0 is not allocated'
+      STOP 'ERROR in Tnum_QinTOQout_ActiveTransfo: Qdyn0 is not allocated'
+    END IF
+
     CALL alloc_dnVec(Qout,this%nb_var,this%nb_act,nderiv)
 
     DO i_Qdyn=1,this%nb_var
@@ -405,7 +418,7 @@ CONTAINS
         write(out_unitp,*) ' ERROR in ',name_sub
         write(out_unitp,*) ' Unknown coordinate type:',this%list_act_OF_Qdyn(i_Qdyn)
         write(out_unitp,*) ' Check your data!!'
-        STOP
+        STOP 'ERROR in Tnum_QinTOQout_ActiveTransfo: Unknown coordinate type'
       END SELECT
 
       CALL dnS_TO_dnVec(dnQ,Qout,i_Qdyn)
@@ -463,4 +476,40 @@ CONTAINS
     !write(6,*) ' END ',name_sub
 
   END FUNCTION Tnum_QoutTOQin_ActiveTransfo
+  FUNCTION get_Qact0_ActiveTransfo_Tnum(this,full) RESULT(Qact0)
+
+    real (kind=Rkind), allocatable :: Qact0(:)
+
+    CLASS (ActiveTransfo_t),  intent(in)   :: this
+    logical,       optional,  intent(in)   :: full
+
+    logical :: full_loc
+
+    full_loc = .FALSE. ; IF (present(full)) full_loc = full
+
+    IF (full_loc) THEN
+      Qact0 = this%Qdyn0(this%list_QactTOQdyn)
+    ELSE
+      Qact0 = this%Qdyn0(this%list_QactTOQdyn(1:this%nb_act))
+    END IF
+
+  END FUNCTION get_Qact0_ActiveTransfo_Tnum
+
+  FUNCTION get_nb_act_ActiveTransfo_Tnum(this) RESULT(nb_act)
+
+    integer    :: nb_act
+    CLASS (ActiveTransfo_t),  intent(in)   :: this
+
+    nb_act = this%nb_act
+
+  END FUNCTION get_nb_act_ActiveTransfo_Tnum
+
+  FUNCTION get_nb_var_ActiveTransfo_Tnum(this) RESULT(nb_var)
+
+    integer    :: nb_var
+    CLASS (ActiveTransfo_t),  intent(in)   :: this
+
+    nb_var = this%nb_var
+
+  END FUNCTION get_nb_var_ActiveTransfo_Tnum
 END MODULE ActiveTransfo_m

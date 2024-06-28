@@ -514,66 +514,94 @@ SUBROUTINE OOP_Qtransfo()
   TYPE (constant)  :: const_phys
   TYPE(Qtransfo_t),  allocatable :: Qtransfo(:)
   TYPE(dnVec_t)                  :: Qin,Qout
-  real(kind=Rkind),  allocatable :: Qact(:)
+  real(kind=Rkind),  allocatable :: Qact(:),Qdyn(:)
+  real(kind=Rkind),  allocatable :: Q0(:)
+  integer :: Q0_itQtransfo
 
-
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
   write(out_unitp,*) 'TEST OOP Qtransfo'
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
+  CALL sub_constantes(const_phys,Read_Namelist=.FALSE.,iprint=0)
+
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) ' Read Qtransfo'
+
   nb_transfo     = 2
   nb_extra_Coord = 0
   write(out_unitp,*) 'nb_transfo,nb_extra_Coord',nb_transfo,nb_extra_Coord
-  CALL sub_constantes(const_phys,Read_Namelist=.FALSE.)
 
   nb_Qin = -1
   allocate(Qtransfo(nb_transfo))
-  DO it=1,size(Qtransfo) ! here the loop go from the "out" to "in" direction
-    CALL Read_Qtransfo(Qtransfo(it),nb_Qin=nb_Qin,nb_Qout=nb_Qout, &
-         nb_extra_Coord=0,QMLib_in=.FALSE.,mendeleev=const_phys%mendeleev)
 
-    nb_Qout = nb_Qin
-    CALL Qtransfo(it)%Write()
+  !--- first: read the first Qtransfo outside the loop
+  it = 1
+  CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE., &
+                     mendeleev=const_phys%mendeleev)
+  CALL Qtransfo(it)%Write()
+
+  DO it=2,size(Qtransfo) ! here the loop go from the "out" to "in" direction
+
+    CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE., &
+                       mendeleev=const_phys%mendeleev,                 &
+                       QtBase_old=Qtransfo(it-1)%Qtransfo)
+
+    !CALL Qtransfo(it)%Write()
   END DO
 
-  !Qact = [(real(iq,kind=Rkind),iq=1,Qtransfo(nb_transfo)%Qtransfo%nb_Qout)]
-  !Qdyn = [ONE,2._Rkind,-0.5_Rkind,2.1_Rkind,-0.6_Rkind,ZERO]
-  Qact = [2._Rkind,-0.5_Rkind,2.1_Rkind,-0.6_Rkind,ONE,ZERO]
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) ' Set/read Qdyn/Qact'
+  CALL Read_RefGeom(Q0,Q0_itQtransfo,Qtransfo)
+  !CALL Qit_TO_Qact_Qtransfo_Tnum(Qact,Q0,Q0_itQtransfo,Qtransfo)
+  !CALL Qit_TO_Qdyn_Qtransfo_Tnum(Qdyn,Q0,Q0_itQtransfo,Qtransfo)
+
+
+  Qact = Qtransfo(nb_transfo)%Qtransfo%get_Qact0()
   write(out_unitp,*) 'Qact',Qact
-  CALL set_Qdyn0(Qtransfo(nb_transfo)%Qtransfo,Qact)
-  CALL Qtransfo(nb_transfo)%Write()
 
   Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=1)
 
-  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) '-------------------------------------------'
   write(out_unitp,*) 'Qact',Qact
   CALL Write_dnVec(Qin,info='first Qin')
-  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) '-------------------------------------------'
 
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) ' Transfo: Qact -> Qcart'
   DO it=size(Qtransfo),1,-1
-    write(out_unitp,*) '==========================================='
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
+    write(out_unitp,*) '-------------------------------------------'
     write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
     Qout = Qtransfo(it)%Qtransfo%QinTOQout(Qin)
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
     Qin  = Qout
     CALL Write_dnVec(Qout,info='Qout' // TO_string(it))
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
   END DO
-  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) '-------------------------------------------'
 
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) '==================================================='
+  write(out_unitp,*) ' Transfo: Qcart -> Qact'
   DO it=1,size(Qtransfo)
-    write(out_unitp,*) '==========================================='
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
+    write(out_unitp,*) '-------------------------------------------'
     write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
     Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
     Qout = Qin
     CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-    write(out_unitp,*) '==========================================='
+    write(out_unitp,*) '-------------------------------------------'
   END DO
-  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) '-------------------------------------------'
   write(out_unitp,*) 'Qact',get_Flatten(Qin,i_der=0)
-  write(out_unitp,*) '==========================================='
+  write(out_unitp,*) '-------------------------------------------'
 
 END SUBROUTINE OOP_Qtransfo
 

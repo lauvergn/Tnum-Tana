@@ -49,22 +49,32 @@ MODULE IdentityTransfo_m
   END INTERFACE
 
   CONTAINS
-  FUNCTION Tnum_Init_IdentityTransfo(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
+  FUNCTION Tnum_Init_IdentityTransfo(QtBase_old,inTOout,skip_transfo) RESULT(this)
     IMPLICIT NONE
 
     TYPE (IdentityTransfo_t)              :: this  
-    integer,                intent(inout) :: nb_Qin
-    integer,                intent(in)    :: nb_Qout
+    TYPE (QtransfoBase_t),  intent(in)    :: QtBase_old
+
     logical,                intent(in)    :: inTOout,skip_transfo
 
+    integer :: i
     character (len=*), parameter :: name_sub = "Tnum_Init_IdentityTransfo"
 
-    this%nb_Qin       = nb_Qout
-    this%nb_Qout      = nb_Qout
+    this%name_transfo = 'identity'
     this%inTOout      = inTOout
     this%skip_transfo = skip_transfo
-    this%name_transfo = 'identity'
 
-    nb_Qin            = this%nb_Qin
+    this%nb_Qout   = QtBase_old%nb_Qout
+    this%name_Qout = QtBase_old%name_Qin
+    this%type_Qout = QtBase_old%type_Qin
+
+
+    this%nb_Qin    = QtBase_old%nb_Qout
+    this%type_Qin  = this%type_Qout
+
+    DO i=1,this%nb_Qin
+      this%name_Qin(i) = 'Id_' // trim(adjustl(this%name_Qout(i)))
+    END DO
+
   END FUNCTION Tnum_Init_IdentityTransfo
 END MODULE IdentityTransfo_m

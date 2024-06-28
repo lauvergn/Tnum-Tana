@@ -27,10 +27,43 @@ u   -0.5
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
 # for OOP
   &Coord_transfo name_transfo='zmat' nat=3 /
-    O
+    X
     H 1
     H 1 -2
 
   &Coord_transfo name_transfo='active' /
 1 0 1
+
+
+
+ &minimum  read_itQ0transfo=0 unit='angs' /
+ H   0. 0. 1.1
+ H   1. 0. 0.2
+ X   0. 0. 0.
+
+
+
+&minimum  read_itQ0transfo=1 unit='angs' /
+ROH 1. angs
+ROH 2.1 bohr
+u   -0.5
+
+ &minimum  read_itQ0transfo=2 unit='angs' /
+ROH 1. angs
+u   -0.5
+ROH 2.1 bohr
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
 **
