@@ -57,36 +57,37 @@ MODULE QtransfoBase_m
     character (len=Name_len), allocatable :: name_Qout(:)
 
   CONTAINS
-    PROCEDURE :: Write           => Tnum_Write_QtransfoBase
-    PROCEDURE :: Read_Q          => Tnum_Read_Q_QtransfoBase
-    PROCEDURE :: dealloc         => Tnum_dealloc_QtransfoBase
-    PROCEDURE :: QinTOQout       => Tnum_QinTOQout_QtransfoBase
-    PROCEDURE :: QoutTOQin       => Tnum_QoutTOQin_QtransfoBase
-    PROCEDURE :: get_nb_Qin      => Tnum_get_nb_Qin
-    PROCEDURE :: get_nb_Qout     => Tnum_get_nb_Qout
-    PROCEDURE :: set_nb_Qin      => Tnum_set_nb_Qin
-    PROCEDURE :: set_nb_Qout     => Tnum_set_nb_Qout
+    PROCEDURE :: Write            => Write_QtransfoBase_Tnum
+    PROCEDURE :: get_TransfoType  => get_TransfoType_QtransfoBase_Tnum
+    PROCEDURE :: Read_Q           => Read_Q_QtransfoBase_Tnum
+    PROCEDURE :: dealloc          => dealloc_QtransfoBase_Tnum
+    PROCEDURE :: QinTOQout        => QinTOQout_QtransfoBase_Tnum
+    PROCEDURE :: QoutTOQin        => QoutTOQin_QtransfoBase_Tnum
+    PROCEDURE :: get_nb_Qin       => get_nb_Qin_QtransfoBase_Tnum
+    PROCEDURE :: get_nb_Qout      => get_nb_Qout_QtransfoBase_Tnum
+    PROCEDURE :: set_nb_Qin       => set_nb_Qin_QtransfoBase_Tnum
+    PROCEDURE :: set_nb_Qout      => set_nb_Qout_QtransfoBase_Tnum
 
-    PROCEDURE :: get_Qact0       => get_Qact0_QtransfoBase_Tnum
-    PROCEDURE :: get_nb_act      => get_nb_act_QtransfoBase_Tnum
-    PROCEDURE :: get_nb_var      => get_nb_var_QtransfoBase_Tnum
+    PROCEDURE :: get_Qact0        => get_Qact0_QtransfoBase_Tnum
+    PROCEDURE :: get_nb_act       => get_nb_act_QtransfoBase_Tnum
+    PROCEDURE :: get_nb_var       => get_nb_var_QtransfoBase_Tnum
   END TYPE QtransfoBase_t
 
   INTERFACE Init_QtransfoBase
-    MODULE PROCEDURE Tnum_Init_QtransfoBase
+    MODULE PROCEDURE Init_QtransfoBase_Tnum
   END INTERFACE
   INTERFACE Write_Q_WU
-    MODULE PROCEDURE Tnum_Write_Q_WU_QtransfoBase
+    MODULE PROCEDURE Write_Q_WU_QtransfoBase_Tnum
   END INTERFACE
   
 CONTAINS
-  SUBROUTINE Tnum_Write_QtransfoBase(this)
+  SUBROUTINE Write_QtransfoBase_Tnum(this)
     USE mod_MPI
 
     CLASS (QtransfoBase_t), intent(in) :: this
 
     integer :: i_Q
-    character (len=*), parameter :: name_sub = "Tnum_Write_QtransfoBase"
+    character (len=*), parameter :: name_sub = "Write_QtransfoBase_Tnum"
 
 
     IF(MPI_id==0) THEN
@@ -135,8 +136,16 @@ CONTAINS
   
     flush(out_unitp)
 
-  END SUBROUTINE Tnum_Write_QtransfoBase
-  SUBROUTINE Tnum_Read_Q_QtransfoBase(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
+  END SUBROUTINE Write_QtransfoBase_Tnum
+  FUNCTION get_TransfoType_QtransfoBase_Tnum(this) RESULT(TransfoType)
+
+    character (len=:), allocatable :: TransfoType
+    CLASS (QtransfoBase_t), intent(in) :: this
+
+    TransfoType = 'QtransfoBase_t'
+
+  END FUNCTION get_TransfoType_QtransfoBase_Tnum
+  SUBROUTINE Read_Q_QtransfoBase_Tnum(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
     USE mod_MPI
     USE mod_Constant,         ONLY: REAL_WU,convRWU_TO_R_WITH_WorkingUnit
     IMPLICIT NONE
@@ -158,7 +167,7 @@ CONTAINS
     integer :: err_mem,memory,err_io
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
-    character (len=*), parameter :: name_sub = "Tnum_Read_Q_QtransfoBase"
+    character (len=*), parameter :: name_sub = "Read_Q_QtransfoBase_Tnum"
 
     !-----------------------------------------------------------------
     IF (debug) THEN
@@ -200,7 +209,7 @@ CONTAINS
           write(out_unitp,*) ' error with the value name: ',trim(adjustl(Read_name))
           write(out_unitp,*) ' the variable name:         ',trim(adjustl(this%name_Qin(i)))
           write(out_unitp,*) ' Check your data !!'
-          STOP 'ERROR in Tnum_Read_Q_QtransfoBase: while reading the curvilinear reference geometry (value or coord. name)'
+          STOP 'ERROR in Read_Q_QtransfoBase_Tnum: while reading the curvilinear reference geometry (value or coord. name)'
         END IF
       END IF
       ! Normally, the value is readed. Try to read the unit
@@ -227,7 +236,7 @@ CONTAINS
             write(out_unitp,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
             write(out_unitp,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
             write(out_unitp,*) ' Check your data !!'
-            STOP 'ERROR in Tnum_Read_Q_QtransfoBase: Wrong unit'
+            STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
           END IF
         ELSE IF (trim(adjustl(Read_name)) == 'Angs' .OR.                   &
                  trim(adjustl(Read_name)) == 'angs' .OR.                   &
@@ -242,7 +251,7 @@ CONTAINS
             write(out_unitp,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
             write(out_unitp,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
             write(out_unitp,*) ' Check your data !!'
-            STOP 'ERROR in Tnum_Read_Q_QtransfoBase: Wrong unit'
+            STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
           END IF
         ELSE
           write(out_unitp,*) ' ERROR in ',name_sub
@@ -251,7 +260,7 @@ CONTAINS
           write(out_unitp,*) '  angs or bohr'
           write(out_unitp,*) '  ° or rad'
           write(out_unitp,*) ' Check your data !!'
-          STOP 'ERROR in Tnum_Read_Q_QtransfoBase: Wrong unit'
+          STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
         END IF
 
       ELSE IF (unit == 'angs' ) THEN ! angs + degree
@@ -289,9 +298,9 @@ CONTAINS
   END IF
   !-----------------------------------------------------------------
 
-END SUBROUTINE Tnum_Read_Q_QtransfoBase
+END SUBROUTINE Read_Q_QtransfoBase_Tnum
 
-SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
+SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
   USE mod_system
   USE mod_Constant,         ONLY: REAL_WU,RWU_Write,convRWU_TO_R_WITH_WorkingUnit
   IMPLICIT NONE
@@ -309,7 +318,7 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     integer :: err_mem,memory
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
-    character (len=*), parameter :: name_sub='Tnum_Write_Q_WU_QtransfoBase'
+    character (len=*), parameter :: name_sub='Write_Q_WU_QtransfoBase_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
       write(out_unitp,*)
@@ -351,16 +360,16 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     END IF
     !-----------------------------------------------------------------
 
-  END SUBROUTINE Tnum_Write_Q_WU_QtransfoBase
+  END SUBROUTINE Write_Q_WU_QtransfoBase_Tnum
 
-  FUNCTION Tnum_Init_QtransfoBase(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
+  FUNCTION Init_QtransfoBase_Tnum(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
 
     TYPE (QtransfoBase_t)                 :: this
 
     integer,                intent(in)    :: nb_Qin,nb_Qout
     logical,                intent(in)    :: inTOout,skip_transfo
 
-    character (len=*), parameter :: name_sub = "Tnum_Init_QtransfoBase"
+    character (len=*), parameter :: name_sub = "Init_QtransfoBase_Tnum"
 
     this%nb_Qin       = nb_Qin
     this%nb_Qout      = nb_Qout
@@ -368,13 +377,13 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     this%skip_transfo = skip_transfo
     this%name_transfo = 'QtransfoBase'
 
-  END FUNCTION Tnum_Init_QtransfoBase
-  SUBROUTINE Tnum_dealloc_QtransfoBase(this)
+  END FUNCTION Init_QtransfoBase_Tnum
+  SUBROUTINE dealloc_QtransfoBase_Tnum(this)
 
     CLASS (QtransfoBase_t), intent(inout) :: this
 
     integer :: i_Q
-    character (len=*), parameter :: name_sub = "Tnum_dealloc_QtransfoBase"
+    character (len=*), parameter :: name_sub = "dealloc_QtransfoBase_Tnum"
 
     IF (allocated(this%name_transfo)) deallocate(this%name_transfo)
     IF (allocated(this%type_Qin))     deallocate(this%type_Qin)
@@ -393,8 +402,8 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     this%opt_param       = 0
     this%Primitive_coord = .FALSE.
 
-  END SUBROUTINE Tnum_dealloc_QtransfoBase
-  FUNCTION Tnum_QinTOQout_QtransfoBase(this,Qin) RESULT(Qout)
+  END SUBROUTINE dealloc_QtransfoBase_Tnum
+  FUNCTION QinTOQout_QtransfoBase_Tnum(this,Qin) RESULT(Qout)
     USE ADdnSVM_m
 
     TYPE (dnVec_t)                     :: Qout
@@ -402,7 +411,7 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     CLASS (QtransfoBase_t), intent(in) :: this
     TYPE (dnVec_t),         intent(in) :: Qin
 
-    character (len=*), parameter :: name_sub = "Tnum_QinTOQout_QtransfoBase"
+    character (len=*), parameter :: name_sub = "QinTOQout_QtransfoBase_Tnum"
 
     !write(6,*) ' IN ',name_sub
 
@@ -410,8 +419,8 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
 
     !write(6,*) ' END ',name_sub
 
-  END FUNCTION Tnum_QinTOQout_QtransfoBase
-  FUNCTION Tnum_QoutTOQin_QtransfoBase(this,Qout) RESULT(Qin)
+  END FUNCTION QinTOQout_QtransfoBase_Tnum
+  FUNCTION QoutTOQin_QtransfoBase_Tnum(this,Qout) RESULT(Qin)
     USE ADdnSVM_m
 
     TYPE (dnVec_t)                :: Qin
@@ -419,46 +428,46 @@ SUBROUTINE Tnum_Write_Q_WU_QtransfoBase(Q,name_Q,type_Q,info)
     CLASS (QtransfoBase_t), intent(in) :: this
     TYPE (dnVec_t),    intent(in) :: Qout
 
-    character (len=*), parameter :: name_sub = "Tnum_QoutTOQin_QtransfoBase"
+    character (len=*), parameter :: name_sub = "QoutTOQin_QtransfoBase_Tnum"
 
     Qin = Qout
 
-  END FUNCTION Tnum_QoutTOQin_QtransfoBase
+  END FUNCTION QoutTOQin_QtransfoBase_Tnum
 
-  FUNCTION Tnum_get_nb_Qin(this) RESULT(nb_Qin)
+  FUNCTION get_nb_Qin_QtransfoBase_Tnum(this) RESULT(nb_Qin)
 
     integer    :: nb_Qin
     CLASS (QtransfoBase_t),  intent(in)   :: this
 
     nb_Qin = this%nb_Qin
 
-  END FUNCTION Tnum_get_nb_Qin
-  FUNCTION Tnum_get_nb_Qout(this) RESULT(nb_Qout)
+  END FUNCTION get_nb_Qin_QtransfoBase_Tnum
+  FUNCTION get_nb_Qout_QtransfoBase_Tnum(this) RESULT(nb_Qout)
 
     integer    :: nb_Qout
     CLASS (QtransfoBase_t),  intent(in)   :: this
 
     nb_Qout = this%nb_Qout
 
-  END FUNCTION Tnum_get_nb_Qout
+  END FUNCTION get_nb_Qout_QtransfoBase_Tnum
 
 
-  SUBROUTINE Tnum_set_nb_Qin(this,nb_Qin)
+  SUBROUTINE set_nb_Qin_QtransfoBase_Tnum(this,nb_Qin)
 
     integer,                intent(in)    :: nb_Qin
     CLASS (QtransfoBase_t),  intent(inout) :: this
 
     this%nb_Qin = nb_Qin
 
-  END SUBROUTINE Tnum_set_nb_Qin
-  SUBROUTINE Tnum_set_nb_Qout(this,nb_Qout)
+  END SUBROUTINE set_nb_Qin_QtransfoBase_Tnum
+  SUBROUTINE set_nb_Qout_QtransfoBase_Tnum(this,nb_Qout)
 
     integer,                intent(in)    :: nb_Qout
     CLASS (QtransfoBase_t),  intent(inout) :: this
 
     this%nb_Qout = nb_Qout
 
-  END SUBROUTINE Tnum_set_nb_Qout
+  END SUBROUTINE set_nb_Qout_QtransfoBase_Tnum
 
   FUNCTION get_Qact0_QtransfoBase_Tnum(this,full) RESULT(Qact0)
 

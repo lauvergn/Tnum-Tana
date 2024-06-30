@@ -64,27 +64,30 @@ MODULE ActiveTransfo_m
     integer,           allocatable :: list_QactTOQdyn(:)   ! "active" transfo
     integer,           allocatable :: list_QdynTOQact(:)   ! "active" transfo
   CONTAINS
-    PROCEDURE :: Write           => Tnum_Write_ActiveTransfo
-    PROCEDURE :: dealloc         => Tnum_dealloc_ActiveTransfo
-    PROCEDURE :: QinTOQout       => Tnum_QinTOQout_ActiveTransfo
-    PROCEDURE :: QoutTOQin       => Tnum_QoutTOQin_ActiveTransfo
+    PROCEDURE :: Write           => Write_ActiveTransfo_Tnum
+    PROCEDURE :: get_TransfoType => get_TransfoType_ActiveTransfo_Tnum
+    PROCEDURE :: dealloc         => dealloc_ActiveTransfo_Tnum
+    PROCEDURE :: QinTOQout       => QinTOQout_ActiveTransfo_Tnum
+    PROCEDURE :: QoutTOQin       => QoutTOQin_ActiveTransfo_Tnum
     PROCEDURE :: get_Qact0       => get_Qact0_ActiveTransfo_Tnum
     PROCEDURE :: get_nb_act      => get_nb_act_ActiveTransfo_Tnum
     PROCEDURE :: get_nb_var      => get_nb_var_ActiveTransfo_Tnum
   END TYPE ActiveTransfo_t
 
   INTERFACE Init_ActiveTransfo
-    MODULE PROCEDURE Tnum_Init_ActiveTransfo
+    MODULE PROCEDURE Init_ActiveTransfo_Tnum
   END INTERFACE
-  
+  INTERFACE TypeCoordAna
+    MODULE PROCEDURE TypeCoordAna_ActiveTransfo_Tnum
+  END INTERFACE
 CONTAINS
-  SUBROUTINE Tnum_Write_ActiveTransfo(this)
+  SUBROUTINE Write_ActiveTransfo_Tnum(this)
     USE mod_MPI
     IMPLICIT NONE
 
     CLASS (ActiveTransfo_t), intent(in) :: this
 
-    character (len=*), parameter :: name_sub = "Tnum_Write_ActiveTransfo"
+    character (len=*), parameter :: name_sub = "Write_ActiveTransfo_Tnum"
 
     IF(MPI_id==0) THEN
       CALL this%QtransfoBase_t%write()
@@ -114,16 +117,94 @@ CONTAINS
     ENDIF ! for MPI_id==0
     flush(out_unitp)
 
-  END SUBROUTINE Tnum_Write_ActiveTransfo
-  FUNCTION Tnum_Init_ActiveTransfo(QtBase_old) RESULT(this)
+  END SUBROUTINE Write_ActiveTransfo_Tnum
+  SUBROUTINE WriteNice_ActiveTransfo_Tnum(this)
+    USE mod_MPI
+    IMPLICIT NONE
+
+    CLASS (ActiveTransfo_t), intent(in) :: this
+
+    integer :: iQ,iQend,max_len
+    logical :: flex
+    character (len=:), allocatable :: fmt1,fmt2
+    character (len=Name_len), allocatable :: name_type(:)
+    character (len=Name_len), allocatable :: name_QMLMap(:)
+
+
+    character (len=*), parameter :: name_sub = "WriteNice_ActiveTransfo_Tnum"
+
+    IF(MPI_id==0) THEN
+      write(out_unitp,'(a,i0)') 'nb_act: ',this%nb_act
+      write(out_unitp,'(a,i0)') 'nb_var: ',this%nb_var
+
+      allocate(name_type(this%nb_Qout))
+      DO iQ=1,this%nb_Qout
+        name_type(iQ)   = TO_string(this%list_act_OF_Qdyn(iQ))
+      END DO
+
+      IF (allocated(this%list_QMLMapping)) THEN 
+        allocate(name_QMLMap(this%nb_Qout))
+        DO iQ=1,this%nb_Qout
+          name_QMLMap(iQ) = TO_string(this%list_QMLMapping(iQ))
+        END DO
+      END IF
+
+      max_len = maxval(len_trim(this%name_Qout))
+      fmt1 = '(a,6(x,a' // to_string(max_len) // '))'
+      write(out_unitp,*)
+  
+      DO iQ=1,this%nb_Qout,6
+        iQend = min(this%nb_Qout,iQ+5)
+        write(out_unitp,fmt1) 'Qdyn Coord.:',this%name_Qout(iQ+0:iQend)
+        write(out_unitp,fmt1) 'Type Coord.:',name_type(iQ+0:iQend)
+        IF (allocated(this%list_QMLMapping)) &
+        write(out_unitp,fmt1) 'QML Mapp.  :',name_QMLMap(iQ+0:iQend)
+      END DO
+
+
+
+      max_len = maxval(len_trim(this%name_Qin))
+      fmt1 = '(a,6(x,a' // to_string(max_len) // '))'
+      write(out_unitp,*)  
+      DO iQ=1,this%nb_Qout,6
+        iQend = min(this%nb_Qout,iQ+5)
+        write(out_unitp,fmt1) 'Qact Coord.:',this%name_Qin(iQ+0:iQend)
+        write(out_unitp,fmt1) 'Type Coord.:',name_type(this%list_QactTOQdyn(iQ+0:iQend))
+        IF (allocated(this%list_QMLMapping)) &
+        write(out_unitp,fmt1) 'QML Mapp.  :',name_QMLMap(this%list_QactTOQdyn(iQ+0:iQend))
+      END DO
+
+    ENDIF ! for MPI_id==0
+    flush(out_unitp)
+
+  END SUBROUTINE WriteNice_ActiveTransfo_Tnum
+  FUNCTION get_TransfoType_ActiveTransfo_Tnum(this) RESULT(TransfoType)
+
+    character (len=:), allocatable :: TransfoType
+    CLASS (ActiveTransfo_t), intent(in) :: this
+
+    TransfoType = 'ActiveTransfo_t'
+
+  END FUNCTION get_TransfoType_ActiveTransfo_Tnum
+  FUNCTION Init_ActiveTransfo_Tnum(QtBase_old,TnumPrint_level) RESULT(this)
     IMPLICIT NONE
 
     TYPE (ActiveTransfo_t)                 :: this
     TYPE (QtransfoBase_t),   intent(in)    :: QtBase_old
+    integer,                 intent(in)    :: TnumPrint_level
 
-    integer :: iQ,err
+    integer :: iQ
     logical :: flex
-    character (len=*), parameter :: name_sub = "Tnum_Init_ActiveTransfo"
+    !------------------------------------------------------------------
+    integer :: err_mem,memory,err_io
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    character (len=*), parameter :: name_sub = "Init_ActiveTransfo_Tnum"
+    !------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*) 'BEGINNING ',name_sub
+      flush(out_unitp)
+    END IF
 
     this%name_transfo = 'active'
     this%inTOout      = .TRUE.
@@ -135,14 +216,17 @@ CONTAINS
     this%nb_var       = this%nb_Qout
     allocate(this%list_act_OF_Qdyn(this%nb_Qout))
     
-    read(in_unitp,*,IOSTAT=err) this%list_act_OF_Qdyn(:)
-    IF(MPI_id==0) write(out_unitp,*) 'list_act_OF_Qdyn or type_var',this%list_act_OF_Qdyn(:)
-    IF (err /= 0) THEN
+    read(in_unitp,*,IOSTAT=err_io) this%list_act_OF_Qdyn(:)
+
+    IF(debug .OR. TnumPrint_level > 1)  &
+      write(out_unitp,*) 'list_act_OF_Qdyn or type_var',this%list_act_OF_Qdyn(:)
+
+    IF (err_io /= 0) THEN
       write(out_unitp,*) ' ERROR in ',name_sub
       write(out_unitp,*) '  while reading "list_act_OF_Qdyn"'
       write(out_unitp,*) ' end of file or end of record'
       write(out_unitp,*) ' Check your data !!'
-      STOP 'ERROR in Tnum_Init_ActiveTransfo: problem while reading "list_act_OF_Qdyn"'
+      STOP 'ERROR in Init_ActiveTransfo_Tnum: problem while reading "list_act_OF_Qdyn"'
     END IF
 
     DO iQ=1,this%nb_Qout
@@ -152,17 +236,23 @@ CONTAINS
       IF (flex) EXIT
     END DO
 
-    write(out_unitp,*) 'this%QMLib,flex',this%QMLib,flex
+    IF(debug .OR. TnumPrint_level > 1)  &
+      write(out_unitp,*) 'this%QMLib,flex',this%QMLib,flex
+
+      this%list_QMLMapping(:) = 0
     IF (this%QMLib .AND. flex) THEN
-      read(in_unitp,*,IOSTAT=err) this%list_QMLMapping(:)
-      IF (err /= 0) THEN
+      read(in_unitp,*,IOSTAT=err_io) this%list_QMLMapping(:)
+      IF (err_io /= 0) THEN
         write(out_unitp,*) ' ERROR in ',name_sub
         write(out_unitp,*) '  while reading "list_QMLMapping"'
         write(out_unitp,*) '  end of file or end of record'
         write(out_unitp,*) ' Check your data !!'
-        STOP 'ERROR in Tnum_Init_ActiveTransfo: problem while reading "list_QMLMapping"'
+        STOP 'ERROR in Init_ActiveTransfo_Tnum: problem while reading "list_QMLMapping"'
       END IF
-      IF(MPI_id==0) write(out_unitp,*) '  list_QMLMapping(:)',this%list_QMLMapping
+
+      IF(debug .OR. TnumPrint_level > 1)  &
+        write(out_unitp,*) '  list_QMLMapping(:)',this%list_QMLMapping(:)
+      
       DO iQ=1,this%nb_Qout
         flex = this%list_act_OF_Qdyn(iQ) == 20  .OR.                  &
                this%list_act_OF_Qdyn(iQ) == 200 .OR.                  &
@@ -172,20 +262,26 @@ CONTAINS
           write(out_unitp,*) '  list_QMLMapping(iQ)=0, for flexible coordinate iQ',iQ
           write(out_unitp,*) '  list_QMLMapping(iQ) MUST be greater than 0'
           write(out_unitp,*) ' Check your data !!'
-          STOP 'ERROR in Tnum_Init_ActiveTransfo: list_QMLMapping(iQ) MUST be greater than 0'
+          STOP 'ERROR in Init_ActiveTransfo_Tnum: list_QMLMapping(iQ) MUST be greater than 0'
         END IF
       END DO
     END IF
 
-
-    CALL Tnum_Coordinates_Type_Analysis(this)
+    IF(debug .OR. TnumPrint_level >= 0)  CALL TypeCoordAna(this,TnumPrint_level)
 
     this%type_Qin = this%type_Qout(this%list_QdynTOQact)
     this%name_Qin = this%name_Qout(this%list_QdynTOQact)
     this%nb_Qin   = this%nb_act
+
+
+    CALL WriteNice_ActiveTransfo_Tnum(this)
+
+    IF (debug) THEN
+      write(out_unitp,*) 'END ',name_sub
+    END IF
     flush(out_unitp)
 
-  END FUNCTION Tnum_Init_ActiveTransfo
+  END FUNCTION Init_ActiveTransfo_Tnum
 
 
 !================================================================
@@ -193,28 +289,25 @@ CONTAINS
 !
 !       analysis of list_act_OF_Qdyn(.) to define this%list_QactTOQdyn(.) and this%list_QdynTOQact(.)
 !================================================================
-  SUBROUTINE Tnum_Coordinates_Type_Analysis(this,print_lev)
+  SUBROUTINE TypeCoordAna_ActiveTransfo_Tnum(this,TnumPrint_level)
     IMPLICIT NONE
 
-    CLASS (ActiveTransfo_t), intent(inout)         :: this
-    logical,                 intent(in),  optional :: print_lev
+    TYPE (ActiveTransfo_t),  intent(inout)   :: this
+    integer,                 intent(in)      :: TnumPrint_level
   
     integer :: iv_inact20,iv_rigid0,iv_inact21,iv_act1,iv_inact22
     integer :: iv_inact31,iv_rigid100
     integer :: n_test
     integer :: i
-    logical :: print_loc
 
     integer :: err_mem,memory
-    character (len=*), parameter :: name_sub = 'Tnum_Coordinates_Type_Analysis'
+    character (len=*), parameter :: name_sub = 'TypeCoordAna_ActiveTransfo_Tnum'
     !logical, parameter :: debug = .TRUE.
     logical, parameter :: debug = .FALSE.
 
-    print_loc = (print_level > 0 .OR. debug)
-    IF (present(print_lev)) print_loc = print_lev
 
     IF (debug) write(out_unitp,*) 'BEGINNING ',name_sub
-    IF (print_loc) THEN
+    IF (debug .OR. TnumPrint_level > 0) THEN
        write(out_unitp,*) '-analysis of the variable type ---'
        write(out_unitp,*) ' list_act_OF_Qdyn',this%list_act_OF_Qdyn
        flush(out_unitp)
@@ -244,7 +337,7 @@ CONTAINS
       write(out_unitp,*) ' Problem with coordinate types'
       write(out_unitp,*) ' list_act_OF_Qdyn', this%list_act_OF_Qdyn
       write(out_unitp,*) 'nb_act1+nb_inact+nb_rigid... and nb_var',n_test,this%nb_var
-      STOP 'ERROR in Tnum_Coordinates_Type_Analysis: Problem with coordinate types'
+      STOP 'ERROR in TypeCoordAna_ActiveTransfo_Tnum: Problem with coordinate types'
     END IF
     !---------------------------------------------------------------
   
@@ -293,7 +386,7 @@ CONTAINS
       CASE default
         write(out_unitp,*) ' ERROR in ',name_sub
         write(out_unitp,*) ' Wrong coordinate type. iQdyn, type: ',i,this%list_act_OF_Qdyn(i)
-        STOP 'ERROR in Tnum_Coordinates_Type_Analysis: Wrong coordinate type'
+        STOP 'ERROR in TypeCoordAna_ActiveTransfo_Tnum: Wrong coordinate type'
       END SELECT
     END DO
   
@@ -308,7 +401,7 @@ CONTAINS
       this%list_QdynTOQact(this%list_QactTOQdyn(i)) = i
     END DO
 
-    IF (print_loc) THEN
+    IF (debug .OR. TnumPrint_level > 0) THEN
       write(out_unitp,*) 'list_QactTOQdyn',this%list_QactTOQdyn
       write(out_unitp,*) 'list_QdynTOQact',this%list_QdynTOQact
       write(out_unitp,*) '- End analysis of the variable type ---'
@@ -316,14 +409,14 @@ CONTAINS
     IF (debug) write(out_unitp,*) 'END ',name_sub
     flush(out_unitp)
   
-  END SUBROUTINE Tnum_Coordinates_Type_Analysis
+  END SUBROUTINE TypeCoordAna_ActiveTransfo_Tnum
 
-  SUBROUTINE Tnum_dealloc_ActiveTransfo(this)
+  SUBROUTINE dealloc_ActiveTransfo_Tnum(this)
     IMPLICIT NONE
 
     CLASS (ActiveTransfo_t), intent(inout) :: this
 
-    character (len=*), parameter :: name_sub = "Tnum_dealloc_ActiveTransfo"
+    character (len=*), parameter :: name_sub = "dealloc_ActiveTransfo_Tnum"
 
     CALL this%QtransfoBase_t%dealloc()
 
@@ -350,8 +443,8 @@ CONTAINS
     IF (allocated(this%list_QactTOQdyn))  deallocate(this%list_QactTOQdyn)
     IF (allocated(this%list_QdynTOQact))  deallocate(this%list_QdynTOQact)
 
-  END SUBROUTINE Tnum_dealloc_ActiveTransfo
-  FUNCTION Tnum_QinTOQout_ActiveTransfo(this,Qin) RESULT(Qout)
+  END SUBROUTINE dealloc_ActiveTransfo_Tnum
+  FUNCTION QinTOQout_ActiveTransfo_Tnum(this,Qin) RESULT(Qout)
     USE ADdnSVM_m
     USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_gene2
     IMPLICIT NONE
@@ -372,10 +465,10 @@ CONTAINS
     TYPE (dnS_t) :: dnQ
 
 
-    character (len=*), parameter :: name_sub = "Tnum_QinTOQout_ActiveTransfo"
+    character (len=*), parameter :: name_sub = "QinTOQout_ActiveTransfo_Tnum"
 
     !write(6,*) ' IN ',name_sub
-    IF (get_size(Qin) /= this%nb_act) STOP 'ERROR in Tnum_QinTOQout_ActiveTransfo: Qact size and nb_act differ'
+    IF (get_size(Qin) /= this%nb_act) STOP 'ERROR in QinTOQout_ActiveTransfo_Tnum: Qact size and nb_act differ'
 
 
     nb_flex = count(this%list_act_OF_Qdyn == 20) + count(this%list_act_OF_Qdyn == 200)
@@ -396,7 +489,7 @@ CONTAINS
     IF (.NOT. allocated(this%Qdyn0)) THEN
       write(out_unitp,*) ' ERROR in ',name_sub
       write(out_unitp,*) ' Qdyn0 is not allocated'
-      STOP 'ERROR in Tnum_QinTOQout_ActiveTransfo: Qdyn0 is not allocated'
+      STOP 'ERROR in QinTOQout_ActiveTransfo_Tnum: Qdyn0 is not allocated'
     END IF
 
     CALL alloc_dnVec(Qout,this%nb_var,this%nb_act,nderiv)
@@ -418,7 +511,7 @@ CONTAINS
         write(out_unitp,*) ' ERROR in ',name_sub
         write(out_unitp,*) ' Unknown coordinate type:',this%list_act_OF_Qdyn(i_Qdyn)
         write(out_unitp,*) ' Check your data!!'
-        STOP 'ERROR in Tnum_QinTOQout_ActiveTransfo: Unknown coordinate type'
+        STOP 'ERROR in QinTOQout_ActiveTransfo_Tnum: Unknown coordinate type'
       END SELECT
 
       CALL dnS_TO_dnVec(dnQ,Qout,i_Qdyn)
@@ -433,8 +526,8 @@ CONTAINS
 
     !write(6,*) ' END ',name_sub
 
-  END FUNCTION Tnum_QinTOQout_ActiveTransfo
-  FUNCTION Tnum_QoutTOQin_ActiveTransfo(this,Qout) RESULT(Qin)
+  END FUNCTION QinTOQout_ActiveTransfo_Tnum
+  FUNCTION QoutTOQin_ActiveTransfo_Tnum(this,Qout) RESULT(Qin)
     USE ADdnSVM_m
     IMPLICIT NONE
 
@@ -443,7 +536,7 @@ CONTAINS
     CLASS (ActiveTransfo_t), intent(in) :: this
     TYPE (dnVec_t),          intent(in) :: Qout
 
-    character (len=*), parameter :: name_sub = "Tnum_QoutTOQin_ActiveTransfo"
+    character (len=*), parameter :: name_sub = "QoutTOQin_ActiveTransfo_Tnum"
 
 
     integer :: i_Qact,i_Qdyn,nderiv
@@ -451,7 +544,7 @@ CONTAINS
 
 
     !write(6,*) ' IN ',name_sub
-    IF (get_size(Qout) /= this%nb_var) STOP 'ERROR in Tnum_QoutTOQin_ActiveTransfo: Qdyn size and nb_var differ'
+    IF (get_size(Qout) /= this%nb_var) STOP 'ERROR in QoutTOQin_ActiveTransfo_Tnum: Qdyn size and nb_var differ'
 
     nderiv  = get_nderiv(Qout)
 
@@ -475,7 +568,7 @@ CONTAINS
 
     !write(6,*) ' END ',name_sub
 
-  END FUNCTION Tnum_QoutTOQin_ActiveTransfo
+  END FUNCTION QoutTOQin_ActiveTransfo_Tnum
   FUNCTION get_Qact0_ActiveTransfo_Tnum(this,full) RESULT(Qact0)
 
     real (kind=Rkind), allocatable :: Qact0(:)

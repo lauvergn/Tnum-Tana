@@ -41,15 +41,24 @@ MODULE IdentityTransfo_m
   PUBLIC :: IdentityTransfo_t,Init_IdentityTransfo
 
   TYPE, EXTENDS (QtransfoBase_t) :: IdentityTransfo_t
-
+  CONTAINS
+    PROCEDURE :: get_TransfoType  => get_TransfoType_IdentityTransfo_Tnum
   END TYPE IdentityTransfo_t
 
   INTERFACE Init_IdentityTransfo
-    MODULE PROCEDURE Tnum_Init_IdentityTransfo
+    MODULE PROCEDURE Init_IdentityTransfo_Tnum
   END INTERFACE
 
-  CONTAINS
-  FUNCTION Tnum_Init_IdentityTransfo(QtBase_old,inTOout,skip_transfo) RESULT(this)
+CONTAINS
+  FUNCTION get_TransfoType_IdentityTransfo_Tnum(this) RESULT(TransfoType)
+
+    character (len=:),        allocatable :: TransfoType
+    CLASS (IdentityTransfo_t), intent(in) :: this
+
+    TransfoType = 'IdentityTransfo_t'
+
+  END FUNCTION get_TransfoType_IdentityTransfo_Tnum
+  FUNCTION Init_IdentityTransfo_Tnum(QtBase_old,inTOout,skip_transfo) RESULT(this)
     IMPLICIT NONE
 
     TYPE (IdentityTransfo_t)              :: this  
@@ -58,7 +67,7 @@ MODULE IdentityTransfo_m
     logical,                intent(in)    :: inTOout,skip_transfo
 
     integer :: i
-    character (len=*), parameter :: name_sub = "Tnum_Init_IdentityTransfo"
+    character (len=*), parameter :: name_sub = "Init_IdentityTransfo_Tnum"
 
     this%name_transfo = 'identity'
     this%inTOout      = inTOout
@@ -76,5 +85,5 @@ MODULE IdentityTransfo_m
       this%name_Qin(i) = 'Id_' // trim(adjustl(this%name_Qout(i)))
     END DO
 
-  END FUNCTION Tnum_Init_IdentityTransfo
+  END FUNCTION Init_IdentityTransfo_Tnum
 END MODULE IdentityTransfo_m

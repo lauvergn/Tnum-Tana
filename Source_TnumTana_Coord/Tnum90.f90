@@ -508,19 +508,24 @@ SUBROUTINE OOP_Qtransfo()
   USE ADdnSVM_m
   use mod_Constant
   USE Qtransfo_m
+  USE CartTransfo_m
   IMPLICIT NONE
 
-  integer :: it,iq,nb_transfo,nb_extra_Coord,nb_Qin,nb_Qout
+  integer :: it,iq,nb_transfo,nb_extra_Coord,nb_Qin,nb_Qout,TnumPrint_level
   TYPE (constant)  :: const_phys
   TYPE(Qtransfo_t),  allocatable :: Qtransfo(:)
+  TYPE(Qtransfo_t),  allocatable :: CartQtransfo(:)
+
   TYPE(dnVec_t)                  :: Qin,Qout
   real(kind=Rkind),  allocatable :: Qact(:),Qdyn(:)
   real(kind=Rkind),  allocatable :: Q0(:)
   integer :: Q0_itQtransfo
 
+  CALL set_print_level(0,force=.TRUE.)
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) 'TEST OOP Qtransfo'
+  write(out_unitp,*) 'print_level',print_level
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
   CALL sub_constantes(const_phys,Read_Namelist=.FALSE.,iprint=0)
@@ -528,6 +533,7 @@ SUBROUTINE OOP_Qtransfo()
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) ' Read Qtransfo'
+  TnumPrint_level = print_level ; IF (MPI_id /= 0) TnumPrint_level = -1
 
   nb_transfo     = 2
   nb_extra_Coord = 0
@@ -539,30 +545,35 @@ SUBROUTINE OOP_Qtransfo()
   !--- first: read the first Qtransfo outside the loop
   it = 1
   CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE., &
-                     mendeleev=const_phys%mendeleev)
-  CALL Qtransfo(it)%Write()
+                     mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level)
 
   DO it=2,size(Qtransfo) ! here the loop go from the "out" to "in" direction
 
-    CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE., &
-                       mendeleev=const_phys%mendeleev,                 &
+    CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,                 &
+                       mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level, &
                        QtBase_old=Qtransfo(it-1)%Qtransfo)
 
-    !CALL Qtransfo(it)%Write()
+    IF (TnumPrint_level > 1) CALL Qtransfo(it)%Write()
   END DO
+
+  ! special transfo: CartTransfo
+  !allocate(CartQtransfo(1))
+  !allocate(CartTransfo_t :: CartQtransfo(1)%Qtransfo)
+  !CartQtransfo(1)%Qtransfo = Init_CartTransfo(Qtransfo(1)%Qtransfo,TnumPrint_level)
+  !CALL CartQtransfo(1)%Write() ; stop
+
+  !IF (TnumPrint_level > 1) CALL CartQtransfo(1)%Write()
 
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
-  write(out_unitp,*) ' Set/read Qdyn/Qact'
+  write(out_unitp,*) ' Read/set the Reference geometry'
   CALL Read_RefGeom(Q0,Q0_itQtransfo,Qtransfo)
-  !CALL Qit_TO_Qact_Qtransfo_Tnum(Qact,Q0,Q0_itQtransfo,Qtransfo)
-  !CALL Qit_TO_Qdyn_Qtransfo_Tnum(Qdyn,Q0,Q0_itQtransfo,Qtransfo)
 
 
   Qact = Qtransfo(nb_transfo)%Qtransfo%get_Qact0()
   write(out_unitp,*) 'Qact',Qact
 
-  Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=1)
+  Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=3)
 
   write(out_unitp,*) '-------------------------------------------'
   write(out_unitp,*) 'Qact',Qact
@@ -582,8 +593,16 @@ SUBROUTINE OOP_Qtransfo()
     Qin  = Qout
     CALL Write_dnVec(Qout,info='Qout' // TO_string(it))
     write(out_unitp,*) '-------------------------------------------'
+    flush(out_unitp)
   END DO
-  write(out_unitp,*) '-------------------------------------------'
+  !write(out_unitp,*) '-------------------------------------------'
+  !write(out_unitp,*) '-------------------------------------------'
+  !write(out_unitp,*) 'CartTransfo: ',CartQtransfo(1)%Qtransfo%name_transfo
+  !write(out_unitp,*) '-------------------------------------------'
+  !flush(out_unitp)
+  !Qout = CartQtransfo(1)%Qtransfo%QinTOQout(Qin)
+  !write(out_unitp,*) '-------------------------------------------'
+  !flush(out_unitp)
 
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
@@ -620,10 +639,10 @@ SUBROUTINE read_arg(Read_PhysConst)
 
   IF (COMMAND_ARGUMENT_COUNT() /= 0 .AND. COMMAND_ARGUMENT_COUNT() /= 2) THEN
     write(out_unitp,*) ' ERROR in read_arg'
-    write(out_unitp,*) ' Wrong ElVibRot argument number!'
+    write(out_unitp,*) ' Wrong TnumTana argument number!'
     write(out_unitp,*) 'argument number',COMMAND_ARGUMENT_COUNT()
     write(out_unitp,*) ' You can have 0 or 2 arguments.'
-    STOP 'Wrong ElVibRot argument number'
+    STOP 'Wrong TnumTana argument number'
   END IF
 
 

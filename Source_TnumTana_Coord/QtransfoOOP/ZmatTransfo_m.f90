@@ -67,6 +67,7 @@ MODULE ZmatTransfo_m
 
   CONTAINS
     PROCEDURE :: Write           => Write_ZmatTransfo_Tnum
+    PROCEDURE :: get_TransfoType => get_TransfoType_ZmatTransfo_Tnum
     PROCEDURE :: Read_Q          => Read_Q_ZmatTransfo_Tnum
     PROCEDURE :: dealloc         => dealloc_ZmatTransfo_Tnum
     PROCEDURE :: QinTOQout       => QinTOQout_ZmatTransfo_Tnum
@@ -122,6 +123,67 @@ CONTAINS
     flush(out_unitp)
 
   END SUBROUTINE Write_ZmatTransfo_Tnum
+  SUBROUTINE WriteNice_ZmatTransfo_Tnum(this)
+    USE mod_MPI
+    IMPLICIT NONE
+
+    TYPE (ZmatTransfo_t), intent(in) :: this
+
+    character(len=:), allocatable :: fzmt
+    character (len=*), parameter :: name_sub = "WriteNice_ZmatTransfo_Tnum"
+    integer :: i,icf,atf,max_len
+
+    IF (this%nat0 > 99) THEN
+      fzmt = "(i0,X,a2,a,f12.4,a,3(x,i0))"
+    ELSE
+      fzmt = "(i2,X,a2,a,f12.4,a,3(x,i2))"
+    END IF
+
+    i = 1 ! first atom:
+    IF (this%nat0 > 0) THEN
+      icf  = this%ind_zmat(1,i)
+      atf  = (icf+2)/3
+      write(out_unitp,fzmt) i,this%symbol(atf),'[',this%masses(icf),']'
+    END IF
+
+    i = i + 1
+    IF (this%nat0 > 1) THEN
+      icf  = this%ind_zmat(1,i)
+      atf  = (icf+2)/3
+      write(out_unitp,fzmt) i,this%symbol(atf),'[',this%masses(icf),']',this%ind2_zmat(2,i)
+    END IF
+
+    i = i + 1
+    IF (this%nat0 > 2) THEN
+      icf  = this%ind_zmat(1,i)
+      atf  = (icf+2)/3
+      write(out_unitp,fzmt) i,this%symbol(atf),'[',this%masses(icf),']',this%ind2_zmat(2:3,i)
+    END IF
+
+    DO i=4,this%nat0
+      icf  = this%ind_zmat(1,i)
+      atf  = (icf+2)/3
+      write(out_unitp,fzmt) i,this%symbol(atf),'[',this%masses(icf),']',this%ind2_zmat(2:4,i)
+    END DO
+
+    ! write coordinate names
+    max_len = maxval(len_trim(this%name_Qin))
+    fzmt = '(a,6(x,a' // to_string(max_len) // '))'
+    !write(out_unitp,*) 'max_len',max_len,'fmtz',fzmt
+    write(out_unitp,*)
+    write(out_unitp,'(a)') 'zmatrix coordinates (atom-by-atom):'
+    write(out_unitp,fzmt) 'Qin  Coord.:',this%name_Qin
+    flush(out_unitp)
+
+  END SUBROUTINE WriteNice_ZmatTransfo_Tnum
+  FUNCTION get_TransfoType_ZmatTransfo_Tnum(this) RESULT(TransfoType)
+
+    character (len=:),        allocatable :: TransfoType
+    CLASS (ZmatTransfo_t), intent(in) :: this
+
+    TransfoType = 'ZmatTransfo_t'
+
+  END FUNCTION get_TransfoType_ZmatTransfo_Tnum
   SUBROUTINE Read_Q_ZmatTransfo_Tnum(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
     USE mod_MPI
     USE mod_Constant,         ONLY: REAL_WU,convRWU_TO_R_WITH_WorkingUnit
@@ -216,13 +278,14 @@ CONTAINS
     !-----------------------------------------------------------------
 
   END SUBROUTINE Read_Q_ZmatTransfo_Tnum
-  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev) RESULT(this)
+  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev,TnumPrint_level) &
+                                  RESULT(this)
     USE mod_Constant,     only: table_atom, get_mass_Tnum
     USE mod_Lib_QTransfo
     IMPLICIT NONE
 
     TYPE (ZmatTransfo_t)                   :: this
-    integer,                 intent(in)    :: nat0,nb_extra_Coord
+    integer,                 intent(in)    :: nat0,nb_extra_Coord,TnumPrint_level
     logical,                 intent(in)    :: cos_th
     TYPE (table_atom),       intent(in)    :: mendeleev
 
@@ -236,7 +299,6 @@ CONTAINS
     integer                :: i,j
     integer                :: ZZ,iz,it
     real (kind=Rkind)      :: d1
-    logical                :: print_loc
 
     !------------------------------------------------------------------
     integer :: err_mem,memory,err_io
@@ -246,10 +308,17 @@ CONTAINS
     !------------------------------------------------------------------
 
     !------------------------------------------------------------------
-    print_loc = debug .OR. print_level > 1
-    IF (print_loc) THEN
+
+    IF (debug) THEN
       write(out_unitp,*) 'BEGINNING ',name_sub
       flush(out_unitp)
+    END IF
+
+    IF (nat0 < 2) THEN
+      write(out_unitp,*) ' ERROR in ',name_sub
+      write(out_unitp,*) ' nat0 < 2',nat0
+      write(out_unitp,*) ' Check your data !!'
+      STOP 'ERROR in Init_ZmatTransfo_Tnum: nat0 < 2'
     END IF
 
     CALL dealloc_ZmatTransfo_Tnum(this)
@@ -267,7 +336,7 @@ CONTAINS
     this%nb_Qout         = this%ncart
 
     !-----------------------------------------------------------------------
-    IF (print_loc) THEN
+    IF (debug .OR. TnumPrint_level > 1) THEN
       write(out_unitp,*) 'nat0,nat',this%nat0,this%nat
       write(out_unitp,*) 'nb_var',this%nb_var
       write(out_unitp,*) 'ncart',this%ncart
@@ -295,73 +364,121 @@ CONTAINS
     nat_dum = this%nat+1
     !-----------------------------------------------------------------------
 
-    IF (this%nat0 >= 1) THEN
-      iz  = 0
-      i   = 1
-      IF (print_loc) write(out_unitp,*) "==================",i
-      read(in_unitp,*,IOSTAT=err_io) name_at
+
+    iz  = 0
+    i   = 1
+    IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) "==================",i
+    read(in_unitp,*,IOSTAT=err_io) name_at
+    IF (err_io /= 0) THEN
+      write(out_unitp,*) ' ERROR in ',name_sub
+      write(out_unitp,*) '  while reading the first line of the "Zmat" transformation.'
+      write(out_unitp,*) ' Check your data !!'
+      STOP 'ERROR in Init_ZmatTransfo_Tnum: while reading the first zmatrix line.'
+    END IF
+    ZZ = -1
+    at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
+    IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) i,ZZ,at
+
+    this%ind2_zmat(:,i) = [i,0,0,0,0]
+
+    IF (at > ZERO) THEN
+       this%nat_act              = this%nat_act + 1
+       this%symbol(this%nat_act) = name_at
+       this%Z(this%nat_act)      = ZZ
+       icf                       = func_ic(this%nat_act)
+    ELSE
+       nat_dum              = nat_dum - 1
+       this%symbol(nat_dum) = name_at
+       this%Z(nat_dum)      = ZZ
+       icf                  = func_ic(nat_dum)
+    END IF
+    this%masses(icf+0:icf+2) = at
+    this%ind_zmat(:,i)       = [icf,0,0,0,0]
+    this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
+    this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
+    this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
+
+    IF (this%nat0 >= 2) THEN
+
+      i   = 2
+      IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) "==================",i
+      read(in_unitp,*,IOSTAT=err_io) name_at,n1
       IF (err_io /= 0) THEN
         write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the first line of the "Zmat" transformation.'
+        write(out_unitp,*) '  while reading the second line ',    &
+                                   'of the "Zmat" transformation.'
         write(out_unitp,*) ' Check your data !!'
-        STOP
+        STOP 'ERROR in Init_ZmatTransfo_Tnum: while reading the 2d zmatrix line.'
       END IF
       ZZ = -1
       at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-      IF (print_loc) write(out_unitp,*) i,ZZ,at
+      IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) i,ZZ,at,n1
 
-      this%ind2_zmat(:,i) = [i,0,0,0,0]
+      iz = iz+1
+      this%type_Qin(iz) = 2
+      this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_d' // TO_string(i)
+
+      this%ind2_zmat(:,i) = [i,n1,0,0,0]
+
+     IF (n1 == 0 ) THEN
+        write(out_unitp,*) 'ERROR in ',name_sub
+        write(out_unitp,*) 'The second atom can NOT be in cartesian'
+        STOP 'ERROR in Init_ZmatTransfo_Tnum: second atom can NOT be in cartesian.'
+      END IF
 
       IF (at > ZERO) THEN
-         this%nat_act              = this%nat_act + 1
-         this%symbol(this%nat_act) = name_at
-         this%Z(this%nat_act)      = ZZ
-         icf                       = func_ic(this%nat_act)
+        this%nat_act               = this%nat_act + 1
+        this%symbol(this%nat_act)  = name_at
+        this%Z(this%nat_act)       = ZZ
+        icf                        = func_ic(this%nat_act)
       ELSE
-         nat_dum              = nat_dum - 1
-         this%symbol(nat_dum) = name_at
-         this%Z(nat_dum)      = ZZ
-         icf                  = func_ic(nat_dum)
+        nat_dum              = nat_dum - 1
+        this%symbol(nat_dum) = name_at
+        this%Z(nat_dum)      = ZZ
+        icf                  = func_ic(nat_dum)
       END IF
+      ic1 = this%ind_zmat(1,n1)
       this%masses(icf+0:icf+2) = at
-      this%ind_zmat(:,i)       = [icf,0,0,0,0]
+      this%ind_zmat(:,i)       = [icf,ic1,0,0,0]
       this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
       this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
       this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
 
-      IF (this%nat0 >= 2) THEN
 
-        i   = 2
-        IF (print_loc) write(out_unitp,*) "==================",i
-        read(in_unitp,*,IOSTAT=err_io) name_at,n1
+      IF (this%nat0 >= 3) THEN
+
+        i   = 3
+        IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) "==================",i
+        read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2
         IF (err_io /= 0) THEN
           write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the second line ',    &
-                                     'of the "Zmat" transformation.'
+          write(out_unitp,*) '  while reading the third line ',   &
+                                   'of the "Zmat" transformation.'
           write(out_unitp,*) ' Check your data !!'
-          STOP
+          STOP 'ERROR in Init_ZmatTransfo_Tnum: while reading the 3d zmatrix line.'
         END IF
+
         ZZ = -1
         at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-        IF (print_loc) write(out_unitp,*) i,ZZ,at,n1
+        IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) i,ZZ,at,n1,n2
+
+        this%ind2_zmat(:,i) = [i,n1,n2,0,0]
+
+        IF (n1 == 0) THEN
+          write(out_unitp,*) 'ERROR in ',name_sub
+          write(out_unitp,*) 'The third atom can NOT be in cartesian'
+          STOP 'ERROR in Init_ZmatTransfo_Tnum: third atom can NOT be in cartesian.'
+        END IF
 
         iz = iz+1
         this%type_Qin(iz) = 2
-        CALL make_nameQ(this%name_Qin(iz),"Qzmat_d",iz,it)
-
-        this%ind2_zmat(:,i) = [i,n1,0,0,0]
-
-       IF (n1 == 0 ) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'The second atom can NOT be in cartesian'
-          STOP
-        END IF
+        this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_d' // TO_string(i)
 
         IF (at > ZERO) THEN
-          this%nat_act               = this%nat_act + 1
-          this%symbol(this%nat_act)  = name_at
-          this%Z(this%nat_act)       = ZZ
-          icf                        = func_ic(this%nat_act)
+          this%nat_act              = this%nat_act + 1
+          this%symbol(this%nat_act) = name_at
+          this%Z(this%nat_act)      = ZZ
+          icf                       = func_ic(this%nat_act)
         ELSE
           nat_dum              = nat_dum - 1
           this%symbol(nat_dum) = name_at
@@ -369,188 +486,138 @@ CONTAINS
           icf                  = func_ic(nat_dum)
         END IF
         ic1 = this%ind_zmat(1,n1)
+        iz  = iz+1
+        IF (n2 == 0) THEN
+          ic2 = 0
+          IF (this%cos_th) THEN
+            this%type_Qin(iz) = -3 ! cos(angle)
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_Costh' // TO_string(i)
+
+            IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
+          ELSE
+            this%type_Qin(iz) = 3  ! angle
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_th' // TO_string(i)
+            IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,n1,'polyspherical with th'
+          END IF
+        ELSE IF (n2 > 0) THEN
+          ic2 = this%ind_zmat(1,n2)
+          this%type_Qin(iz) = 3 ! valence angle
+          this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_th' // TO_string(i)
+        ELSE
+          ic2 = this%ind_zmat(1,-n2)
+          this%type_Qin(iz) = -3 ! cos(angle)
+          this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_Costh' // TO_string(i)
+        END IF
         this%masses(icf+0:icf+2) = at
-        this%ind_zmat(:,i)       = [icf,ic1,0,0,0]
+        this%ind_zmat(:,i)       = [icf,ic1,ic2,0,0]
         this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
         this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
         this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
   
 
-        IF (this%nat0 >= 3) THEN
+        DO i=4,this%nat0
 
-          i   = 3
-          IF (print_loc) write(out_unitp,*) "==================",i
-          read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2
+          IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) "==================",i
+          read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2,n3
           IF (err_io /= 0) THEN
             write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the third line ',   &
-                                     'of the "Zmat" transformation.'
+            write(out_unitp,'(a,i0,a)') '  while reading the ',i, &
+                           'th line of the "Zmat" transformation.'
             write(out_unitp,*) ' Check your data !!'
-            STOP
+            STOP 'ERROR in Init_ZmatTransfo_Tnum: while reading a zmatrix line.'
           END IF
-
           ZZ = -1
           at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-          IF (print_loc) write(out_unitp,*) i,ZZ,at,n1,n2
+          IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) i,ZZ,at,n1,n2,n3
 
-          this%ind2_zmat(:,i) = [i,n1,n2,0,0]
+          this%ind2_zmat(:,i) = [i,n1,n2,n3,0]
 
           IF (n1 == 0) THEN
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) 'The third atom can NOT be in cartesian'
-            STOP
-          END IF
-
-          iz = iz+1
-          this%type_Qin(iz) = 2
-          CALL make_nameQ(this%name_Qin(iz),"Qzmat_d",iz,it)
-
-          IF (at > ZERO) THEN
-            this%nat_act              = this%nat_act + 1
-            this%symbol(this%nat_act) = name_at
-            this%Z(this%nat_act)      = ZZ
-            icf                       = func_ic(this%nat_act)
-          ELSE
-            nat_dum              = nat_dum - 1
-            this%symbol(nat_dum) = name_at
-            this%Z(nat_dum)      = ZZ
-            icf                  = func_ic(nat_dum)
-          END IF
-          ic1 = this%ind_zmat(1,n1)
-          iz  = iz+1
-          IF (n2 == 0) THEN
-            ic2 = 0
-            IF (this%cos_th) THEN
-              this%type_Qin(iz) = -3 ! cos(angle)
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_Costh",iz,it)
-              IF (print_loc) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
+            ! Atom in Cartesian coordinates
+            IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,'cart'
+            IF (at > ZERO) THEN
+             this%nat_act              = this%nat_act + 1
+             this%symbol(this%nat_act) = name_at
+             this%Z(this%nat_act)      = ZZ
+             icf                       = func_ic(this%nat_act)
             ELSE
-              this%type_Qin(iz) = 3  ! angle
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_th",iz,it)
-              IF (print_loc) write(out_unitp,*) at,n1,'polyspherical with th'
+             nat_dum              = nat_dum - 1
+             this%symbol(nat_dum) = name_at
+             this%Z(nat_dum)      = ZZ
+             icf                  = func_ic(nat_dum)
             END IF
-          ELSE IF (n2 > 0) THEN
-            ic2 = this%ind_zmat(1,n2)
-            this%type_Qin(iz) = 3 ! valence angle
-            CALL make_nameQ(this%name_Qin(iz),"Qzmat_th",iz,it)
+            ic1 = 0
+            ic2 = 0
+            ic3 = 0
+            iz = iz+1
+            this%type_Qin(iz) = 1  ! cartesian
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_x' // TO_string(i)
+
+            iz = iz+1
+            this%type_Qin(iz) = 1 ! cartesian
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_y' // TO_string(i)
+
+            iz = iz+1
+            this%type_Qin(iz) = 1 ! cartesian
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_z' // TO_string(i)
+
           ELSE
-            ic2 = this%ind_zmat(1,-n2)
-            this%type_Qin(iz) = -3 ! cos(angle)
-            CALL make_nameQ(this%name_Qin(iz),"Qzmat_Costh",iz,it)
-          END IF
+            ! atom in internal coordinates
+            IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,n1,n2,n3
+            IF (at > ZERO) THEN
+              this%nat_act              = this%nat_act + 1
+              this%symbol(this%nat_act) = name_at
+              this%Z(this%nat_act)      = ZZ
+              icf                       = func_ic(this%nat_act)
+            ELSE
+              nat_dum              = nat_dum - 1
+              this%symbol(nat_dum) = name_at
+              this%Z(nat_dum)      = ZZ
+              icf                  = func_ic(nat_dum)
+            END IF
+
+            iz = iz+1
+            this%type_Qin(iz) = 2 ! distance
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_d' // TO_string(i)
+
+            ic1 = this%ind_zmat(1,n1)
+            iz = iz+1
+            IF (n2 == 0) THEN
+              ic2 = 0
+              ic3 = 0
+              IF (this%cos_th) THEN
+                this%type_Qin(iz) = -3 ! cos(angle)
+                this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_Costh' // TO_string(i)
+                IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
+              ELSE
+                this%type_Qin(iz) = 3 ! angle
+                this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_th' // TO_string(i)
+                IF (debug .OR. TnumPrint_level > 1) write(out_unitp,*) at,n1,'polyspherical with th'
+              END IF
+            ELSE IF (n2 > 0) THEN
+              ic2 = this%ind_zmat(1,n2)
+              ic3 = this%ind_zmat(1,n3)
+              this%type_Qin(iz) = 3 ! valence angle
+              this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_th' // TO_string(i)
+            ELSE
+              ic2 = this%ind_zmat(1,-n2)
+              ic3 = this%ind_zmat(1,n3)
+              this%type_Qin(iz) = -3 ! cos(angle)
+              this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_Costh' // TO_string(i)
+            END IF
+
+            iz = iz+1
+            this%type_Qin(iz) = 4 ! diedral angle
+            this%name_Qin(iz) = 'Qzmat' // TO_string(iz) // '_phi' // TO_string(i)
+          ENDIF
           this%masses(icf+0:icf+2) = at
-          this%ind_zmat(:,i)       = [icf,ic1,ic2,0,0]
+          this%ind_zmat(:,i)       = [icf,ic1,ic2,ic3,0]
           this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
           this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
           this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
     
-
-          DO i=4,this%nat0
-
-            IF (print_loc) write(out_unitp,*) "==================",i
-            read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2,n3
-            IF (err_io /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,'(a,i0,a)') '  while reading the ',i, &
-                             'th line of the "Zmat" transformation.'
-              write(out_unitp,*) ' Check your data !!'
-              STOP
-            END IF
-            ZZ = -1
-            at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-            IF (print_loc) write(out_unitp,*) i,ZZ,at,n1,n2,n3
-
-            this%ind2_zmat(:,i) = [i,n1,n2,n3,0]
-
-            IF (n1 == 0) THEN
-              ! l'atome est defini en coordonnees cartesiennes
-              IF (print_loc) write(out_unitp,*) at,'cart'
-              IF (at > ZERO) THEN
-               this%nat_act              = this%nat_act + 1
-               this%symbol(this%nat_act) = name_at
-               this%Z(this%nat_act)      = ZZ
-               icf                       = func_ic(this%nat_act)
-              ELSE
-               nat_dum              = nat_dum - 1
-               this%symbol(nat_dum) = name_at
-               this%Z(nat_dum)      = ZZ
-               icf                  = func_ic(nat_dum)
-              END IF
-              ic1 = 0
-              ic2 = 0
-              ic3 = 0
-              iz = iz+1
-              this%type_Qin(iz) = 1  ! cartesian
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_x",iz,it)
-              iz = iz+1
-              this%type_Qin(iz) = 1 ! cartesian
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_y",iz,it)
-              iz = iz+1
-              this%type_Qin(iz) = 1 ! cartesian
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_z",iz,it)
-
-            ELSE
-              ! at en coord internes
-              IF (print_loc) write(out_unitp,*) at,n1,n2,n3
-              IF (at > ZERO) THEN
-                this%nat_act              = this%nat_act + 1
-                this%symbol(this%nat_act) = name_at
-                this%Z(this%nat_act)      = ZZ
-                icf                       = func_ic(this%nat_act)
-              ELSE
-                nat_dum              = nat_dum - 1
-                this%symbol(nat_dum) = name_at
-                this%Z(nat_dum)      = ZZ
-                icf                  = func_ic(nat_dum)
-              END IF
-
-              iz = iz+1
-              this%type_Qin(iz) = 2 ! distance
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_d",iz,it)
-
-              ic1 = this%ind_zmat(1,n1)
-              iz = iz+1
-              IF (n2 == 0) THEN
-                ic2 = 0
-                ic3 = 0
-                IF (this%cos_th) THEN
-                  this%type_Qin(iz) = -3 ! cos(angle)
-                  CALL make_nameQ(this%name_Qin(iz),"Qzmat_Costh",iz,it)
-                  IF (print_loc) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
-                ELSE
-                  this%type_Qin(iz) = 3 ! angle
-                  CALL make_nameQ(this%name_Qin(iz),"Qzmat_th",iz,it)
-                  IF (print_loc) write(out_unitp,*) at,n1,'polyspherical with th'
-                END IF
-              ELSE IF (n2 > 0) THEN
-                ic2 = this%ind_zmat(1,n2)
-                ic3 = this%ind_zmat(1,n3)
-                this%type_Qin(iz) = 3 ! valence angle
-                CALL make_nameQ(this%name_Qin(iz),"Qzmat_th",iz,it)
-              ELSE
-                ic2 = this%ind_zmat(1,-n2)
-                ic3 = this%ind_zmat(1,n3)
-                this%type_Qin(iz) = -3 ! cos(angle)
-                CALL make_nameQ(this%name_Qin(iz),"Qzmat_Costh",iz,it)
-              END IF
-
-              iz = iz+1
-              this%type_Qin(iz) = 4 ! diedral angle
-              CALL make_nameQ(this%name_Qin(iz),"Qzmat_phi",iz,it)
-            ENDIF
-            this%masses(icf+0:icf+2) = at
-            this%ind_zmat(:,i)       = [icf,ic1,ic2,ic3,0]
-            this%name_Qout(icf+0)    = "X" // TO_string(i) // "_" // trim(adjustl(name_at))
-            this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(name_at))
-            this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(name_at))
-      
-          END DO
-        END IF
+        END DO
       END IF
-    ELSE
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' There is no atoms !!'
-      STOP
     END IF
 
     ! ncart_act number of active cartesian coordinates (without dummy atom and G)
@@ -567,8 +634,12 @@ CONTAINS
     this%name_Qout(icf+1)    = "Y" // TO_string(i) // "_" // trim(adjustl(this%symbol(nat_dum)))
     this%name_Qout(icf+2)    = "Z" // TO_string(i) // "_" // trim(adjustl(this%symbol(nat_dum)))
 
-    IF (debug) CALL Write_ZmatTransfo_Tnum(this)
-    IF (print_loc) write(out_unitp,*) 'END ',name_sub
+    IF (debug .OR. TnumPrint_level >= 0) CALL WriteNice_ZmatTransfo_Tnum(this)
+
+    IF (debug) THEN
+      CALL Write_ZmatTransfo_Tnum(this)
+      write(out_unitp,*) 'END ',name_sub
+    END IF
     flush(out_unitp)
 
   END FUNCTION Init_ZmatTransfo_Tnum
@@ -686,28 +757,29 @@ CONTAINS
     DO i=1,this%nat
       CALL alloc_dnVec(dnAt(i),3,nb_act,nderiv) ! atom associated to nf
     END DO
-      !=================================================
-      ! first atom
-      !=================================================
-      i    = 1
-      icf  = this%ind_zmat(1,i)
-      iAtf = (icf+2)/3
 
-      IF (this%New_Orient) THEN
-        dnAt(iAtf) = this%vAt1(:)
-      ELSE
-        dnAt(iAtf) = [ZERO,ZERO,ZERO]
-      END IF
-      CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
+    !=================================================
+    ! first atom
+    !=================================================
+    i    = 1
+    icf  = this%ind_zmat(1,i)
+    iAtf = (icf+2)/3
 
-      !-----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) '-------------------------------------------------'
-        write(out_unitp,*) 'atom :',iAtf
-        CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
-      END IF
-      !-----------------------------------------------------------------
+    IF (this%New_Orient) THEN
+      dnAt(iAtf) = this%vAt1(:)
+    ELSE
+      dnAt(iAtf) = [ZERO,ZERO,ZERO]
+    END IF
+    CALL dnVec2_TO_subvector_dnVec1(Qout,dnAt(iAtf),icf,icf+2)
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unitp,*)
+      write(out_unitp,*) '-------------------------------------------------'
+      write(out_unitp,*) 'atom :',iAtf
+      CALL write_dnx(1,3,dnAt(iAtf),nderiv_debug)
+    END IF
+    !-----------------------------------------------------------------
 
 
       !-IF check=t => check distances ----------------------------------

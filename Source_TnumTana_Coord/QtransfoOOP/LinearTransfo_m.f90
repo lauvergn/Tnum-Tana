@@ -46,14 +46,24 @@ MODULE LinearTransfo_m
     logical :: inv                 = .FALSE.
     logical :: transp              = .FALSE.
     logical :: check_LinearTransfo = .TRUE.
+  CONTAINS
+    PROCEDURE :: get_TransfoType  => get_TransfoType_LinearTransfo_Tnum
   END TYPE LinearTransfo_t
 
   INTERFACE Init_LinearTransfo
-    MODULE PROCEDURE Tnum_Init_LinearTransfo
+    MODULE PROCEDURE Init_LinearTransfo_Tnum
   END INTERFACE
 
   CONTAINS
-  FUNCTION Tnum_Init_LinearTransfo(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
+  FUNCTION get_TransfoType_LinearTransfo_Tnum(this) RESULT(TransfoType)
+
+    character (len=:),        allocatable :: TransfoType
+    CLASS (LinearTransfo_t), intent(in) :: this
+
+    TransfoType = 'LinearTransfo_t'
+
+  END FUNCTION get_TransfoType_LinearTransfo_Tnum
+  FUNCTION Init_LinearTransfo_Tnum(nb_Qin,nb_Qout,inTOout,skip_transfo) RESULT(this)
     IMPLICIT NONE
 
     TYPE (LinearTransfo_t)                :: this  
@@ -61,7 +71,7 @@ MODULE LinearTransfo_m
     integer,                intent(in)    :: nb_Qout
     logical,                intent(in)    :: inTOout,skip_transfo
 
-    character (len=*), parameter :: name_sub = "Tnum_Init_LinearTransfo"
+    character (len=*), parameter :: name_sub = "Init_LinearTransfo_Tnum"
 
     this%nb_Qin       = nb_Qout
     this%nb_Qout      = nb_Qout
@@ -70,5 +80,5 @@ MODULE LinearTransfo_m
     this%name_transfo = 'Linear'
 
     nb_Qin            = this%nb_Qin
-  END FUNCTION Tnum_Init_LinearTransfo
+  END FUNCTION Init_LinearTransfo_Tnum
 END MODULE LinearTransfo_m

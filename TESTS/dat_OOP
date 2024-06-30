@@ -36,33 +36,20 @@ u   -0.5
 
 
 
+ &minimum  read_itQ0transfo=2 unit='angs' /
+ROH1 1. angs
+u2   -0.5
+ROH2 2.1 bohr
+
+&minimum  read_itQ0transfo=1 unit='angs' /
+ROH1 1. angs
+ROH2 2.1 bohr
+u2   -0.5
+
  &minimum  read_itQ0transfo=0 unit='angs' /
  H   0. 0. 1.1
  H   1. 0. 0.2
  X   0. 0. 0.
-
-
-
-&minimum  read_itQ0transfo=1 unit='angs' /
-ROH 1. angs
-ROH 2.1 bohr
-u   -0.5
-
- &minimum  read_itQ0transfo=2 unit='angs' /
-ROH 1. angs
-u   -0.5
-ROH 2.1 bohr
-
-
-
-
-
-
-
-
- 
-
-
 
 
 
