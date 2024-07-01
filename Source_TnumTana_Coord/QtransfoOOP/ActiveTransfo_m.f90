@@ -239,7 +239,8 @@ CONTAINS
     IF(debug .OR. TnumPrint_level > 1)  &
       write(out_unitp,*) 'this%QMLib,flex',this%QMLib,flex
 
-      this%list_QMLMapping(:) = 0
+    allocate(this%list_QMLMapping(this%nb_Qout))
+    this%list_QMLMapping(:) = 0
     IF (this%QMLib .AND. flex) THEN
       read(in_unitp,*,IOSTAT=err_io) this%list_QMLMapping(:)
       IF (err_io /= 0) THEN

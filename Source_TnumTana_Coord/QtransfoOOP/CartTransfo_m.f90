@@ -55,6 +55,8 @@ MODULE CartTransfo_m
   real (kind=Rkind)               :: Mtot_inv = ZERO
 
   CONTAINS
+    !PROCEDURE, PRIVATE, PASS(CartTransfo1) :: CartTransfo2_TO_CartTransfo1
+    !GENERIC,   PUBLIC  :: assignment(=) => CartTransfo2_TO_CartTransfo1
     PROCEDURE :: Write           => Write_CartTransfo_Tnum
     PROCEDURE :: get_TransfoType => get_TransfoType_CartTransfo_Tnum
     PROCEDURE :: dealloc         => dealloc_CartTransfo_Tnum
@@ -67,6 +69,27 @@ MODULE CartTransfo_m
   END INTERFACE
   
 CONTAINS
+
+  !================================================================
+  !       Copy two CartTransfo_t variables
+  !================================================================
+  SUBROUTINE CartTransfo2_TO_CartTransfo1(CartTransfo1,CartTransfo2)
+    IMPLICIT NONE
+    CLASS (CartTransfo_t), intent(inout) :: CartTransfo1
+    TYPE (CartTransfo_t),  intent(in)    :: CartTransfo2
+
+    CartTransfo1%ncart     = CartTransfo2%ncart
+    CartTransfo1%ncart_act = CartTransfo2%ncart_act
+    CartTransfo1%nat0      = CartTransfo2%nat0
+    CartTransfo1%nat       = CartTransfo2%nat
+    CartTransfo1%nat_act   = CartTransfo2%nat_act
+    CartTransfo1%Mtot      = CartTransfo2%Mtot
+    CartTransfo1%Mtot_inv  = CartTransfo2%Mtot_inv
+
+    IF (allocated(CartTransfo2%masses)) CartTransfo1%masses  = CartTransfo2%masses
+    IF (allocated(CartTransfo2%d0sm))   CartTransfo1%d0sm    = CartTransfo2%d0sm
+
+  END SUBROUTINE CartTransfo2_TO_CartTransfo1
   SUBROUTINE Write_CartTransfo_Tnum(this)
     USE mod_MPI
     IMPLICIT NONE
@@ -137,14 +160,17 @@ CONTAINS
       flush(out_unitp)
     END IF
 
-    this%name_transfo    = 'CartTransfo'
+    this%name_transfo    = 'Cart'
     this%inTOout         = .TRUE.
     this%Primitive_Coord = .FALSE.
 
-    write(out_unitp,*) '======= Qt_old ==========='
-    CALL Qt_old%Write()
-    write(out_unitp,*) '=========================='
-    flush(out_unitp)
+    IF (debug) THEN
+      write(out_unitp,*) '======= Qt_old ==========='
+      CALL Qt_old%Write()
+      write(out_unitp,*) '=========================='
+      flush(out_unitp)
+    END IF
+
 
     SELECT TYPE (Qt_old)
     TYPE IS (ZmatTransfo_t)
@@ -169,13 +195,14 @@ CONTAINS
     END SELECT
  
     this%d0sm     = sqrt(this%masses)
-    this%Mtot     = sum(this%masses)
+    this%Mtot     = sum(this%masses(1::3))
     this%Mtot_inv = ONE/this%Mtot
 
-
+    this%nb_Qin    = Qt_old%nb_Qout
     this%type_Qin  = Qt_old%type_Qout
     this%name_Qin  = Qt_old%name_Qout
 
+    this%nb_Qout   = Qt_old%nb_Qout
     this%type_Qout = Qt_old%type_Qout
     this%name_Qout = Qt_old%name_Qout ! for the allocate
 
@@ -243,9 +270,9 @@ CONTAINS
     integer :: i,n_size
 
     !-----------------------------------------------------------------
-    integer :: nderiv_debug = 0
-    logical, parameter :: debug = .FALSE.
-    !logical, parameter :: debug = .TRUE.
+    integer :: nderiv_debug = 1
+    !logical, parameter :: debug = .FALSE.
+    logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub='QinTOQout_CartTransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
@@ -254,35 +281,29 @@ CONTAINS
       write(out_unitp,*) 'nderiv',get_nderiv(Qin)
       write(out_unitp,*)
       CALL this%Write()
-      write(out_unitp,*) 'Final Cartesian coordinates NOT recentered for the COM:'
+      write(out_unitp,*) 'Cartesian coordinates NOT recentered for the COM:'
       CALL write_dnx(1,this%nb_Qin,Qin,nderiv_debug)
       flush(out_unitp)
     END IF
     !-----------------------------------------------------------------
 
-
-    !dnS_Qin = Qin
-    n_size = get_size(Qin)
-    allocate(dnS_Qin(n_size))
-    DO i=1,n_size
-      CALL dnVec_TO_dnS(Qin, dnS_Qin(i), i=i)
-    END DO
-
+    dnS_Qin = Qin
+   
     dnG(1) = dot_product(this%masses(1::3),dnS_Qin(1::3)) * this%Mtot_inv
     dnG(2) = dot_product(this%masses(2::3),dnS_Qin(2::3)) * this%Mtot_inv
     dnG(3) = dot_product(this%masses(3::3),dnS_Qin(3::3)) * this%Mtot_inv
+
+    IF (debug) write(out_unitp,*) 'COM:',get_d0(dnG)
 
     dnS_Qin(1::3) = dnS_Qin(1::3) - dnG(1)
     dnS_Qin(2::3) = dnS_Qin(2::3) - dnG(2)
     dnS_Qin(3::3) = dnS_Qin(3::3) - dnG(3)
 
-    !Qout = dnS_Qin
-    DO i=1,n_size
-      CALL dnS_TO_dnVec(dnS_Qin(i), Qout, i=i)
-    END DO
+    Qout = dnS_Qin
+   
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'Final Cartesian coordinates recentered for the COM:'
+      write(out_unitp,*) 'Cartesian coordinates recentered for the COM:'
       CALL write_dnx(1,this%nb_Qout,Qout,nderiv_debug)
       write(out_unitp,*) 'END ',name_sub
       write(out_unitp,*)
@@ -318,7 +339,7 @@ CONTAINS
     END IF
     !-----------------------------------------------------------------
 
-    ! we cannot find the Qin, because we don't have the Euler angles and the position of the COM
+    ! we cannot find the true Qin, because we don't have the Euler angles and the position of the COM
     Qin = Qout
 
     !-----------------------------------------------------------------

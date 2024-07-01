@@ -991,7 +991,7 @@ CONTAINS
               i_q = i_q + 1
               CALL dnVec_TO_dnS(Qin,dnQdih,i_q)
 
-              dnAt(iAtf) = [dnd*dnSval*cos(dnQdih), dnd*dnSval*sin(dnQdih), dnd*dnCval]
+              dnAt(iAtf) = dnAt(i1) + [dnd*dnSval*cos(dnQdih), dnd*dnSval*sin(dnQdih), dnd*dnCval]
 
             ELSE                  ! true zmat
 
@@ -1073,7 +1073,7 @@ CONTAINS
       deallocate(dnat)
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Final Cartesian coordinates:'
+        write(out_unitp,*) 'Zmatrix Cartesian coordinates:'
         CALL write_dnx(1,this%nb_Qout,Qout,nderiv_debug)
         write(out_unitp,*) 'END ',name_sub
         write(out_unitp,*)

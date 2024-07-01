@@ -27,20 +27,20 @@ u   -0.5
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
 # for OOP
-  &Coord_transfo name_transfo='zmat' nat=4 /
+  &Coord_transfo name_transfo='zmat' nat=4 cos_th=t /
     O
     X 1
     H 1 -2
-    H 0 0 0
+    H 2  0 0
 
   &Coord_transfo name_transfo='active' /
-0 1 1   1 1 0
+1 1 1   1 1 1
 
 &minimum  read_itQ0transfo=1 unit='angs' /
 1.
 1.1
 0.5
-0.
-1.
-1.1
+0.9
+0.5
+90. °
 **

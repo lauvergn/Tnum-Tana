@@ -40,13 +40,13 @@ MODULE Qtransfo_m
   USE ActiveTransfo_m
   IMPLICIT NONE
 
-  PRIVATE :: Read_QTransfo_Tnum
+  PRIVATE :: Init_QTransfo_Tnum
   PRIVATE :: Write_Qtransfo_Tnum,dealloc_QTransfo_Tnum
   PRIVATE :: QinTOQout_QTransfo_Tnum,QoutTOQin_QTransfo_Tnum
   PRIVATE :: QactTOdnQact_QTransfo_Tnum
   PRIVATE :: Read_RefGeom_QTransfo_Tnum
 
-  PUBLIC :: Qtransfo_t,Init_Qtransfo,Read_Qtransfo,QactTOdnQact,Read_RefGeom
+  PUBLIC :: Qtransfo_t,Init_Qtransfo,QactTOdnQact,Read_RefGeom
 
   TYPE :: Qtransfo_t
     CLASS (QtransfoBase_t), allocatable :: Qtransfo
@@ -61,10 +61,7 @@ MODULE Qtransfo_m
     MODULE PROCEDURE Read_RefGeom_QTransfo_Tnum
   END INTERFACE
   INTERFACE Init_Qtransfo
-    MODULE PROCEDURE Read_QTransfo_Tnum
-  END INTERFACE
-  INTERFACE Read_Qtransfo
-    MODULE PROCEDURE Read_QTransfo_Tnum
+    MODULE PROCEDURE Init_QTransfo_Tnum
   END INTERFACE
   INTERFACE QactTOdnQact
     MODULE PROCEDURE QactTOdnQact_QTransfo_Tnum
@@ -135,19 +132,21 @@ CONTAINS
 
   END FUNCTION QactTOdnQact_QTransfo_Tnum
 
-  SUBROUTINE Read_QTransfo_Tnum(this,nb_extra_Coord,QMLib_in,mendeleev, &
-                                TnumPrint_level,QtBase_old)
+  SUBROUTINE Init_QTransfo_Tnum(this,nb_extra_Coord,QMLib_in,mendeleev, &
+                                TnumPrint_level,Read_nml,QtBase_old)
     USE mod_Constant,     only: table_atom
     USE QtransfoBase_m
     USE ActiveTransfo_m
+    USE ZmatTransfo_m
+    USE CartTransfo_m
     IMPLICIT NONE
 
 
-    TYPE(Qtransfo_t),                intent(inout) :: this
-    TYPE (QtransfoBase_t), optional, intent(in)    :: QtBase_old
-    integer,                         intent(in)    :: nb_extra_Coord,TnumPrint_level
-    logical,                         intent(in)    :: QMLib_in
-    TYPE (table_atom),               intent(in)    :: mendeleev
+    TYPE(Qtransfo_t),                 intent(inout) :: this
+    CLASS (QtransfoBase_t), optional, intent(in)    :: QtBase_old
+    integer,                          intent(in)    :: nb_extra_Coord,TnumPrint_level
+    logical,                          intent(in)    :: QMLib_in,Read_nml
+    TYPE (table_atom),                intent(in)    :: mendeleev
 
 
     character (len=Name_len) :: name_transfo
@@ -176,7 +175,7 @@ CONTAINS
 
     !----- for debuging --------------------------------------------------
     integer :: err_mem,memory,err_io
-    character (len=*), parameter :: name_sub = "Tnum_Read_Qtransfo"
+    character (len=*), parameter :: name_sub = "Init_QTransfo_Tnum"
     logical, parameter :: debug=.FALSE.
     !logical, parameter :: debug=.TRUE.
     !-----------------------------------------------------------
@@ -186,53 +185,60 @@ CONTAINS
     END IF
     !-----------------------------------------------------------
 
-    name_transfo        = "identity"
-    QMLib               = QMLib_in
-    opt_transfo         = 0
-    skip_transfo        = .FALSE.
-    inTOout             = .TRUE.
-    nat                 = 0
-    nb_vect             = 0
-    nb_G                = 0
-    nb_X                = 0
-    cos_th              = .TRUE.
-    purify_hess         = .FALSE.
-    eq_hess             = .FALSE.
-    k_Half              = .FALSE.
-    with_vectors        = .TRUE.
-    hessian_old         = .TRUE.
-    hessian_cart        = .TRUE.
-    hessian_onthefly    = .FALSE.
-    file_hessian        = 'xx_freq.fchk'
-    hessian_read        = .FALSE.
-    k_read              = .FALSE.
-    d0c_read            = .FALSE.
-    nb_read             = 0
-    nb_transfo          = 1
-    not_all             = .FALSE.
-    check_LinearTransfo = .TRUE.
+    IF (Read_nml) THEN
+      name_transfo        = "identity"
+      QMLib               = QMLib_in
+      opt_transfo         = 0
+      skip_transfo        = .FALSE.
+      inTOout             = .TRUE.
+      nat                 = 0
+      nb_vect             = 0
+      nb_G                = 0
+      nb_X                = 0
+      cos_th              = .TRUE.
+      purify_hess         = .FALSE.
+      eq_hess             = .FALSE.
+      k_Half              = .FALSE.
+      with_vectors        = .TRUE.
+      hessian_old         = .TRUE.
+      hessian_cart        = .TRUE.
+      hessian_onthefly    = .FALSE.
+      file_hessian        = 'xx_freq.fchk'
+      hessian_read        = .FALSE.
+      k_read              = .FALSE.
+      d0c_read            = .FALSE.
+      nb_read             = 0
+      nb_transfo          = 1
+      not_all             = .FALSE.
+      check_LinearTransfo = .TRUE.
 
-    err_io = 0
-    read(in_unitp,Coord_transfo,IOSTAT=err_io)
-    IF (err_io < 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-      write(out_unitp,*) ' end of file or end of record'
-      write(out_unitp,*) ' Probably, nb_transfo is to large in the namelist "variables"'
-      write(out_unitp,*) '   or you have forgotten a coordinate tranformation ...'
-      write(out_unitp,*) '   or you have forgotten the "Cartesian transfo"'
-      write(out_unitp,*) ' Check your data !!'
-      STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
+      err_io = 0
+      read(in_unitp,Coord_transfo,IOSTAT=err_io)
+      IF (err_io < 0) THEN
+        write(out_unitp,*) ' ERROR in ',name_sub
+        write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
+        write(out_unitp,*) ' end of file or end of record'
+        write(out_unitp,*) ' Probably, nb_transfo is to large in the namelist "variables"'
+        write(out_unitp,*) '   or you have forgotten a coordinate tranformation ...'
+        write(out_unitp,*) '   or you have forgotten the "Cartesian transfo"'
+        write(out_unitp,*) ' Check your data !!'
+        STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
+      END IF
+      IF (err_io > 0) THEN
+        write(out_unitp,Coord_transfo)
+        write(out_unitp,*) ' ERROR in ',name_sub
+        write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
+        write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
+        write(out_unitp,*) ' Check your data !!'
+        STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
+      END IF
+      IF (debug .OR. TnumPrint_level > 1) write(out_unitp,Coord_transfo)
+    ELSE
+      name_transfo = 'Cart'
+      opt_transfo  = 0
+      skip_transfo = .FALSE.
+      inTOout      = .TRUE.
     END IF
-    IF (err_io > 0) THEN
-      write(out_unitp,Coord_transfo)
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-      write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-      write(out_unitp,*) ' Check your data !!'
-      STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
-    END IF
-    IF (debug .OR. TnumPrint_level > 1) write(out_unitp,Coord_transfo)
 
     name_transfo = TO_lowercase(trim(adjustl(name_transfo)))
 
@@ -286,6 +292,9 @@ CONTAINS
       allocate(ZmatTransfo_t :: this%Qtransfo)
       this%Qtransfo = Init_ZmatTransfo(nat,cos_th,nb_extra_Coord,mendeleev,TnumPrint_level)
 
+    CASE ('cart') ! it is a special transformation
+      allocate(CartTransfo_t :: this%Qtransfo)
+      this%Qtransfo = Init_CartTransfo(QtBase_old,TnumPrint_level)
     CASE DEFAULT ! ERROR: wrong transformation !
       write(out_unitp,*) ' ERROR in ',name_sub
       write(out_unitp,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
@@ -305,7 +314,7 @@ CONTAINS
       write(out_unitp,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
-  END SUBROUTINE Read_QTransfo_Tnum
+  END SUBROUTINE Init_QTransfo_Tnum
   SUBROUTINE dealloc_QTransfo_Tnum(this)
     IMPLICIT NONE
 

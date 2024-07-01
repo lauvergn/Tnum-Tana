@@ -517,9 +517,11 @@ SUBROUTINE OOP_Qtransfo()
   TYPE(Qtransfo_t),  allocatable :: CartQtransfo(:)
 
   TYPE(dnVec_t)                  :: Qin,Qout
-  real(kind=Rkind),  allocatable :: Qact(:),Qdyn(:)
+  real(kind=Rkind),  allocatable :: Qact(:),Qdyn(:),QactF(:)
   real(kind=Rkind),  allocatable :: Q0(:)
   integer :: Q0_itQtransfo
+  logical, parameter :: CartTransfo = .FALSE.
+  !logical, parameter :: CartTransfo = .TRUE.
 
   CALL set_print_level(0,force=.TRUE.)
   write(out_unitp,*) '==================================================='
@@ -544,12 +546,12 @@ SUBROUTINE OOP_Qtransfo()
 
   !--- first: read the first Qtransfo outside the loop
   it = 1
-  CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE., &
+  CALL Init_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,Read_nml=.TRUE., &
                      mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level)
 
   DO it=2,size(Qtransfo) ! here the loop go from the "out" to "in" direction
 
-    CALL Read_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,                 &
+    CALL Init_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,Read_nml=.TRUE., &
                        mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level, &
                        QtBase_old=Qtransfo(it-1)%Qtransfo)
 
@@ -557,12 +559,15 @@ SUBROUTINE OOP_Qtransfo()
   END DO
 
   ! special transfo: CartTransfo
-  !allocate(CartQtransfo(1))
-  !allocate(CartTransfo_t :: CartQtransfo(1)%Qtransfo)
-  !CartQtransfo(1)%Qtransfo = Init_CartTransfo(Qtransfo(1)%Qtransfo,TnumPrint_level)
-  !CALL CartQtransfo(1)%Write() ; stop
+  IF (CartTransfo) THEN
+    allocate(CartQtransfo(1))
+    CALL Init_Qtransfo(CartQtransfo(1),nb_extra_Coord=0,QMLib_in=.FALSE.,Read_nml=.FALSE., &
+                       mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level, &
+                       QtBase_old=Qtransfo(1)%Qtransfo)
 
-  !IF (TnumPrint_level > 1) CALL CartQtransfo(1)%Write()
+    IF (TnumPrint_level > 1) CALL CartQtransfo(1)%Write()
+  END IF
+  
 
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
@@ -573,7 +578,7 @@ SUBROUTINE OOP_Qtransfo()
   Qact = Qtransfo(nb_transfo)%Qtransfo%get_Qact0()
   write(out_unitp,*) 'Qact',Qact
 
-  Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=3)
+  Qin = QactTOdnQact(Qtransfo(nb_transfo)%Qtransfo,Qact,nderiv=1)
 
   write(out_unitp,*) '-------------------------------------------'
   write(out_unitp,*) 'Qact',Qact
@@ -595,14 +600,19 @@ SUBROUTINE OOP_Qtransfo()
     write(out_unitp,*) '-------------------------------------------'
     flush(out_unitp)
   END DO
-  !write(out_unitp,*) '-------------------------------------------'
-  !write(out_unitp,*) '-------------------------------------------'
-  !write(out_unitp,*) 'CartTransfo: ',CartQtransfo(1)%Qtransfo%name_transfo
-  !write(out_unitp,*) '-------------------------------------------'
-  !flush(out_unitp)
-  !Qout = CartQtransfo(1)%Qtransfo%QinTOQout(Qin)
-  !write(out_unitp,*) '-------------------------------------------'
-  !flush(out_unitp)
+
+  IF (CartTransfo) THEN
+    write(out_unitp,*) '-------------------------------------------'
+    write(out_unitp,*) '-------------------------------------------'
+    write(out_unitp,*) 'CartTransfo: ',CartQtransfo(1)%Qtransfo%name_transfo
+    write(out_unitp,*) '-------------------------------------------'
+    flush(out_unitp)
+    Qout = CartQtransfo(1)%Qtransfo%QinTOQout(Qin)
+    !Qin  = Qout
+    !Qout = CartQtransfo(1)%Qtransfo%QinTOQout(Qin)
+    write(out_unitp,*) '-------------------------------------------'
+    flush(out_unitp)
+  END IF
 
   write(out_unitp,*) '==================================================='
   write(out_unitp,*) '==================================================='
@@ -618,8 +628,11 @@ SUBROUTINE OOP_Qtransfo()
     CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
     write(out_unitp,*) '-------------------------------------------'
   END DO
+  QactF = get_Flatten(Qin,i_der=0)
+
   write(out_unitp,*) '-------------------------------------------'
-  write(out_unitp,*) 'Qact',get_Flatten(Qin,i_der=0)
+  write(out_unitp,*) 'QactF',QactF
+  write(out_unitp,*) 'MaxDiff Qact-QactF',maxval(abs(Qact-QactF))
   write(out_unitp,*) '-------------------------------------------'
 
 END SUBROUTINE OOP_Qtransfo
