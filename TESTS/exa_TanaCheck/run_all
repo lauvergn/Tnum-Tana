@@ -30,9 +30,10 @@ fi
 
 
 echo " Tests with polysherical vector number: " $list  >> run_all.log
+cp run_all.log run_short.log
 
 for v in $list
 do
-  ./run_tests $v >> run_all.log
+  ./run_tests $v >> run_all.log 2>&1
+  tail -3 run_all.log >> run_short.log
 done
-
