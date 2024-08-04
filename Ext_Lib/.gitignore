@@ -3,4 +3,6 @@ QDUtil*
 FOR_EVRT*
 QuantumModelLib*
 ConstPhys*
+EVRT_dnSVM*
+nDindex*
 

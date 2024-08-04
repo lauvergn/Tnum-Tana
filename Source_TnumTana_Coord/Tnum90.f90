@@ -37,6 +37,7 @@
       use mod_system
       use mod_dnSVM
       use mod_Constant
+      USE TnumTana_system_m
       ! in the use mod_Coord_KEO, we have to use "only", because "calc_freq" is
       !   a subroutine in mod_Coord_KEO and also a variable in the namelist.
       use mod_Coord_KEO,  ONLY: CoordType,Tnum,Read_CoordType,              &
@@ -114,7 +115,7 @@
 
 !=======================================================================
 !=======================================================================
-      CALL versionEVRT(.TRUE.)
+      CALL TnumTana_version(.TRUE.)
       CALL set_print_level(2)
 
       CALL read_arg(Read_PhysConst)

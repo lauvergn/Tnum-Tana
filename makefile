@@ -55,9 +55,9 @@ endif
 OS :=$(shell uname)
 
 # about EVRT, path, versions ...:
-LOC_path:= $(shell pwd)
-TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(LOC_path)/version-EVR-T)
-TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(LOC_path)/version-EVR-T)
+LOC_path:=$(shell pwd)
+TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(LOC_path)/version-TT)
+TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(LOC_path)/version-TT)
 
 # Extension for the object directory and the library
 ifeq ($(FFC),mpifort)
@@ -84,7 +84,6 @@ CPPSHELL = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
            -D__EVRTPATH="'$(LOC_path)'" \
            -D__TNUM_VER="'$(TNUM_ver)'" \
            -D__TANA_VER="'$(TANA_ver)'"
-CPPSHELL_LAPACK  = -D__LAPACK="$(LLAPACK)"
 
 #===============================================================================
 #
@@ -97,6 +96,15 @@ endif
 QML_DIR    = $(ExtLibDIR)/QuantumModelLib
 QMLMOD_DIR = $(QML_DIR)/OBJ/obj$(extlib_obj)
 QMLLIBA    = $(QML_DIR)/libQMLib$(extlib_obj).a
+
+
+nDindex_DIR    = $(ExtLibDIR)/nDindex
+nDindexMOD_DIR = $(nDindex_DIR)/OBJ/obj$(extlib_obj)
+nDindexLIBA    = $(nDindex_DIR)/libnDindex$(extlib_obj).a
+
+EVRTdnSVM_DIR    = $(ExtLibDIR)/EVRT_dnSVM
+EVRTdnSVMMOD_DIR = $(EVRTdnSVM_DIR)/obj/obj$(extlib_obj)
+EVRTdnSVMLIBA    = $(EVRTdnSVM_DIR)/libEVRT_dnSVM$(extlib_obj).a
 
 AD_DIR    = $(ExtLibDIR)/AD_dnSVM
 ADMOD_DIR = $(AD_DIR)/OBJ/obj$(extlib_obj)
@@ -114,7 +122,9 @@ CONSTPHYS_DIR    = $(ExtLibDIR)/ConstPhys
 CONSTPHYSMOD_DIR = $(CONSTPHYS_DIR)/obj/obj$(extlibwi_obj)
 CONSTPHYSLIBA    = $(CONSTPHYS_DIR)/libPhysConst$(extlibwi_obj).a
 
-EXTLib     = $(CONSTPHYSLIBA) $(FOREVRTLIBA) $(QMLLIBA) $(ADLIBA) $(QDLIBA)
+EXTLib     = $(CONSTPHYSLIBA) $(FOREVRTLIBA) $(QDLIBA)  $(ADLIBA) $(EVRTdnSVMLIBA) $(nDindexLIBA) $(QMLLIBA)
+EXTMod     = -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(nDindexMOD_DIR) \
+             -I$(EVRTdnSVMMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
 #===============================================================================
 #
 #===============================================================================
@@ -149,7 +159,7 @@ ifeq ($(FFC),gfortran)
   FFLAGS +=-J$(MOD_DIR)
 
   # where to look the .mod files
-  FFLAGS += -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
+  FFLAGS += $(EXTMod)
 
   # some cpreprocessing
   FFLAGS += -cpp $(CPPSHELL)
@@ -164,11 +174,6 @@ ifeq ($(FFC),gfortran)
     else                   # Linux
       # linux libs
       FSLIB += -llapack -lblas
-      #
-      # linux libs with mkl and with openmp
-      #FLIB = -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread
-      # linux libs with mkl and without openmp
-      #FLIB = -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_sequential
     endif
     FLIB += $(FSLIB)
   endif
@@ -198,7 +203,6 @@ $(info ************************************************************************)
 $(info ************************************************************************)
 $(info ***************** TNUM_ver: $(TNUM_ver))
 $(info ***************** TANA_ver: $(TANA_ver))
-$(info ****************** EVR_ver: $(EVR_ver))
 $(info ************************************************************************)
 $(info ************************************************************************)
 
@@ -225,7 +229,7 @@ Coord_SRCFILES = \
   ActiveTransfo.f90 Qtransfo.f90
 
 #Minimize Only list: OK
-Tnum_SRCFILES = \
+Tnum_SRCFILES = TnumTana_system_m.f90 \
   sub_module_Tnum.f90 sub_module_paramQ.f90 \
   sub_dnDetGG_dnDetg.f90 sub_dnRho.f90 \
   calc_dng_dnGG.f90 sub_export_KEO.f90
@@ -264,7 +268,7 @@ SRCFILES= $(Coord_KEO_SRCFILES) $(PrimOperator_SRCFILES)
 
 OBJ0=${SRCFILES:.f90=.o}
 OBJ=$(addprefix $(OBJ_DIR)/, $(OBJ0))
-$(info ************ OBJ: $(OBJ))
+#$(info ************ OBJ: $(OBJ))
 #
 #===============================================
 #============= Several mains ===================
@@ -332,9 +336,9 @@ ut UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
 #===============================================
 #============= Library: lib_FOR_EVRT.a  ========
 #===============================================
-#OBJext= $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o
-OBJext=$(shell ls $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o)
-$(info ***********OBJext:               $(OBJext))
+OBJext=$(shell ls $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(nDindexMOD_DIR)/*o $(EVRTdnSVMMOD_DIR)/*.o \
+                  $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o)
+#$(info ***********OBJext:               $(OBJext))
 
 .PHONY: lib
 lib: $(LIBA) $(LIBAF)
@@ -343,11 +347,11 @@ $(LIBA): $(OBJ)
 	ar -cr $(LIBA) $(OBJ)
 	@echo "  done Library: "$(LIBA)
 $(LIBAF):
+	@#ls -la $(CONSTPHYSMOD_DIR)/*.o $(FOREVRTMOD_DIR)/*.o $(nDindexMOD_DIR)/*o $(EVRTdnSVMMOD_DIR)/*.o $(QMLMOD_DIR)/*.o $(ADMOD_DIR)/*.o $(QDMOD_DIR)/*.o
 	ar -cr $(LIBAF) $(OBJ) $(Coord_KEO_EXT_SRCFILES_OBJ) $(OBJext)
 	rm -f libTnumTanaFull.a
 	ln -s $(LIBAF) libTnumTanaFull.a
 	@echo "  done Library: "$(LIBAF)
-#
 #===============================================
 #============= compilation =====================
 #===============================================
@@ -417,7 +421,21 @@ $(FOREVRTLIBA):
 	@test -d $(FOREVRT_DIR) || (cd $(ExtLibDIR) ; ./get_FOR_EVRT.sh $(EXTLIB_TYPE))
 	@test -d $(FOREVRT_DIR) || (echo $(FOREVRT_DIR) "does not exist" ; exit 1)
 	cd $(FOREVRT_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR)
-	@echo "  done " $(FOREVRTLIBA) " in "$(BaseName)
+	@echo "  done " $(FOREVRTLIBA) " in " $(BaseName)
+#
+$(nDindexLIBA):
+	@test -d $(ExtLibDIR)   || (echo $(ExtLibDIR) "does not exist" ; exit 1)
+	@test -d $(nDindex_DIR) || (cd $(ExtLibDIR) ; ./get_nDindex.sh  $(EXTLIB_TYPE))
+	@test -d $(nDindex_DIR) || (echo $(nDindex_DIR) "does not exist" ; exit 1)
+	cd $(nDindex_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR)
+	@echo "  done " $(nDindex_DIR) " in "$(BaseName)
+#
+$(EVRTdnSVMLIBA):
+	@test -d $(ExtLibDIR)     || (echo $(ExtLibDIR) "does not exist" ; exit 1)
+	@test -d $(EVRTdnSVM_DIR) || (cd $(ExtLibDIR) ; ./get_EVRT_dnSVM.sh  $(EXTLIB_TYPE))
+	@test -d $(EVRTdnSVM_DIR) || (echo $(EVRTdnSVM_DIR) "does not exist" ; exit 1)
+	cd $(EVRTdnSVM_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR)
+	@echo "  done " $(EVRTdnSVM_DIR) " in "$(BaseName)
 #
 $(QMLLIBA):
 	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
@@ -457,7 +475,7 @@ $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasC
 #=================================================================================
 # ifort compillation v17 v18 with mkl
 #=================================================================================
-ifeq ($(FFC),ifort)
+ifeq ($(FFC),$(filter $(FFC),ifort ifx))
 
   # opt management
   ifeq ($(OOPT),1)
@@ -477,21 +495,26 @@ ifeq ($(FFC),ifort)
 
   # omp management
   ifeq ($(OOMP),1)
-    FFLAGS += -qopenmp
+    ifeq ($(FFC),ifort)
+      FFLAGS += -qopenmp -parallel
+    else # ifx
+      FFLAGS += -qopenmp
+    endif
   endif
 
   # some cpreprocessing
   FFLAGS += -cpp $(CPPSHELL)
 
   # where to look the .mod files
-  FFLAGS += -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
+  FFLAGS += $(EXTMod)
 
   FLIB    = $(EXTLib)
-  ifeq ($(LLAPACK),1)
-    #FLIB += -mkl -lpthread
-    FLIB += -qmkl -lpthread
-    #FLIB +=  ${MKLROOT}/lib/libmkl_blas95_ilp64.a ${MKLROOT}/lib/libmkl_lapack95_ilp64.a ${MKLROOT}/lib/libmkl_intel_ilp64.a \
-    #         ${MKLROOT}/lib/libmkl_intel_thread.a ${MKLROOT}/lib/libmkl_core.a -liomp5 -lpthread -lm -ldl
+  ifneq ($(LLAPACK),0)
+    ifeq ($(FFC),ifort)
+      FLIB += -mkl -lpthread
+    else # ifx
+      FLIB += -qmkl -lpthread
+    endif
   else
     FLIB += -lpthread
   endif
