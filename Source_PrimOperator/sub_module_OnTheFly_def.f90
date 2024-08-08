@@ -37,7 +37,7 @@
 !     Module for "one-the-fly" (OTF) calculation of PES (pot, gradrient, hessian)
 !================================================================
   MODULE mod_OTF_def
-  USE mod_system
+  USE TnumTana_system_m
    IMPLICIT NONE
 
    PRIVATE
@@ -77,7 +77,7 @@
 !     - for the files -----------------------------------------------
 
 
-!     write(out_unitp,*) 'init_OTF'
+!     write(out_unit,*) 'init_OTF'
 
       para_OTF%ab_initio_meth     = 'hf '
       para_OTF%ab_initio_basis    = ' sto-3g'
@@ -125,7 +125,7 @@
       para_OTF%file_pun%append    = .FALSE.
       para_OTF%file_pun%old       = .TRUE.
 
-!     write(out_unitp,*) 'END init_OTF'
+!     write(out_unit,*) 'END init_OTF'
 
       END SUBROUTINE init_OTF
 
@@ -133,39 +133,39 @@
 
       TYPE (param_OTF)    :: para_OTF
 
-      write(out_unitp,*) 'write_OTF'
+      write(out_unit,*) 'write_OTF'
 
-      write(out_unitp,*) 'para_OTF%charge',para_OTF%charge
-      write(out_unitp,*) 'para_OTF%multiplicity',para_OTF%multiplicity
+      write(out_unit,*) 'para_OTF%charge',para_OTF%charge
+      write(out_unit,*) 'para_OTF%multiplicity',para_OTF%multiplicity
 
-      write(out_unitp,*) 'para_OTF%ab_initio_meth',trim(adjustl(para_OTF%ab_initio_meth))
-      write(out_unitp,*) 'para_OTF%ab_initio_basis',trim(adjustl(para_OTF%ab_initio_basis))
-      write(out_unitp,*) 'para_OTF%ab_initio_prog',trim(adjustl(para_OTF%ab_initio_prog))
-      write(out_unitp,*) 'para_OTF%header',para_OTF%header
-      write(out_unitp,*) 'para_OTF%footer',para_OTF%footer
-      write(out_unitp,*) 'para_OTF%file_name ',trim(adjustl(para_OTF%file_name))
-      write(out_unitp,*) 'para_OTF%commande_unix',trim(adjustl(para_OTF%commande_unix))
+      write(out_unit,*) 'para_OTF%ab_initio_meth',trim(adjustl(para_OTF%ab_initio_meth))
+      write(out_unit,*) 'para_OTF%ab_initio_basis',trim(adjustl(para_OTF%ab_initio_basis))
+      write(out_unit,*) 'para_OTF%ab_initio_prog',trim(adjustl(para_OTF%ab_initio_prog))
+      write(out_unit,*) 'para_OTF%header',para_OTF%header
+      write(out_unit,*) 'para_OTF%footer',para_OTF%footer
+      write(out_unit,*) 'para_OTF%file_name ',trim(adjustl(para_OTF%file_name))
+      write(out_unit,*) 'para_OTF%commande_unix',trim(adjustl(para_OTF%commande_unix))
 
-      write(out_unitp,*) 'para_OTF%file_header'
+      write(out_unit,*) 'para_OTF%file_header'
       CALL file_Write(para_OTF%file_header)
 
-      write(out_unitp,*) 'para_OTF%file_footer'
+      write(out_unit,*) 'para_OTF%file_footer'
       CALL file_Write(para_OTF%file_footer)
 
-      write(out_unitp,*) 'para_OTF%file_data'
+      write(out_unit,*) 'para_OTF%file_data'
       CALL file_Write(para_OTF%file_data)
 
-      write(out_unitp,*) 'para_OTF%file_log'
+      write(out_unit,*) 'para_OTF%file_log'
       CALL file_Write(para_OTF%file_log)
 
-      write(out_unitp,*) 'para_OTF%file_FChk'
+      write(out_unit,*) 'para_OTF%file_FChk'
       CALL file_Write(para_OTF%file_FChk)
 
-      write(out_unitp,*) 'para_OTF%file_pun'
+      write(out_unit,*) 'para_OTF%file_pun'
       CALL file_Write(para_OTF%file_pun)
 
-      write(out_unitp,*) 'END write_OTF'
-      flush(out_unitp)
+      write(out_unit,*) 'END write_OTF'
+      flush(out_unit)
 
       END SUBROUTINE write_OTF
 

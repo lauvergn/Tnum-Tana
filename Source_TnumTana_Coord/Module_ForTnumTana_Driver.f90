@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE Module_ForTnumTana_Driver
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_Constant
   USE mod_Coord_KEO,             ONLY: CoordType,Tnum,Read_CoordType,           &
                                        read_RefGeom,sub_QactTOd0x,sub_d0xTOQact,&
@@ -60,8 +60,8 @@ SUBROUTINE Check_TnumInit(name_sub)
 
 
   IF (Init == 0) THEN
-    write(out_unitp,*) ' ERROR in ',name_sub
-    write(out_unitp,*) ' Tnum is not initialized!'
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Tnum is not initialized!'
     STOP 'ERROR:  Tnum is not initialized!'
   END IF
 END SUBROUTINE Check_TnumInit

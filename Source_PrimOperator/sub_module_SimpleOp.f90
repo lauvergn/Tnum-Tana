@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
   MODULE mod_SimpleOp
-   use mod_system
+   use TnumTana_system_m
    use mod_dnSVM, only: type_dns, alloc_array, alloc_dns, dealloc_array,   &
                         write_matofdns, sub_weightder_dns
    IMPLICIT NONE
@@ -140,11 +140,11 @@
     character (len=*), parameter :: name_sub='Init_TypeOp'
 
     IF (debug) THEN
-      write(out_unitp,*) ' BEGINNING: ',name_sub
-      write(out_unitp,*) ' nb_Qact: ',nb_Qact
-      write(out_unitp,*) ' type_Op: ',type_Op
-      IF (present(cplx)) write(out_unitp,*) ' cplx: ',cplx
-      IF (present(JRot)) write(out_unitp,*) ' JRot: ',JRot
+      write(out_unit,*) ' BEGINNING: ',name_sub
+      write(out_unit,*) ' nb_Qact: ',nb_Qact
+      write(out_unit,*) ' type_Op: ',type_Op
+      IF (present(cplx)) write(out_unit,*) ' cplx: ',cplx
+      IF (present(JRot)) write(out_unit,*) ' JRot: ',JRot
     END IF
 
     CALL dealloc_TypeOp(para_TypeOp)
@@ -190,16 +190,16 @@
 
       IF (Type_Op == 21 .OR. Type_Op == 22) THEN
         IF (.NOT. present(iQact)) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'Type_Op = 21 or 22 and iQact is not present'
-          write(out_unitp,*) 'Check the Fortran source code'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'Type_Op = 21 or 22 and iQact is not present'
+          write(out_unit,*) 'Check the Fortran source code'
           STOP 'ERROR in Init_TypeOp: Type_Op = 21 or 22 and iQact is not present'
         END IF
         IF (iQact < 0 .OR. iQact > nb_Qact) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) 'Type_Op = 21 or 22 and iQact is out of range: [0:',nb_Qact,']'
-          write(out_unitp,*) 'iQact',iQact
-          write(out_unitp,*) 'Check the Fortran source code'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) 'Type_Op = 21 or 22 and iQact is out of range: [0:',nb_Qact,']'
+          write(out_unit,*) 'iQact',iQact
+          write(out_unit,*) 'Check the Fortran source code'
           STOP 'ERROR in Init_TypeOp: Type_Op = 21 or 22 and iQact is out of range'
         END IF
         para_TypeOp%iQact = iQact
@@ -221,9 +221,9 @@
           nb_term_Vib = (nb_Qact + 1)*(nb_Qact + 2)/2
           nb_term_Rot = (nb_Qact+3 + 1)*(nb_Qact+3 + 2)/2 - nb_term_Vib
         ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Jrot CANNOT be negative:',para_TypeOp%JRot
-          write(out_unitp,*) ' Check the fortran!!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Jrot CANNOT be negative:',para_TypeOp%JRot
+          write(out_unit,*) ' Check the fortran!!'
           STOP
         END IF
       CASE (10) ! Hamiltonian: d^1 G d^1 +V
@@ -238,9 +238,9 @@
             nb_term_Vib = nb_Qact**2 + 1
             nb_term_Rot = (nb_Qact+3)**2 + 1 - nb_term_Vib
           ELSE
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' Jrot CANNOT be negative:',para_TypeOp%JRot
-            write(out_unitp,*) ' Check the fortran!!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' Jrot CANNOT be negative:',para_TypeOp%JRot
+            write(out_unit,*) ' Check the fortran!!'
             STOP
           END IF
         END IF
@@ -321,9 +321,9 @@
         END IF
 
         IF (iterm /= nb_term) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'the number of terms is incorrect:'
-          write(out_unitp,*) 'iterm,nb_term',iterm,nb_term
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'the number of terms is incorrect:'
+          write(out_unit,*) 'iterm,nb_term',iterm,nb_term
           STOP
         END IF
 
@@ -374,9 +374,9 @@
         END IF
 
         IF (iterm /= nb_term) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'the number of terms is incorrect:'
-          write(out_unitp,*) 'iterm,nb_term',iterm,nb_term
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'the number of terms is incorrect:'
+          write(out_unit,*) 'iterm,nb_term',iterm,nb_term
           STOP
         END IF
       CASE (21) ! P_iQact operator
@@ -389,10 +389,10 @@
         para_TypeOp%derive_term_TO_iterm(iQact,iQact) = 1
         para_TypeOp%derive_termQact(:,1)              = [iQact,iQact]
       CASE DEFAULT
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' Type_Op MUST be equal to: 0, 1, 10, 21, 22'
-        write(out_unitp,*) '    Type_Op value: ',para_TypeOp%Type_Op
-        write(out_unitp,*) '  check the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) ' Type_Op MUST be equal to: 0, 1, 10, 21, 22'
+        write(out_unit,*) '    Type_Op value: ',para_TypeOp%Type_Op
+        write(out_unit,*) '  check the fortran!!'
         STOP
       END SELECT
     END IF
@@ -404,7 +404,7 @@
 
     IF (debug) THEN
       CALL Write_TypeOp(para_TypeOp)
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
     END IF
 
 
@@ -461,42 +461,42 @@
          With_list_loc = .FALSE.
       END IF
 
-      write(out_unitp,*) ' BEGINNING: ',name_sub
-      write(out_unitp,*) ' Type_Op:                 ',para_TypeOp%Type_Op
-      write(out_unitp,*) ' direct_KEO:              ',para_TypeOp%direct_KEO
-      write(out_unitp,*) ' direct_ScalOp:           ',para_TypeOp%direct_ScalOp
-      write(out_unitp,*) ' QML_Vib_adia:            ',para_TypeOp%QML_Vib_adia
-      !write(out_unitp,*) ' Op_WithContracRVec:      ',para_TypeOp%Op_WithContracRVec
+      write(out_unit,*) ' BEGINNING: ',name_sub
+      write(out_unit,*) ' Type_Op:                 ',para_TypeOp%Type_Op
+      write(out_unit,*) ' direct_KEO:              ',para_TypeOp%direct_KEO
+      write(out_unit,*) ' direct_ScalOp:           ',para_TypeOp%direct_ScalOp
+      write(out_unit,*) ' QML_Vib_adia:            ',para_TypeOp%QML_Vib_adia
+      !write(out_unit,*) ' Op_WithContracRVec:      ',para_TypeOp%Op_WithContracRVec
 
-      write(out_unitp,*) ' nb_term:                 ',para_TypeOp%nb_term
-      write(out_unitp,*) ' nb_Term_Vib:             ',para_TypeOp%nb_Term_Vib
-      write(out_unitp,*) ' nb_Term_Rot:             ',para_TypeOp%nb_Term_Rot
-      write(out_unitp,*) ' nb_Qact:                 ',para_TypeOp%nb_Qact
-      write(out_unitp,*) ' iQact:                   ',para_TypeOp%iQact
-      write(out_unitp,*) ' Jrot:                    ',para_TypeOp%Jrot
-      write(out_unitp,*) ' alloc ? derive_termQact: ',allocated(para_TypeOp%derive_termQact)
-      write(out_unitp,*) ' alloc ? zero_term:       ',allocated(para_TypeOp%zero_term)
+      write(out_unit,*) ' nb_term:                 ',para_TypeOp%nb_term
+      write(out_unit,*) ' nb_Term_Vib:             ',para_TypeOp%nb_Term_Vib
+      write(out_unit,*) ' nb_Term_Rot:             ',para_TypeOp%nb_Term_Rot
+      write(out_unit,*) ' nb_Qact:                 ',para_TypeOp%nb_Qact
+      write(out_unit,*) ' iQact:                   ',para_TypeOp%iQact
+      write(out_unit,*) ' Jrot:                    ',para_TypeOp%Jrot
+      write(out_unit,*) ' alloc ? derive_termQact: ',allocated(para_TypeOp%derive_termQact)
+      write(out_unit,*) ' alloc ? zero_term:       ',allocated(para_TypeOp%zero_term)
       IF (allocated(para_TypeOp%derive_termQact) .AND. allocated(para_TypeOp%zero_term)) THEN
         DO iterm=1,para_TypeOp%nb_term
-          write(out_unitp,*) ' iterm ',iterm,' : ',para_TypeOp%derive_termQact(:,iterm),&
+          write(out_unit,*) ' iterm ',iterm,' : ',para_TypeOp%derive_termQact(:,iterm),&
                ' zero? ',para_TypeOp%zero_term(iterm)
         END DO
       END IF
 
-      write(out_unitp,*) ' complex ? ',para_TypeOp%cplx
+      write(out_unit,*) ' complex ? ',para_TypeOp%cplx
 
 
-      write(out_unitp,*) ' alloc ? derive_term_TO_iterm:',allocated(para_TypeOp%derive_term_TO_iterm)
+      write(out_unit,*) ' alloc ? derive_term_TO_iterm:',allocated(para_TypeOp%derive_term_TO_iterm)
       IF (allocated(para_TypeOp%derive_term_TO_iterm) .AND. With_list_loc) THEN
         DO i=-3,para_TypeOp%nb_Qact
         DO j=-3,para_TypeOp%nb_Qact
           iterm = para_TypeOp%derive_term_TO_iterm(i,j)
-          write(out_unitp,*) 'i,j',i,j,' iterm: ',iterm
+          write(out_unit,*) 'i,j',i,j,' iterm: ',iterm
         END DO
         END DO
       END IF
 
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
 
 
    END SUBROUTINE Write_TypeOp
@@ -511,7 +511,7 @@
       character (len=*), parameter :: name_sub='TypeOp2_TO_TypeOp1'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
 
       para_TypeOp1%type_Op       = para_TypeOp2%type_Op
@@ -540,7 +540,7 @@
 
       IF (debug) THEN
         CALL Write_TypeOp(para_TypeOp1)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
    END SUBROUTINE TypeOp2_TO_TypeOp1
@@ -590,10 +590,10 @@
       d0MatOp%nb_bie  = nb_bie
 
       IF (d0MatOp%nb_term < 1 .OR. d0MatOp%nb_Qact < 0 .OR. nb_bie_loc < 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_term < 1 OR nb_Qact < 0',d0MatOp%nb_term,d0MatOp%nb_Qact
-        write(out_unitp,*) ' OR nb_bie < 1',nb_bie_loc
-        write(out_unitp,*) ' CHECK the source!!!!!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_term < 1 OR nb_Qact < 0',d0MatOp%nb_term,d0MatOp%nb_Qact
+        write(out_unit,*) ' OR nb_bie < 1',nb_bie_loc
+        write(out_unit,*) ' CHECK the source!!!!!'
         STOP
       END IF
 
@@ -643,13 +643,13 @@
       character (len=*), parameter :: name_sub='Init_d0MatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
-        write(out_unitp,*) ' nb_Qact: ',nb_Qact
-        write(out_unitp,*) ' nb_ie: ',nb_ie
-        write(out_unitp,*) ' iQact: ',iQact
-        write(out_unitp,*) ' type_Op: ',type_Op
-        IF (present(cplx)) write(out_unitp,*) ' cplx: ',cplx
-        IF (present(JRot)) write(out_unitp,*) ' JRot: ',JRot
+        write(out_unit,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' nb_Qact: ',nb_Qact
+        write(out_unit,*) ' nb_ie: ',nb_ie
+        write(out_unit,*) ' iQact: ',iQact
+        write(out_unit,*) ' type_Op: ',type_Op
+        IF (present(cplx)) write(out_unit,*) ' cplx: ',cplx
+        IF (present(JRot)) write(out_unit,*) ' JRot: ',JRot
       END IF
 
       IF (present(cplx)) THEN
@@ -679,7 +679,7 @@
 
       IF (debug) THEN
         CALL Write_d0MatOp(d0MatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -696,8 +696,8 @@
       character (len=*), parameter :: name_sub='Init_d0MatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
-        write(out_unitp,*) ' nb_ie: ',nb_ie
+        write(out_unit,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' nb_ie: ',nb_ie
       END IF
 
 
@@ -710,7 +710,7 @@
 
       IF (debug) THEN
         CALL Write_d0MatOp(d0MatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -732,43 +732,43 @@
          With_list_loc = .FALSE.
       END IF
 
-      write(out_unitp,*) ' BEGINNING: ',name_sub
-      write(out_unitp,*) ' nb_term: ',d0MatOp%nb_term
-      write(out_unitp,*) ' nb_Qact: ',d0MatOp%nb_Qact
-      write(out_unitp,*) ' nb_bie : ',d0MatOp%nb_bie
+      write(out_unit,*) ' BEGINNING: ',name_sub
+      write(out_unit,*) ' nb_term: ',d0MatOp%nb_term
+      write(out_unit,*) ' nb_Qact: ',d0MatOp%nb_Qact
+      write(out_unit,*) ' nb_bie : ',d0MatOp%nb_bie
 
-      write(out_unitp,*) ' Jac:     ',d0MatOp%Jac
-      write(out_unitp,*) ' rho:     ',d0MatOp%rho
+      write(out_unit,*) ' Jac:     ',d0MatOp%Jac
+      write(out_unit,*) ' rho:     ',d0MatOp%rho
 
-      write(out_unitp,*) ' derive_termQact + tab_ScalOp: '
-      write(out_unitp,*) ' alloc ? derive_termQact + tab_ScalOp: ',     &
+      write(out_unit,*) ' derive_termQact + tab_ScalOp: '
+      write(out_unit,*) ' alloc ? derive_termQact + tab_ScalOp: ',     &
         allocated(d0MatOp%derive_termQact),allocated(d0MatOp%ReVal)
 
       IF (allocated(d0MatOp%derive_termQact) .AND.                      &
                                         allocated(d0MatOp%ReVal) ) THEN
         DO iterm=1,d0MatOp%nb_term
-          write(out_unitp,*) ' iterm ',iterm,' : ',d0MatOp%derive_termQact(:,iterm)
-          CALL Write_Mat(d0MatOp%ReVal(:,:,iterm),out_unitp,5)
+          write(out_unit,*) ' iterm ',iterm,' : ',d0MatOp%derive_termQact(:,iterm)
+          CALL Write_Mat(d0MatOp%ReVal(:,:,iterm),out_unit,5)
         END DO
       END IF
 
-      write(out_unitp,*) ' complex ? ',d0MatOp%cplx
+      write(out_unit,*) ' complex ? ',d0MatOp%cplx
       IF (d0MatOp%cplx .AND. allocated(d0MatOp%ImVal) ) THEN
-        write(out_unitp,*) ' complex_term value: '
-        CALL Write_Mat(d0MatOp%ImVal(:,:),out_unitp,5)
+        write(out_unit,*) ' complex_term value: '
+        CALL Write_Mat(d0MatOp%ImVal(:,:),out_unit,5)
       END IF
 
-      write(out_unitp,*) ' alloc ? derive_term_TO_iterm:',allocated(d0MatOp%derive_term_TO_iterm)
+      write(out_unit,*) ' alloc ? derive_term_TO_iterm:',allocated(d0MatOp%derive_term_TO_iterm)
       IF (allocated(d0MatOp%derive_term_TO_iterm) .AND. With_list_loc) THEN
         DO i=-3,d0MatOp%nb_Qact
         DO j=-3,d0MatOp%nb_Qact
           iterm = d0MatOp%derive_term_TO_iterm(i,j)
-          write(out_unitp,*) 'i,j',i,j,' iterm: ',iterm
+          write(out_unit,*) 'i,j',i,j,' iterm: ',iterm
         END DO
         END DO
       END IF
 
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
 
 
    END SUBROUTINE Write_d0MatOp
@@ -823,11 +823,11 @@
       END IF
 
       DO iOp=1,size(d0MatOp)
-        write(out_unitp,*) 'iOp',iOp
+        write(out_unit,*) 'iOp',iOp
         CALL Write_d0MatOp(d0MatOp(iOp),With_list_loc)
       END DO
 
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
 
 
    END SUBROUTINE Write_Tab_OF_d0MatOp
@@ -841,10 +841,10 @@
       character (len=*), parameter :: name_sub='alloc_dnMatOp'
 
       IF (dnMatOp%nb_term < 1 .OR. dnMatOp%nb_Qact < 1 .OR. nb_bie < 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_term < 1 OR nb_Qact < 1 OR nb_bie < 1', &
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_term < 1 OR nb_Qact < 1 OR nb_bie < 1', &
                                   dnMatOp%nb_term,dnMatOp%nb_Qact,nb_bie
-        write(out_unitp,*) ' CHECK the source!!!!!'
+        write(out_unit,*) ' CHECK the source!!!!!'
         STOP
       END IF
 
@@ -931,7 +931,7 @@
       character (len=*), parameter :: name_sub='Init_dnMatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
 
       IF (present(nderiv)) THEN
@@ -958,7 +958,7 @@
 
       IF (debug) THEN
         CALL Write_dnMatOp(dnMatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
    END SUBROUTINE Init_dnMatOp
@@ -980,48 +980,48 @@
          With_list_loc = .FALSE.
       END IF
 
-      write(out_unitp,*) ' BEGINNING: ',name_sub
-      write(out_unitp,*) ' nb_term: ',dnMatOp%nb_term
-      write(out_unitp,*) ' nb_Qact: ',dnMatOp%nb_Qact
-      write(out_unitp,*) ' nb_bie:  ',dnMatOp%nb_bie
-      write(out_unitp,*) ' nderiv:  ',dnMatOp%nderiv
-      write(out_unitp,*) ' Jac:     ',dnMatOp%Jac
-      write(out_unitp,*) ' rho:     ',dnMatOp%rho
+      write(out_unit,*) ' BEGINNING: ',name_sub
+      write(out_unit,*) ' nb_term: ',dnMatOp%nb_term
+      write(out_unit,*) ' nb_Qact: ',dnMatOp%nb_Qact
+      write(out_unit,*) ' nb_bie:  ',dnMatOp%nb_bie
+      write(out_unit,*) ' nderiv:  ',dnMatOp%nderiv
+      write(out_unit,*) ' Jac:     ',dnMatOp%Jac
+      write(out_unit,*) ' rho:     ',dnMatOp%rho
 
 
-      write(out_unitp,*) ' derive_termQact + tab_dnMatOp: '
-      write(out_unitp,*) ' alloc/asso ?derive_termQact + tab_dnMatOp: ',      &
+      write(out_unit,*) ' derive_termQact + tab_dnMatOp: '
+      write(out_unit,*) ' alloc/asso ?derive_termQact + tab_dnMatOp: ',      &
         allocated(dnMatOp%derive_termQact),associated(dnMatOp%tab_dnMatOp)
 
       IF (allocated(dnMatOp%derive_termQact) .AND.              &
           associated(dnMatOp%tab_dnMatOp) ) THEN
         DO iterm=1,dnMatOp%nb_term
-          write(out_unitp,*) ' iterm ',iterm,' : ',dnMatOp%derive_termQact(:,iterm)
-          write(out_unitp,*) ' tab_dnMatOp(:,:,iterm) ',iterm
+          write(out_unit,*) ' iterm ',iterm,' : ',dnMatOp%derive_termQact(:,iterm)
+          write(out_unit,*) ' tab_dnMatOp(:,:,iterm) ',iterm
           CALL Write_MatOFdnS(dnMatOp%tab_dnMatOp(:,:,iterm))
         END DO
       END IF
 
-      write(out_unitp,*) ' complex ? ',dnMatOp%cplx
-      write(out_unitp,*) ' asso Im_dnMatOp?',associated(dnMatOp%Im_dnMatOp)
+      write(out_unit,*) ' complex ? ',dnMatOp%cplx
+      write(out_unit,*) ' asso Im_dnMatOp?',associated(dnMatOp%Im_dnMatOp)
 
       IF (dnMatOp%cplx .AND. associated(dnMatOp%Im_dnMatOp)) THEN
-        write(out_unitp,*) ' Im_dnMatOp value: '
+        write(out_unit,*) ' Im_dnMatOp value: '
         CALL Write_MatOFdnS(dnMatOp%Im_dnMatOp)
       END IF
 
 
-      write(out_unitp,*) ' alloc ? derive_term_TO_iterm:',allocated(dnMatOp%derive_term_TO_iterm)
+      write(out_unit,*) ' alloc ? derive_term_TO_iterm:',allocated(dnMatOp%derive_term_TO_iterm)
       IF (allocated(dnMatOp%derive_term_TO_iterm) .AND. With_list_loc) THEN
         DO i=-3,dnMatOp%nb_Qact
         DO j=-3,dnMatOp%nb_Qact
           iterm = dnMatOp%derive_term_TO_iterm(i,j)
-          write(out_unitp,*) 'i,j',i,j,' iterm: ',iterm
+          write(out_unit,*) 'i,j',i,j,' iterm: ',iterm
         END DO
         END DO
       END IF
 
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
 
 
    END SUBROUTINE Write_dnMatOp
@@ -1041,12 +1041,12 @@
       character (len=*), parameter :: name_sub='Init_Tab_OF_dnMatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
-        write(out_unitp,*) ' nb_Qact: ',nb_Qact
-        write(out_unitp,*) ' nb_ie:   ',nb_ie
-        IF (present(nderiv)) write(out_unitp,*) ' nderiv: ',nderiv
-        IF (present(cplx)) write(out_unitp,*) ' cplx: ',cplx
-        IF (present(JRot)) write(out_unitp,*) ' JRot: ',JRot
+        write(out_unit,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' nb_Qact: ',nb_Qact
+        write(out_unit,*) ' nb_ie:   ',nb_ie
+        IF (present(nderiv)) write(out_unit,*) ' nderiv: ',nderiv
+        IF (present(cplx)) write(out_unit,*) ' cplx: ',cplx
+        IF (present(JRot)) write(out_unit,*) ' JRot: ',JRot
       END IF
 
       IF (present(nderiv)) THEN
@@ -1081,7 +1081,7 @@
 
       IF (debug) THEN
         CALL Write_Tab_OF_dnMatOp(dnMatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -1156,11 +1156,11 @@
       END IF
 
       DO iOp=1,size(dnMatOp)
-        write(out_unitp,*) 'iOp',iOp
+        write(out_unit,*) 'iOp',iOp
         CALL Write_dnMatOp(dnMatOp(iOp),With_list_loc)
       END DO
 
-      write(out_unitp,*) ' END: ',name_sub
+      write(out_unit,*) ' END: ',name_sub
 
 
    END SUBROUTINE Write_Tab_OF_dnMatOp
@@ -1381,7 +1381,7 @@
       character (len=*), parameter :: name_sub='dnMatOp2Der_TO_dnMatOp1Der'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
 
       CALL alloc_NParray(RVal,shape(dnMatOp2%tab_dnMatOp),'RVal',name_sub)
@@ -1470,7 +1470,7 @@
 
       IF (debug) THEN
         CALL Write_dnMatOp(dnMatOp1)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -1489,7 +1489,7 @@
       character (len=*), parameter :: name_sub='d0MatOp_TO_dnMatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
       id1=der(1)
       id2=der(2)
@@ -1530,7 +1530,7 @@
 
       IF (debug) THEN
         CALL Write_dnMatOp(dnMatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -1550,7 +1550,7 @@
       character (len=*), parameter :: name_sub='d0MatOp_wADDTO_dnMatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
       id1=der(1)
       id2=der(2)
@@ -1595,7 +1595,7 @@
 
       IF (debug) THEN
         CALL Write_dnMatOp(dnMatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 
@@ -1614,7 +1614,7 @@
       character (len=*), parameter :: name_sub='WeightDer_dnMatOp'
 
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING: ',name_sub
+        write(out_unit,*) ' BEGINNING: ',name_sub
       END IF
       id1=der(1)
       id2=der(2)
@@ -1680,7 +1680,7 @@
 
       IF (debug) THEN
         CALL Write_dnMatOp(dnMatOp)
-        write(out_unitp,*) ' END: ',name_sub
+        write(out_unit,*) ' END: ',name_sub
       END IF
 
 

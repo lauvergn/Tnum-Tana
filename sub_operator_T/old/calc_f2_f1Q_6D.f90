@@ -14,7 +14,7 @@
                                  Tdef2,Tdef1,vep,rho,                   &
                                  Tcor2,Tcor1,Trot,                      &
                                  para_Tnum,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -85,22 +85,22 @@
 !     logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug .OR. para_Tnum%WriteT) THEN
-         write(out_unitp,*) 'BEGINNING calc_f2_f1Q_ana'
-         write(out_unitp,*) 'ndimG',mole%ndimG
-         write(out_unitp,*) 'WriteCC',mole%WriteCC
-         write(out_unitp,*) 'Qdyn',Qdyn
-         write(out_unitp,*)
-         write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-         write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-         write(out_unitp,*) 'JJ',para_Tnum%JJ
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING calc_f2_f1Q_ana'
+         write(out_unit,*) 'ndimG',mole%ndimG
+         write(out_unit,*) 'WriteCC',mole%WriteCC
+         write(out_unit,*) 'Qdyn',Qdyn
+         write(out_unit,*)
+         write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+         write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+         write(out_unit,*) 'JJ',para_Tnum%JJ
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
       IF (max_var /= mole%nb_act) THEN
-        write(out_unitp,*) ' ERROR in calc_f2_f1Q_ana'
-        write(out_unitp,*) ' max_var /= mole%nb_act',max_var,mole%nb_act
-        write(out_unitp,*) ' Change max_var in calc_f2_f1Q_ana and recompile'
+        write(out_unit,*) ' ERROR in calc_f2_f1Q_ana'
+        write(out_unit,*) ' max_var /= mole%nb_act',max_var,mole%nb_act
+        write(out_unit,*) ' Change max_var in calc_f2_f1Q_ana and recompile'
         STOP
       END IF
 
@@ -123,27 +123,27 @@
          file_Tnum%name='Tnum.op'
          CALL file_open(file_Tnum,ni)
          IF (mole%nb_act > max_var) THEN
-           write(out_unitp,*) ' ERROR in calc_f2_f1Q_ana'
-           write(out_unitp,*) ' mole%nb_act > max_var',mole%nb_act,max_var
+           write(out_unit,*) ' ERROR in calc_f2_f1Q_ana'
+           write(out_unit,*) ' mole%nb_act > max_var',mole%nb_act,max_var
            STOP
          END IF
          read(ni,*) Qact_ref(1:mole%nb_act)
          read(ni,*) n0
-         write(out_unitp,*) 'Tnum.op,n0',n0
+         write(out_unit,*) 'Tnum.op,n0',n0
          DO ij=1,n0
            read(ni,*) i,j,GG
            d0G(i,j) = GG
            d0G(j,i) = GG
          END DO
          read(ni,*) n1
-         write(out_unitp,*) 'n1',n1
+         write(out_unit,*) 'n1',n1
          DO ij=1,n1
            read(ni,*) i,j,k,GG
            d1G(i,j,k) = GG
            d1G(j,i,k) = GG
          END DO
          read(ni,*) n2
-         write(out_unitp,*) 'n2',n2
+         write(out_unit,*) 'n2',n2
          DO ij=1,n2
            read(ni,*) i,j,k,l,GG
            d2G(i,j,k,l) = GG
@@ -208,7 +208,7 @@
         CALL Write_f2f1vep(Tdef2,Tdef1,vep,rho,mole%nb_act)
         IF (para_Tnum%JJ .GT. 0) CALL Write_TcorTrot(Tcor2,Tcor1,Trot,   &
                                            mole%nb_act)
-        write(out_unitp,*) 'END calc_f2_f1Q_ana'
+        write(out_unit,*) 'END calc_f2_f1Q_ana'
       END IF
 !-----------------------------------------------------------
 

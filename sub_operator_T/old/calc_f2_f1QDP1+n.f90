@@ -14,7 +14,7 @@
                                  Tdef2,Tdef1,vep,rho,                   &
                                  Tcor2,Tcor1,Trot,                      &
                                  para_Tnum,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -47,7 +47,7 @@
 !
 !
 !     stepT: displacement for numerical calculation of Tnum
-!            see num_Gg,num_g,num_x
+!            see num_GG,num_g,num_x
 !
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -71,20 +71,20 @@
 !     logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug .OR. para_Tnum%WriteT) THEN
-         write(out_unitp,*) 'BEGINNING calc_f2_f1Q_ana'
-         write(out_unitp,*) 'ndimG',mole%ndimG
-         write(out_unitp,*) 'WriteCC',mole%WriteCC
-         write(out_unitp,*) 'Qdyn',Qdyn
+         write(out_unit,*) 'BEGINNING calc_f2_f1Q_ana'
+         write(out_unit,*) 'ndimG',mole%ndimG
+         write(out_unit,*) 'WriteCC',mole%WriteCC
+         write(out_unit,*) 'Qdyn',Qdyn
          IF (debug) THEN
-           write(out_unitp,*)
+           write(out_unit,*)
            CALL Write_mole(mole)
-           write(out_unitp,*)
+           write(out_unit,*)
          END IF
-         write(out_unitp,*)
-         write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-         write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-         write(out_unitp,*) 'JJ',para_Tnum%JJ
-         write(out_unitp,*)
+         write(out_unit,*)
+        write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+         write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+         write(out_unit,*) 'JJ',para_Tnum%JJ
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -96,26 +96,24 @@
       Tcor1(:)   = ZERO
       Trot(:,:)  = ZERO
 
-      DO i=1,mole%nb_act
-        Tdef2(i,i) = -HALF
-      END DO
-      DO i=1,3
-        Trot(i,i) = -HALF
-      END DO
+        DO i=1,mole%nb_act
+          Tdef2(i,i) = -HALF
+        END DO
+        DO i=1,3
+          Trot(i,i) = -HALF
+        END DO
 
-      th = Qdyn(11)
-      phi = Qdyn(12)
+        phi = Qdyn(12)
 
-      s = sin(th)
-      c = cos(th)
-
-      rho = s
-      Tdef2(2,2) = -HALF/(4430._Rkind*s*s)
-      Tdef2(1,1) = -HALF/6160._Rkind
-      Tdef1(1)   = -HALF/6160._Rkind * c/s
+        rho = ONE
+        Tdef2(mole%nb_act1,mole%nb_act1) = -HALF/1837.152596195059_Rkind
+        Tdef1(mole%nb_act1)   = ZERO
+        vep        = ZERO
 
       IF (mole%nb_inact2n > 0) THEN
-        DO i=3,2+mole%nb_inact2n
+        DO i=mole%nb_act1+1,mole%nb_act1+mole%nb_inact2n
+!         write(out_unit,*) 'i',i,mole%nb_act,mole%nb_inact2n
+!         flush(out_unit)
           Tdef2(i,i) = -HALF
         END DO
       END IF
@@ -127,10 +125,10 @@
         CALL Write_f2f1vep(Tdef2,Tdef1,vep,rho,mole%nb_act)
         IF (para_Tnum%JJ .GT. 0) CALL Write_TcorTrot(Tcor2,Tcor1,Trot,   &
                                            mole%nb_act)
-        write(out_unitp,*) 'END calc_f2_f1Q_ana'
+        write(out_unit,*) 'END calc_f2_f1Q_ana'
       END IF
 !-----------------------------------------------------------
 
 
-      RETURN
       end subroutine calc_f2_f1Q_ana
+

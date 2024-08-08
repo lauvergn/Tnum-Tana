@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
  module mod_Tana_VecSumOpnD
- use mod_system
+ use TnumTana_system_m
  USE mod_Tana_sum_opnd
  IMPLICIT NONE
 
@@ -289,7 +289,7 @@
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if (present(header)) then
@@ -355,15 +355,15 @@
      character (len=*), parameter :: routine_name='V1_scalar_V2_in_F_sum_nd'
 
      if(.not.allocated(V1%vec_sum) .or. .not.allocated(V2%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vectors V1 and V2 should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vectors V1 and V2 should be allocated"
        STOP
      end if
      ndim1 = size(V1%vec_sum)
      ndim2 = size(V2%vec_sum)
      if(ndim1 /= ndim2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Illegal operation: vectors V1 and V2 should have the same size"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Illegal operation: vectors V1 and V2 should have the same size"
        STOP
      end if
      call init_to_opzero(F_sum_nd = F_sum_nd)
@@ -402,20 +402,20 @@
      character (len=*), parameter :: routine_name='V1_cross_V2_in_Vres'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' BEGINNING ',routine_name
+       flush(out_unit)
      END IF
 
      if(.not.allocated(V1%vec_sum) .or. .not.allocated(V2%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vectors V1 and V2 should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vectors V1 and V2 should be allocated"
        STOP
      end if
      ndim1 = size(V1%vec_sum)
      ndim2 = size(V2%vec_sum)
      if(ndim1 /= ndim2  .and. ndim1 /= 3) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Illegal operation: vectors V1 and V2 should have the same size=3"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Illegal operation: vectors V1 and V2 should have the same size=3"
        STOP
      end if
      minus = .true.
@@ -456,8 +456,8 @@
      call delete_op(sum_tmp2)
 
      IF (debug) THEN
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
    END SUBROUTINE V1_cross_V2_in_Vres
@@ -482,15 +482,15 @@
      character (len=*), parameter :: routine_name='V1_plus_V2_in_Vres'
 
      if(.not.allocated(V1%vec_sum) .or. .not.allocated(V2%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vectors V1 and V2 should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vectors V1 and V2 should be allocated"
        STOP
      end if
      ndim1 = size(V1%vec_sum)
      ndim2 = size(V2%vec_sum)
      if(ndim1 /= ndim2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Illegal operation: vectors V1 and V2 should have the same size"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Illegal operation: vectors V1 and V2 should have the same size"
        STOP
      end if
 
@@ -564,8 +564,8 @@
      character (len=*), parameter :: routine_name='F_sum_nd_times_V_in_Vres'
 
      if(.not.allocated(V%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vector V should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vector V should be allocated"
        STOP
      end if
      ndim = size(V%vec_sum)
@@ -593,8 +593,8 @@
      character (len=*), parameter :: routine_name='V_times_F_sum_nd_in_Vres'
 
      if(.not.allocated(V%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vector V should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vector V should be allocated"
        STOP
      end if
      ndim = size(V%vec_sum)
@@ -625,18 +625,18 @@
 
 
      if(.not.allocated(V%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vectors V1 and V2 should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vectors V1 and V2 should be allocated"
        STOP
      end if
      ndim1 = size(V%vec_sum)
      do i = 1, size(M_opnd(:,1))
        ndim2 = size(M_opnd(i,:))
        if(ndim1 /= ndim2) then
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) "Illegal operation: "
-         write(out_unitp,*) "column number of the matrix should be equal "
-         write(out_unitp,*) "to the size of V"
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) "Illegal operation: "
+         write(out_unit,*) "column number of the matrix should be equal "
+         write(out_unit,*) "to the size of V"
          STOP
        end if
      end do
@@ -668,18 +668,18 @@
      character (len=*), parameter :: routine_name='V_times_M_opnd_in_Vres'
 
      if(.not.allocated(V%vec_sum)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "vector V should be allocated"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "vector V should be allocated"
        STOP
      end if
      ndim1 = size(V%vec_sum)
      do i = 1, size(M_opnd(1,:))
        ndim2 = size(M_opnd(:,i))
        if(ndim1 /= ndim2) then
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) "Illegal operation: "
-         write(out_unitp,*) "line number of the matrix should be equal "
-         write(out_unitp,*) "to the size of V"
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) "Illegal operation: "
+         write(out_unit,*) "line number of the matrix should be equal "
+         write(out_unit,*) "to the size of V"
          STOP
        end if
      end do
@@ -714,10 +714,10 @@
      ndim1 = size(M1(1,:))
      ndim2 = size(M2(:,1))
      if(ndim1 /= ndim2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Illegal operation: "
-       write(out_unitp,*) "the number of rows of M1 should be equal "
-       write(out_unitp,*) "to the number of columns of M2 "
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Illegal operation: "
+       write(out_unit,*) "the number of rows of M1 should be equal "
+       write(out_unit,*) "to the number of columns of M2 "
        STOP
      end if
      ndim1 = size(M1(:,1))
@@ -755,10 +755,10 @@
      ndim1 = size(M1(1,:))
      ndim2 = size(M2(:,1))
      if(ndim1 /= ndim2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Illegal operation: "
-       write(out_unitp,*) "the number of columns of M1 should be equal "
-       write(out_unitp,*) "to the number of rows of M2 "
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Illegal operation: "
+       write(out_unit,*) "the number of columns of M1 should be equal "
+       write(out_unit,*) "to the number of rows of M2 "
        STOP
      end if
      ndim1 = size(M1(:,1))

@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE Qtransfo_m
-  use mod_system
+  use TnumTana_system_m
   USE QtransfoBase_m
   USE ZmatTransfo_m
   USE IdentityTransfo_m
@@ -77,13 +77,13 @@ CONTAINS
     integer :: i_Q
     character (len=*), parameter :: name_sub = "Write_Qtransfo_Tnum"
 
-    write(out_unitp,*) '================================================='
+    write(out_unit,*) '================================================='
     IF (allocated(this%Qtransfo)) THEN
       CALL this%Qtransfo%write()
     ELSE
-      write(out_unitp,*) 'this%Qtransfo is not allocated: no writing'
+      write(out_unit,*) 'this%Qtransfo is not allocated: no writing'
     END IF
-    write(out_unitp,*) '================================================='
+    write(out_unit,*) '================================================='
 
   END SUBROUTINE Write_Qtransfo_Tnum
   SUBROUTINE Write_typeQtransfo_Tnum(this,it)
@@ -95,7 +95,7 @@ CONTAINS
 
     character (len=*), parameter :: name_sub = "Write_typeQtransfo_Tnum"
 
-    write(out_unitp,*) "Qtransfo(it)%Qtransfo",it," : '",this%get_TransfoType(),"'"
+    write(out_unit,*) "Qtransfo(it)%Qtransfo",it," : '",this%get_TransfoType(),"'"
 
   END SUBROUTINE Write_typeQtransfo_Tnum
   FUNCTION QactTOdnQact_QTransfo_Tnum(this,Qact,nderiv) RESULT(dnQact)
@@ -115,16 +115,16 @@ CONTAINS
     TYPE IS(ActiveTransfo_t)
        nb_act = this%nb_act
     CLASS DEFAULT
-      write(out_unitp,*) "ERROR in ",name_sub
-      write(out_unitp,*) " Wrong dynamical type."
-      write(out_unitp,*) " It should be 'ActiveTransfo_t'"
+      write(out_unit,*) "ERROR in ",name_sub
+      write(out_unit,*) " Wrong dynamical type."
+      write(out_unit,*) " It should be 'ActiveTransfo_t'"
       STOP 'ERROR in QactTOdnQact_QTransfo_Tnum: Wrong dynamical type'
     END SELECT
 
     IF (size(Qact) < nb_act) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) 'Qact size is smaller than nb_act'
-      write(out_unitp,*) 'size(Qact), nb_act',size(Qact),nb_act
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) 'Qact size is smaller than nb_act'
+      write(out_unit,*) 'size(Qact), nb_act',size(Qact),nb_act
       STOP 'ERROR in QactTOdnQact_QTransfo_Tnum: Qact size is smaller than nb_act'
     END IF
 
@@ -181,7 +181,7 @@ CONTAINS
     !-----------------------------------------------------------
 
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
     END IF
     !-----------------------------------------------------------
 
@@ -213,26 +213,26 @@ CONTAINS
       check_LinearTransfo = .TRUE.
 
       err_io = 0
-      read(in_unitp,Coord_transfo,IOSTAT=err_io)
+      read(in_unit,Coord_transfo,IOSTAT=err_io)
       IF (err_io < 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Probably, nb_transfo is to large in the namelist "variables"'
-        write(out_unitp,*) '   or you have forgotten a coordinate tranformation ...'
-        write(out_unitp,*) '   or you have forgotten the "Cartesian transfo"'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "Coord_transfo"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Probably, nb_transfo is to large in the namelist "variables"'
+        write(out_unit,*) '   or you have forgotten a coordinate tranformation ...'
+        write(out_unit,*) '   or you have forgotten the "Cartesian transfo"'
+        write(out_unit,*) ' Check your data !!'
         STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
       END IF
       IF (err_io > 0) THEN
-        write(out_unitp,Coord_transfo)
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-        write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,Coord_transfo)
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "Coord_transfo"'
+        write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+        write(out_unit,*) ' Check your data !!'
         STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
       END IF
-      IF (debug .OR. TnumPrint_level > 1) write(out_unitp,Coord_transfo)
+      IF (debug .OR. TnumPrint_level > 1) write(out_unit,Coord_transfo)
     ELSE
       name_transfo = 'Cart'
       opt_transfo  = 0
@@ -243,14 +243,14 @@ CONTAINS
     name_transfo = TO_lowercase(trim(adjustl(name_transfo)))
 
     IF (debug .OR. TnumPrint_level >= 0) THEN 
-      write(out_unitp,*) '=========================================='
-      write(out_unitp,'(a,a)' )  ' transfo:               ',trim(name_transfo)
-      write(out_unitp,'(a,i0)')  ' Option of the transfo: ',opt_transfo
-      write(out_unitp,'(a,l1)' ) ' Skip the transfo:      ',skip_transfo
-      write(out_unitp,'(a,l1)' ) ' inTOout:               ',inTOout
-      write(out_unitp,'(a)'   )  '------------------------------------------'
+      write(out_unit,*) '=========================================='
+      write(out_unit,'(a,a)' )  ' transfo:               ',trim(name_transfo)
+      write(out_unit,'(a,i0)')  ' Option of the transfo: ',opt_transfo
+      write(out_unit,'(a,l1)' ) ' Skip the transfo:      ',skip_transfo
+      write(out_unit,'(a,l1)' ) ' inTOout:               ',inTOout
+      write(out_unit,'(a)'   )  '------------------------------------------'
     ENDIF
-    flush(out_unitp)
+    flush(out_unit)
 
     !-------------------------------------------------------------------
     ! First select to test the presence of QtBase_old for all transfo except: zmat, bunch, ana ...
@@ -259,10 +259,10 @@ CONTAINS
       CONTINUE
     CASE DEFAULT ! ERROR: wrong transformation !
       IF (.NOT. present(QtBase_old)) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' QtBase_old is not present. It should present for:'
-        write(out_unitp,*) ' active, identity, linear ...'
-        write(out_unitp,*) ' Check the Fortran code !!!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' QtBase_old is not present. It should present for:'
+        write(out_unit,*) ' active, identity, linear ...'
+        write(out_unit,*) ' Check the Fortran code !!!'
         STOP 'ERROR in Tnum_Read_Qtransfo: QtBase_old is not present'
       END IF
     END SELECT
@@ -296,22 +296,22 @@ CONTAINS
       allocate(CartTransfo_t :: this%Qtransfo)
       this%Qtransfo = Init_CartTransfo(QtBase_old,TnumPrint_level)
     CASE DEFAULT ! ERROR: wrong transformation !
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
-      CALL WriteList_QTransfo_Tnum(out_unitp)
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
+      CALL WriteList_QTransfo_Tnum(out_unit)
       STOP 'ERROR in Tnum_Read_Qtransfo: wrong coordinate transformation'
     END SELECT
     !-------------------------------------------------------------------
     IF (debug .OR. TnumPrint_level > 1) CALL this%Write()
 
     IF (debug .OR. TnumPrint_level >= 0) THEN  
-      write(out_unitp,*) '=========================================='
+      write(out_unit,*) '=========================================='
     END IF
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'this%Qtransfo%nb_Qin ',this%Qtransfo%get_nb_Qin()
-      write(out_unitp,*) 'this%Qtransfo%nb_Qout',this%Qtransfo%get_nb_Qout()
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'this%Qtransfo%nb_Qin ',this%Qtransfo%get_nb_Qin()
+      write(out_unit,*) 'this%Qtransfo%nb_Qout',this%Qtransfo%get_nb_Qout()
+      write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
   END SUBROUTINE Init_QTransfo_Tnum
@@ -446,7 +446,7 @@ CONTAINS
     !-----------------------------------------------------------------
 
 
-    write(out_unitp,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'BEGINNING ',name_sub
     nb_Qtransfo = size(Qtransfo)
 
 !------- read the namelist minimum -----------------------------
@@ -460,32 +460,32 @@ CONTAINS
     read_itQ0transfo     = -1
     unit                 = 'au'
 
-    read(in_unitp,minimum,IOSTAT=err_io)
+    read(in_unit,minimum,IOSTAT=err_io)
     IF (err_io < 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the namelist "minimum"'
-      write(out_unitp,*) ' end of file or end of record'
-      write(out_unitp,*) ' Probably, you have forgotten the namelist ...'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Probably, you have forgotten the namelist ...'
+      write(out_unit,*) ' Check your data !!'
       STOP ' ERROR in Read_RefGeom_QTransfo_Tnum: end of file or end of record while reading the namelist "minimum"'
     END IF
     IF (err_io > 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the namelist "minimum"'
-      write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+      write(out_unit,*) ' Check your data !!'
       STOP ' ERROR in Read_RefGeom_QTransfo_Tnum: wrong argument(s) while reading the namelist "minimum"'
     END IF
-    IF (print_level > 1) write(out_unitp,minimum)
+    IF (print_level > 1) write(out_unit,minimum)
 
     unit = TO_lowercase(unit)
 
     IF (unit /= 'au' .AND. unit /= 'bohr' .AND. unit /= 'angs') THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the namelist "minimum"'
-      write(out_unitp,*) '  The unit is wrong, unit: "',trim(unit),'"'
-      write(out_unitp,*) '  The possible values are: "au" or "bohr" or "angs"'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) '  The unit is wrong, unit: "',trim(unit),'"'
+      write(out_unit,*) '  The possible values are: "au" or "bohr" or "angs"'
+      write(out_unit,*) ' Check your data !!'
       STOP ' ERROR in Read_RefGeom_QTransfo_Tnum: wrong unit in the namelist "minimum"'
     END IF
 
@@ -493,9 +493,9 @@ CONTAINS
     !=================================================================
     !=================================================================
     IF(MPI_id==0) THEN
-      write(out_unitp,*)  '------------------------------------------------------'
-      write(out_unitp,*)  '--- Coordinates used for the reference geometry ------'
-      write(out_unitp,*)  '------------------------------------------------------'
+      write(out_unit,*)  '------------------------------------------------------'
+      write(out_unit,*)  '--- Coordinates used for the reference geometry ------'
+      write(out_unit,*)  '------------------------------------------------------'
     ENDIF
 
     ! first defined how to read the reference geometry:
@@ -510,14 +510,14 @@ CONTAINS
          (read_Qact0 .AND. read_itQ0transfo /= -1) .OR.               &
          (read_xyz0  .AND. read_itQ0transfo /= -1)) THEN
 
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
-      write(out_unitp,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
-      write(out_unitp,*) 'read_Qact0',read_Qact0
-      write(out_unitp,*) 'read_xyz0 ',read_xyz0
-      write(out_unitp,*) 'read_itQ0transfo ',read_itQ0transfo
-      write(out_unitp,*) ' You have to chose between these options'
-      write(out_unitp,*) ' Check your data !'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
+      write(out_unit,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
+      write(out_unit,*) 'read_Qact0',read_Qact0
+      write(out_unit,*) 'read_xyz0 ',read_xyz0
+      write(out_unit,*) 'read_itQ0transfo ',read_itQ0transfo
+      write(out_unit,*) ' You have to chose between these options'
+      write(out_unit,*) ' Check your data !'
       STOP ' ERROR in Read_RefGeom_QTransfo_Tnum: wrong combination of read_itQ0transfo, read_Qdyn0, read_Qact0, read_xyz0 ...'
     END IF
 
@@ -526,16 +526,16 @@ CONTAINS
 
     IF (Q0_itQtransfo == -1) THEN ! old way with read_Qsym0 or read_xyz0 ....
       IF (read_Qdyn0) THEN
-        IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qdyn0 coordinates:'
+        IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qdyn0 coordinates:'
         Q0_itQtransfo = nb_Qtransfo-1
       ELSE IF (read_xyz0) THEN
-        IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read xyz0 coordinates:'
+        IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read xyz0 coordinates:'
         Q0_itQtransfo = 0
       ELSE IF (read_Qact0) THEN
-        IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qact0 coordinates:'
+        IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qact0 coordinates:'
         Q0_itQtransfo = nb_Qtransfo
       ELSE
-        IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qdyn0 coordinates:'
+        IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qdyn0 coordinates:'
         Q0_itQtransfo = nb_Qtransfo-1
       END IF
     END IF
@@ -543,15 +543,15 @@ CONTAINS
 
     ! check if 0<= read_itQtransfo_OF_Qin0 <= size(Qtransfo)
     IF (Q0_itQtransfo < 0 .OR. Q0_itQtransfo > nb_Qtransfo) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' read_itQ0transfo (or Q0_itQtransfo) ...'
-      write(out_unitp,'(a,i0,a)') '... is out of the range [0:',nb_Qtransfo,']'
-      write(out_unitp,*) ' Check your data !'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' read_itQ0transfo (or Q0_itQtransfo) ...'
+      write(out_unit,'(a,i0,a)') '... is out of the range [0:',nb_Qtransfo,']'
+      write(out_unit,*) ' Check your data !'
       STOP ' ERROR in Read_RefGeom_QTransfo_Tnum: read_itQ0transfo (or Q0_itQtransfo) is out of the range.'
     END IF
 
-    IF (print_level > 1 .OR. debug) write(out_unitp,*) 'Q0_itQtransfo',Q0_itQtransfo
-    flush(out_unitp)
+    IF (print_level > 1 .OR. debug) write(out_unit,*) 'Q0_itQtransfo',Q0_itQtransfo
+    flush(out_unit)
     ! defined the "info" from Q0_itQtransfo
     IF (Q0_itQtransfo == nb_Qtransfo) THEN ! Qact
       info_Qread = ' Read (all) Qact0 coordinates:'
@@ -581,8 +581,8 @@ CONTAINS
       CALL Qtransfo(Q0_itQtransfo)%Qtransfo%Read_Q(Q0,nb_var,unit,info_Qread)
     END IF
     IF(MPI_id==0) THEN 
-      write(out_unitp,*) info_Qread
-      write(out_unitp,*) Q0
+      write(out_unit,*) info_Qread
+      write(out_unit,*) Q0
 
     END IF
 
@@ -594,18 +594,18 @@ CONTAINS
     IF (Q0_itQtransfo < nb_Qtransfo) THEN
       CALL Qit_TO_Qdyn_Qtransfo_Tnum(Qdyn,Q0,Q0_itQtransfo,Qtransfo)
     ELSE ! special case for Qact (full) to Qdyn
-      IF (debug) write(out_unitp,*) 'Q0 (Qact_full)',Q0
+      IF (debug) write(out_unit,*) 'Q0 (Qact_full)',Q0
       SELECT TYPE (ActiveTransfo => Qtransfo(nb_Qtransfo)%Qtransfo)
       TYPE IS(ActiveTransfo_t)
         Qdyn = Q0(ActiveTransfo%list_QdynTOQact)
       CLASS DEFAULT
-        write(out_unitp,*) "ERROR in ",name_sub
-        write(out_unitp,*) " Wrong dynamical type."
-        write(out_unitp,*) " It should be 'ActiveTransfo_t'"
+        write(out_unit,*) "ERROR in ",name_sub
+        write(out_unit,*) " Wrong dynamical type."
+        write(out_unit,*) " It should be 'ActiveTransfo_t'"
         STOP 'ERROR in Read_RefGeom_QTransfo_Tnum: Wrong dynamical type'
       END SELECT
     END IF
-    IF (debug) write(out_unitp,*) 'Qdyn',Qdyn
+    IF (debug) write(out_unit,*) 'Qdyn',Qdyn
     ! 2) tranfer Qdyn to Qdyn0
     SELECT TYPE (ActiveTransfo => Qtransfo(nb_Qtransfo)%Qtransfo)
     TYPE IS(ActiveTransfo_t)
@@ -617,10 +617,10 @@ CONTAINS
 
     IF(MPI_id==0) THEN
       IF (print_level > 1) THEN
-        write(out_unitp,*) 'Qdyn0 is set-up:',Qdyn
-        write(out_unitp,*) '===================================='
+        write(out_unit,*) 'Qdyn0 is set-up:',Qdyn
+        write(out_unit,*) '===================================='
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     ENDIF
 
   END SUBROUTINE Read_RefGeom_QTransfo_Tnum
@@ -649,7 +649,7 @@ CONTAINS
     character (len=*), parameter :: name_sub='Qit_TO_Qact_Qtransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
     END IF
     nb_Qtransfo = size(Qtransfo)
 
@@ -658,10 +658,10 @@ CONTAINS
     IF (Q_itQtransfo == nb_Qtransfo) THEN ! allready Qact
       nb_act = Qtransfo(nb_Qtransfo)%Qtransfo%get_nb_act()
       IF (nb_act < 0) THEN
-        write(out_unitp,*) "ERROR in ",name_sub
-        write(out_unitp,*) " nb_act < 0",nb_act
-        write(out_unitp,*) " Wrong dynamical type. Actual Qtranso: ",Qtransfo(nb_Qtransfo)%Qtransfo%name_transfo
-        write(out_unitp,*) " It should be 'ActiveTransfo_t'"
+        write(out_unit,*) "ERROR in ",name_sub
+        write(out_unit,*) " nb_act < 0",nb_act
+        write(out_unit,*) " Wrong dynamical type. Actual Qtranso: ",Qtransfo(nb_Qtransfo)%Qtransfo%name_transfo
+        write(out_unit,*) " It should be 'ActiveTransfo_t'"
         STOP 'ERROR in Qit_TO_Qact_Qtransfo_Tnum: Wrong dynamical type'
       END IF
       Qact = Qit(1:nb_act)
@@ -670,24 +670,24 @@ CONTAINS
 
       IF (debug) THEN
         CALL Write_dnVec(Qout,info='Qcart')
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) ' Transfo: Qcart -> Qact'
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) ' Transfo: Qcart -> Qact'
       END IF
 
       DO it=1,size(Qtransfo)
         IF (debug) THEN
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+          write(out_unit,*) '-------------------------------------------'
         END IF
         Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
-        IF (debug) write(out_unitp,*) '-------------------------------------------'
+        IF (debug) write(out_unit,*) '-------------------------------------------'
         Qout = Qin
         IF (debug) THEN
           CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
         END IF
       END DO
       Qact = get_Flatten(Qin,i_der=0)
@@ -696,24 +696,24 @@ CONTAINS
       Qout = Variable_dnVec(Qit,nderiv=0)
       IF (debug) THEN
         CALL Write_dnVec(Qout,info='Qout' // TO_string(Q_itQtransfo))
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) ' Transfo: Qit' // TO_string(Q_itQtransfo) // ' -> Qact'
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) ' Transfo: Qit' // TO_string(Q_itQtransfo) // ' -> Qact'
       END IF
 
       DO it=Q_itQtransfo+1,size(Qtransfo)
         IF (debug) THEN
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+          write(out_unit,*) '-------------------------------------------'
         END IF
         Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
-        IF (debug) write(out_unitp,*) '-------------------------------------------'
+        IF (debug) write(out_unit,*) '-------------------------------------------'
         Qout = Qin
         IF (debug) THEN
           CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
         END IF
       END DO
       Qact = get_Flatten(Qin,i_der=0)
@@ -722,11 +722,11 @@ CONTAINS
 
     IF (debug) THEN
       IF (print_level > 1)  THEN
-        write(out_unitp,*) '-------------------------------------------'
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) '===================================='
+        write(out_unit,*) '-------------------------------------------'
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) '===================================='
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
 
   END SUBROUTINE Qit_TO_Qact_Qtransfo_Tnum
@@ -756,7 +756,7 @@ CONTAINS
     character (len=*), parameter :: name_sub='Qit_TO_Qdyn_Qtransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
     END IF
     nb_Qtransfo = size(Qtransfo)
 
@@ -765,10 +765,10 @@ CONTAINS
     IF (Q_itQtransfo == nb_Qtransfo) THEN ! from Qact to Qdyn
       nb_act = Qtransfo(nb_Qtransfo)%Qtransfo%get_nb_act()
       IF (nb_act < 0) THEN
-        write(out_unitp,*) "ERROR in ",name_sub
-        write(out_unitp,*) " nb_act < 0",nb_act
-        write(out_unitp,*) " Wrong dynamical type. Actual Qtranso: ",Qtransfo(nb_Qtransfo)%Qtransfo%name_transfo
-        write(out_unitp,*) " It should be 'ActiveTransfo_t'"
+        write(out_unit,*) "ERROR in ",name_sub
+        write(out_unit,*) " nb_act < 0",nb_act
+        write(out_unit,*) " Wrong dynamical type. Actual Qtranso: ",Qtransfo(nb_Qtransfo)%Qtransfo%name_transfo
+        write(out_unit,*) " It should be 'ActiveTransfo_t'"
         STOP 'ERROR in Qit_TO_Qdyn_Qtransfo_Tnum: Wrong dynamical type'
       END IF
 
@@ -783,24 +783,24 @@ CONTAINS
 
       IF (debug) THEN
         CALL Write_dnVec(Qout,info='Qcart')
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) ' Transfo: Qcart -> Qact'
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) ' Transfo: Qcart -> Qact'
       END IF
 
       DO it=1,size(Qtransfo)-1
         IF (debug) THEN
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+          write(out_unit,*) '-------------------------------------------'
         END IF
         Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
-        IF (debug) write(out_unitp,*) '-------------------------------------------'
+        IF (debug) write(out_unit,*) '-------------------------------------------'
         Qout = Qin
         IF (debug) THEN
           CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
         END IF
       END DO
       Qdyn = get_Flatten(Qin,i_der=0)
@@ -809,24 +809,24 @@ CONTAINS
       Qout = Variable_dnVec(Qit,nderiv=0)
       IF (debug) THEN
         CALL Write_dnVec(Qout,info='Qout' // TO_string(Q_itQtransfo))
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) '==================================================='
-        write(out_unitp,*) ' Transfo: Qit' // TO_string(Q_itQtransfo) // ' -> Qact'
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) '==================================================='
+        write(out_unit,*) ' Transfo: Qit' // TO_string(Q_itQtransfo) // ' -> Qact'
       END IF
 
       DO it=Q_itQtransfo+1,size(Qtransfo)-1
         IF (debug) THEN
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) '-------------------------------------------'
-          write(out_unitp,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
+          write(out_unit,*) it,'Transfo: ',Qtransfo(it)%Qtransfo%name_transfo
+          write(out_unit,*) '-------------------------------------------'
         END IF
         Qin  = Qtransfo(it)%Qtransfo%QoutTOQin(Qout)
-        IF (debug) write(out_unitp,*) '-------------------------------------------'
+        IF (debug) write(out_unit,*) '-------------------------------------------'
         Qout = Qin
         IF (debug) THEN
           CALL Write_dnVec(Qin,info='Qin' // TO_string(it))
-          write(out_unitp,*) '-------------------------------------------'
+          write(out_unit,*) '-------------------------------------------'
         END IF
       END DO
       Qdyn = get_Flatten(Qin,i_der=0)
@@ -835,11 +835,11 @@ CONTAINS
 
     IF (debug) THEN
       IF (print_level > 1)  THEN
-        write(out_unitp,*) '-------------------------------------------'
-        write(out_unitp,*) 'Qdyn',Qdyn
-        write(out_unitp,*) '===================================='
+        write(out_unit,*) '-------------------------------------------'
+        write(out_unit,*) 'Qdyn',Qdyn
+        write(out_unit,*) '===================================='
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
 
   END SUBROUTINE Qit_TO_Qdyn_Qtransfo_Tnum

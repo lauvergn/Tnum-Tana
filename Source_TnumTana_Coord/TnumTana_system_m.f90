@@ -35,64 +35,94 @@
 !===========================================================================
 MODULE TnumTana_system_m
   USE QDUtil_m
+  USE mod_MPI
+  USE mod_system, ONLY : param_FOR_optimization, para_FOR_optimization
+  !USE mod_system, ONLY : Grid_maxth, Grid_omp
   IMPLICIT NONE
 
-  PRIVATE
-  PUBLIC :: TnumTana_version
+  logical :: print_CoordType_done = .FALSE.! if T, the CoordType has been already print
 
-#if defined(__TNUM_VER)
-  character (len=Name_len) :: Tnum_version = __TNUM_VER
-#else
-  character (len=Name_len) :: Tnum_version = "unknown: -D__TNUM_VER=?"
-#endif
 
-#if defined(__TANA_VER)
-  character (len=Name_len) :: Tana_version = __TANA_VER
-#else
-  character (len=Name_len) :: Tana_version = "unknown: -D__TANA_VER=?"
-#endif
-
-#if defined(__COMPILE_DATE)
-  character (len=Line_len) :: compile_date = __COMPILE_DATE
-#else
-  character (len=Line_len) :: compile_date = "unknown: -D__COMPILE_DATE=?"
-#endif
-
-#if defined(__COMPILE_HOST)
-  character (len=Line_len) :: compile_host = __COMPILE_HOST
-#else
-  character (len=Line_len) :: compile_host = "unknown: -D__COMPILE_HOST=?"
-#endif
-#if defined(__COMPILER)
-  character (len=Line_len) :: compiler = __COMPILER
-#else
-  character (len=Line_len) :: compiler = "unknown: -D__COMPILER=?"
-#endif
-#if defined(__COMPILER_VER)
-  character (len=Line_len) :: compiler_ver = __COMPILER_VER
-#else
-  character (len=Line_len) :: compiler_ver = "unknown: -D__COMPILER_VER=?"
-#endif
-#if defined(__COMPILER_OPT)
-  character (len=Line_len) :: compiler_opt = &
-      __COMPILER_OPT
-#else
-  character (len=Line_len) :: compiler_opt = "unknown: -D__COMPILER_OPT=?"
-#endif
-#if defined(__COMPILER_LIBS)
-character (len=Line_len) :: compiler_libs = &
-       __COMPILER_LIBS
-#else
-  character (len=Line_len) :: compiler_libs = "unknown: -D__COMPILER_LIBS=?"
-#endif
-
+  PRIVATE :: TnumTana_dihedral_range
+  INTERFACE dihedral_range
+    MODULE PROCEDURE TnumTana_dihedral_range
+  END INTERFACE
 CONTAINS
 
+  SUBROUTINE TnumTana_dihedral_range(angle,itype_dihedral)
+    IMPLICIT NONE
+
+    real (kind=Rkind), intent(inout) :: angle
+    integer, optional :: itype_dihedral
+
+    integer :: itype_dihedral_loc
+
+    itype_dihedral_loc = 0
+    IF (present(itype_dihedral)) itype_dihedral_loc = itype_dihedral
+
+    SELECT CASE (itype_dihedral_loc)
+    CASE (1) ! [-pi:pi]
+      angle = modulo(angle,TWO*pi)
+      IF (angle > pi) angle = angle - TWO*pi
+    CASE (2) ! [0:2pi]
+      angle = modulo(angle,TWO*pi)
+    CASE Default
+      ! nothing
+    END SELECT
+
+  END SUBROUTINE TnumTana_dihedral_range
   SUBROUTINE TnumTana_version(write_version)
     USE mod_MPI
     IMPLICIT NONE
   
-    logical :: write_version
+    logical, intent(in) :: write_version
+
+
+#if defined(__TNUM_VER)
+character (len=*), parameter :: Tnum_version = __TNUM_VER
+#else
+character (len=*), parameter :: Tnum_version = "unknown: -D__TNUM_VER=?"
+#endif
+
+#if defined(__TANA_VER)
+character (len=*), parameter :: Tana_version = __TANA_VER
+#else
+character (len=*), parameter :: Tana_version = "unknown: -D__TANA_VER=?"
+#endif
+
+#if defined(__COMPILE_DATE)
+character (len=*), parameter :: compile_date = __COMPILE_DATE
+#else
+character (len=*), parameter :: compile_date = "unknown: -D__COMPILE_DATE=?"
+#endif
+
+#if defined(__COMPILE_HOST)
+character (len=*), parameter :: compile_host = __COMPILE_HOST
+#else
+character (len=*), parameter :: compile_host = "unknown: -D__COMPILE_HOST=?"
+#endif
+#if defined(__COMPILER)
+character (len=*), parameter :: compiler = __COMPILER
+#else
+character (len=*), parameter :: compiler = "unknown: -D__COMPILER=?"
+#endif
+#if defined(__COMPILER_VER)
+character (len=*), parameter :: compiler_ver = __COMPILER_VER
+#else
+character (len=*), parameter :: compiler_ver = "unknown: -D__COMPILER_VER=?"
+#endif
+#if defined(__COMPILER_OPT)
+character (len=*), parameter :: compiler_opt = &
+    __COMPILER_OPT
+#else
+character (len=*), parameter :: compiler_opt = "unknown: -D__COMPILER_OPT=?"
+#endif
+#if defined(__COMPILER_LIBS)
+character (len=*), parameter :: compiler_libs = &
+     __COMPILER_LIBS
+#else
+character (len=*), parameter :: compiler_libs = "unknown: -D__COMPILER_LIBS=?"
+#endif
   
     character (len=*), parameter :: Tnum_name='Tnum'
     character (len=*), parameter :: Tana_name='Tana'

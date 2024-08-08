@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_paramQ
-  use mod_system
+  use TnumTana_system_m
   USE mod_dnSVM
   use mod_Lib_QTransfo,     only: write_cart, calc_cross_product,       &
                                   write_dnx, sub3_dnx_at1
@@ -147,21 +147,21 @@ CONTAINS
       !-----------------------------------------------------------------
 
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
 !------- allocation of Q... -----------------------------------------
 
 
       IF (.NOT. associated(mole%name_Qdyn))  THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' mole%name_Qdyn is not associated in mole!!'
-        write(out_unitp,*) ' Check the source !'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' mole%name_Qdyn is not associated in mole!!'
+        write(out_unit,*) ' Check the source !'
         STOP
       END IF
 
       IF (print_level > 1) THEN
-        write(out_unitp,*) '===================================='
-        write(out_unitp,*) 'nb_var',mole%nb_var
+        write(out_unit,*) '===================================='
+        write(out_unit,*) 'nb_var',mole%nb_var
       END IF
 
 !------- read the namelist minimum -----------------------------
@@ -198,32 +198,32 @@ CONTAINS
       deriv_WITH_FiniteDiff = .FALSE.
       opt                   = .FALSE.
 
-      read(in_unitp,minimum,IOSTAT=err_io)
+      read(in_unit,minimum,IOSTAT=err_io)
       IF (err_io < 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "minimum"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Probably, you have forgotten the namelist ...'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "minimum"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Probably, you have forgotten the namelist ...'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
       IF (err_io > 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "minimum"'
-        write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "minimum"'
+        write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
-      IF (print_level > 1) write(out_unitp,minimum)
+      IF (print_level > 1) write(out_unit,minimum)
 
       CALL string_uppercase_TO_lowercase(unit)
 
       IF (unit /= 'au' .AND. unit /= 'bohr' .AND. unit /= 'angs') THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "minimum"'
-        write(out_unitp,*) '  The unit is wrong, unit: "',trim(unit),'"'
-        write(out_unitp,*) '  The possible values are: "au" or "bohr" or "angs"'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "minimum"'
+        write(out_unit,*) '  The unit is wrong, unit: "',trim(unit),'"'
+        write(out_unit,*) '  The possible values are: "au" or "bohr" or "angs"'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
@@ -241,9 +241,9 @@ CONTAINS
       END IF
 
       IF(MPI_id==0) THEN
-        write(out_unitp,*)  '------------------------------------------------------'
-        write(out_unitp,*)  '--- Coordinates used for the operators ---------------'
-        write(out_unitp,*)  '------------------------------------------------------'
+        write(out_unit,*)  '------------------------------------------------------'
+        write(out_unit,*)  '--- Coordinates used for the operators ---------------'
+        write(out_unit,*)  '------------------------------------------------------'
       ENDIF
 
       IF (mole%nb_Qtransfo == -1) THEN
@@ -255,13 +255,13 @@ CONTAINS
       IF ( (pot_act  .AND. pot_cart) .OR.                               &
            (pot_act  .AND. pot_itQtransfo /= -1) .OR.                   &
            (pot_cart .AND. pot_itQtransfo /= -1) ) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '(pot_act=t and pot_cart=t) .OR. ...'
-        write(out_unitp,*) 'pot_act',pot_act
-        write(out_unitp,*) 'pot_cart',pot_cart
-        write(out_unitp,*) 'pot_itQtransfo ',pot_itQtransfo
-        write(out_unitp,*) ' You have to chose between these options'
-        write(out_unitp,*) ' Check your data !'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '(pot_act=t and pot_cart=t) .OR. ...'
+        write(out_unit,*) 'pot_act',pot_act
+        write(out_unit,*) 'pot_cart',pot_cart
+        write(out_unit,*) 'pot_itQtransfo ',pot_itQtransfo
+        write(out_unit,*) ' You have to chose between these options'
+        write(out_unit,*) ' Check your data !'
         STOP
       END IF
       IF (OnTheFly) pot_itQtransfo = 0 ! cart
@@ -277,9 +277,9 @@ CONTAINS
 
       END IF
       IF (pot_itQtransfo < 0 .OR. pot_itQtransfo > mole%nb_Qtransfo) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,'(a,i0,a)') ' pot_itQtransfo is out of the range [0:',mole%nb_Qtransfo,']'
-        write(out_unitp,*) ' Check your data !'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,'(a,i0,a)') ' pot_itQtransfo is out of the range [0:',mole%nb_Qtransfo,']'
+        write(out_unit,*) ' Check your data !'
         STOP
       END IF
 
@@ -303,13 +303,13 @@ CONTAINS
       para_Tnum%para_PES_FromTnum%nDfit_Op = nDfit_Op
       IF (nDfit_Op) THEN
        !STOP 'nDfit_Op is not possible anymore!!'
-       write(out_unitp,*)  'BaseName_nDfit_file: ',trim(adjustl(BaseName_nDfit_file))
+       write(out_unit,*)  'BaseName_nDfit_file: ',trim(adjustl(BaseName_nDfit_file))
 
        para_Tnum%para_PES_FromTnum%BaseName_nDfit_file = BaseName_nDfit_file
        IF (len_trim(BaseName_nDfit_file) == 0) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' nDfit_Op=.TRUE. and BaseName_nDfit_file is empty'
-         write(out_unitp,*) ' Check your data !'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' nDfit_Op=.TRUE. and BaseName_nDfit_file is empty'
+         write(out_unit,*) ' Check your data !'
          STOP
        END IF
        para_Tnum%para_PES_FromTnum%nDFit_V_name_Fit =                   &
@@ -325,34 +325,34 @@ CONTAINS
       para_Tnum%para_PES_FromTnum%QMLib              = QMLib
 
       IF(MPI_id==0) THEN
-        write(out_unitp,*) 'nb_scalar_Op',nb_scalar_Op
-        write(out_unitp,*) 'nb_CAP',nb_CAP
-        write(out_unitp,*) 'pot_itQtransfo',pot_itQtransfo
+        write(out_unit,*) 'nb_scalar_Op',nb_scalar_Op
+        write(out_unit,*) 'nb_CAP',nb_CAP
+        write(out_unit,*) 'pot_itQtransfo',pot_itQtransfo
 
         IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 0) THEN
-          write(out_unitp,*) 'Operators (pot...) with Cartesian coordinates'
+          write(out_unit,*) 'Operators (pot...) with Cartesian coordinates'
         ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 1) THEN
-          write(out_unitp,*) 'Operators (pot...) with primitive (zmat...) coordinates'
+          write(out_unit,*) 'Operators (pot...) with primitive (zmat...) coordinates'
         ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo-1) THEN
-          write(out_unitp,*) 'Operators (pot...) with Qdyn coordinates'
+          write(out_unit,*) 'Operators (pot...) with Qdyn coordinates'
         ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo) THEN
-          write(out_unitp,*) 'Operators (pot...) with Qact coordinates'
+          write(out_unit,*) 'Operators (pot...) with Qact coordinates'
         END IF
 
         IF (QMLib .AND. para_Tnum%para_PES_FromTnum%pot_itQtransfo /= mole%nb_Qtransfo-1) THEN
-          write(out_unitp,*)  ' WARNING QMLib=.TRUE. and its coordinates are not Qdyn!!'
+          write(out_unit,*)  ' WARNING QMLib=.TRUE. and its coordinates are not Qdyn!!'
         END IF
 
-        write(out_unitp,*)  '------------------------------------------------------'
+        write(out_unit,*)  '------------------------------------------------------'
       ENDIF
 
       !=================================================================
       !=================================================================
       !=================================================================
       IF(MPI_id==0) THEN
-        write(out_unitp,*)  '------------------------------------------------------'
-        write(out_unitp,*)  '--- Coordinates used for the reference geometry ------'
-        write(out_unitp,*)  '------------------------------------------------------'
+        write(out_unit,*)  '------------------------------------------------------'
+        write(out_unit,*)  '--- Coordinates used for the reference geometry ------'
+        write(out_unit,*)  '------------------------------------------------------'
       ENDIF
 
       ! first defined how to read the reference geometry:
@@ -367,14 +367,14 @@ CONTAINS
            (read_Qact0 .AND. read_itQ0transfo /= -1) .OR.               &
            (read_xyz0  .AND. read_itQ0transfo /= -1)) THEN
 
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
-        write(out_unitp,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
-        write(out_unitp,*) 'read_Qact0',read_Qact0
-        write(out_unitp,*) 'read_xyz0 ',read_xyz0
-        write(out_unitp,*) 'read_itQ0transfo ',read_itQ0transfo
-        write(out_unitp,*) ' You have to chose between these options'
-        write(out_unitp,*) ' Check your data !'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
+        write(out_unit,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
+        write(out_unit,*) 'read_Qact0',read_Qact0
+        write(out_unit,*) 'read_xyz0 ',read_xyz0
+        write(out_unit,*) 'read_itQ0transfo ',read_itQ0transfo
+        write(out_unit,*) ' You have to chose between these options'
+        write(out_unit,*) ' Check your data !'
         STOP
       END IF
 
@@ -383,20 +383,20 @@ CONTAINS
 
       IF (read_itQtransfo_OF_Qin0 == -1) THEN ! old way with read_Qsym0 or read_xyz0 ....
         IF (read_Qdyn0) THEN
-          IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qdyn0 coordinates:'
+          IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qdyn0 coordinates:'
           read_itQtransfo_OF_Qin0 = mole%nb_Qtransfo-1
         ELSE IF (read_xyz0) THEN
-          IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read xyz0 coordinates:'
+          IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read xyz0 coordinates:'
           read_itQtransfo_OF_Qin0 = 0
         ELSE IF (read_Qact0) THEN
-          IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qact0 coordinates:'
+          IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qact0 coordinates:'
           read_itQtransfo_OF_Qin0 = mole%nb_Qtransfo
         ELSE
-          IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qdyn0 coordinates:'
+          IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qdyn0 coordinates:'
           read_itQtransfo_OF_Qin0 = mole%nb_Qtransfo-1
         END IF
 
-          !IF (print_level > 1 .OR. debug) write(out_unitp,*) ' Read Qprim0 (zmat, ...) coordinates:'
+          !IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qprim0 (zmat, ...) coordinates:'
           !read_itQtransfo_OF_Qin0 = mole%itPrim
       END IF
 
@@ -404,15 +404,15 @@ CONTAINS
       ! check if 0<= read_itQtransfo_OF_Qin0 <= mole%nb_Qtransfo
       IF (read_itQtransfo_OF_Qin0 < 0 .OR.                              &
           read_itQtransfo_OF_Qin0 > mole%nb_Qtransfo) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' read_itQ0transfo (or read_itQtransfo_OF_Qin0) ...'
-        write(out_unitp,'(a,i0,a)') '... is out of the range [0:',mole%nb_Qtransfo,']'
-        write(out_unitp,*) ' Check your data !'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' read_itQ0transfo (or read_itQtransfo_OF_Qin0) ...'
+        write(out_unit,'(a,i0,a)') '... is out of the range [0:',mole%nb_Qtransfo,']'
+        write(out_unit,*) ' Check your data !'
         STOP
       END IF
       read_xyz0 = (read_itQtransfo_OF_Qin0 == 0)
-      IF (print_level > 1 .OR. debug) write(out_unitp,*) 'read_itQtransfo_OF_Qin0',read_itQtransfo_OF_Qin0
-      flush(out_unitp)
+      IF (print_level > 1 .OR. debug) write(out_unit,*) 'read_itQtransfo_OF_Qin0',read_itQtransfo_OF_Qin0
+      flush(out_unit)
       ! defined the "info" from read_itQtransfo_OF_Qin0
       IF (read_itQtransfo_OF_Qin0 == mole%nb_Qtransfo) THEN ! Qact
         info_Qread = ' Read Qact0 coordinates:'
@@ -426,7 +426,7 @@ CONTAINS
         info_Qread = ' Read Qin0 coordinates, from transfo_it' //       &
                             TO_string(read_itQtransfo_OF_Qin0) // ':'
       END IF
-      IF(MPI_id==0) write(out_unitp,*) info_Qread
+      IF(MPI_id==0) write(out_unit,*) info_Qread
       ! ----------------------------------------------
 
       ! ----------------------------------------------
@@ -469,16 +469,16 @@ CONTAINS
       CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
 
  111  format(a,1x,f15.6)
-      IF(MPI_id==0) write(out_unitp,*) 'Qdyn0 coordinates (not transformed): [bohr]/[rad or cos(angle)]'
+      IF(MPI_id==0) write(out_unit,*) 'Qdyn0 coordinates (not transformed): [bohr]/[rad or cos(angle)]'
       DO i=1,mole%nb_var
         name = mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout(i)
-        IF(MPI_id==0) write(out_unitp,111) name,Qdyn(i)
+        IF(MPI_id==0) write(out_unit,111) name,Qdyn(i)
       END DO
 
-      IF(MPI_id==0) write(out_unitp,*) 'Qact0 coordinates (not transformed): [bohr]/[rad or cos(angle)]'
+      IF(MPI_id==0) write(out_unit,*) 'Qact0 coordinates (not transformed): [bohr]/[rad or cos(angle)]'
       DO i=1,mole%nb_var
         name = mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(i)
-        IF(MPI_id==0) write(out_unitp,111) name,Qact(i)
+        IF(MPI_id==0) write(out_unit,111) name,Qact(i)
       END DO
 
       IF(MPI_id==0) CALL Write_Q_WU(Qdyn,                                              &
@@ -498,7 +498,7 @@ CONTAINS
       IF (debug) CALL Write_Qtransfo(mole%tab_Qtransfo(mole%nb_Qtransfo))
       ! END Transfert the rigid values in ActiveTransfo%Qdyn0
 
-      write(out_unitp,*)  '------------------------------------------------------'
+      write(out_unit,*)  '------------------------------------------------------'
       !=================================================================
       !=================================================================
       !=================================================================
@@ -521,18 +521,18 @@ CONTAINS
         mole%tab_Qtransfo(1)%ZmatTransfo%vAt1(:) = Qread(nc1:nc1+2)
         mole%tab_Qtransfo(1)%ZmatTransfo%vAt2(:) = Qread(nc2:nc2+2)
         mole%tab_Qtransfo(1)%ZmatTransfo%vAt3(:) = Qread(nc3:nc3+2)
-        write(out_unitp,*) 'vAt1', mole%tab_Qtransfo(1)%ZmatTransfo%vAt1
-        write(out_unitp,*) 'vAt2', mole%tab_Qtransfo(1)%ZmatTransfo%vAt2
-        write(out_unitp,*) 'vAt3', mole%tab_Qtransfo(1)%ZmatTransfo%vAt3
+        write(out_unit,*) 'vAt1', mole%tab_Qtransfo(1)%ZmatTransfo%vAt1
+        write(out_unit,*) 'vAt2', mole%tab_Qtransfo(1)%ZmatTransfo%vAt2
+        write(out_unit,*) 'vAt3', mole%tab_Qtransfo(1)%ZmatTransfo%vAt3
       END IF
 
 
       ! Transfert/calculate the reference geometries to the CartesianTransfo
       ! => initial rotation matrix
       IF (mole%Cart_transfo) THEN
-        write(out_unitp,*) '===================================='
-        write(out_unitp,*) '==== CartesianTransfo =============='
-        flush(out_unitp)
+        write(out_unit,*) '===================================='
+        write(out_unit,*) '==== CartesianTransfo =============='
+        flush(out_unit)
 
         CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
 
@@ -601,8 +601,8 @@ CONTAINS
 
       IF(MPI_id==0) THEN
         IF (print_level > 1)                                              &
-            write(out_unitp,*) '===================================='
-        write(out_unitp,*) 'END ',name_sub
+            write(out_unit,*) '===================================='
+        write(out_unit,*) 'END ',name_sub
       ENDIF
 
       CALL dealloc_NParray(QRead,"QRead",name_sub)
@@ -611,7 +611,7 @@ CONTAINS
 !=======================================================================================
 
       SUBROUTINE sub_QactTOQit(Qact,Qit,it_QTransfo,mole,print_Qtransfo)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -638,30 +638,30 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_QactTOQit'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'it_QTransfo',it_QTransfo
-        !write(out_unitp,*) 'Qact =',Qact
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'it_QTransfo',it_QTransfo
+        !write(out_unit,*) 'Qact =',Qact
+        write(out_unit,*)
         !CALL Write_mole(mole)
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*)
+        flush(out_unit)
       END IF
 !     -----------------------------------------------------------------
 !      IF (size(Qact) == 0) THEN
-!        write(out_unitp,*) 'ERROR in ',name_sub
-!        write(out_unitp,*) ' the size of Qact(:) is zero!'
-!        write(out_unitp,*) ' Check the Frantran source!!'
+!        write(out_unit,*) 'ERROR in ',name_sub
+!        write(out_unit,*) ' the size of Qact(:) is zero!'
+!        write(out_unit,*) ' Check the Frantran source!!'
 !        STOP
 !      END IF
 
       IF (allocated(Qit)) CALL dealloc_NParray(Qit,'Qit',name_sub)
 
       IF (it_QTransfo < 0 .OR. it_QTransfo > mole%nb_Qtransfo) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' it_QTransfo has a wrong value: ',it_QTransfo
-        write(out_unitp,'(a,i0,a)') ' it must be between [0:',mole%nb_Qtransfo,']'
-        write(out_unitp,*) ' Check the Frantran source!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) ' it_QTransfo has a wrong value: ',it_QTransfo
+        write(out_unit,'(a,i0,a)') ' it must be between [0:',mole%nb_Qtransfo,']'
+        write(out_unit,*) ' Check the Frantran source!!'
         STOP
       END IF
 
@@ -687,7 +687,7 @@ CONTAINS
         IF (print_Qtransfo_loc .OR. debug) THEN
           CALL Write_d0Q(it,'Qin (Qact)',Qact,6)
           CALL Write_d0Q(0, 'Qit (Cart)',Qit,3)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 
         CALL dealloc_dnSVM(dnx)
@@ -707,12 +707,12 @@ CONTAINS
 
         IF (print_Qtransfo_loc .OR. debug) THEN
 
-          write(out_unitp,*) '-----------------------------------------'
-          write(out_unitp,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
+          write(out_unit,*) '-----------------------------------------'
+          write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
 
           CALL Write_d0Q(it,'Qin  (Qact)',dnQin%d0 ,6)
           CALL Write_d0Q(it,'Qout (Qdyn)',dnQout%d0,6)
-          flush(out_unitp)
+          flush(out_unit)
 
         END IF
 
@@ -739,11 +739,11 @@ CONTAINS
           CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
 
           IF (print_Qtransfo_loc .OR. debug) THEN
-            write(out_unitp,*) '-----------------------------------------'
-            write(out_unitp,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
+            write(out_unit,*) '-----------------------------------------'
+            write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
             CALL Write_d0Q(it,'Qin ',dnQin%d0 ,6)
             CALL Write_d0Q(it,'Qout',dnQout%d0,6)
-            flush(out_unitp)
+            flush(out_unit)
 
           END IF
 
@@ -766,16 +766,16 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
+        flush(out_unit)
       END IF
 !     -----------------------------------------------------------------
 
       END SUBROUTINE sub_QactTOQit
 
       SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -802,13 +802,13 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_QinRead_TO_Qact'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'it_QinRead,mole%nb_Qtransfo',it_QinRead,mole%nb_Qtransfo
-        write(out_unitp,*) 'Qread =',Qread
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'it_QinRead,mole%nb_Qtransfo',it_QinRead,mole%nb_Qtransfo
+        write(out_unit,*) 'Qread =',Qread
+        write(out_unit,*)
         !CALL Write_mole(mole)
-        write(out_unitp,*)
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -832,15 +832,15 @@ CONTAINS
 
           IF (debug) THEN
             CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
-            write(out_unitp,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
-            flush(out_unitp)
+            write(out_unit,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
+            flush(out_unit)
           END IF
 
           CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
 
           IF (debug) THEN
             CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
-            flush(out_unitp)
+            flush(out_unit)
           END IF
 
           CALL dealloc_dnSVM(dnQout)
@@ -859,17 +859,17 @@ CONTAINS
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact',Qact(:)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'Qact',Qact(:)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
       !-----------------------------------------------------------------
 
       END SUBROUTINE sub_QinRead_TO_Qact
 
       SUBROUTINE Set_NewOrient_CartesianTransfo(mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
       IMPLICIT NONE
@@ -890,8 +890,8 @@ CONTAINS
       character (len=*), parameter :: name_sub='Set_NewOrient_CartesianTransfo'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -909,11 +909,11 @@ CONTAINS
       ELSE
 
         IF (mole%ncart /= mole%ncart_act+3) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) '  ncart /= ncart_act+3',mole%ncart,mole%ncart_act
-          write(out_unitp,*) ' => dummy atoms are present. It is not possible with this option.'
-          write(out_unitp,*) ' => Choose New_Orient with vAt1,vAt3,vAt3. '
-          write(out_unitp,*) '  CHECK your data!!'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) '  ncart /= ncart_act+3',mole%ncart,mole%ncart_act
+          write(out_unit,*) ' => dummy atoms are present. It is not possible with this option.'
+          write(out_unit,*) ' => Choose New_Orient with vAt1,vAt3,vAt3. '
+          write(out_unit,*) '  CHECK your data!!'
           STOP
         END IF
 
@@ -935,15 +935,15 @@ CONTAINS
       END IF
 
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Set_NewOrient_CartesianTransfo
 
       SUBROUTINE sub_QxyzTOexeyez(Qxyz,VT,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -967,18 +967,18 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_QxyzTOexeyez'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qxyz (not mass-weigthed, Angs)'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qxyz (not mass-weigthed, Angs)'
         DO i=1,mole%nat_act
-          write(out_unitp,*) Qxyz(3*i-2:3*i) * get_Conv_au_TO_unit("L","Angs")
+          write(out_unit,*) Qxyz(3*i-2:3*i) * get_Conv_au_TO_unit("L","Angs")
         END DO
-        write(out_unitp,*) 'Qxyz (not mass-weigthed, Bohr)'
+        write(out_unit,*) 'Qxyz (not mass-weigthed, Bohr)'
         DO i=1,mole%nat_act
-          write(out_unitp,*) Qxyz(3*i-2:3*i)
+          write(out_unit,*) Qxyz(3*i-2:3*i)
         END DO
-        write(out_unitp,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
-        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
+        write(out_unit,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
+        write(out_unit,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
       END IF
 !     -----------------------------------------------------------------
 
@@ -990,7 +990,7 @@ CONTAINS
 
       SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
-        IF (debug) write(out_unitp,*) 'zmat'
+        IF (debug) write(out_unit,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
         nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
         nc3 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,3)
@@ -1000,7 +1000,7 @@ CONTAINS
           Qxyz(3*i-2:3*i) = Qxyz(3*i-2:3*i)-VT(:)
         END DO
 
-        IF (debug) write(out_unitp,*) 'zmat, nc1,nc2,nc3',nc1,nc2,nc3
+        IF (debug) write(out_unit,*) 'zmat, nc1,nc2,nc3',nc1,nc2,nc3
 
         IF (nc1 <= mole%ncart .AND. nc2 <= mole%ncart .AND. nc3 <= mole%ncart) THEN
 
@@ -1038,7 +1038,7 @@ CONTAINS
         CALL Write_d0Q(it,'Qxyz ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,3)
         CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
         DO i=1,3*mole%tab_Qtransfo(it)%BunchTransfo%nb_vect,3
-          write(out_unitp,*) 'QVect',int(i/3)+1,                        &
+          write(out_unit,*) 'QVect',int(i/3)+1,                        &
                     sqrt(dot_product(dnQin%d0(i:i+2),dnQin%d0(i:i+2))), &
                                                          dnQin%d0(i:i+2)
         END DO
@@ -1056,7 +1056,7 @@ CONTAINS
         CALL dealloc_dnSVM(dnQin)
 
       CASE ('QTOX_ana')
-        write(out_unitp,*) 'QTOX_ana: correct orientation ???'
+        write(out_unit,*) 'QTOX_ana: correct orientation ???'
         ez(:) = Qxyz(1:3)
         ez(:) = ez(:)/sqrt(dot_product(ez,ez))
 
@@ -1066,10 +1066,10 @@ CONTAINS
 
         CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
       CASE default ! ERROR: wrong transformation !
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo',get_name_Qtransfo(mole%tab_Qtransfo(1))
-        write(out_unitp,*) '  CHECK the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) '  Wrong transformation !!'
+        write(out_unit,*) 'name_transfo',get_name_Qtransfo(mole%tab_Qtransfo(1))
+        write(out_unit,*) '  CHECK the fortran!!'
         STOP
       END SELECT
 
@@ -1083,13 +1083,13 @@ CONTAINS
 !=================================================
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'ex',ex(:)
-        write(out_unitp,*) 'ey',ey(:)
-        write(out_unitp,*) 'ez',ez(:)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'ex',ex(:)
+        write(out_unit,*) 'ey',ey(:)
+        write(out_unit,*) 'ez',ez(:)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
 !     -----------------------------------------------------------------
 !=================================================
@@ -1097,7 +1097,7 @@ CONTAINS
       END SUBROUTINE sub_QxyzTOexeyez
       !Initial rotation with vAt1, vAt2, vAt3
       SUBROUTINE sub_vAtiTOexeyez(VT,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -1122,11 +1122,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_vAtiTOexeyez'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'vAt1',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1
-        write(out_unitp,*) 'vAt2',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt2
-        write(out_unitp,*) 'vAt3',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt3
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'vAt1',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1
+        write(out_unit,*) 'vAt2',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt2
+        write(out_unit,*) 'vAt3',mole%tab_Cart_transfo(1)%CartesianTransfo%vAt3
       END IF
 !     -----------------------------------------------------------------
 
@@ -1136,9 +1136,9 @@ CONTAINS
                      all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt3 == ZERO)
 
      IF (vAti_EQ_ZERO) THEN
-       write(out_unitp,*) 'ERROR in ',name_sub
-       write(out_unitp,*) '  vAt1=0 and vAt2=0 and vAt3=0 '
-       write(out_unitp,*) '  CHECK you data!!'
+       write(out_unit,*) 'ERROR in ',name_sub
+       write(out_unit,*) '  vAt1=0 and vAt2=0 and vAt3=0 '
+       write(out_unit,*) '  CHECK you data!!'
        STOP
      END IF
 
@@ -1146,13 +1146,13 @@ CONTAINS
 
       SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
-        IF (debug) write(out_unitp,*) 'zmat'
+        IF (debug) write(out_unit,*) 'zmat'
         nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
         nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
         nc3 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,3)
 
 
-        IF (debug) write(out_unitp,*) 'zmat, nc1,nc2,nc3',nc1,nc2,nc3
+        IF (debug) write(out_unit,*) 'zmat, nc1,nc2,nc3',nc1,nc2,nc3
 
         IF (nc1 <= mole%ncart .AND. nc2 <= mole%ncart .AND. nc3 <= mole%ncart) THEN
 
@@ -1187,10 +1187,10 @@ CONTAINS
 
 
       CASE default ! ERROR: wrong transformation !
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
-        write(out_unitp,*) '  CHECK the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) '  Wrong transformation !!'
+        write(out_unit,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
+        write(out_unit,*) '  CHECK the fortran!!'
         STOP
       END SELECT
 
@@ -1204,20 +1204,20 @@ CONTAINS
 !=================================================
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'ex',ex(:)
-        write(out_unitp,*) 'ey',ey(:)
-        write(out_unitp,*) 'ez',ez(:)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'ex',ex(:)
+        write(out_unit,*) 'ey',ey(:)
+        write(out_unit,*) 'ez',ez(:)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
 !     -----------------------------------------------------------------
 !=================================================
 
       END SUBROUTINE sub_vAtiTOexeyez
       SUBROUTINE sub_Qxyz0TORot(Qxyz,Rot_initial,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -1240,11 +1240,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_Qxyz0TORot'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qxyz =',Qxyz
-        write(out_unitp,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
-        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qxyz =',Qxyz
+        write(out_unit,*) 'num_transfo',mole%tab_Qtransfo(1)%num_transfo
+        write(out_unit,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
       END IF
 !     -----------------------------------------------------------------
 
@@ -1289,7 +1289,7 @@ CONTAINS
 
         IF (debug) THEN
           DO i=1,3*mole%tab_Qtransfo(it)%BunchTransfo%nb_vect,3
-            write(out_unitp,*) 'QVect',int(i/3)+1,                      &
+            write(out_unit,*) 'QVect',int(i/3)+1,                      &
                     sqrt(dot_product(dnQin%d0(i:i+2),dnQin%d0(i:i+2))), &
                                                          dnQin%d0(i:i+2)
           END DO
@@ -1308,7 +1308,7 @@ CONTAINS
         CALL dealloc_dnSVM(dnQin)
 
       CASE ('QTOX_ana')
-        write(out_unitp,*) 'QTOX_ana: correct orientation ???'
+        write(out_unit,*) 'QTOX_ana: correct orientation ???'
         ez(:) = Qxyz(1:3)
         ez(:) = ez(:)/sqrt(dot_product(ez,ez))
 
@@ -1319,10 +1319,10 @@ CONTAINS
         CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
 
       CASE default ! ERROR: wrong transformation !
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) '  Wrong transformation !!'
-        write(out_unitp,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
-        write(out_unitp,*) '  CHECK the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) '  Wrong transformation !!'
+        write(out_unit,*) 'name_transfo ',get_name_Qtransfo(mole%tab_Qtransfo(1))
+        write(out_unit,*) '  CHECK the fortran!!'
         STOP
       END SELECT
 
@@ -1336,12 +1336,12 @@ CONTAINS
 !=================================================
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Rotational matrix'
-        CALL Write_Mat(Rot_initial,out_unitp,5)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'Rotational matrix'
+        CALL Write_Mat(Rot_initial,out_unit,5)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
 !     -----------------------------------------------------------------
 !=================================================
@@ -1350,7 +1350,7 @@ CONTAINS
 
 
       SUBROUTINE sub_QplusDQ_TO_Cart(Qact,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
       IMPLICIT NONE
@@ -1376,8 +1376,8 @@ CONTAINS
 !     -----------------------------------------------------------------
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
       END IF
       !-----------------------------------------------------------------
 
@@ -1403,42 +1403,42 @@ CONTAINS
       Qact = mole%ActiveTransfo%Qact0
       CALL sub_QactTOdnx(Qact,dnx0,mole,0,Gcenter=.TRUE.)
 
-      write(out_unitp,*) '=============================================='
-      write(out_unitp,*) '= XYZ format (reference geometry) ============'
-      write(out_unitp,*) mole%nat_act
-      write(out_unitp,*)
+      write(out_unit,*) '=============================================='
+      write(out_unit,*) '= XYZ format (reference geometry) ============'
+      write(out_unit,*) mole%nat_act
+      write(out_unit,*)
 
       iZ = 0
       DO i=1,mole%ncart_act,3
         iZ = iZ + 1
-        write(out_unitp,112) Z_act(iZ),dnx0%d0(i:i+2)*a0
+        write(out_unit,112) Z_act(iZ),dnx0%d0(i:i+2)*a0
  112    format(2x,i5,3(2x,f12.5))
       END DO
 
-      write(out_unitp,*) '= END XYZ format ============================='
-      write(out_unitp,*) '=============================================='
+      write(out_unit,*) '= END XYZ format ============================='
+      write(out_unit,*) '=============================================='
 
       file_freq%name='freq.xyz'
       CALL file_open(file_freq,niofreq)
       ! loop on all the coordinates (active order)
-      IF (debug) write(out_unitp,*) 0,'Qact0',mole%ActiveTransfo%Qact0
+      IF (debug) write(out_unit,*) 0,'Qact0',mole%ActiveTransfo%Qact0
 
       DO iQ=1,mole%nb_var
 
         Qact = mole%ActiveTransfo%Qact0
         Qact(iQ) = Qact(iQ) + ONETENTH
-        IF (debug) write(out_unitp,*) iQ,'Qact',Qact(:)
+        IF (debug) write(out_unit,*) iQ,'Qact',Qact(:)
         CALL sub_QactTOdnx(Qact,dnx,mole,0,Gcenter=.TRUE.)
-        IF (debug) write(out_unitp,*) iQ,'d0x', dnx%d0
+        IF (debug) write(out_unit,*) iQ,'d0x', dnx%d0
 
         dnx%d0 = dnx%d0 - dnx0%d0 ! dxyz
-        IF (debug) write(out_unitp,*) iQ,'Delta d0x', dnx%d0
+        IF (debug) write(out_unit,*) iQ,'Delta d0x', dnx%d0
 
         Norm = sqrt(dot_product(dnx%d0,dnx%d0))
-        IF (debug) write(out_unitp,*) iQ,'Norm of Delta d0x',Norm
+        IF (debug) write(out_unit,*) iQ,'Norm of Delta d0x',Norm
 
         IF (Norm > ONETENTH**4) dnx%d0 = dnx%d0/Norm
-        IF (debug) write(out_unitp,*) iQ,'Delta d0x (renorm)', dnx%d0
+        IF (debug) write(out_unit,*) iQ,'Delta d0x (renorm)', dnx%d0
 
         write(niofreq,*) mole%nat_act
         write(niofreq,*) '  Coord: ',iQ
@@ -1457,8 +1457,8 @@ CONTAINS
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
       END SUBROUTINE sub_QplusDQ_TO_Cart
@@ -1467,7 +1467,7 @@ CONTAINS
 !       conversion d0Q (zmat,poly, bunch ...) => d0x (mass weighted)
 !================================================================
       SUBROUTINE sub_QactTOdnMWx(Qact,dnMWx,mole,nderiv,Gcenter,Cart_Transfo,WriteCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
       IMPLICIT NONE
@@ -1492,14 +1492,14 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_QactTOdnMWx'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ncart',mole%ncart
-        write(out_unitp,*) 'Qact =',Qact
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ncart',mole%ncart
+        write(out_unit,*) 'Qact =',Qact
+        write(out_unit,*)
         !CALL Write_CoordType(mole)
-        write(out_unitp,*)
+        write(out_unit,*)
         CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
@@ -1523,10 +1523,10 @@ CONTAINS
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Mass Weighted Cartessian coordinates'
+        write(out_unit,*) 'Mass Weighted Cartessian coordinates'
         CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -1536,7 +1536,7 @@ CONTAINS
 !================================================================
       RECURSIVE SUBROUTINE sub_QactTOdnx_CoordType(Qact,dnx,mole,       &
                                      nderiv,Gcenter,Cart_Transfo,WriteCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -1566,26 +1566,26 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_QactTOdnx'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ncart',mole%ncart
-        write(out_unitp,*) 'Qact =',Qact
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ncart',mole%ncart
+        write(out_unit,*) 'Qact =',Qact
+        write(out_unit,*)
         !CALL Write_CoordType(mole)
-        write(out_unitp,*)
+        write(out_unit,*)
         CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
 
       IF (size(Qact) /= mole%nb_var .AND. size(Qact) /= mole%nb_act) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' the size of Qact(:) is not mole%nb_var or '
-        write(out_unitp,*) ' the size of Qact(:) is not mole%nb_act!'
-        write(out_unitp,*) ' the size of Qact(:): ',size(Qact)
-        write(out_unitp,*) ' mole%nb_var:         ',mole%nb_var
-        write(out_unitp,*) ' mole%nb_act:         ',mole%nb_act
-        write(out_unitp,*) ' Check the Fortran source!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) ' the size of Qact(:) is not mole%nb_var or '
+        write(out_unit,*) ' the size of Qact(:) is not mole%nb_act!'
+        write(out_unit,*) ' the size of Qact(:): ',size(Qact)
+        write(out_unit,*) ' mole%nb_var:         ',mole%nb_var
+        write(out_unit,*) ' mole%nb_act:         ',mole%nb_act
+        write(out_unit,*) ' Check the Fortran source!!'
         STOP
       END IF
 
@@ -1601,16 +1601,16 @@ CONTAINS
         Cart_Transfo_loc = mole%Cart_transfo
       END IF
 
-      IF (debug) write(out_unitp,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
+      IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
 
       IF (mole%num_x .AND. nderiv > 0) THEN
         step2 = ONE/(mole%stepQ*mole%stepQ)
         step24 = step2/FOUR
         stepp = ONE/(mole%stepQ+mole%stepQ)
         IF (nderiv >= 3) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' nderiv > 2 is impossible with numerical derivatives'
-          write(out_unitp,*) ' nderiv: ',nderiv
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nderiv > 2 is impossible with numerical derivatives'
+          write(out_unit,*) ' nderiv: ',nderiv
           STOP
         END IF
         IF (nderiv >= 1) THEN ! first and second (diagonal) derivatives
@@ -1697,9 +1697,9 @@ CONTAINS
 
         DO it=mole%nb_Qtransfo,1,-1
           IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
-          IF (WriteCC_loc .OR. debug) write(out_unitp,*) 'name_transfo',it,' ',&
+          IF (WriteCC_loc .OR. debug) write(out_unit,*) 'name_transfo',it,' ',&
                                        get_name_Qtransfo(mole%tab_Qtransfo(it))
-          flush(out_unitp)
+          flush(out_unit)
 
           IF (WriteCC_loc .OR. debug) CALL Write_d0Q(it,'Qin ',dnQin%d0,6)
 
@@ -1726,11 +1726,11 @@ CONTAINS
 
         !=================================================
         IF((WriteCC_loc .OR. debug) .AND. MPI_id==0) THEN
-          write(out_unitp,*) ' Cartesian coordinates without the Cartesian Transformation (au):'
+          write(out_unit,*) ' Cartesian coordinates without the Cartesian Transformation (au):'
           CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
-          write(out_unitp,*) ' Cartesian coordinates without the Cartesian Transformation (ang):'
+          write(out_unit,*) ' Cartesian coordinates without the Cartesian Transformation (ang):'
           CALL Write_Cartg98(dnx%d0,mole)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
         !=================================================
 
@@ -1738,7 +1738,7 @@ CONTAINS
         !=================================================
         IF (Cart_Transfo_loc) THEN
 
-          IF (debug) write(out_unitp,*) ' calc_CartesianTransfo_new?',Cart_Transfo_loc
+          IF (debug) write(out_unit,*) ' calc_CartesianTransfo_new?',Cart_Transfo_loc
 
           CALL calc_CartesianTransfo_new(dnx,dnx,                      &
                             mole%tab_Cart_transfo(1)%CartesianTransfo, &
@@ -1746,11 +1746,11 @@ CONTAINS
 
           !=================================================
           IF((WriteCC_loc .OR. debug) .AND. MPI_id==0)THEN
-            write(out_unitp,*) ' Cartesian coordinates after the Cartesian Transformation (au):'
+            write(out_unit,*) ' Cartesian coordinates after the Cartesian Transformation (au):'
             CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
-            write(out_unitp,*) ' Cartesian coordinates after the Cartesian Transformation (ang):'
+            write(out_unit,*) ' Cartesian coordinates after the Cartesian Transformation (ang):'
             CALL Write_Cartg98(dnx%d0,mole)
-            flush(out_unitp)
+            flush(out_unit)
           END IF
           !=================================================
 
@@ -1776,10 +1776,10 @@ CONTAINS
 !=================================================
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Cartessian coordinates (au)'
+        write(out_unit,*) 'Cartessian coordinates (au)'
         CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
 !     -----------------------------------------------------------------
 !=================================================
@@ -1787,7 +1787,7 @@ CONTAINS
       END SUBROUTINE sub_QactTOdnx_CoordType
 
       SUBROUTINE sub_QactTOd0x_CoordType(Qxyz,Qact,mole,Gcenter)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -1807,14 +1807,14 @@ CONTAINS
 !     -----------------------------------------------------------------
       nderiv = 0
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING sub_QactTOd0x'
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ncart',mole%ncart
-        write(out_unitp,*) 'Qact =',Qact
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING sub_QactTOd0x'
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ncart',mole%ncart
+        write(out_unit,*) 'Qact =',Qact
+        write(out_unit,*)
         CALL Write_CoordType(mole)
-        write(out_unitp,*)
+        write(out_unit,*)
       END IF
 !     -----------------------------------------------------------------
 
@@ -1839,8 +1839,8 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
        CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
-       write(out_unitp,*) 'END QTOd0x'
-       write(out_unitp,*)
+       write(out_unit,*) 'END QTOd0x'
+       write(out_unit,*)
       END IF
 !     -----------------------------------------------------------------
 !=================================================
@@ -1849,7 +1849,7 @@ CONTAINS
       END SUBROUTINE sub_QactTOd0x_CoordType
 
       SUBROUTINE sub_d0xTOQact(Qxyz,Qact,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
@@ -1875,13 +1875,13 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub_d0xTOQact'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'mole%nb_Qtransfo',mole%nb_Qtransfo
-        write(out_unitp,*) 'Qxyz =',Qxyz(:)
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'mole%nb_Qtransfo',mole%nb_Qtransfo
+        write(out_unit,*) 'Qxyz =',Qxyz(:)
+        write(out_unit,*)
         !CALL Write_CoordType(mole)
-        write(out_unitp,*)
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -1903,15 +1903,15 @@ CONTAINS
 
           IF (debug) THEN
             CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
-            write(out_unitp,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
-            flush(out_unitp)
+            write(out_unit,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
+            flush(out_unit)
           END IF
 
           CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
 
           IF (debug) THEN
             CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
-            flush(out_unitp)
+            flush(out_unit)
           END IF
 
           CALL dealloc_dnSVM(dnQout)
@@ -1929,17 +1929,17 @@ CONTAINS
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact',Qact(:)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'Qact',Qact(:)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
       !-----------------------------------------------------------------
 
       END SUBROUTINE sub_d0xTOQact
 
       SUBROUTINE Write_d0Q(it,name_info,d0Q,iblock)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -1957,25 +1957,25 @@ CONTAINS
       character (len=*), parameter :: name_sub='Write_d0Q'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
       END IF
       !-----------------------------------------------------------------
 
       IF(keep_MPI) THEN
-        write(out_unitp,*) '-----------------------------------------'
+        write(out_unit,*) '-----------------------------------------'
         DO i=1,size(d0Q),iblock
           iend = min(size(d0Q),i+iblock-1)
-          write(out_unitp,'(a,a,i0,1x,6(1x,f0.4))') name_info,',it_Qtransfo: ',it,d0Q(i:iend)
+          write(out_unit,'(a,a,i0,1x,6(1x,f0.4))') name_info,',it_Qtransfo: ',it,d0Q(i:iend)
         END DO
-        write(out_unitp,*) '-----------------------------------------'
-        flush(out_unitp)
+        write(out_unit,*) '-----------------------------------------'
+        flush(out_unit)
       ENDIF
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -1983,7 +1983,7 @@ CONTAINS
 
 !=======================================================================================
       SUBROUTINE Write_Q_WU(Q,name_Q,type_Q,info)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       real (kind=Rkind), intent(in)           :: Q(:)
@@ -2002,17 +2002,17 @@ CONTAINS
       character (len=*), parameter :: name_sub='Write_Q_WU'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'i,name_Q(i),type_Q(i),Q(i)'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'i,name_Q(i),type_Q(i),Q(i)'
         DO i=1,size(Q)
-          write(out_unitp,*) i,name_Q(i),type_Q(i),Q(i)
+          write(out_unit,*) i,name_Q(i),type_Q(i),Q(i)
         END DO
       END IF
       !-----------------------------------------------------------------
 
-      write(out_unitp,*) '-----------------------------------------'
-      IF (present(info) .AND. MPI_id==0) write(out_unitp,*) info
+      write(out_unit,*) '-----------------------------------------'
+      IF (present(info) .AND. MPI_id==0) write(out_unit,*) info
 
       DO i=1,size(Q)
 
@@ -2027,17 +2027,17 @@ CONTAINS
           QWU = REAL_WU(Q(i),'','no_dim')
         END SELECT
 
-        write(out_unitp,'(a,i0,5x,a,5x,a)') name_Q(i),i,             &
+        write(out_unit,'(a,i0,5x,a,5x,a)') name_Q(i),i,             &
                   RWU_Write(QWU,WithUnit=.TRUE.,WorkingUnit=.TRUE.),&
                   RWU_Write(QWU,WithUnit=.TRUE.,WorkingUnit=.FALSE.)
       END DO
-      write(out_unitp,*) '-----------------------------------------'
-      flush(out_unitp)
+      write(out_unit,*) '-----------------------------------------'
+      flush(out_unit)
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -2045,7 +2045,7 @@ CONTAINS
 !=======================================================================================
 
       SUBROUTINE Get_Qread(Q,name_Q,type_Q,read_nameQ,unit,read_xyz0,info)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -2070,12 +2070,12 @@ CONTAINS
       character (len=*), parameter :: name_sub='Get_Qread'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'type_Q',type_Q
-        write(out_unitp,*) 'unit: ',unit
-        write(out_unitp,*) 'read_xyz0',read_xyz0
-        write(out_unitp,*) 'info',info
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'type_Q',type_Q
+        write(out_unit,*) 'unit: ',unit
+        write(out_unit,*) 'read_xyz0',read_xyz0
+        write(out_unit,*) 'info',info
 
       END IF
       !-----------------------------------------------------------------
@@ -2084,15 +2084,15 @@ CONTAINS
 
         DO i=1,size(Q)/3
 
-          read(in_unitp,*,IOSTAT=err_io) name_Q(3*i-2),Q(3*i-2:3*i)
-          !write(out_unitp,*) name_Q(3*i-2),Q(3*i-2:3*i)*.52d0
+          read(in_unit,*,IOSTAT=err_io) name_Q(3*i-2),Q(3*i-2:3*i)
+          !write(out_unit,*) name_Q(3*i-2),Q(3*i-2:3*i)*.52d0
 
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the Cartessian reference geometry ...'
-            write(out_unitp,*) '   ... just after the namelist "minimum".'
-            write(out_unitp,'(a,i0,a,i0,a)') '  Trying to read the atom:',i,' among ',size(Q)/3,'.'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading the Cartessian reference geometry ...'
+            write(out_unit,*) '   ... just after the namelist "minimum".'
+            write(out_unit,'(a,i0,a,i0,a)') '  Trying to read the atom:',i,' among ',size(Q)/3,'.'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -2114,7 +2114,7 @@ CONTAINS
             END SELECT
             Q(i) = convRWU_TO_R_WITH_WorkingUnit(QWU)
 
-            !write(out_unitp,*) 'i,QWU, conv',i,QWU,Q(i)
+            !write(out_unit,*) 'i,QWU, conv',i,QWU,Q(i)
 
 
           END DO
@@ -2123,7 +2123,7 @@ CONTAINS
       ELSE
         DO i=1,size(Q)
            ! read the first word: it can be the variable name or its value
-           CALL read_name_advNo(in_unitp,Read_name,err_io)
+           CALL read_name_advNo(in_unit,Read_name,err_io)
            !write(6,*) i,'Read_name: ',Read_name
            ! try to read its value
            read(Read_name,*,IOSTAT=err_ioQ) Q(i)
@@ -2135,17 +2135,17 @@ CONTAINS
              !write(6,*) i,'name_Q(i): ',name_Q(i)
 
              !now we read the value
-             CALL read_name_advNo(in_unitp,Read_name,err_io)
+             CALL read_name_advNo(in_unit,Read_name,err_io)
              !write(6,*) i,'Read_name: ',Read_name
              read(Read_name,*,IOSTAT=err_ioQ) Q(i)
              !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
              IF (err_ioQ /= 0) THEN
-               write(out_unitp,*) ' ERROR in ',name_sub
-               write(out_unitp,*) '  while reading the curvilinear reference geometry '
-               write(out_unitp,*) '   ... just after the namelist "minimum"'
-               write(out_unitp,*) ' error with the value name: ',trim(adjustl(Read_name))
-               write(out_unitp,*) ' the variable name:         ',trim(adjustl(name_Q(i)))
-               write(out_unitp,*) ' Check your data !!'
+               write(out_unit,*) ' ERROR in ',name_sub
+               write(out_unit,*) '  while reading the curvilinear reference geometry '
+               write(out_unit,*) '   ... just after the namelist "minimum"'
+               write(out_unit,*) ' error with the value name: ',trim(adjustl(Read_name))
+               write(out_unit,*) ' the variable name:         ',trim(adjustl(name_Q(i)))
+               write(out_unit,*) ' Check your data !!'
                STOP
              END IF
            END IF
@@ -2153,12 +2153,12 @@ CONTAINS
            IF (err_io < 0) THEN ! end-of-line ?
              Read_name = ''
            ELSE
-             CALL read_name_advNo(in_unitp,Read_name,err_io)
+             CALL read_name_advNo(in_unit,Read_name,err_io)
            END IF
 
            IF(MPI_id==0) THEN
-             write(out_unitp,*) i,name_Q(i),':',Q(i),':',trim(adjustl(Read_name))
-             write(out_unitp,*) i,'type_Q(i) :',type_Q(i)
+             write(out_unit,*) i,name_Q(i),':',Q(i),':',trim(adjustl(Read_name))
+             write(out_unit,*) i,'type_Q(i) :',type_Q(i)
            ENDIF
 
            IF (len_trim(Read_name) > 0) THEN
@@ -2166,14 +2166,14 @@ CONTAINS
                  trim(adjustl(Read_name)) == 'rad') THEN
                QWU = REAL_WU(Q(i),trim(adjustl(Read_name)),'angle')
                IF (type_Q(i) /= 3 .AND. type_Q(i) /= 4 .AND. type_Q(i) /= 0) THEN
-                 write(out_unitp,*) ' ERROR in ',name_sub
-                 write(out_unitp,*) '  The unit and type_Q(i) are incompatible.'
-                 write(out_unitp,*) '    unit     ',trim(adjustl(Read_name))
-                 write(out_unitp,*) '    type_Q(i)',type_Q(i)
-                 write(out_unitp,*) ' The compatible values are:'
-                 write(out_unitp,*) '  angs or bohr => type_Q(i)=1,2 or 0'
-                 write(out_unitp,*) '  ° or rad     => type_Q(i)=3,4 or 0'
-                 write(out_unitp,*) ' Check your data !!'
+                 write(out_unit,*) ' ERROR in ',name_sub
+                 write(out_unit,*) '  The unit and type_Q(i) are incompatible.'
+                 write(out_unit,*) '    unit     ',trim(adjustl(Read_name))
+                 write(out_unit,*) '    type_Q(i)',type_Q(i)
+                 write(out_unit,*) ' The compatible values are:'
+                 write(out_unit,*) '  angs or bohr => type_Q(i)=1,2 or 0'
+                 write(out_unit,*) '  ° or rad     => type_Q(i)=3,4 or 0'
+                 write(out_unit,*) ' Check your data !!'
                  STOP 'ERROR in Get_Qread: Wrong unit'
                END IF
              ELSE IF (trim(adjustl(Read_name)) == 'Angs' .OR.                   &
@@ -2181,23 +2181,23 @@ CONTAINS
                       trim(adjustl(Read_name)) == 'bohr') THEN
                QWU = REAL_WU(Q(i),trim(adjustl(Read_name)),'L')
                IF (type_Q(i) /= 1 .AND. type_Q(i) /= 2 .AND. type_Q(i) /= 0) THEN
-                 write(out_unitp,*) ' ERROR in ',name_sub
-                 write(out_unitp,*) '  The unit and type_Q(i) are incompatible.'
-                 write(out_unitp,*) '    unit     ',trim(adjustl(Read_name))
-                 write(out_unitp,*) '    type_Q(i)',type_Q(i)
-                 write(out_unitp,*) ' The compatible values are:'
-                 write(out_unitp,*) '  angs or bohr => type_Q(i)=1,2 or 0'
-                 write(out_unitp,*) '  ° or rad     => type_Q(i)=3,4 or 0'
-                 write(out_unitp,*) ' Check your data !!'
+                 write(out_unit,*) ' ERROR in ',name_sub
+                 write(out_unit,*) '  The unit and type_Q(i) are incompatible.'
+                 write(out_unit,*) '    unit     ',trim(adjustl(Read_name))
+                 write(out_unit,*) '    type_Q(i)',type_Q(i)
+                 write(out_unit,*) ' The compatible values are:'
+                 write(out_unit,*) '  angs or bohr => type_Q(i)=1,2 or 0'
+                 write(out_unit,*) '  ° or rad     => type_Q(i)=3,4 or 0'
+                 write(out_unit,*) ' Check your data !!'
                  STOP 'ERROR in Get_Qread: Wrong unit'
                END IF
              ELSE
-               write(out_unitp,*) ' ERROR in ',name_sub
-               write(out_unitp,*) '  The unit is wrong: ',trim(adjustl(Read_name))
-               write(out_unitp,*) ' The possible values are:'
-               write(out_unitp,*) '  angs or bohr'
-               write(out_unitp,*) '  ° or rad'
-               write(out_unitp,*) ' Check your data !!'
+               write(out_unit,*) ' ERROR in ',name_sub
+               write(out_unit,*) '  The unit is wrong: ',trim(adjustl(Read_name))
+               write(out_unit,*) ' The possible values are:'
+               write(out_unit,*) '  angs or bohr'
+               write(out_unit,*) '  ° or rad'
+               write(out_unit,*) ' Check your data !!'
                STOP 'ERROR in Get_Qread: Wrong unit'
              END IF
              ! write(6,*) 'read with unit:'
@@ -2233,7 +2233,7 @@ CONTAINS
           END IF
 
           Q(i) = convRWU_TO_R_WITH_WorkingUnit(QWU)
-          IF(MPI_id==0) write(out_unitp,*) i,QWU,'working value Q(i)',Q(i)
+          IF(MPI_id==0) write(out_unit,*) i,QWU,'working value Q(i)',Q(i)
 
         END DO
       END IF
@@ -2245,8 +2245,8 @@ CONTAINS
         ELSE
           CALL Write_Q_WU(Q,name_Q,type_Q)
         END IF
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
       !-----------------------------------------------------------------
 
@@ -2257,7 +2257,7 @@ CONTAINS
 !       Write Cartesian coordinates (for gaussian)
 !================================================================
       SUBROUTINE Write_Cartg98_CoordType(d0x,mole)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       TYPE (CoordType),  intent(in) :: mole
@@ -2283,31 +2283,31 @@ CONTAINS
       a0 = get_Conv_au_TO_unit("L","Angs")
 
       iZ = 0
-      write(out_unitp,*) '=============================================='
-      write(out_unitp,*) '= Gaussian CC ================================'
+      write(out_unit,*) '=============================================='
+      write(out_unit,*) '= Gaussian CC ================================'
       DO i=1,ncart,3
         iZ = iZ + 1
-        write(out_unitp,111) Z_act(iZ),0,d0x(i+0:i+2)*a0
+        write(out_unit,111) Z_act(iZ),0,d0x(i+0:i+2)*a0
  111    format(1x,2(1x,i5),3(2x,f20.9))
 
       END DO
-      write(out_unitp,*) '= END Gaussian CC ============================'
-      write(out_unitp,*) '=============================================='
+      write(out_unit,*) '= END Gaussian CC ============================'
+      write(out_unit,*) '=============================================='
 
-      write(out_unitp,*) '=============================================='
-      write(out_unitp,*) '= XYZ format ================================='
-      write(out_unitp,*) ncart/3
-      write(out_unitp,*)
+      write(out_unit,*) '=============================================='
+      write(out_unit,*) '= XYZ format ================================='
+      write(out_unit,*) ncart/3
+      write(out_unit,*)
 
       iZ = 0
       DO i=1,ncart,3
         iZ = iZ + 1
-        write(out_unitp,112) Z_act(iZ),d0x(i+0)*a0,d0x(i+1)*a0,d0x(i+2)*a0
+        write(out_unit,112) Z_act(iZ),d0x(i+0)*a0,d0x(i+1)*a0,d0x(i+2)*a0
  112    format(2x,i5,3(2x,f20.9))
 
       END DO
-      write(out_unitp,*) '= END XYZ format ============================='
-      write(out_unitp,*) '=============================================='
+      write(out_unit,*) '= END XYZ format ============================='
+      write(out_unit,*) '=============================================='
 
       END SUBROUTINE Write_Cartg98_CoordType
 
@@ -2315,7 +2315,7 @@ CONTAINS
 !       Write Cartesian coordinates (xyz format)
 !================================================================
       SUBROUTINE Write_XYZ(d0x,mole,unit,io_unit)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       TYPE (CoordType),            intent(in) :: mole
@@ -2331,7 +2331,7 @@ CONTAINS
       IF (present(io_unit)) THEN
         io_unit_loc = io_unit
       ELSE
-        io_unit_loc = out_unitp
+        io_unit_loc = out_unit
       END IF
 
 
@@ -2371,7 +2371,7 @@ CONTAINS
       END SUBROUTINE Write_XYZ
 
       SUBROUTINE analyze_dnx_CoordType(dnx,Qact,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -2388,12 +2388,12 @@ CONTAINS
 
         CALL check_alloc_dnVec(dnx,'dnx',name_sub)
 
-        write(out_unitp,*) 'BEGINNING in ',name_sub
+        write(out_unit,*) 'BEGINNING in ',name_sub
 
         IF (3*mole%nat_act > dnx%nb_var_vec) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' 3*nat_act > nb_var_vec',3*mole%nat_act,dnx%nb_var_vec
-          write(out_unitp,*) ' Check the fortran !!!!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' 3*nat_act > nb_var_vec',3*mole%nat_act,dnx%nb_var_vec
+          write(out_unit,*) ' Check the fortran !!!!'
           STOP
         END IF
 
@@ -2403,12 +2403,12 @@ CONTAINS
              d = (dnx%d0(3*i-2)-dnx%d0(3*j-2))**2 +                     &
                  (dnx%d0(3*i-1)-dnx%d0(3*j-1))**2 +                     &
                  (dnx%d0(3*i-0)-dnx%d0(3*j-0))**2
-             write(out_unitp,*) 'mass weighted distances: ',i,j,sqrt(d)
+             write(out_unit,*) 'mass weighted distances: ',i,j,sqrt(d)
           END DO
           END DO
         END IF
 
-        write(out_unitp,*) ' d0x Mass weighted'
+        write(out_unit,*) ' d0x Mass weighted'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,0)
 
         DO i=1,mole%ncart_act
@@ -2421,29 +2421,29 @@ CONTAINS
              d = (dnx%d0(3*i-2)-dnx%d0(3*j-2))**2 +                     &
                  (dnx%d0(3*i-1)-dnx%d0(3*j-1))**2 +                     &
                  (dnx%d0(3*i-0)-dnx%d0(3*j-0))**2
-             write(out_unitp,*) 'distances: ',i,j,sqrt(d)
+             write(out_unit,*) 'distances: ',i,j,sqrt(d)
           END DO
           END DO
         END IF
-        write(out_unitp,*) ' d0x NOT Mass weighted'
+        write(out_unit,*) ' d0x NOT Mass weighted'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,0)
         DO i=1,mole%ncart_act
           dnx%d0(i) = dnx%d0(i)*mole%d0sm(i)
         END DO
 
 
-        write(out_unitp,*) ' d0x NOT Mass weighted and NOT recentered/CM'
+        write(out_unit,*) ' d0x NOT Mass weighted and NOT recentered/CM'
         CALL sub_QactTOdnx(Qact,dnx,mole,0,.FALSE.)
         CALL write_dnx(1,dnx%nb_var_vec,dnx,0)
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE analyze_dnx_CoordType
 
 
       SUBROUTINE sub_dnFCC_TO_dnFcurvi(Qact,dnFCC,dnFcurvi,mole)
 
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
       IMPLICIT NONE
@@ -2468,11 +2468,11 @@ CONTAINS
       character (len=*), parameter :: name_sub = 'sub_dnFCC_TO_dnFcurvi'
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*)
-        write(out_unitp,*) 'Val, grad and hessian in CC'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'Val, grad and hessian in CC'
         CALL Write_dnSVM(dnFCC)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
 
@@ -2518,10 +2518,10 @@ CONTAINS
       CALL dealloc_dnSVM(dnx)
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'E, grad and hessian in zmt'
+        write(out_unit,*) 'E, grad and hessian in zmt'
         CALL Write_dnSVM(dnFcurvi)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
 
@@ -2529,7 +2529,7 @@ CONTAINS
 
 
       SUBROUTINE Set_paramQ_FOR_optimization(Qact,mole,Set_Val)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -2545,9 +2545,9 @@ CONTAINS
       character (len=*), parameter :: name_sub = 'Set_paramQ_FOR_optimization'
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'i_OptParam ',para_FOR_optimization%i_OptParam
-        write(out_unitp,*) 'Qact',Qact
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'i_OptParam ',para_FOR_optimization%i_OptParam
+        write(out_unit,*) 'Qact',Qact
       END IF
 !---------------------------------------------------------------------
       IF (count(mole%opt_Qdyn > 0) < 1 ) RETURN
@@ -2555,11 +2555,11 @@ CONTAINS
       nopt = mole%nb_act1
       i1 = para_FOR_optimization%i_OptParam+1
       i2 = para_FOR_optimization%i_OptParam+nopt
-      IF (debug) write(out_unitp,*) 'nopt geometry',nopt
+      IF (debug) write(out_unit,*) 'nopt geometry',nopt
       IF (nopt > 0) THEN
         para_FOR_optimization%nb_OptParam =                             &
                                 para_FOR_optimization%nb_OptParam + nopt
-        !write(out_unitp,*) ' size opt_Qdyn',size(mole%opt_Qdyn)
+        !write(out_unit,*) ' size opt_Qdyn',size(mole%opt_Qdyn)
         DO i=1,size(mole%opt_Qdyn)
           IF (mole%opt_Qdyn(i) == 1) mole%opt_Qdyn(i) = 5
         END DO
@@ -2571,9 +2571,9 @@ CONTAINS
             IF (mole%opt_Qdyn(iQdyn) /= 0) THEN
               i = i + 1
               IF (i > nopt) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) '  the value of i is larger than  nopt',i,nopt
-                write(out_unitp,*) ' Check the source !!'
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) '  the value of i is larger than  nopt',i,nopt
+                write(out_unit,*) ' Check the source !!'
                 STOP
               END IF
               para_FOR_optimization%Val_RVec(i1+i-1) = Qact(i)
@@ -2587,9 +2587,9 @@ CONTAINS
             IF (mole%opt_Qdyn(iQdyn) /= 0) THEN
               i = i + 1
               IF (i > nopt) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) '  the value of i is larger than  nopt',i,nopt
-                write(out_unitp,*) ' Check the source !!'
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) '  the value of i is larger than  nopt',i,nopt
+                write(out_unit,*) ' Check the source !!'
                 STOP
               END IF
               Qact(i) = para_FOR_optimization%Val_RVec(i1+i-1)
@@ -2602,12 +2602,12 @@ CONTAINS
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'nb_OptParam ',para_FOR_optimization%nb_OptParam
-        write(out_unitp,*) 'Val_RVec ',para_FOR_optimization%Val_RVec
+        write(out_unit,*) 'nb_OptParam ',para_FOR_optimization%nb_OptParam
+        write(out_unit,*) 'Val_RVec ',para_FOR_optimization%Val_RVec
 
-        write(out_unitp,*) 'Qact ',Qact
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'Qact ',Qact
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
       END SUBROUTINE Set_paramQ_FOR_optimization

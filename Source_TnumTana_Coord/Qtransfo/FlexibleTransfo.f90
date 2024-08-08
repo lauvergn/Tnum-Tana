@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_FlexibleTransfo
-  use mod_system
+  use TnumTana_system_m
   use mod_dnSVM, only: type_dnvec, type_dns, check_alloc_dnvec,    &
                            alloc_dnsvm, sub_dnvec1_to_dnvec2_withivec, &
                            dealloc_dnsvm, write_dnvec, sub_dnS1_TO_dnS2
@@ -133,21 +133,21 @@ CONTAINS
 
       IF (present(list_flex)) THEN
         IF (size(list_flex) /= nb_Qin) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  The "list_flex" has the wrong size'
-          write(out_unitp,*) '  size(list_flex)',size(list_flex)
-          write(out_unitp,*) '           nb_Qin',nb_Qin
-          write(out_unitp,*) ' Check the FORTRAN source !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  The "list_flex" has the wrong size'
+          write(out_unit,*) '  size(list_flex)',size(list_flex)
+          write(out_unit,*) '           nb_Qin',nb_Qin
+          write(out_unit,*) ' Check the FORTRAN source !!'
           STOP
         END IF
         FlexibleTransfo%list_flex(:) = list_flex(:)
       ELSE
-        read(in_unitp,*,IOSTAT=err) FlexibleTransfo%list_flex(:)
+        read(in_unit,*,IOSTAT=err) FlexibleTransfo%list_flex(:)
         IF (err /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading "list_flex"'
-          write(out_unitp,*) '  end of file or end of record'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading "list_flex"'
+          write(out_unit,*) '  end of file or end of record'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
       END IF
@@ -161,32 +161,32 @@ CONTAINS
         END IF
       END DO
       IF (nb_flex_act < 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_flex_act is smaller than 1 !!'
-        write(out_unitp,*) ' Check your data !!'
-        write(out_unitp,*) 'list_flex',FlexibleTransfo%list_flex(:)
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_flex_act is smaller than 1 !!'
+        write(out_unit,*) ' Check your data !!'
+        write(out_unit,*) 'list_flex',FlexibleTransfo%list_flex(:)
         STOP
       END IF
 
-      write(out_unitp,*) 'nb_flex_act',nb_flex_act,':',                         &
+      write(out_unit,*) 'nb_flex_act',nb_flex_act,':',                         &
                  FlexibleTransfo%list_act(1:nb_flex_act)
-      write(out_unitp,*) 'list_flex: ',FlexibleTransfo%list_flex(:)
+      write(out_unit,*) 'list_flex: ',FlexibleTransfo%list_flex(:)
 
       FlexibleTransfo%With_Tab_dnQflex = With_Tab_dnQflex
       FlexibleTransfo%QMLib            = QMLib
-      write(out_unitp,*) 'With_Tab_dnQflex,QMLib: ',With_Tab_dnQflex,QMLib
+      write(out_unit,*) 'With_Tab_dnQflex,QMLib: ',With_Tab_dnQflex,QMLib
 
       IF (QMLib) THEN
         IF (present(list_QMLMapping)) THEN
           FlexibleTransfo%list_QMLMapping(:) = list_QMLMapping
         ELSE
 
-          read(in_unitp,*,IOSTAT=err) FlexibleTransfo%list_QMLMapping(:)
+          read(in_unit,*,IOSTAT=err) FlexibleTransfo%list_QMLMapping(:)
           IF (err /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading "list_QMLMapping"'
-            write(out_unitp,*) '  end of file or end of record'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading "list_QMLMapping"'
+            write(out_unit,*) '  end of file or end of record'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -195,10 +195,10 @@ CONTAINS
         DO i=1,nb_Qin
           IF (FlexibleTransfo%list_flex(i) == 20 .AND.                          &
               FlexibleTransfo%list_QMLMapping(i) == 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
-            write(out_unitp,*) '  list_QMLMapping(i) MUST be greater than 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
+            write(out_unit,*) '  list_QMLMapping(i) MUST be greater than 0'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
         END DO
@@ -240,13 +240,13 @@ CONTAINS
       list_act(:) = FlexibleTransfo%list_act(1:nb_flex_act)
 
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nb_flex_act',nb_flex_act
-        write(out_unitp,*) 'list_act ',FlexibleTransfo%list_act
-        write(out_unitp,*) 'list_flex',FlexibleTransfo%list_flex
-        write(out_unitp,*) 'QMLib',FlexibleTransfo%QMLib
-        write(out_unitp,*) 'With_Tab_dnQflex',FlexibleTransfo%With_Tab_dnQflex
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nb_flex_act',nb_flex_act
+        write(out_unit,*) 'list_act ',FlexibleTransfo%list_act
+        write(out_unit,*) 'list_flex',FlexibleTransfo%list_flex
+        write(out_unit,*) 'QMLib',FlexibleTransfo%QMLib
+        write(out_unit,*) 'With_Tab_dnQflex',FlexibleTransfo%With_Tab_dnQflex
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -277,7 +277,7 @@ CONTAINS
 
        IF (inTOout) THEN
 
-         !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+         !write(out_unit,*) 'list_act,Qact_flex',list_act,Qact_flex
          DO iQ=1,dnQin%nb_var_vec
 
            CALL sub_dnVec1_TO_dnVec2_WithIvec(dnQin,dnQout,iQ,nderiv)
@@ -295,7 +295,7 @@ CONTAINS
                  dnQout%d1(iQ,:) = dnQout%d1(iQ,:) +          &
                                           dnQeq%d1(i) * dnQin%d1(iact,:)
                END DO
-               !write(out_unitp,*) 'first der all',iQ,dnQout%d1(iQ,:)
+               !write(out_unit,*) 'first der all',iQ,dnQout%d1(iQ,:)
              END IF
 
              IF (nderiv > 1) THEN
@@ -304,7 +304,7 @@ CONTAINS
                  dnQout%d2(iQ,:,:) = dnQout%d2(iQ,:,:) +      &
                                        dnQeq%d1(i) * dnQin%d2(iact,:,:)
                END DO
-               !write(out_unitp,*) 'first der all',iQ,dnQout%d1(iQ,:)
+               !write(out_unit,*) 'first der all',iQ,dnQout%d1(iQ,:)
 
                DO i=1,nb_flex_act
                DO j=1,nb_flex_act
@@ -380,7 +380,7 @@ CONTAINS
          END DO
 
        ELSE
-         !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+         !write(out_unit,*) 'list_act,Qact_flex',list_act,Qact_flex
          DO iQ=1,dnQin%nb_var_vec
            CALL sub_dnVec1_TO_dnVec2_WithIvec(dnQout,dnQin,iQ,nderiv)
 
@@ -403,10 +403,10 @@ CONTAINS
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*) 'dnQout'
         CALL Write_dnVec(dnQout)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
       !stop
 !---------------------------------------------------------------------
@@ -439,11 +439,11 @@ CONTAINS
     list_act(:) = FlexibleTransfo%list_act(1:nb_flex_act)
 
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nb_flex_act',nb_flex_act
-      write(out_unitp,*) 'list_act ',FlexibleTransfo%list_act
-      write(out_unitp,*) 'list_flex',FlexibleTransfo%list_flex
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nb_flex_act',nb_flex_act
+      write(out_unit,*) 'list_act ',FlexibleTransfo%list_act
+      write(out_unit,*) 'list_flex',FlexibleTransfo%list_flex
+      flush(out_unit)
     END IF
     !---------------------------------------------------------------------
 
@@ -477,7 +477,7 @@ CONTAINS
 
     IF (inTOout) THEN
 
-      !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+      !write(out_unit,*) 'list_act,Qact_flex',list_act,Qact_flex
       DO iQ=1,dnQin%nb_var_vec
         IF (FlexibleTransfo%list_flex(iQ) == 20) THEN
           CALL sub_dnVec_TO_dnSt(dnQin,dnQ,iQ)
@@ -489,7 +489,7 @@ CONTAINS
       END DO
 
     ELSE
-         !write(out_unitp,*) 'list_act,Qact_flex',list_act,Qact_flex
+         !write(out_unit,*) 'list_act,Qact_flex',list_act,Qact_flex
       DO iQ=1,dnQin%nb_var_vec
         IF (FlexibleTransfo%list_flex(iQ) == 20) THEN
           CALL sub_dnVec_TO_dnSt(dnQout,dnQ,iQ)
@@ -508,10 +508,10 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'dnQout'
+      write(out_unit,*) 'dnQout'
       CALL Write_dnVec(dnQout)
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !stop
   END SUBROUTINE calc_FlexibleTransfo_new

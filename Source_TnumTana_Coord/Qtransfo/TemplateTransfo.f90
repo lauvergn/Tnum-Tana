@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_TemplateTransfo
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 

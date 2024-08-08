@@ -77,7 +77,7 @@
 ! Sub_init_dnOp:
 !===============================================================================
       SUBROUTINE Sub_init_dnOp(mole,para_Tnum,PrimOp)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_SimpleOp,   only : param_d0MatOp,Init_d0MatOp,dealloc_d0MatOp
       USE mod_PrimOp_def, only : PrimOp_t
       USE mod_Coord_KEO,  only : CoordType,Tnum
@@ -109,28 +109,28 @@
       !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'PrimOp%nb_scalar_Op ',PrimOp%nb_scalar_Op
-         flush(out_unitp)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'PrimOp%nb_scalar_Op ',PrimOp%nb_scalar_Op
+         flush(out_unit)
        END IF
        print_level_EVRT = print_level
 !-----------------------------------------------------------
 
       IF (PrimOp%QMLib) THEN
-        IF (debug) write(out_unitp,*) 'Initialization with Quantum Model Lib'
+        IF (debug) write(out_unit,*) 'Initialization with Quantum Model Lib'
 
         IF (PrimOp%pot_itQtransfo == 0) THEN ! Cartesian coordinates
           ndim  = mole%ncart_act
           nsurf = PrimOp%nb_elec
 
           CALL sub_Init_Qmodel_Cart(ndim,nsurf,'read_model',.FALSE.,0)
-          write(out_unitp,*) ' ncart_act        ',mole%ncart_act
-          write(out_unitp,*) ' ndim from  Qmodel',ndim
-          write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+          write(out_unit,*) ' ncart_act        ',mole%ncart_act
+          write(out_unit,*) ' ndim from  Qmodel',ndim
+          write(out_unit,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
           IF (ndim /= mole%ncart_act) THEN
-            write(out_unitp,*) ' different from mole%ncart_act.'
-            write(out_unitp,*) ' It is not possible!'
-            write(out_unitp,*) 'ERROR in ',name_sub
+            write(out_unit,*) ' different from mole%ncart_act.'
+            write(out_unit,*) ' It is not possible!'
+            write(out_unit,*) 'ERROR in ',name_sub
             STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
           END IF
 
@@ -138,10 +138,10 @@
 
           ndim = get_Qmodel_ndim()
           IF (ndim /= mole%ncart_act) THEN
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
-            write(out_unitp,*) '  different from mole%ncart_act!'
-            write(out_unitp,*) '  ndim,mole%ncart_act',ndim,mole%ncart_act
+            write(out_unit,*) 'ERROR in ',name_sub
+            write(out_unit,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unit,*) '  different from mole%ncart_act!'
+            write(out_unit,*) '  ndim,mole%ncart_act',ndim,mole%ncart_act
             STOP 'ndim from QML is not equal to mole%ncart_act'
           END IF
         ELSE
@@ -150,37 +150,37 @@
           IF (PrimOp%Hard) THEN
             ndim  = mole%nb_act1
             CALL sub_Init_Qmodel(ndim,nsurf,'read_model',.FALSE.,0)
-            write(out_unitp,*) ' nb_act1          ',mole%nb_act1
-            write(out_unitp,*) ' ndim from  Qmodel',ndim
-            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unit,*) ' nb_act1          ',mole%nb_act1
+            write(out_unit,*) ' ndim from  Qmodel',ndim
+            write(out_unit,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
 
             IF (ndim == mole%nb_act1) THEN
-              write(out_unitp,*) ' equal to mole%nb_act1.'
+              write(out_unit,*) ' equal to mole%nb_act1.'
             ELSE IF (ndim > mole%nb_act1) THEN
-              write(out_unitp,*) ' larger than mole%nb_act1.'
-              write(out_unitp,*) ' You MUST use type 100 and 1 coordinates.'
+              write(out_unit,*) ' larger than mole%nb_act1.'
+              write(out_unit,*) ' You MUST use type 100 and 1 coordinates.'
             ELSE ! ndim < mole%nb_act1
-              write(out_unitp,*) ' smaller than mole%nb_act1.'
-              write(out_unitp,*) ' It is not possible!'
-              write(out_unitp,*) 'ERROR in ',name_sub
+              write(out_unit,*) ' smaller than mole%nb_act1.'
+              write(out_unit,*) ' It is not possible!'
+              write(out_unit,*) 'ERROR in ',name_sub
               STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
             END IF
           ELSE
             ndim  = mole%nb_act
             CALL sub_Init_Qmodel(ndim,nsurf,'read_model',.FALSE.,0)
-            write(out_unitp,*) ' nb_act           ',mole%nb_act
-            write(out_unitp,*) ' ndim from  Qmodel',ndim
-            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unit,*) ' nb_act           ',mole%nb_act
+            write(out_unit,*) ' ndim from  Qmodel',ndim
+            write(out_unit,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
 
             IF (ndim == mole%nb_act) THEN
-              write(out_unitp,*) ' equal to mole%nb_act.'
+              write(out_unit,*) ' equal to mole%nb_act.'
             ELSE IF (ndim > mole%nb_act) THEN
-              write(out_unitp,*) ' larger than mole%nb_act.'
-              write(out_unitp,*) ' You MUST use type 100 and 1 coordinates.'
+              write(out_unit,*) ' larger than mole%nb_act.'
+              write(out_unit,*) ' You MUST use type 100 and 1 coordinates.'
             ELSE ! ndim < mole%nb_act
-              write(out_unitp,*) ' smaller than mole%nb_act.'
-              write(out_unitp,*) ' It is not possible!'
-              write(out_unitp,*) 'ERROR in ',name_sub
+              write(out_unit,*) ' smaller than mole%nb_act.'
+              write(out_unit,*) ' It is not possible!'
+              write(out_unit,*) 'ERROR in ',name_sub
               STOP 'ERROR in Sub_init_dnOp: ndim from QML is too small'
             END IF
           END IF
@@ -189,14 +189,14 @@
 
           ndim = get_Qmodel_ndim()
           IF (ndim > mole%nb_var) THEN
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
-            write(out_unitp,*) '  larger than mole%nb_var!'
-            write(out_unitp,*) '  ndim,mole%nb_var',ndim,mole%nb_var
+            write(out_unit,*) 'ERROR in ',name_sub
+            write(out_unit,*) ' ndim from  Qmodel ("Quantum Model Lib") is ...'
+            write(out_unit,*) '  larger than mole%nb_var!'
+            write(out_unit,*) '  ndim,mole%nb_var',ndim,mole%nb_var
             STOP 'ndim from QML is larger than mole%nb_var'
           END IF
         END IF
-        IF (print_level > 0 .OR. debug) CALL sub_Write_Qmodel(out_unitp)
+        IF (print_level > 0 .OR. debug) CALL sub_Write_Qmodel(out_unit)
         IF (debug) CALL set_Qmodel_Print_level(min(1,print_level))
 
 
@@ -211,21 +211,21 @@
           PrimOp%Qit_TO_QQMLib(:) = [ (k,k=1,ndim) ]
 
           IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo-1) THEN ! Qdyn Coord
-            read(in_unitp,*,IOSTAT=err_io) name_dum,PrimOp%Qit_TO_QQMLib
+            read(in_unit,*,IOSTAT=err_io) name_dum,PrimOp%Qit_TO_QQMLib
             IF (err_io /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  while reading "Qit_TO_QQMLib"'
-              write(out_unitp,*) ' end of file or end of record'
-              write(out_unitp,*) ' Probably, you have forgotten the list of integers ...'
-              write(out_unitp,*) ' Check your data !!'
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  while reading "Qit_TO_QQMLib"'
+              write(out_unit,*) ' end of file or end of record'
+              write(out_unit,*) ' Probably, you have forgotten the list of integers ...'
+              write(out_unit,*) ' Check your data !!'
               STOP
             END IF
           ELSE
-          write(out_unitp,*) ' WARNING:  "Qit_TO_QQMLib" is not read!'
+          write(out_unit,*) ' WARNING:  "Qit_TO_QQMLib" is not read!'
           END IF
         END IF
-        !write(out_unitp,*) '  PrimOp%pot_itQtransfo',PrimOp%pot_itQtransfo
-        write(out_unitp,*) '  Qit_TO_QQMLib        ',PrimOp%Qit_TO_QQMLib(:)
+        !write(out_unit,*) '  PrimOp%pot_itQtransfo',PrimOp%pot_itQtransfo
+        write(out_unit,*) '  Qit_TO_QQMLib        ',PrimOp%Qit_TO_QQMLib(:)
 !      ELSE
 !        CALL get_d0MatOp_AT_Qact(Qact,d0MatOp,mole,para_Tnum,PrimOp)
       END IF
@@ -236,8 +236,8 @@
 !      deallocate(d0MatOp)
 
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
       END SUBROUTINE Sub_init_dnOp
@@ -255,7 +255,7 @@
 !    output : dnE%d..  dnMu(:)%d...
 !================================================================
       SUBROUTINE get_d0MatOp_AT_Qact(Qact,d0MatOp,mole,para_Tnum,PrimOp)
-      USE mod_system
+      USE TnumTana_system_m
 !$    USE omp_lib, only : OMP_GET_THREAD_NUM
       USE mod_dnSVM
       use mod_nDFit, only: sub_ndfunc_from_ndfit
@@ -322,23 +322,23 @@
       !STOP 'coucou'
       nb_Op = size(d0MatOp)
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'nb_Op',nb_Op
-        write(out_unitp,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
-        write(out_unitp,*) 'calc_scalar_Op',PrimOp%calc_scalar_Op
-        write(out_unitp,*) 'pot_cplx',PrimOp%pot_cplx
-        write(out_unitp,*) 'pot_itQtransfo',PrimOp%pot_itQtransfo
-        write(out_unitp,*) 'PrimOp%QMLib',PrimOp%QMLib
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'nb_Op',nb_Op
+        write(out_unit,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
+        write(out_unit,*) 'calc_scalar_Op',PrimOp%calc_scalar_Op
+        write(out_unit,*) 'pot_cplx',PrimOp%pot_cplx
+        write(out_unit,*) 'pot_itQtransfo',PrimOp%pot_itQtransfo
+        write(out_unit,*) 'PrimOp%QMLib',PrimOp%QMLib
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
 
       !----------------------------------------------------------------
       IF (.NOT. PrimOp%Read_OnTheFly_only) THEN
         CALL sub_QactTOQit(Qact,Qit,PrimOp%pot_itQtransfo,mole,.FALSE.)
-        !write(out_unitp,*) 'Qact',Qact
-        !write(out_unitp,*) 'Qit',Qit
+        !write(out_unit,*) 'Qact',Qact
+        !write(out_unit,*) 'Qit',Qit
       ELSE
         ! why this allocation ????
         IF (allocated(Qit)) CALL dealloc_NParray(Qit,'Qit',name_sub)
@@ -349,9 +349,9 @@
 
       DO iOp=1,size(d0MatOp)
         IF (.NOT. allocated(d0MatOp(iOp)%derive_term_TO_iterm)) Then
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'iOp',iOp
-          write(out_unitp,*) 'd0MatOp(iOp)%derive_term_TO_iterm is not allocated'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'iOp',iOp
+          write(out_unit,*) 'd0MatOp(iOp)%derive_term_TO_iterm is not allocated'
           STOP 'ERROR in get_d0MatOp_AT_Qact :d0MatOp(iOp)%derive_term_TO_iterm) is not allocated'
         END IF
       END DO
@@ -388,12 +388,12 @@
       IF (PrimOp%OnTheFly) THEN
 
         IF (nderivScal > -1 .AND. PrimOp%nb_scalar_Op < 3) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'nderivScal > -1 and nb_scalar_Op < 3'
-          write(out_unitp,*) 'nderivScal (mu)',nderivScal
-          write(out_unitp,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
-          write(out_unitp,*) 'With on-the-fly calculation,'
-          write(out_unitp,*) ' nb_scalar_Op MUST be >= 2 !'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'nderivScal > -1 and nb_scalar_Op < 3'
+          write(out_unit,*) 'nderivScal (mu)',nderivScal
+          write(out_unit,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
+          write(out_unit,*) 'With on-the-fly calculation,'
+          write(out_unit,*) ' nb_scalar_Op MUST be >= 2 !'
           STOP
         END IF
 
@@ -440,16 +440,16 @@
       ELSE
           IF (PrimOp%QMLib) THEN
             IF (debug) THEN
-               write(out_unitp,*) 'With Quantum Model Lib'
-               write(out_unitp,*) 'Qit_TO_QQMLib',PrimOp%Qit_TO_QQMLib
-               write(out_unitp,*) 'size(Qit),Qit',size(Qit),Qit
-               write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
+               write(out_unit,*) 'With Quantum Model Lib'
+               write(out_unit,*) 'Qit_TO_QQMLib',PrimOp%Qit_TO_QQMLib
+               write(out_unit,*) 'size(Qit),Qit',size(Qit),Qit
+               write(out_unit,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
             END IF
           IF (get_Qmodel_Vib_Adia()) THEN
             d0MatOp(iOpE)%param_TypeOp%QML_Vib_adia = .TRUE.
             CALL sub_Qmodel_tab_HMatVibAdia(d0MatOp(iOpE)%ReVal,  &
                       Qit(PrimOp%Qit_TO_QQMLib),size(d0MatOp(iOpE)%ReVal,dim=3))
-            !write(out_unitp,*) 'QQML',Qit(PrimOp%Qit_TO_QQMLib)
+            !write(out_unit,*) 'QQML',Qit(PrimOp%Qit_TO_QQMLib)
             !CALL Write_d0MatOp(d0MatOp(iOpE))
             !STOP 'Vib_Adia'
           ELSE
@@ -467,7 +467,7 @@
             !----------------------------------------------------------------
 
           ELSE IF (PrimOp%nDfit_Op) THEN
-            IF (debug) write(out_unitp,*) 'With nDFit'
+            IF (debug) write(out_unit,*) 'With nDFit'
             IF (PrimOp%nb_elec > 1) STOP 'ERROR nb_elec > 1 with nDFit'
 
             ! potential
@@ -486,8 +486,8 @@
 
           ELSE
             IF (debug) THEN
-              write(out_unitp,*) 'With calcN_op'
-              flush(out_unitp)
+              write(out_unit,*) 'With calcN_op'
+              flush(out_unit)
             END IF
             CALL calcN_op(d0MatOp(iOpE)%ReVal(:,:,itermE),              &
                           mat_imV,mat_ScalOp,                           &
@@ -518,18 +518,18 @@
               iterm = d0MatOp(iOpCAP+i)%derive_term_TO_iterm(0,0)
 
               IF (PrimOp%tab_CAP(i)%itQtransfo /= PrimOp%tab_CAP(i)%nb_Qtransfo) THEN
-                IF (debug) write(out_unitp,*) 'CAP Qit',PrimOp%tab_CAP(i)%itQtransfo
+                IF (debug) write(out_unit,*) 'CAP Qit',PrimOp%tab_CAP(i)%itQtransfo
                 CALL sub_QactTOQit(Qact,Qit,PrimOp%tab_CAP(i)%itQtransfo,mole,.FALSE.)
                 CAP_val = calc_CAP(PrimOp%tab_CAP(i),Qit)
               ELSE
-                IF (debug) write(out_unitp,*) 'CAP Qact'
+                IF (debug) write(out_unit,*) 'CAP Qact'
                 CAP_val = calc_CAP(PrimOp%tab_CAP(i),Qact)
               END IF
 
               DO ie=1,PrimOp%nb_elec
                 d0MatOp(iOpCAP+i)%ReVal(ie,ie,iterm) = CAP_val
               END DO
-              IF (debug) write(out_unitp,*) 'Qact,CAP',i,Qact,CAP_val
+              IF (debug) write(out_unit,*) 'Qact,CAP',i,Qact,CAP_val
             END DO
             !STOP 'CAP'
           END IF
@@ -542,7 +542,7 @@
               DO ie=1,PrimOp%nb_elec
                 d0MatOp(iOpFluxOp+i)%ReVal(ie,ie,iterm) = HStep_val
               END DO
-              IF (debug) write(out_unitp,*) 'Qact,HStep_val',i,Qact,HStep_val
+              IF (debug) write(out_unit,*) 'Qact,HStep_val',i,Qact,HStep_val
             END DO
             !STOP 'CAP'
           END IF
@@ -571,7 +571,7 @@
         CALL sub_QactTOdnx(Qact,dnXin,mole,nderiv=nderivScal,           &
                                     Gcenter=.TRUE.,Cart_transfo=.FALSE.)
 
-        IF (debug) write(out_unitp,*) ' WARNING dip(:) are rotated'
+        IF (debug) write(out_unit,*) ' WARNING dip(:) are rotated'
 
         ! initial rotation of the dipole moment
         d0T(:,:) = mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial
@@ -614,16 +614,17 @@
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'd0MatOp(:)'
+        write(out_unit,*) 'd0MatOp(:)'
         CALL Write_Tab_OF_d0MatOp(d0MatOp)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
 END SUBROUTINE get_d0MatOp_AT_Qact
 SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
-  USE mod_system
-!$    USE omp_lib, only : OMP_GET_THREAD_NUM
+  USE TnumTana_system_m
+!$ USE omp_lib, only : OMP_GET_THREAD_NUM,omp_get_num_threads
+
   USE mod_Coord_KEO
   USE mod_SimpleOp
   USE mod_PrimOp_def
@@ -651,20 +652,21 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   !logical, parameter :: debug=.TRUE.
   !-----------------------------------------------------------
   IF (debug) THEN
-   write(out_unitp,*) 'BEGINNING ',name_sub
-   write(out_unitp,*) 'Qact',Qact
-   flush(out_unitp)
+   write(out_unit,*) 'BEGINNING ',name_sub
+   write(out_unit,*) 'Qact',Qact
+   flush(out_unit)
   END IF
   !-----------------------------------------------------------
 
   IF (.NOT. allocated(tab_iQa)) THEN
-   allocate(tab_iQa(0:Grid_maxth-1))
+   !allocate(tab_iQa(0:Grid_maxth-1))
+   allocate(tab_iQa(0:omp_get_num_threads()-1))
    tab_iQa(:) = 1
   END IF
 
   !here it should be Qin of RPH (therefore Qdyn ?????)
   CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
-  !write(out_unitp,*) 'test HARD without HAC'
+  !write(out_unit,*) 'test HARD without HAC'
 
   ! transfert the dnQin coordinates: type21 in dnVecQin and ....
   !   the other (active, rigid ..) in dnQout
@@ -682,8 +684,8 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
      Qact1(iQact1) = Qdyn(iQ)
    END IF
   END DO
-  !write(out_unitp,*) 'Qact1',Qact1
-  !write(out_unitp,*) 'Qinact21',Qinact21
+  !write(out_unit,*) 'Qact1',Qact1
+  !write(out_unit,*) 'Qinact21',Qinact21
 
   ! find the iQa from tab_RPHpara_AT_Qact1
   ith = 0
@@ -693,20 +695,20 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   ! find the iQa from tab_RPHpara_AT_Qact1
   Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,mole%RPHTransfo%tab_RPHpara_AT_Qact1)
   IF (.NOT. Find_iQa) THEN
-   write(out_unitp,*) 'ERROR in ',name_sub
+   write(out_unit,*) 'ERROR in ',name_sub
    STOP
   ELSE
-   IF (debug) write(out_unitp,*) 'tab_RPHpara_AT_Qact1 point',iQa
+   IF (debug) write(out_unit,*) 'tab_RPHpara_AT_Qact1 point',iQa
    tab_iQa(ith) = iQa
   END IF
 
   Vinact(:) = HALF*sum(mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)*Qinact21(:)**2)
 
   IF (debug) THEN
-    write(out_unitp,*) 'iQa',iQa
-    write(out_unitp,*) 'Qinact21',Qinact21(:)
-    write(out_unitp,*) 'dnehess',mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
-    write(out_unitp,*) 'Vinact',Vinact
+    write(out_unit,*) 'iQa',iQa
+    write(out_unit,*) 'Qinact21',Qinact21(:)
+    write(out_unit,*) 'dnehess',mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
+    write(out_unit,*) 'Vinact',Vinact
   END IF
 
   CALL dealloc_NParray(Qact1,"Qact1",name_sub)
@@ -714,14 +716,14 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
 
   !-----------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'END ',name_sub
+    write(out_unit,*) 'END ',name_sub
   END IF
   !-----------------------------------------------------------
 
 END SUBROUTINE get_Vinact_AT_Qact_HarD
 
      SUBROUTINE get_dnMatOp_AT_Qact(Qact,Tab_dnMatOp,mole,para_Tnum,PrimOp,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       use mod_nDFit, only: sub_ndfunc_from_ndfit
       USE mod_Coord_KEO
@@ -793,13 +795,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       nb_Op = size(Tab_dnMatOp)
 
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'nb_Op',nb_Op
-        write(out_unitp,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
-        write(out_unitp,*) 'calc_scalar_Op',PrimOp%calc_scalar_Op
-        write(out_unitp,*) 'pot_cplx',PrimOp%pot_cplx
-        write(out_unitp,*) 'pot_itQtransfo',PrimOp%pot_itQtransfo
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'nb_Op',nb_Op
+        write(out_unit,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
+        write(out_unit,*) 'calc_scalar_Op',PrimOp%calc_scalar_Op
+        write(out_unit,*) 'pot_cplx',PrimOp%pot_cplx
+        write(out_unit,*) 'pot_itQtransfo',PrimOp%pot_itQtransfo
       END IF
 !-----------------------------------------------------------
 
@@ -812,8 +814,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !----------------------------------------------------------------
       IF (.NOT. PrimOp%Read_OnTheFly_only) THEN
         CALL sub_QactTOQit(Qact,Qit,PrimOp%pot_itQtransfo,mole,.FALSE.)
-        !write(out_unitp,*) 'Qact',Qact
-        !write(out_unitp,*) 'Qit',Qit
+        !write(out_unit,*) 'Qact',Qact
+        !write(out_unit,*) 'Qit',Qit
       ELSE
         ! why this allocation ????
         IF (allocated(Qit)) CALL dealloc_NParray(Qit,'Qit',name_sub)
@@ -825,9 +827,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !----------------------------------------------------------------
       DO iOp=1,size(Tab_dnMatOp)
         IF (.NOT. allocated(Tab_dnMatOp(iOp)%derive_term_TO_iterm)) Then
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'iOp',iOp
-          write(out_unitp,*) 'Tab_dnMatOp(iOp)%derive_term_TO_iterm is not allocated'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'iOp',iOp
+          write(out_unit,*) 'Tab_dnMatOp(iOp)%derive_term_TO_iterm is not allocated'
           STOP 'ERROR in get_dnMatOp_AT_Qact :Tab_dnMatOp(iOp)%derive_term_TO_iterm) is not allocated'
         END IF
       END DO
@@ -862,12 +864,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           (nderivE == 0 .OR. .NOT. PrimOp%deriv_WITH_FiniteDiff))) THEN
 
         IF (nderivScal > -1 .AND. PrimOp%nb_scalar_Op < 3) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'nderivScal > -1 and nb_scalar_Op < 3'
-          write(out_unitp,*) 'nderivScal (mu)',nderivScal
-          write(out_unitp,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
-          write(out_unitp,*) 'With on-the-fly calculation,'
-          write(out_unitp,*) ' nb_scalar_Op MUST be >= 2 !'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'nderivScal > -1 and nb_scalar_Op < 3'
+          write(out_unit,*) 'nderivScal (mu)',nderivScal
+          write(out_unit,*) 'nb_scalar_Op',PrimOp%nb_scalar_Op
+          write(out_unit,*) 'With on-the-fly calculation,'
+          write(out_unit,*) ' nb_scalar_Op MUST be >= 2 !'
           STOP
         END IF
         CALL dnOp_grid_OnTheFly(Qit,MatdnECC,nderivE,                   &
@@ -913,8 +915,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       ELSE IF (PrimOp%QMLib .AND. (nderivE == 0 .OR. .NOT. PrimOp%deriv_WITH_FiniteDiff)) THEN
         IF (debug) THEN
-           write(out_unitp,*) 'With Quantum Model Lib'
-           write(out_unitp,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
+           write(out_unit,*) 'With Quantum Model Lib'
+           write(out_unit,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
         END IF
 
         ndimQML = get_Qmodel_ndim()
@@ -927,7 +929,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             iQact = mole%liste_QdynTOQact(iQdyn)
             IF (iQact < 0 .OR. iQact > mole%nb_act) CYCLE
             !THEN
-            !  write(out_unitp,*) 'iQML,iQdyn,iQact,mole%nb_act',iQML,iQdyn,iQact,mole%nb_act
+            !  write(out_unit,*) 'iQML,iQdyn,iQact,mole%nb_act',iQML,iQdyn,iQact,mole%nb_act
             !  STOP 'ERROR in list_QactTOQML'
             !END IF
             list_QactTOQML(iQact) = iQML
@@ -985,9 +987,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           END DO
           !STOP 'ERROR in get_dnMatOp_AT_Qact: nderivE=2 not yet'
         CASE Default
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) ' WRONG nderivE value.',nderivE
-          write(out_unitp,*) '  Possible values: 0,1,2'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) ' WRONG nderivE value.',nderivE
+          write(out_unit,*) '  Possible values: 0,1,2'
           STOP 'ERROR in get_dnMatOp_AT_Qact: WRONG nderivE value'
         END SELECT
 
@@ -1003,7 +1005,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         IF (nderivE == 0 ) THEN
           IF (PrimOp%nDfit_Op) THEN
-            IF (debug) write(out_unitp,*) 'With nDFit'
+            IF (debug) write(out_unit,*) 'With nDFit'
             IF (PrimOp%nb_elec > 1) STOP 'ERROR nb_elec > 1 with nDFit'
 
             ! potential
@@ -1021,7 +1023,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
               END DO
             END IF
           ELSE
-            IF (debug) write(out_unitp,*) 'With calcN_op'
+            IF (debug) write(out_unit,*) 'With calcN_op'
 
             CALL calcN_op(Tab_dnMatOp(iOpE)%tab_dnMatOp(:,:,itermE)%d0, &
                           mat_imV,mat_ScalOp,                           &
@@ -1058,7 +1060,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 
         ELSE ! with finite difference (even for on-the-fly calculation)
-          IF (debug) write(out_unitp,*) 'With numerical derivatives'
+          IF (debug) write(out_unit,*) 'With numerical derivatives'
 
             CALL dnOp_num_grid_v2(Qact,Tab_dnMatOp,mole,para_Tnum,PrimOp,nderiv_loc)
 
@@ -1078,7 +1080,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL sub_QactTOdnx(Qact,dnXin,mole,nderiv=nderivScal,           &
                                     Gcenter=.TRUE.,Cart_transfo=.FALSE.)
 
-        IF (debug) write(out_unitp,*) ' WARNING dip(:) are rotated'
+        IF (debug) write(out_unit,*) ' WARNING dip(:) are rotated'
 
         ! initial rotation of the dipole moment
         CALL alloc_MatOFdnS(dnT,dnXin%nb_var_deriv,nderivScal)
@@ -1128,7 +1130,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         !  3d: calculation of the dnT (Eckart rotational matrix)
         CALL calc_dnTEckart(dnXin,dnT,dnXref,                           &
                    mole%tab_Cart_transfo(1)%CartesianTransfo,nderivScal)
-        IF (debug) write(out_unitp,*) 'dnT%d0',Qact(1:mole%nb_act1),dnT(:,:)%d0
+        IF (debug) write(out_unit,*) 'dnT%d0',Qact(1:mole%nb_act1),dnT(:,:)%d0
         CALL dealloc_MatOFdnS(dnXref)
 
         ! 4th: rotation of the dipole moment
@@ -1169,10 +1171,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'tab_dnMatOp'
+        write(out_unit,*) 'tab_dnMatOp'
         CALL Write_Tab_OF_dnMatOp(Tab_dnMatOp)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
 
@@ -1180,8 +1182,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       SUBROUTINE dnOp_num_grid_v2(Qact,Tab_dnMatOp,                     &
                                   mole,para_Tnum,PrimOp,nderiv)
-      USE mod_system
-      !$ USE omp_lib, only : OMP_GET_THREAD_NUM
+      USE TnumTana_system_m
+      !$ USE omp_lib, only : OMP_GET_THREAD_NUM,omp_get_num_threads
       USE mod_dnSVM
       USE mod_Coord_KEO
       USE mod_SimpleOp
@@ -1225,33 +1227,34 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'Qact',Qact
-         write(out_unitp,*) 'stepOp',PrimOp%stepOp
-         write(out_unitp,*) 'nb_elec',PrimOp%nb_elec
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'Qact',Qact
+         write(out_unit,*) 'stepOp',PrimOp%stepOp
+         write(out_unit,*) 'nb_elec',PrimOp%nb_elec
 
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
       nderiv_loc = min(nderiv,Tab_dnMatOp(1)%tab_dnMatOp(1,1,1)%nderiv) ! We assume that all nderiv are identical!!
 
       IF (PrimOp%stepOp <= ZERO) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' stepOp is <= 0',PrimOp%stepOp
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' stepOp is <= 0',PrimOp%stepOp
         STOP
       END IF
       step2 = ONE/(PrimOp%stepOp*PrimOp%stepOp)
       step24 = step2*HALF*HALF
       stepp = ONE/(PrimOp%stepOp+PrimOp%stepOp)
 
-      IF (Grid_omp == 0) THEN
-        nb_thread = 1
-      ELSE
-        nb_thread = Grid_maxth
-      END IF
+      !IF (Grid_omp == 0) THEN
+      !  nb_thread = 1
+      !ELSE
+      !  nb_thread = Grid_maxth
+      !END IF
+      nb_thread = omp_get_num_threads()
       IF (PrimOp%OnTheFly) nb_thread = 1
-      IF (print_level > 1) write(out_unitp,*) 'nb_thread in ',name_sub,' : ',nb_thread
-      flush(out_unitp)
+      IF (print_level > 1) write(out_unit,*) 'nb_thread in ',name_sub,' : ',nb_thread
+      flush(out_unit)
 
       nb_Op = size(Tab_dnMatOp)
 
@@ -1294,7 +1297,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 !----- d/Qqi et d2/dQi2 of pot0 ----------------------------------
 !-----------------------------------------------------------------
       DO i=1,mole%nb_act
-        !write(out_unitp,*) 'diag,i:',i ; flush(out_unitp)
+        !write(out_unit,*) 'diag,i:',i ; flush(out_unit)
 
         ith = 1
         !$ ith = omp_get_thread_num()+1
@@ -1353,7 +1356,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 !      d2/dQidQj = ( v(Qi+,Qj+)+v(Qi-,Qj-)-v(Qi-,Qj+)-v(Qi+,Qj-) )/(4*s*s)
 !-----------------------------------------------------------------
       DO i=1,mole%nb_act
-      !write(out_unitp,*) 'non-diag,i:',i ; flush(out_unitp)
+      !write(out_unit,*) 'non-diag,i:',i ; flush(out_unit)
       DO j=i+1,mole%nb_act
 
         ith = 1
@@ -1425,16 +1428,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       deallocate(Qact_th)
 
       IF (debug) THEN
-        write(out_unitp,*) 'Tab_dnMatOp'
+        write(out_unit,*) 'Tab_dnMatOp'
         CALL Write_Tab_OF_dnMatOp(Tab_dnMatOp)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 
       END SUBROUTINE dnOp_num_grid_v2
 
 
       SUBROUTINE TnumKEO_TO_tab_dnH(Qact,Tab_dnH,mole,para_Tnum)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Coord_KEO, only : CoordType,Tnum,get_dng_dnGG,&
                                 sub3_dnrho_ana,calc3_f2_f1Q_num, sub3_dndetGG
@@ -1468,8 +1471,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
       END IF
 !-----------------------------------------------------------
 
@@ -1527,27 +1530,27 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       END DO
   ELSE
-    write(out_unitp,*) 'ERROR in ',name_sub
-    write(out_unitp,*) ' This type of Op is not possible for the KEO',Tab_dnH%type_Op
-    write(out_unitp,*) ' The possibilities are: 1 or 10'
-    write(out_unitp,*) '    .... 10 not yet !!!!!!'
+    write(out_unit,*) 'ERROR in ',name_sub
+    write(out_unit,*) ' This type of Op is not possible for the KEO',Tab_dnH%type_Op
+    write(out_unit,*) ' The possibilities are: 1 or 10'
+    write(out_unit,*) '    .... 10 not yet !!!!!!'
 
-    write(out_unitp,*) '   Check the fortran!!'
+    write(out_unit,*) '   Check the fortran!!'
     STOP
   END IF
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Tab_dnH'
+        write(out_unit,*) 'Tab_dnH'
         CALL Write_dnMatOp(Tab_dnH)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
       END SUBROUTINE TnumKEO_TO_tab_dnH
 
       SUBROUTINE TnumKEO_TO_tab_d0H(Qact,d0MatH,mole,para_Tnum)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Coord_KEO, only : CoordType,Tnum,get_dng_dnGG,            &
                                 sub3_dnrho_ana,calc3_f2_f1Q_num, sub3_dndetGG
@@ -1584,8 +1587,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
       END IF
 !-----------------------------------------------------------
 
@@ -1603,8 +1606,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       END IF
 
-      !write(out_unitp,*) 'nrho,Qact,vep',para_Tnum%nrho,Qact(1:mole%nb_act),vep
-      !IF (d0MatH%ReVal(1,1,1) < -0.01_Rkind) write(out_unitp,*) 'V',d0MatH%ReVal(1,1,1)
+      !write(out_unit,*) 'nrho,Qact,vep',para_Tnum%nrho,Qact(1:mole%nb_act),vep
+      !IF (d0MatH%ReVal(1,1,1) < -0.01_Rkind) write(out_unit,*) 'V',d0MatH%ReVal(1,1,1)
 
       DO ie=1,d0MatH%nb_bie
         ! T2
@@ -1691,18 +1694,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 
   ELSE
-    write(out_unitp,*) 'ERROR in ',name_sub
-    write(out_unitp,*) ' This type of Op is not possible for the KEO',d0MatH%type_Op
-    write(out_unitp,*) ' The possibilities are: 1 or 10'
-    write(out_unitp,*) '   Check the fortran!!'
+    write(out_unit,*) 'ERROR in ',name_sub
+    write(out_unit,*) ' This type of Op is not possible for the KEO',d0MatH%type_Op
+    write(out_unit,*) ' The possibilities are: 1 or 10'
+    write(out_unit,*) '   Check the fortran!!'
     STOP
   END IF
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'd0MatH'
+        write(out_unit,*) 'd0MatH'
           CALL Write_d0MatOp(d0MatH)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 !STOP 'TnumKEO_TO_tab_d0H'
@@ -1714,7 +1717,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 !
 !=============================================================
       SUBROUTINE sub_freq_AT_Qact(freq,Qact,para_Tnum,mole,PrimOp,print_freq,d0h_opt)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant
       USE mod_Coord_KEO, only : CoordType,Tnum,get_dng_dnGG,calc_freq
@@ -1760,9 +1763,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
      END IF
 
       IF (debug .OR. print_freq_loc) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
       CALL alloc_NParray(d0c,    [mole%nb_act,mole%nb_act],"d0c",    name_sub)
@@ -1785,11 +1788,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL Get_Grad_FROM_Tab_OF_dnMatOp(d0grad,dnMatOp)
 
         IF (debug .OR. print_freq_loc) THEN
-          write(out_unitp,*) 'Energy:',Get_Scal_FROM_Tab_OF_dnMatOp(dnMatOp)
-          write(out_unitp,*) 'Gradient:'
-          CALL Write_VecMat(d0grad,out_unitp,5)
-          write(out_unitp,*) 'Hessian:'
-          CALL Write_VecMat(d0h,out_unitp,5)
+          write(out_unit,*) 'Energy:',Get_Scal_FROM_Tab_OF_dnMatOp(dnMatOp)
+          write(out_unit,*) 'Gradient:'
+          CALL Write_VecMat(d0grad,out_unit,5)
+          write(out_unit,*) 'Hessian:'
+          CALL Write_VecMat(d0h,out_unit,5)
         END IF
 
         CALL dealloc_Tab_OF_dnMatOp(dnMatOp)
@@ -1807,16 +1810,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL dealloc_dnSVM(dnGG)
 
       IF (debug .OR. print_freq_loc) THEN
-        write(out_unitp,*) 'Curvilinear kinetic part:'
-        CALL Write_VecMat(d0k,out_unitp,5)
+        write(out_unit,*) 'Curvilinear kinetic part:'
+        CALL Write_VecMat(d0k,out_unit,5)
       END IF
 
       !----- frequencies ---------------------------------
       CALL calc_freq(mole%nb_act,d0h,d0k,freq,d0c,d0c_inv,norme,d0c_ini,.FALSE.)
 
       IF (debug .OR. print_freq_loc) THEN
-        write(out_unitp,*) 'd0c (NM?):'
-        CALL Write_VecMat(d0c,out_unitp,5)
+        write(out_unit,*) 'd0c (NM?):'
+        CALL Write_VecMat(d0c,out_unit,5)
       END IF
 
       CALL dealloc_NParray(d0c,    "d0c",    name_sub)
@@ -1827,19 +1830,19 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL dealloc_NParray(d0c_ini,"d0c_ini",name_sub)
 
       IF (debug .OR. print_freq_loc) THEN
-        write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(freq(:))*get_Conv_au_TO_unit('E','cm-1')
-        write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(freq(:))*get_Conv_au_TO_unit('E','eV')
-        write(out_unitp,*) 'ZPE   (au): ',HALF*sum(freq(:))
+        write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(freq(:))*get_Conv_au_TO_unit('E','cm-1')
+        write(out_unit,*) 'ZPE   (eV): ',HALF*sum(freq(:))*get_Conv_au_TO_unit('E','eV')
+        write(out_unit,*) 'ZPE   (au): ',HALF*sum(freq(:))
 
         DO i=1,size(freq),3
           i2 = min(i+2,mole%nb_act)
-          write(out_unitp,'(a,i0,"-",i0,3(1x,f0.4))') 'frequencies (cm-1): ',  &
+          write(out_unit,'(a,i0,"-",i0,3(1x,f0.4))') 'frequencies (cm-1): ',  &
                                  i,i2,freq(i:i2) * get_Conv_au_TO_unit('E','cm-1')
         END DO
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 !-----------------------------------------------------------
 
       END SUBROUTINE sub_freq_AT_Qact
@@ -1849,7 +1852,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 !
 !=====================================================================
       SUBROUTINE calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
       USE mod_Coord_KEO
@@ -1895,26 +1898,26 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       character (len=*), parameter :: name_sub = 'calc3_NM_TO_sym'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*)
-        write(out_unitp,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
-        write(out_unitp,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*)
 !       CALL Write_mole(mole)
-!       write(out_unitp,*)
+!       write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
       auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '========== calc3_NM_TO_sym =============='
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '========== calc3_NM_TO_sym =============='
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
 
       Qact = mole%ActiveTransfo%Qact0(:)
 
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '==== hessian and kinetic matrices ======='
-      write(out_unitp,*) '========================================='
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '==== hessian and kinetic matrices ======='
+      write(out_unit,*) '========================================='
 
       IF (mole%NMTransfo%hessian_read .AND. mole%NMTransfo%k_read) THEN
         nb_NM = ubound(mole%NMTransfo%d0k,dim=1)
@@ -1922,11 +1925,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         d0k(:,:) = mole%NMTransfo%d0k(:,:)
 
         IF (nb_NM /= ubound(mole%NMTransfo%d0h,dim=1)) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The dimension of d0k and d0h are different!'
-          write(out_unitp,*) ' shape(d0k):',shape(mole%NMTransfo%d0k)
-          write(out_unitp,*) ' shape(d0h):',shape(mole%NMTransfo%d0h)
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The dimension of d0k and d0h are different!'
+          write(out_unit,*) ' shape(d0k):',shape(mole%NMTransfo%d0k)
+          write(out_unit,*) ' shape(d0h):',shape(mole%NMTransfo%d0h)
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
         CALL alloc_NParray(d0h,[nb_NM,nb_NM],"d0h",name_sub)
@@ -1944,7 +1947,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                             mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
         IF (debug) THEN
-          write(out_unitp,*) 'mole_1:'
+          write(out_unit,*) 'mole_1:'
           CALL Write_CoordType(mole_1)
         END IF
 
@@ -1983,7 +1986,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             PrimOp%Read_OnTheFly_only      = .TRUE.
             PrimOp%para_OTF%file_FChk%name = mole%NMTransfo%file_hessian%name
 
-            write(out_unitp,*) 'Read ab initio hessian from file: ',    &
+            write(out_unit,*) 'Read ab initio hessian from file: ',    &
                                   trim(PrimOp%para_OTF%file_FChk%name)
 
             !CALL  dnOp_grid(Qact,dnE,2,mole_1,para_Tnum,PrimOp)
@@ -2000,7 +2003,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             PrimOp%OnTheFly                = OnTheFly
           ELSE
             IF (mole%NMTransfo%hessian_cart) THEN
-              write(out_unitp,*) 'Old hessian : mole_1%ncart_act',mole_1%ncart_act
+              write(out_unit,*) 'Old hessian : mole_1%ncart_act',mole_1%ncart_act
               dnECC(1,1)%d1(:)   = ZERO
               IF (.NOT. l_hCC) THEN
                 dnECC(1,1)%d2(:,:)   = ZERO
@@ -2011,7 +2014,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
               CALL sub_dnFCC_TO_dnFcurvi(Qact,dnECC(1,1),dnE(1,1),mole_1)
               d0h(:,:) = dnE(1,1)%d2(:,:)
             ELSE
-              write(out_unitp,*) 'hessian : mole_1%nb_act',mole_1%nb_act
+              write(out_unit,*) 'hessian : mole_1%nb_act',mole_1%nb_act
               CALL sub_hessian(d0h)
             END IF
           END IF
@@ -2026,13 +2029,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         END IF
 
         IF (debug) THEN
-          write(out_unitp,*) 'Qref (Qact)',Qact
-          write(out_unitp,*) 'pot_Qref',dnE%d0
+          write(out_unit,*) 'Qref (Qact)',Qact
+          write(out_unit,*) 'pot_Qref',dnE%d0
         END IF
 
-        write(out_unitp,*) 'gradient:'
+        write(out_unit,*) 'gradient:'
         DO i=1,nb_NM
-          write(out_unitp,*) 'Q',i,d0grad(i)
+          write(out_unit,*) 'Q',i,d0grad(i)
         END DO
 
         CALL dealloc_MatOFdnS(dnE)
@@ -2043,20 +2046,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END IF
 
       !write with high precision to be able to read them
-      write(out_unitp,*) 'hessian matrix'
-      write(out_unitp,*) nb_NM,5
-      CALL Write_Mat(d0h,out_unitp,5,Rformat='e20.13')
-      write(out_unitp,*) 'kinetic matrix'
-      write(out_unitp,*) nb_NM,5
-      CALL Write_Mat(d0k,out_unitp,5,Rformat='e20.13')
+      write(out_unit,*) 'hessian matrix'
+      write(out_unit,*) nb_NM,5
+      CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
+      write(out_unit,*) 'kinetic matrix'
+      write(out_unit,*) nb_NM,5
+      CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
 
 
       ! parameters for uncoupled HO
       CALL alloc_NParray(ScalePara,[nb_NM],"ScalePara",name_sub)
       DO i=1,nb_NM
         ScalePara(i) = sqrt(sqrt(abs(d0h(i,i)/d0k(i,i))))
-        !write(out_unitp,*) 'i,d0h,d0k',i,d0h(i,i),d0k(i,i)
-        !write(out_unitp,*) 'i,ScalePara(i)',i,ScalePara(i)
+        !write(out_unit,*) 'i,d0h,d0k',i,d0h(i,i),d0k(i,i)
+        !write(out_unit,*) 'i,ScalePara(i)',i,ScalePara(i)
       END DO
       ! parameters for uncoupled HO
 
@@ -2070,25 +2073,25 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         CALL H0_symmetrization(d0h,nb_NM,mole%NMTransfo%Qact1_sym,      &
                          mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
-        write(out_unitp,*) 'purified hessian matrix'
-        write(out_unitp,*) nb_NM,5
-        CALL Write_Mat(d0h,out_unitp,5,Rformat='e20.13')
+        write(out_unit,*) 'purified hessian matrix'
+        write(out_unit,*) nb_NM,5
+        CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
 
         CALL H0_symmetrization(d0k,nb_NM,mole%NMTransfo%Qact1_sym,      &
                         mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
-        write(out_unitp,*) 'purified K (kinetic) matrix'
-        write(out_unitp,*) nb_NM,5
-        CALL Write_Mat(d0k,out_unitp,5,Rformat='e20.13')
+        write(out_unit,*) 'purified K (kinetic) matrix'
+        write(out_unit,*) nb_NM,5
+        CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
 
       END IF
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
 
 
       d0c_ini(:,:) = ZERO
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '======== frequencies ===================='
-      write(out_unitp,*) '========================================='
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '======== frequencies ===================='
+      write(out_unit,*) '========================================='
 
       CALL alloc_NParray(d0k_save,[nb_NM,nb_NM],"d0k_save",name_sub)
       d0k_save(:,:) = d0k(:,:)
@@ -2103,14 +2106,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                        d0c,d0c_inv,norme,d0c_ini,.FALSE.)
 
         !write with high precision to be able to read it
-        write(out_unitp,*) 'd0c'
-        write(out_unitp,*) nb_NM,5
-        CALL Write_Mat(d0c,out_unitp,5,Rformat='e20.13')
+        write(out_unit,*) 'd0c'
+        write(out_unit,*) nb_NM,5
+        CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
       END IF
 
-      write(out_unitp,*) '========================================='
+      write(out_unit,*) '========================================='
       IF (associated(mole%NMTransfo%Qact1_sym)) THEN
-        IF (debug) write(out_unitp,*) '   d0eh,d0c,d0c_inv after "sort_with_Tab"'
+        IF (debug) write(out_unit,*) '   d0eh,d0c,d0c_inv after "sort_with_Tab"'
 
         CALL alloc_NParray(tab_sort,[nb_NM],"tab_sort",name_sub)
         tab_sort(:) = ZERO
@@ -2120,35 +2123,35 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           tab_sort(i) = real(mole%NMTransfo%Qact1_sym(k),kind=Rkind)
           IF (tab_sort(i) > ZERO) tab_sort(i) = d0eh(i) + tab_sort(i) * max_freq
         END DO
-        write(out_unitp,*) 'tab_sort: ',tab_sort(:)
+        write(out_unit,*) 'tab_sort: ',tab_sort(:)
 
         CALL sort_with_Tab(d0c,d0c_inv,d0eh,tab_sort,nb_NM)
 
         CALL dealloc_NParray(tab_sort,"tab_sort",name_sub)
 
       ELSE
-        IF (debug) write(out_unitp,*) '   d0eh,d0c,d0c_inv'
+        IF (debug) write(out_unit,*) '   d0eh,d0c,d0c_inv'
       END IF
 
       IF (debug) THEN
-        write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*auTOcm_inv
-        write(out_unitp,*) 'd0c'
-        CALL Write_Mat(d0c,out_unitp,5)
-        write(out_unitp,*) 'd0c_inv'
-        CALL Write_Mat(d0c_inv,out_unitp,5)
+        write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*auTOcm_inv
+        write(out_unit,*) 'd0c'
+        CALL Write_Mat(d0c,out_unit,5)
+        write(out_unit,*) 'd0c_inv'
+        CALL Write_Mat(d0c_inv,out_unit,5)
       END IF
 
       IF (mole%NMTransfo%k_Half) THEN
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
         d0k_save = matmul(transpose(d0c),matmul(d0k,d0c))
-        write(out_unitp,*) 'new d0k'
-        CALL Write_Mat(d0k_save,out_unitp,5)
+        write(out_unit,*) 'new d0k'
+        CALL Write_Mat(d0k_save,out_unit,5)
         DO i=1,nb_NM
           d0c(:,i)     = d0c(:,i)     / sqrt(d0k_save(i,i))
           d0c_inv(i,:) = d0c_inv(i,:) * sqrt(d0k_save(i,i))
         END DO
 
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
       mole%NMTransfo%nb_NM = nb_NM
@@ -2165,15 +2168,15 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                       "mole%NMTransfo%d0eh",name_sub)
       mole%NMTransfo%d0eh(:)      = d0eh(:)
 
-      write(out_unitp,*) 'frequencies (cm-1):',d0eh(:)*auTOcm_inv
-      !write(out_unitp,*) 'all scaling Gaussian  :',sqrt(abs(d0eh))
-      !write(out_unitp,*) 'd0c'
-      !CALL Write_Mat(d0c,out_unitp,5)
-      !write(out_unitp,*) 'd0c_inv'
-      !CALL Write_Mat(d0c_inv,out_unitp,5)
+      write(out_unit,*) 'frequencies (cm-1):',d0eh(:)*auTOcm_inv
+      !write(out_unit,*) 'all scaling Gaussian  :',sqrt(abs(d0eh))
+      !write(out_unit,*) 'd0c'
+      !CALL Write_Mat(d0c,out_unit,5)
+      !write(out_unit,*) 'd0c_inv'
+      !CALL Write_Mat(d0c_inv,out_unit,5)
 
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
 
       CALL alloc_NParray(mat,    [mole%nb_var,mole%nb_var],"mat",name_sub)
       CALL alloc_NParray(mat_inv,[mole%nb_var,mole%nb_var],"mat_inv",name_sub)
@@ -2191,27 +2194,27 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END DO
 
       IF (debug) THEN
-        write(out_unitp,*) 'mat'
-        CALL Write_Mat(mat,out_unitp,5)
-        write(out_unitp,*) 'mat_inv'
-        CALL Write_Mat(mat_inv,out_unitp,5)
+        write(out_unit,*) 'mat'
+        CALL Write_Mat(mat,out_unit,5)
+        write(out_unit,*) 'mat_inv'
+        CALL Write_Mat(mat_inv,out_unit,5)
       END IF
 
       IF (print_level > 0) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== Basis parameters ==============='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the uncoupled HO basis'
-        write(out_unitp,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' Hm basis set with Qdyn'
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '======== Basis parameters ==============='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the uncoupled HO basis'
+        write(out_unit,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' Hm basis set with Qdyn'
         DO i=1,nb_NM
           i_sym = mole%ActiveTransfo%list_QactTOQdyn(i)
-          write(out_unitp,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
+          write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
             mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=',ScalePara(i),' /'
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
 
@@ -2224,23 +2227,23 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       Qact  = mole%ActiveTransfo%Qact0(:)
 
       IF (print_level > 0) THEN
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the HO basis (Normal Modes)'
-        write(out_unitp,*) ' New Qdyn0, mole with the normal modes'
-        write(out_unitp,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' Hm basis set with New Qdyn'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the HO basis (Normal Modes)'
+        write(out_unit,*) ' New Qdyn0, mole with the normal modes'
+        write(out_unit,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' Hm basis set with New Qdyn'
         DO i=1,nb_NM
           i_sym = mole%ActiveTransfo%list_QactTOQdyn(i)
           IF (mole%NMTransfo%k_Half) THEN
-            write(out_unitp,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
+            write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
               mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=',sqrt(d0k_save(i,i)),'/'
           ELSE
-            write(out_unitp,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
+            write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
               mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=1. /'
           END IF
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
       IF (allocated(d0k_save))  THEN
@@ -2250,15 +2253,15 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       mole%tab_Qtransfo(mole%itNM)%LinearTransfo%mat     = mat
       mole%tab_Qtransfo(mole%itNM)%LinearTransfo%mat_inv = mat_inv
 
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
 
       CALL dealloc_NParray(mat,    "mat",    name_sub)
       CALL dealloc_NParray(mat_inv,"mat_inv",name_sub)
 
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '======== New G matrix ==================='
-      write(out_unitp,*) '========================================='
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '======== New G matrix ==================='
+      write(out_unit,*) '========================================='
 
       DO i=1,mole%nb_var
         IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
@@ -2276,26 +2279,26 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       DO i=1,mole%nb_act
         d0eh(i) = dnGG%d0(i,i)
       END DO
-      write(out_unitp,*) 'new d0GG',mole%nb_act
-      CALL Write_Mat(dnGG%d0,out_unitp,5)
+      write(out_unit,*) 'new d0GG',mole%nb_act
+      CALL Write_Mat(dnGG%d0,out_unit,5)
 
       CALL dealloc_dnSVM(dnGG)
 !     -----------------------------------------------------------------
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
 
       IF (print_level > 0) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== Uncoupled Harmonic Hamiltonian ='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) 'H(Qact(:)) = Sum_i H1D(Qact(i))'
-        write(out_unitp,*) 'Active Freq (cm-1)',d0eh(1:mole%nb_act)*auTOcm_inv
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '======== Uncoupled Harmonic Hamiltonian ='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) 'H(Qact(:)) = Sum_i H1D(Qact(i))'
+        write(out_unit,*) 'Active Freq (cm-1)',d0eh(1:mole%nb_act)*auTOcm_inv
 
         DO i=1,mole%nb_act
-        write(out_unitp,*) 'H1D(Qact_i)',i,':',d0eh(i),'*1/2(-d./dQact_i^2+dQact_i^2)'
+        write(out_unit,*) 'H1D(Qact_i)',i,':',d0eh(i),'*1/2(-d./dQact_i^2+dQact_i^2)'
         END DO
 
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
       END IF
 
       CALL dealloc_NParray(d0c_inv,  "d0c_inv",  name_sub)
@@ -2309,18 +2312,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*)
         !CALL Write_mole(mole)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
 
 !     -----------------------------------------------------------------
 
       END SUBROUTINE calc3_NM_TO_sym
       SUBROUTINE calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
       USE mod_Coord_KEO
@@ -2370,19 +2373,19 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       character (len=*), parameter :: name_sub = 'calc4_NM_TO_sym'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*)
-        write(out_unitp,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
-        write(out_unitp,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*)
 !       CALL Write_mole(mole)
-!       write(out_unitp,*)
+!       write(out_unit,*)
        END IF
 
       !-----------------------------------------------------------------
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '========== calc4_NM_TO_sym =============='
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '========== calc4_NM_TO_sym =============='
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
       auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
       IF (present(l_hCC) .AND. present(hCC)) THEN
@@ -2460,11 +2463,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       nb_NM = sum(nb_PerBlock)
 
 
-      write(out_unitp,*) '  nb_Block            ',nb_Block
-      write(out_unitp,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
-      write(out_unitp,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
-      write(out_unitp,*) '  nb_NM',nb_NM
-      flush(out_unitp)
+      write(out_unit,*) '  nb_Block            ',nb_Block
+      write(out_unit,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
+      write(out_unit,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
+      write(out_unit,*) '  nb_NM',nb_NM
+      flush(out_unit)
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
 
@@ -2475,12 +2478,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         IF (Ind_Coord_AtBlock(i_Block) == 0) CYCLE
 
         nb_NM = nb_PerBlock(i_Block)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '=========       Block: ',i_Block
-        write(out_unitp,*) '========= nb_PerBlock: ',nb_PerBlock(i_Block)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '=========       Block: ',i_Block
+        write(out_unit,*) '========= nb_PerBlock: ',nb_PerBlock(i_Block)
+        write(out_unit,*) '========================================='
+        write(out_unit,*)
+        flush(out_unit)
 
         !- create mole_1 (type=-1 => type=1)
         mole_1 = mole
@@ -2494,7 +2497,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           END IF
         END DO
         CALL type_var_analysis_OF_CoordType(mole_1)
-        write(out_unitp,*) 'mole_1%...list_act_OF_Qdyn',                &
+        write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
                                 mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
 
         CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole_1%ActiveTransfo%Qdyn0,  &
@@ -2502,15 +2505,15 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                                              mole_1%ActiveTransfo)
 
         Qact = mole_1%ActiveTransfo%Qact0(:)
-        IF (print_level > 1) write(out_unitp,*) 'Qdyn0',mole_1%ActiveTransfo%Qdyn0
-        IF (print_level > 1) write(out_unitp,*) 'Qact0',mole_1%ActiveTransfo%Qact0
-        flush(out_unitp)
+        IF (print_level > 1) write(out_unit,*) 'Qdyn0',mole_1%ActiveTransfo%Qdyn0
+        IF (print_level > 1) write(out_unit,*) 'Qact0',mole_1%ActiveTransfo%Qact0
+        flush(out_unit)
 
 
         IF (debug) THEN
-          write(out_unitp,*) 'mole_1:'
+          write(out_unit,*) 'mole_1:'
           CALL Write_CoordType(mole_1)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 
         CALL alloc_NParray(d0c,     [nb_NM,nb_NM],"d0c",     name_sub)
@@ -2542,10 +2545,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         DO i=1,mole_1%nb_act,3
           i2 = min(i+2,mole_1%nb_act)
-          write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
+          write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                           i,i2,d0eh(i:i2)*auTOcm_inv
         END DO
-        flush(out_unitp)
+        flush(out_unit)
 
         ! frequencies
         iQ = 0
@@ -2558,11 +2561,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         d0k_save = matmul(transpose(d0c),matmul(d0k,d0c))
         IF (print_level > 1 .OR. debug) THEN
-          write(out_unitp,*) '==========================='
-          write(out_unitp,*) 'new d0k'
-          CALL Write_Mat(d0k_save,out_unitp,5)
-          write(out_unitp,*) '==========================='
-          flush(out_unitp)
+          write(out_unit,*) '==========================='
+          write(out_unit,*) 'new d0k'
+          CALL Write_Mat(d0k_save,out_unit,5)
+          write(out_unit,*) '==========================='
+          flush(out_unit)
         END IF
 
         ! change d0c, d0c_inv
@@ -2579,17 +2582,17 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
               abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
             iQ = iQ + 1
             ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
-            !write(out_unitp,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
-            !write(out_unitp,*) 'i,iQ,ScalePara_NM(i)',i,iQ,ScalePara_NM(i)
+            !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
+            !write(out_unit,*) 'i,iQ,ScalePara_NM(i)',i,iQ,ScalePara_NM(i)
           END DO
         END IF
 
 
         IF (debug) THEN
           !write with high precision to be able to read it
-          write(out_unitp,*) 'd0c'
-          write(out_unitp,*) nb_NM,5
-          CALL Write_Mat(d0c,out_unitp,5,Rformat='e20.13')
+          write(out_unit,*) 'd0c'
+          write(out_unit,*) nb_NM,5
+          CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
         END IF
 
         IF (Ind_Coord_AtBlock(i_block) > 0) THEN
@@ -2623,16 +2626,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL dealloc_CoordType(mole_1)
 
 
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '===== END Block: ',i_Block
-        write(out_unitp,*) '========================================='
-        flush(out_unitp)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '===== END Block: ',i_Block
+        write(out_unit,*) '========================================='
+        flush(out_unit)
 
       END DO
 
       DO i=1,mole%nb_var,3
         i2 = min(i+2,mole%nb_var)
-        write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
+        write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                           i,i2,d0eh_all(i:i2)*auTOcm_inv
       END DO
       CALL alloc_array(mole%NMTransfo%d0eh,[nb_NM],                 &
@@ -2641,24 +2644,24 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       mole%NMTransfo%d0eh(1:nb_NM) = d0eh_all(1:nb_NM)
       mole%NMTransfo%nb_NM         = nb_NM
 
-      !write(out_unitp,*) ' Mat'
-      !CALL Write_Mat(mat,out_unitp,5)
-      !write(out_unitp,*) ' Mat_inv'
-      !CALL Write_Mat(mat_inv,out_unitp,5)
+      !write(out_unit,*) ' Mat'
+      !CALL Write_Mat(mat,out_unit,5)
+      !write(out_unit,*) ' Mat_inv'
+      !CALL Write_Mat(mat_inv,out_unit,5)
 
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the uncoupled HO basis'
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' HO basis set with Qdyn'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the uncoupled HO basis'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' HO basis set with Qdyn'
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            write(out_unitp,'(a,i0,a,f0.3,a,f0.3,a)')                   &
+            write(out_unit,'(a,i0,a,f0.3,a,f0.3,a)')                   &
                  '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
                 mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
           END IF
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
 
@@ -2678,56 +2681,56 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                       "mole%NMTransfo%scaleQ_HObasis",name_sub)
       mole%NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
 
-      write(out_unitp,*) '==========================='
-      write(out_unitp,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
-      write(out_unitp,*) '==========================='
+      write(out_unit,*) '==========================='
+      write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
+      write(out_unit,*) '==========================='
 
       IF (print_level > 1 .OR. debug) THEN
 
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the HO basis (Normal Modes)'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the HO basis (Normal Modes)'
 
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' Hm basis set with New Qdyn'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' Hm basis set with New Qdyn'
 
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            write(out_unitp,'(a,i0,a,f0.3,a,e11.4,a)')                &
+            write(out_unit,'(a,i0,a,f0.3,a,e11.4,a)')                &
                '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
              mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
           END IF
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=== Mat of Linear transformation ='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
-        write(out_unitp,*) 'Mat of linear Transfo for the Normal modes'
-        write(out_unitp,*) 5
-        CALL Write_Mat(mat,out_unitp,5,Rformat='e20.13')
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=== Mat of Linear transformation ='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
+        write(out_unit,*) 'Mat of linear Transfo for the Normal modes'
+        write(out_unit,*) 5
+        CALL Write_Mat(mat,out_unit,5,Rformat='e20.13')
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
       END IF
 
 
       IF (print_level > 2 .OR. debug) THEN
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) 'transpose(mat_inv) or d0c'
-        write(out_unitp,*) 'Each column corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat_inv),out_unitp,5,Rformat='f10.3')
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) 'transpose(mat) or d0c_inv'
-        write(out_unitp,*) 'Each line corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat),out_unitp,5,Rformat='f14.7')
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) 'transpose(mat_inv) or d0c'
+        write(out_unit,*) 'Each column corresponds to one normal mode'
+        CALL Write_Mat(transpose(mat_inv),out_unit,5,Rformat='f10.3')
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) 'transpose(mat) or d0c_inv'
+        write(out_unit,*) 'Each line corresponds to one normal mode'
+        CALL Write_Mat(transpose(mat),out_unit,5,Rformat='f14.7')
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
       END IF
 
       mole%tab_Qtransfo(mole%itNM)%LinearTransfo%mat(:,:)     = mat(:,:)
@@ -2758,20 +2761,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       !- calc new G and hessian
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== New G and hessain matrix ======='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '======== New G and hessain matrix ======='
+        write(out_unit,*) '========================================='
 
         CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
 
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
-        write(out_unitp,*) 'New d0GG',mole%nb_act
-        CALL Write_Mat(dnGG%d0,out_unitp,5)
+        write(out_unit,*) 'New d0GG',mole%nb_act
+        CALL Write_Mat(dnGG%d0,out_unit,5)
 
         CALL dealloc_dnSVM(dnGG)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
 
         nb_NM = mole%nb_act
         Ind_Coord_AtBlock  = [(i,i=1,nb_NM)]
@@ -2783,32 +2786,32 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                         Ind_Coord_AtBlock(i_Block),Ind_Coord_PerBlock,  &
                         PrimOp,hCC_loc,l_hCC_loc)
 
-        write(out_unitp,*) 'New d0h',mole%nb_act
-        CALL Write_Mat(d0h,out_unitp,5)
+        write(out_unit,*) 'New d0h',mole%nb_act
+        CALL Write_Mat(d0h,out_unit,5)
 
         CALL dealloc_NParray(d0k,"d0k",     name_sub)
         CALL dealloc_NParray(d0h,"d0h",     name_sub)
         deallocate(Ind_Coord_AtBlock)
         deallocate(Ind_Coord_PerBlock)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
       END IF
       !-----------------------------------------------------------------
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*)
         !CALL Write_mole(mole)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
 
 !     -----------------------------------------------------------------
 
       END SUBROUTINE calc4_NM_TO_sym
       SUBROUTINE calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
       USE mod_Coord_KEO
@@ -2859,19 +2862,19 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       character (len=*), parameter :: name_sub = 'calc5_NM_TO_sym'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*)
-        write(out_unitp,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
-        write(out_unitp,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*)
 !       CALL Write_mole(mole)
-!       write(out_unitp,*)
+!       write(out_unit,*)
        END IF
 
       !-----------------------------------------------------------------
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*) '========== calc5_NM_TO_sym =============='
-      write(out_unitp,*) '========================================='
-      write(out_unitp,*)
+      write(out_unit,*) '========================================='
+      write(out_unit,*) '========== calc5_NM_TO_sym =============='
+      write(out_unit,*) '========================================='
+      write(out_unit,*)
       auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
       IF (present(l_hCC) .AND. present(hCC)) THEN
@@ -2953,10 +2956,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       nb_NM = sum(nb_PerBlock)
 
 
-      write(out_unitp,*) '  nb_Block            ',nb_Block
-      write(out_unitp,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
-      write(out_unitp,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
-      write(out_unitp,*) '  nb_NM',nb_NM
+      write(out_unit,*) '  nb_Block            ',nb_Block
+      write(out_unit,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
+      write(out_unit,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
+      write(out_unit,*) '  nb_NM',nb_NM
 
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
@@ -2966,12 +2969,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       DO i_Block=1,nb_Block
 
         nb_NM = nb_PerBlock(i_Block)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '=========       Block: ',i_Block
-        write(out_unitp,*) '========= nb_PerBlock: ',nb_PerBlock(i_Block)
-        write(out_unitp,*) '========= Ind_AtBlock: ',Ind_Coord_AtBlock(i_Block)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '=========       Block: ',i_Block
+        write(out_unit,*) '========= nb_PerBlock: ',nb_PerBlock(i_Block)
+        write(out_unit,*) '========= Ind_AtBlock: ',Ind_Coord_AtBlock(i_Block)
+        write(out_unit,*) '========================================='
+        write(out_unit,*)
 
         IF (Ind_Coord_AtBlock(i_Block) == 0 .OR. Ind_Coord_AtBlock(i_Block) == 100) THEN
 
@@ -2987,7 +2990,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             END IF
           END DO
           CALL type_var_analysis_OF_CoordType(mole_1)
-          write(out_unitp,*) 'mole_1%...list_act_OF_Qdyn',                &
+          write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
                                   mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
 
           CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,  &
@@ -2995,11 +2998,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                                                mole%ActiveTransfo)
 
           Qact = mole_1%ActiveTransfo%Qact0(:)
-          IF (print_level > 1) write(out_unitp,*) 'Qact',Qact
+          IF (print_level > 1) write(out_unit,*) 'Qact',Qact
 
 
           IF (debug) THEN
-            write(out_unitp,*) 'mole_1:'
+            write(out_unit,*) 'mole_1:'
             CALL Write_CoordType(mole_1)
           END IF
 
@@ -3033,7 +3036,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
           DO i=1,mole_1%nb_act,3
             i2 = min(i+2,mole_1%nb_act)
-            write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
+            write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                             i,i2,d0eh(i:i2)*auTOcm_inv
           END DO
 
@@ -3048,10 +3051,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
           d0k_save = matmul(transpose(d0c),matmul(d0k,d0c))
           IF (print_level > 1 .OR. debug) THEN
-            write(out_unitp,*) '==========================='
-            write(out_unitp,*) 'new d0k'
-            CALL Write_Mat(d0k_save,out_unitp,5)
-            write(out_unitp,*) '==========================='
+            write(out_unit,*) '==========================='
+            write(out_unit,*) 'new d0k'
+            CALL Write_Mat(d0k_save,out_unit,5)
+            write(out_unit,*) '==========================='
           END IF
 
           ! change d0c, d0c_inv
@@ -3068,17 +3071,17 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                 abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
               iQ = iQ + 1
               ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
-              !write(out_unitp,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
-              !write(out_unitp,*) 'i,iQ,ScalePara_NM(i)',i,iQ,ScalePara_NM(i)
+              !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
+              !write(out_unit,*) 'i,iQ,ScalePara_NM(i)',i,iQ,ScalePara_NM(i)
             END DO
           END IF
 
 
           IF (debug) THEN
             !write with high precision to be able to read it
-            write(out_unitp,*) 'd0c'
-            write(out_unitp,*) nb_NM,5
-            CALL Write_Mat(d0c,out_unitp,5,Rformat='e20.13')
+            write(out_unit,*) 'd0c'
+            write(out_unit,*) nb_NM,5
+            CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
           END IF
 
           IF (Ind_Coord_AtBlock(i_block) > 0) THEN
@@ -3112,16 +3115,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           CALL dealloc_CoordType(mole_1)
         END IF
 
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '===== END Block: ',i_Block
-        write(out_unitp,*) '========================================='
-        flush(out_unitp)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '===== END Block: ',i_Block
+        write(out_unit,*) '========================================='
+        flush(out_unit)
 
       END DO
 
       DO i=1,mole%nb_act,3
         i2 = min(i+2,mole%nb_act)
-        write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
+        write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                           i,i2,d0eh_all(i:i2)*auTOcm_inv
       END DO
       CALL alloc_array(mole%NMTransfo%d0eh,[nb_NM],                 &
@@ -3130,24 +3133,24 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       mole%NMTransfo%d0eh(:)      = d0eh_all(:)
       mole%NMTransfo%nb_NM        = nb_NM
 
-      !write(out_unitp,*) ' Mat'
-      !CALL Write_Mat(mat,out_unitp,5)
-      !write(out_unitp,*) ' Mat_inv'
-      !CALL Write_Mat(mat_inv,out_unitp,5)
+      !write(out_unit,*) ' Mat'
+      !CALL Write_Mat(mat,out_unit,5)
+      !write(out_unit,*) ' Mat_inv'
+      !CALL Write_Mat(mat_inv,out_unit,5)
 
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the uncoupled HO basis'
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' HO basis set with Qdyn'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the uncoupled HO basis'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' HO basis set with Qdyn'
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            write(out_unitp,'(a,i0,a,f0.3,a,f0.3,a)')                   &
+            write(out_unit,'(a,i0,a,f0.3,a,f0.3,a)')                   &
                  '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
                 mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
           END IF
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
 
@@ -3167,49 +3170,49 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                       "mole%NMTransfo%scaleQ_HObasis",name_sub)
       mole%NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
 
-      write(out_unitp,*) '==========================='
-      write(out_unitp,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
-      write(out_unitp,*) '==========================='
+      write(out_unit,*) '==========================='
+      write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
+      write(out_unit,*) '==========================='
 
       IF (print_level > 1 .OR. debug) THEN
 
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) 'Parameters for the HO basis (Normal Modes)'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) 'Parameters for the HO basis (Normal Modes)'
 
-        write(out_unitp,*) '==========================='
-        write(out_unitp,*) ' Hm basis set with New Qdyn'
+        write(out_unit,*) '==========================='
+        write(out_unit,*) ' Hm basis set with New Qdyn'
 
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            write(out_unitp,'(a,i0,a,f0.3,a,e11.4,a)')                &
+            write(out_unit,'(a,i0,a,f0.3,a,e11.4,a)')                &
                '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
              mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
           END IF
         END DO
-        write(out_unitp,*) '==========================='
+        write(out_unit,*) '==========================='
       END IF
 
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=== Mat of Linear transformation ='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
-        write(out_unitp,*) 'Mat of linear Transfo for the Normal modes'
-        write(out_unitp,*) 5
-        CALL Write_Mat(mat,out_unitp,5,Rformat='e20.13')
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=== Mat of Linear transformation ='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
+        write(out_unit,*) 'Mat of linear Transfo for the Normal modes'
+        write(out_unit,*) 5
+        CALL Write_Mat(mat,out_unit,5,Rformat='e20.13')
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
       END IF
 
 
       IF (print_level > 2 .OR. debug) THEN
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) 'transpose(mat_inv) or d0c'
-        write(out_unitp,*) 'Each column corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat_inv),out_unitp,5,Rformat='f10.3')
-        write(out_unitp,*) '=================================='
-        write(out_unitp,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
+        write(out_unit,*) 'transpose(mat_inv) or d0c'
+        write(out_unit,*) 'Each column corresponds to one normal mode'
+        CALL Write_Mat(transpose(mat_inv),out_unit,5,Rformat='f10.3')
+        write(out_unit,*) '=================================='
+        write(out_unit,*) '=================================='
       END IF
 
       mole%tab_Qtransfo(mole%itNM)%LinearTransfo%mat(:,:)     = mat(:,:)
@@ -3240,20 +3243,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       !- calc new G and hessian
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '======== New G and hessain matrix ======='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '======== New G and hessain matrix ======='
+        write(out_unit,*) '========================================='
 
         CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
 
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
-        write(out_unitp,*) 'New d0GG',mole%nb_act
-        CALL Write_Mat(dnGG%d0,out_unitp,5)
+        write(out_unit,*) 'New d0GG',mole%nb_act
+        CALL Write_Mat(dnGG%d0,out_unit,5)
 
         CALL dealloc_dnSVM(dnGG)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
 
         nb_NM = mole%nb_act
         Ind_Coord_AtBlock  = [(i,i=1,nb_NM)]
@@ -3265,25 +3268,25 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                         Ind_Coord_AtBlock(i_Block),Ind_Coord_PerBlock,  &
                         PrimOp,hCC_loc,l_hCC_loc)
 
-        write(out_unitp,*) 'New d0h',mole%nb_act
-        CALL Write_Mat(d0h,out_unitp,5)
+        write(out_unit,*) 'New d0h',mole%nb_act
+        CALL Write_Mat(d0h,out_unit,5)
 
         CALL dealloc_NParray(d0k,"d0k",     name_sub)
         CALL dealloc_NParray(d0h,"d0h",     name_sub)
         deallocate(Ind_Coord_AtBlock)
         deallocate(Ind_Coord_PerBlock)
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
       END IF
       !-----------------------------------------------------------------
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*)
         !CALL Write_mole(mole)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
 
 !     -----------------------------------------------------------------
@@ -3292,7 +3295,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       SUBROUTINE get_hess_k(d0k,d0h,nb_NM,Qact,mole,para_Tnum,          &
                             Ind_Coord_AtBlock,Ind_Coord_PerBlock,       &
                             PrimOp,hCC,l_hCC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Coord_KEO, only : CoordType,Tnum,get_d0GG,                    &
                                 sub_dnFCC_TO_dnFcurvi, Write_CoordType
@@ -3337,30 +3340,30 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       character (len=*), parameter :: name_sub = 'get_hess_k'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'shape Qact ',shape(Qact)
-        write(out_unitp,*) 'Qact =',Qact
-        write(out_unitp,*)
-        write(out_unitp,*) 'hessian_read,k_read',mole%NMTransfo%hessian_read,mole%NMTransfo%k_read
-        write(out_unitp,*) 'hessian_old',mole%NMTransfo%hessian_old
-        write(out_unitp,*) 'hessian_onthefly',mole%NMTransfo%hessian_onthefly
-        write(out_unitp,*) 'hessian_cart',mole%NMTransfo%hessian_cart
-        write(out_unitp,*) 'mole%...list_act_OF_Qdyn',mole%ActiveTransfo%list_act_OF_Qdyn(:)
-        write(out_unitp,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'shape Qact ',shape(Qact)
+        write(out_unit,*) 'Qact =',Qact
+        write(out_unit,*)
+        write(out_unit,*) 'hessian_read,k_read',mole%NMTransfo%hessian_read,mole%NMTransfo%k_read
+        write(out_unit,*) 'hessian_old',mole%NMTransfo%hessian_old
+        write(out_unit,*) 'hessian_onthefly',mole%NMTransfo%hessian_onthefly
+        write(out_unit,*) 'hessian_cart',mole%NMTransfo%hessian_cart
+        write(out_unit,*) 'mole%...list_act_OF_Qdyn',mole%ActiveTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*)
         CALL Write_CoordType(mole)
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*)
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------------
 
 
       IF (print_level > 1 .OR. debug) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '==== hessian and kinetic matrices ======='
-        write(out_unitp,*) '========================================='
-        flush(out_unitp)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '==== hessian and kinetic matrices ======='
+        write(out_unit,*) '========================================='
+        flush(out_unit)
       END IF
 
       IF (mole%NMTransfo%hessian_read .AND. mole%NMTransfo%k_read) THEN
@@ -3382,8 +3385,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       ELSE ! both are false
         !- calc G_1
         IF (nb_NM /= mole%nb_act) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' nb_NM /= mole%nb_act',nb_NM,mole%nb_act
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nb_NM /= mole%nb_act',nb_NM,mole%nb_act
           STOP
         END IF
 
@@ -3406,9 +3409,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             PrimOp%Read_OnTheFly_only      = .TRUE.
             PrimOp%para_OTF%file_FChk%name = mole%NMTransfo%file_hessian%name
 
-            write(out_unitp,*) 'Read ab initio hessian from file: ',    &
+            write(out_unit,*) 'Read ab initio hessian from file: ',    &
                                   trim(PrimOp%para_OTF%file_FChk%name)
-            flush(out_unitp)
+            flush(out_unit)
 
             CALL Init_Tab_OF_dnMatOp(dnMatOp,nb_NM,1,nderiv=2)
             CALL get_dnMatOp_AT_Qact(Qact,dnMatOp,mole,para_Tnum,PrimOp)
@@ -3425,7 +3428,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
               CALL alloc_MatOFdnS(dnE,nb_NM,2)
               CALL alloc_MatOFdnS(dnECC,mole%ncart_act,2)
 
-              write(out_unitp,*) 'Old hessian : mole%ncart_act',mole%ncart_act
+              write(out_unit,*) 'Old hessian : mole%ncart_act',mole%ncart_act
               dnECC(1,1)%d1(:)   = ZERO
               IF (.NOT. l_hCC) THEN
                 dnECC(1,1)%d2(:,:)   = ZERO
@@ -3439,7 +3442,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
               CALL dealloc_MatOFdnS(dnE)
               CALL dealloc_MatOFdnS(dnECC)
             ELSE
-              write(out_unitp,*) 'hessian : mole%nb_act',mole%nb_act
+              write(out_unit,*) 'hessian : mole%nb_act',mole%nb_act
               CALL sub_hessian(d0h)
             END IF
             d0grad(:) = ZERO
@@ -3464,57 +3467,57 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         END IF
 
         IF (debug) THEN
-          write(out_unitp,*) 'Qref (Qact)',Qact
-          write(out_unitp,*) 'pot_Qref',dnE%d0
-          flush(out_unitp)
+          write(out_unit,*) 'Qref (Qact)',Qact
+          write(out_unit,*) 'pot_Qref',dnE%d0
+          flush(out_unit)
         END IF
 
         IF (para_Tnum%WriteT .OR. debug .OR. print_level > 0) THEN
-          write(out_unitp,*) 'gradient:'
+          write(out_unit,*) 'gradient:'
           DO i=1,nb_NM
-            write(out_unitp,'(a,1x,i0,1x,f12.6)') 'Q',i,d0grad(i)
+            write(out_unit,'(a,1x,i0,1x,f12.6)') 'Q',i,d0grad(i)
           END DO
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 
       END IF
 
       !write with high precision to be able to read them
       IF (para_Tnum%WriteT .OR. debug .OR. print_level > 1) THEN
-        write(out_unitp,*) 'hessian matrix (not purified)'
-        write(out_unitp,*) nb_NM,5
-        CALL Write_Mat(d0h,out_unitp,5,Rformat='e20.13')
-        !CALL Write_Mat(d0h,out_unitp,5,Rformat='f12.6')
-        write(out_unitp,*) 'kinetic matrix  (not purified)'
-        write(out_unitp,*) nb_NM,5
-        CALL Write_Mat(d0k,out_unitp,5,Rformat='e20.13')
-        !CALL Write_Mat(d0k,out_unitp,5,Rformat='f12.6')
-        flush(out_unitp)
+        write(out_unit,*) 'hessian matrix (not purified)'
+        write(out_unit,*) nb_NM,5
+        CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
+        !CALL Write_Mat(d0h,out_unit,5,Rformat='f12.6')
+        write(out_unit,*) 'kinetic matrix  (not purified)'
+        write(out_unit,*) nb_NM,5
+        CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
+        !CALL Write_Mat(d0k,out_unit,5,Rformat='f12.6')
+        flush(out_unit)
       END IF
 
       IF (debug) THEN
         d0hh = d0h
         CALL diagonalization(d0hh,d0eh,d0ch,diago_type=2,sort=1,phase=.TRUE.)
         DO i=1,nb_NM,3
-          write(out_unitp,*) i,'d0eh:',d0eh(i:min(i+2,nb_NM))
+          write(out_unit,*) i,'d0eh:',d0eh(i:min(i+2,nb_NM))
         END DO
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 
       IF (print_level > 1) THEN
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '==== END hessian and kinetic matrices ==='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*) '========================================='
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '==== END hessian and kinetic matrices ==='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*)
+        flush(out_unit)
       END IF
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
 !     -----------------------------------------------------------------
@@ -3527,7 +3530,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !     deltaQ(nb_inact2)       : displacement
       !=============================================================
       FUNCTION pot2(h,deltaQ,nb_inact2)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       real (kind=Rkind) :: pot2
@@ -3544,9 +3547,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !logical, parameter :: debug = .TRUE.
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING pot2'
-        write(out_unitp,*) '  h ',h
-        write(out_unitp,*) '  deltaQ',deltaQ
+        write(out_unit,*) 'BEGINNING pot2'
+        write(out_unit,*) '  h ',h
+        write(out_unit,*) '  deltaQ',deltaQ
       END IF
       !---------------------------------------------------------------------
 
@@ -3566,8 +3569,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) '  v2 ',v2
-        write(out_unitp,*) 'END pot2'
+        write(out_unit,*) '  v2 ',v2
+        write(out_unit,*) 'END pot2'
       END IF
       !---------------------------------------------------------------------
 
@@ -3575,7 +3578,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 
 SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
       USE mod_Coord_KEO
@@ -3622,11 +3625,11 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'asso  NMTransfo',associated(mole%NMTransfo)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'asso  NMTransfo',associated(mole%NMTransfo)
     IF (associated(mole%NMTransfo)) &
-      write(out_unitp,*) 'skip_transfo  NMTransfo',mole%tab_Qtransfo(mole%itNM)%skip_transfo
-    flush(out_unitp)
+      write(out_unit,*) 'skip_transfo  NMTransfo',mole%tab_Qtransfo(mole%itNM)%skip_transfo
+    flush(out_unit)
   END IF
 !-----------------------------------------------------------
 
@@ -3702,7 +3705,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
                             'mole%RPHTransfo%tab_RPHpara_AT_Qact1',             &
                                                          name_sub,[-nb_pts])
           END IF
-          write(out_unitp,*) 'in ',name_sub,' QMLib,',mole%RPHTransfo%QMlib
+          write(out_unit,*) 'in ',name_sub,' QMLib,',mole%RPHTransfo%QMlib
 
           CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0),&
                                     Qact,para_Tnum,mole)
@@ -3712,19 +3715,19 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
                                                mole%ActiveTransfo%Qact0,  &
                                                mole%ActiveTransfo)
 
-          write(out_unitp,*) 'New Qact0',mole%ActiveTransfo%Qact0
+          write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0
 
-          write(out_unitp,*) ' Frequencies, normal modes at the reference geometry'
+          write(out_unit,*) ' Frequencies, normal modes at the reference geometry'
 
-          write(out_unitp,11) Qact(1:mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
+          write(out_unit,11) Qact(1:mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
                  mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnEHess%d0(:)*auTOcm_inv
 11        format(' frequencies : ',30f10.4)
 
-          write(out_unitp,*) 'dnQopt'
+          write(out_unit,*) 'dnQopt'
           CALL Write_dnVec(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnQopt,nderiv=0)
-          write(out_unitp,*) 'dnC_inv'
+          write(out_unit,*) 'dnC_inv'
           CALL Write_dnMat(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnC_inv,nderiv=0)
-          flush(out_unitp)
+          flush(out_unit)
           IF (debug) CALL Write_RPHTransfo(mole%RPHTransfo)
 
           ! DO iact=1,nb_act1_RPH ! for what for ?
@@ -3748,26 +3751,26 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
   END IF
 
   IF (Gref) THEN
-    write(out_unitp,*) 'nb_act,nb_rigid100',mole%nb_act,mole%nb_rigid100
+    write(out_unit,*) 'nb_act,nb_rigid100',mole%nb_act,mole%nb_rigid100
     CALL alloc_NPArray(GGdef,[mole%nb_act,mole%nb_act],'GGdef',name_sub)
     GGdef(:,:) = ZERO
     CALL get_Qact0(Qact,mole%ActiveTransfo)
-    IF (print_level > 1) write(out_unitp,*) ' Gref',shape(GGdef)
-    flush(out_unitp)
+    IF (print_level > 1) write(out_unit,*) ' Gref',shape(GGdef)
+    flush(out_unit)
 
     CALL sub_Qmodel_check_alloc_d0GGdef(QMLib_G)
     QMLib_G = QMLib_G .AND. PrimOp%QMLib .AND. PrimOp%QMLib_G .AND. PrimOp%pot_itQtransfo /= 0
     
     ! when Qcart is used the size of G form QML is [ncart_cat,ncart_act]
     IF (QMLib_G) THEN
-      write(out_unitp,*) ' Gref from QML'
+      write(out_unit,*) ' Gref from QML'
       ndim = get_Qmodel_ndim()
       write(6,*) 'ndim QML',ndim
       CALL alloc_NPArray(GGdef_Qmodel,[ndim,ndim],'GGdef_Qmodel',name_sub)
       CALL get_Qmodel_GGdef(GGdef_Qmodel)
       IF (print_level > 1) THEN
-        write(out_unitp,*) ' GGdef_Qmodel'
-        CALL Write_Mat(GGdef_Qmodel,out_unitp,5)
+        write(out_unit,*) ' GGdef_Qmodel'
+        CALL Write_Mat(GGdef_Qmodel,out_unit,5)
       END IF
       IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo) THEN ! Qact
         DO i=1,ndim
@@ -3796,9 +3799,9 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       CALL dealloc_NPArray(GGdef_Qmodel,'GGdef_Qmodel',name_sub)
 
     ELSE
-      write(out_unitp,*) ' Gref from Tnum-Tana'
+      write(out_unit,*) ' Gref from Tnum-Tana'
       CALL get_Qact0(Qact,mole%ActiveTransfo)
-      !write(out_unitp,*) ' Qact',Qact
+      !write(out_unit,*) ' Qact',Qact
       CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     END IF
     IF (para_Tnum%Gcte) THEN
@@ -3818,47 +3821,47 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
     CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     IF (print_level > 1) THEN
-      write(out_unitp,*) ' GGdef'
-      CALL Write_Mat(GGdef,out_unitp,5)
+      write(out_unit,*) ' GGdef'
+      CALL Write_Mat(GGdef,out_unit,5)
     END IF
     CALL dealloc_NPArray(GGdef,'GGdef',name_sub)
   END IF
 
     !----- Tana if needed --------------------------------------------
       IF (para_Tnum%Tana .AND. Tana_loc) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) ' BEGINNING Tana'
+        write(out_unit,*)
+        write(out_unit,*) '================================================='
+        write(out_unit,*) ' BEGINNING Tana'
         CALL time_perso('Tana')
 
-        !IF (print_level > 1) write(out_unitp,*) ' para_Tnum%Tana'
+        !IF (print_level > 1) write(out_unit,*) ' para_Tnum%Tana'
         CALL compute_analytical_KEO(para_Tnum%TWOxKEO,mole,para_Tnum,Qact)
         !IF (debug) CALL write_op(para_Tnum%TWOxKEO,header=.TRUE.)
-        flush(out_unitp)
+        flush(out_unit)
 
         IF (para_Tnum%Compa_TanaTnum > 0) THEN
-          write(out_unitp,*) '--- First comparison with internal analytical KEO'
+          write(out_unit,*) '--- First comparison with internal analytical KEO'
           CALL comparison_G_FROM_Tnum_Tana(para_Tnum%ExpandTWOxKEO,mole,para_Tnum,Qact)
-          flush(out_unitp)
+          flush(out_unit)
         ELSE
-          write(out_unitp,*) 'WARNING:'
-          write(out_unitp,*) 'NO COMPARISON with internal analytical KEO'
+          write(out_unit,*) 'WARNING:'
+          write(out_unit,*) 'NO COMPARISON with internal analytical KEO'
         END IF
 
         IF (para_Tnum%Compa_TanaTnum > 1) THEN
           ! second comparison with reading of the KEO in MCTDH format
-          write(out_unitp,*) '--- Second comparison with MCTDH read KEO'
+          write(out_unit,*) '--- Second comparison with MCTDH read KEO'
           CALL comparison_G_FROM_Tnum_ReadKEO(mole,para_Tnum,Qact)
-          flush(out_unitp)
+          flush(out_unit)
         ELSE
-          write(out_unitp,*) 'WARNING:'
-          write(out_unitp,*) 'NO COMPARISON with MCTDH read KEO'
+          write(out_unit,*) 'WARNING:'
+          write(out_unit,*) 'NO COMPARISON with MCTDH read KEO'
         END IF
 
-        write(out_unitp,*)
+        write(out_unit,*)
         CALL time_perso('Tana')
-        write(out_unitp,*) ' END Tana'
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) ' END Tana'
+        write(out_unit,*) '================================================='
 
       END IF
 
@@ -3867,20 +3870,20 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
         Qref = Qref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
       END IF
       IF (Qref) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) '=== Reference geometry (not recentered) ========='
-        flush(out_unitp)
+        write(out_unit,*) '================================================='
+        write(out_unit,*) '=== Reference geometry (not recentered) ========='
+        flush(out_unit)
         CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
 
         CALL get_Qact0(Qact,mole%ActiveTransfo)
         CALL sub_QactTOdnx(Qact,dnx,mole,nderiv=0,Gcenter=.FALSE.,WriteCC=.TRUE.)
 
         CALL dealloc_dnSVM(dnx)
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
       END IF
 
       IF (.NOT. KEO_only_loc) THEN
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
         CALL get_Qact0(Qact,mole%ActiveTransfo)
 
         !nb_Op = 2 + PrimOp%nb_scalar_Op + PrimOp%nb_CAP + PrimOp%nb_FluxOp ! here we dont't need the other operators
@@ -3899,14 +3902,14 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
         PrimOp%pot_Qref = PrimOp%min_pot
 
-        write(out_unitp,*) ' Energy at the reference geometry, pot_Qref:',PrimOp%pot_Qref
+        write(out_unit,*) ' Energy at the reference geometry, pot_Qref:',PrimOp%pot_Qref
 
         DO iOp=1,size(d0MatOp)
           CALL dealloc_d0MatOp(d0MatOp(iOp))
         END DO
         deallocate(d0MatOp)
 
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
       END IF
 
       IF (GTaylor_Order > -1) THEN
@@ -3925,8 +3928,8 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
 !-----------------------------------------------------------
       !IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       !END IF
 !-----------------------------------------------------------
 

@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE TwoDTransfo_m
-  USE mod_system
+  USE TnumTana_system_m
   IMPLICIT NONE
 
   PRIVATE
@@ -113,12 +113,12 @@ CONTAINS
       ! spherical angle
       theta              = PI/TWO
       phi                = 0
-      read(in_unitp,TwoD,IOSTAT=err_io)
+      read(in_unit,TwoD,IOSTAT=err_io)
       IF (err_io /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the "TwoD" namelist'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the "TwoD" namelist'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Check your data !!'
         STOP 'ERROR in Read_TwoDTransfo: End of file or end of record while reading the "TwoD" namelist.'
       END IF
       TwoDTransfo(i)%Type_2D         = Type_2D
@@ -131,20 +131,20 @@ CONTAINS
       nb_coord = count(list_TwoD_coord /= 0)
 
       IF (nb_coord /= 2) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The number of coordinates is different from 2'
-        write(out_unitp,*) ' Check your data !!'
-        write(out_unitp,*) 'list_TwoD_coord: ',list_TwoD_coord(:)
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The number of coordinates is different from 2'
+        write(out_unit,*) ' Check your data !!'
+        write(out_unit,*) 'list_TwoD_coord: ',list_TwoD_coord(:)
         STOP 'ERROR in Read_TwoDTransfo: The number of coordinates is different from 2.'
       END IF
 
       multiple = (count(list_TwoD_coord == list_TwoD_coord(1)) /= 1) .OR.       &
                  (count(list_TwoD_coord == list_TwoD_coord(2)) /= 1)
       IF (multiple) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' Some values are identical in the list_TwoD_coord'
-        write(out_unitp,*) 'list_TwoD_coord: ',list_TwoD_coord(:)
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' Some values are identical in the list_TwoD_coord'
+        write(out_unit,*) 'list_TwoD_coord: ',list_TwoD_coord(:)
+        write(out_unit,*) ' Check your data !!'
         STOP 'ERROR in Read_TwoDTransfo: Some values are identical in the list_TwoD_coord.'
       END IF
       IF (len(TwoDTransfo(i)%name_Transfo_2D) > 0) THEN
@@ -173,9 +173,9 @@ CONTAINS
         CASE ('rho-s_x1-x2')
           Type_2D = 4
         CASE default ! ERROR: wrong transformation !
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The TwoD transformation is UNKNOWN: ',TwoDTransfo(i)%name_Transfo_2D
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The TwoD transformation is UNKNOWN: ',TwoDTransfo(i)%name_Transfo_2D
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in Read_TwoDTransfo: The TwoD transformation is UNKNOWN.'
         END SELECT
       END IF
@@ -204,16 +204,16 @@ CONTAINS
       CASE (-4) ! x1-x2_rho-s
         TwoDTransfo(i)%name_Transfo_2D = 'rho-sx_1-x2; (1/R1,1/R2->rho,s)'
       CASE default ! ERROR: wrong transformation !
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The type of TwoD transformation is UNKNOWN: ',Type_2D
-        write(out_unitp,*) ' The possible values are:'
-        write(out_unitp,*) '       0: identity: x,y'
-        !write(out_unitp,*) '    1 -1: Polar: R,theta'
-        write(out_unitp,*) '    2 -2: Zundel: z,R'
-        write(out_unitp,*) '    3 -3: Spherical: rotation of the spherical angles (theta,phi)'
-        write(out_unitp,*) '  31 -31: Spherical: rotation of the spherical angles (u,phi)'
-        write(out_unitp,*) '    4 -4: x1-x2_rho-s: Reactive collision, 1/R1 1/R2)<->(rho s)'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The type of TwoD transformation is UNKNOWN: ',Type_2D
+        write(out_unit,*) ' The possible values are:'
+        write(out_unit,*) '       0: identity: x,y'
+        !write(out_unit,*) '    1 -1: Polar: R,theta'
+        write(out_unit,*) '    2 -2: Zundel: z,R'
+        write(out_unit,*) '    3 -3: Spherical: rotation of the spherical angles (theta,phi)'
+        write(out_unit,*) '  31 -31: Spherical: rotation of the spherical angles (u,phi)'
+        write(out_unit,*) '    4 -4: x1-x2_rho-s: Reactive collision, 1/R1 1/R2)<->(rho s)'
+        write(out_unit,*) ' Check your data !!'
         STOP 'ERROR in Read_TwoDTransfo: The TwoD transformation is UNKNOWN.'
       END SELECT
       TwoDTransfo(i)%Type_2D         = Type_2D
@@ -230,29 +230,29 @@ CONTAINS
     integer :: i,err_mem,memory
     character (len=*), parameter :: name_sub='Write_TwoDTransfo'
 
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'alloc TwoDTransfo: ',allocated(TwoDTransfo)
-    write(out_unitp,*) 'nb_transfo:        ',size(TwoDTransfo)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'alloc TwoDTransfo: ',allocated(TwoDTransfo)
+    write(out_unit,*) 'nb_transfo:        ',size(TwoDTransfo)
 
     IF (allocated(TwoDTransfo)) THEN
       DO i=1,size(TwoDTransfo)
-        write(out_unitp,*) 'Type_2D:           ',TwoDTransfo(i)%Type_2D
+        write(out_unit,*) 'Type_2D:           ',TwoDTransfo(i)%Type_2D
         IF (allocated(TwoDTransfo(i)%name_Transfo_2D)) THEN
-          write(out_unitp,*) 'name_Transfo_2D:   ',TwoDTransfo(i)%name_Transfo_2D
+          write(out_unit,*) 'name_Transfo_2D:   ',TwoDTransfo(i)%name_Transfo_2D
         ELSE
-          write(out_unitp,*) 'name_Transfo_2D:    not allocated'
+          write(out_unit,*) 'name_Transfo_2D:    not allocated'
         END IF
-        write(out_unitp,*) 'list_TwoD_coord:   ',TwoDTransfo(i)%list_TwoD_coord
+        write(out_unit,*) 'list_TwoD_coord:   ',TwoDTransfo(i)%list_TwoD_coord
         IF (abs(TwoDTransfo(i)%Type_2D) == 2) THEN
-          write(out_unitp,*) 'Twod0:             ',TwoDTransfo(i)%Twod0
-          write(out_unitp,*) ' => d0:            ',TwoDTransfo(i)%Twod0*HALF
+          write(out_unit,*) 'Twod0:             ',TwoDTransfo(i)%Twod0
+          write(out_unit,*) ' => d0:            ',TwoDTransfo(i)%Twod0*HALF
         END IF
         IF (abs(TwoDTransfo(i)%Type_2D) == 3 .OR. abs(TwoDTransfo(i)%Type_2D) == 31) THEN
-          write(out_unitp,*) 'theta,phi:         ',TwoDTransfo(i)%theta,TwoDTransfo(i)%phi
+          write(out_unit,*) 'theta,phi:         ',TwoDTransfo(i)%theta,TwoDTransfo(i)%phi
         END IF
       END DO
     END IF
-    write(out_unitp,*) 'END ',name_sub
+    write(out_unit,*) 'END ',name_sub
 
   END SUBROUTINE Write_TwoDTransfo
   SUBROUTINE calc_TwoDTransfo_new(dnQin,dnQout,TwoDTransfo,nderiv,inTOout)
@@ -280,8 +280,8 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'with dnS_t and dnVec_t'
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'with dnS_t and dnVec_t'
       IF (inTOout) THEN
         CALL Write_dnVec(dnQin,info='dnQin')
       ELSE
@@ -291,9 +291,9 @@ CONTAINS
     !---------------------------------------------------------------------
 
     IF (.NOT. allocated(TwoDTransfo)) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' TwoDTransfo is NOT allocated'
-      write(out_unitp,*) ' Check source !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' TwoDTransfo is NOT allocated'
+      write(out_unit,*) ' Check source !!'
       STOP 'ERROR in calc_TwoDTransfo: TwoDTransfo is NOT allocated'
     END IF
 
@@ -341,7 +341,7 @@ CONTAINS
       ELSE
         CALL Write_dnVec(dnQin,info='dnQin')
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !---------------------------------------------------------------------
   END SUBROUTINE calc_TwoDTransfo_new
@@ -373,22 +373,22 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'with dnS_t'
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'with dnS_t'
       IF (inTOout) THEN
-        write(out_unitp,*) 'dnQin'
+        write(out_unit,*) 'dnQin'
         CALL Write_dnSVM(dnQin,nderiv)
       ELSE
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*) 'dnQout'
         CALL Write_dnSVM(dnQout,nderiv)
       END IF
     END IF
     !---------------------------------------------------------------------
 
     IF (.NOT. allocated(TwoDTransfo)) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' TwoDTransfo is NOT allocated'
-      write(out_unitp,*) ' Check source !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' TwoDTransfo is NOT allocated'
+      write(out_unit,*) ' Check source !!'
       STOP 'ERROR in calc_TwoDTransfo: TwoDTransfo is NOT allocated'
     END IF
 
@@ -434,7 +434,7 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !---------------------------------------------------------------------
   END SUBROUTINE calc_TwoDTransfo
@@ -466,9 +466,9 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'with dnS_t'
-      write(out_unitp,*) 'Type_2D',Type_2D
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'with dnS_t'
+      write(out_unit,*) 'Type_2D',Type_2D
       CALL Write_dnS(dnQ1,info='dnQ1')
       CALL Write_dnS(dnQ2,info='dnQ2')
     END IF
@@ -621,15 +621,15 @@ CONTAINS
       nullify(dnR1)
       nullify(dnR2)
     CASE default ! ERROR: wrong transformation !
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' The type of TwoD transformation is UNKNOWN: ',Type_2D
-      write(out_unitp,*) ' The possible values are:'
-      write(out_unitp,*) '       0: identity: x,y'
-      write(out_unitp,*) '    2 -2: Zundel: z,R'
-      write(out_unitp,*) '    3 -3: Spherical: rotation of the spherical angles (theta,phi)'
-      write(out_unitp,*) '  31 -31: Spherical: rotation of the spherical angles (u,phi)'
-      write(out_unitp,*) '    4 -4: x1-x2_rho-s: Reactive collision, 1/R1 1/R2)<->(rho s)'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' The type of TwoD transformation is UNKNOWN: ',Type_2D
+      write(out_unit,*) ' The possible values are:'
+      write(out_unit,*) '       0: identity: x,y'
+      write(out_unit,*) '    2 -2: Zundel: z,R'
+      write(out_unit,*) '    3 -3: Spherical: rotation of the spherical angles (theta,phi)'
+      write(out_unit,*) '  31 -31: Spherical: rotation of the spherical angles (u,phi)'
+      write(out_unit,*) '    4 -4: x1-x2_rho-s: Reactive collision, 1/R1 1/R2)<->(rho s)'
+      write(out_unit,*) ' Check your data !!'
       STOP 'ERROR in calc_ONE_TwoDTransfo: The type of TwoD transformation is UNKNOWN'
     END SELECT
 
@@ -637,7 +637,7 @@ CONTAINS
     IF (debug) THEN
       CALL Write_dnS(dnQ1,info='dnQ1')
       CALL Write_dnS(dnQ2,info='dnQ2')
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !---------------------------------------------------------------------
   END SUBROUTINE calc_One_TwoDTransfo

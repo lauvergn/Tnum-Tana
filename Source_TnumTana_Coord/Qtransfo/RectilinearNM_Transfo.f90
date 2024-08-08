@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_RectilinearNM_Transfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       use mod_Constant,     only: table_atom, get_mass_tnum
       IMPLICIT NONE
@@ -97,13 +97,13 @@
       integer :: err
       character (len=*), parameter :: name_sub='alloc_RectilinearNM_Transfo'
 
-!      write(out_unitp,*) 'BEGINNING ',name_sub
-!      write(out_unitp,*) 'nat',RectilinearNM_Transfo%nat
+!      write(out_unit,*) 'BEGINNING ',name_sub
+!      write(out_unit,*) 'nat',RectilinearNM_Transfo%nat
 
        IF (RectilinearNM_Transfo%nat < 3) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' wrong value of nat',RectilinearNM_Transfo%nat
-         write(out_unitp,*) ' CHECK the source !!'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' wrong value of nat',RectilinearNM_Transfo%nat
+         write(out_unit,*) ' CHECK the source !!'
          STOP
        END IF
 
@@ -125,7 +125,7 @@
       RectilinearNM_Transfo%mat_inv(:,:) = ZERO
 
 
-!      write(out_unitp,*) 'END ',name_sub
+!      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE alloc_RectilinearNM_Transfo
 
@@ -134,7 +134,7 @@
        TYPE (Type_RectilinearNM_Transfo), intent(inout) :: RectilinearNM_Transfo
 
       character (len=*), parameter :: name_sub='dealloc_RectilinearNM_Transfo'
-       !write(out_unitp,*) 'BEGINNING ',name_sub; flush(out_unitp)
+       !write(out_unit,*) 'BEGINNING ',name_sub; flush(out_unit)
 
       RectilinearNM_Transfo%ncart     = 0
       RectilinearNM_Transfo%ncart_act = 0
@@ -160,7 +160,7 @@
 
       RectilinearNM_Transfo%inv                 = .FALSE.
 
-       !write(out_unitp,*) 'END ',name_sub; flush(out_unitp)
+       !write(out_unit,*) 'END ',name_sub; flush(out_unit)
 
       END SUBROUTINE dealloc_RectilinearNM_Transfo
 
@@ -187,10 +187,10 @@
         RectilinearNM_Transfo%nat_act = RectilinearNM_Transfo%nat
         RectilinearNM_Transfo%ncart_act = 3 * RectilinearNM_Transfo%nat_act
 
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nat',RectilinearNM_Transfo%nat
-        write(out_unitp,*) 'nb_var',RectilinearNM_Transfo%nb_var
-        write(out_unitp,*) 'ncart',RectilinearNM_Transfo%ncart
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nat',RectilinearNM_Transfo%nat
+        write(out_unit,*) 'nb_var',RectilinearNM_Transfo%nb_var
+        write(out_unit,*) 'ncart',RectilinearNM_Transfo%ncart
 
 
         ! allocation of the variables:
@@ -200,12 +200,12 @@
 
         CALL alloc_array(name_at,[RectilinearNM_Transfo%nat],"name_at",name_sub)
 
-        read(in_unitp,*,IOSTAT=err_io) (name_at(i),i=1,RectilinearNM_Transfo%nat)
+        read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,RectilinearNM_Transfo%nat)
         IF (err_io /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading a mass in the "RectilinearNM" transformation'
-          write(out_unitp,*) ' end of file or end of record'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading a mass in the "RectilinearNM" transformation'
+          write(out_unit,*) ' end of file or end of record'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
@@ -216,21 +216,21 @@
           at =get_mass_Tnum(mendeleev,Z=RectilinearNM_Transfo%Z(i_at),name=name_at(i_at))
 
           RectilinearNM_Transfo%masses((i_at-1)*3+1:(i_at-1)*3+3) = at
-          !write(out_unitp,*) 'atom:',i_at,Z(i_at),at
+          !write(out_unit,*) 'atom:',i_at,Z(i_at),at
           Mtot = Mtot + at
           IF (at == ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' The read atom cannot be dummy !'
-            write(out_unitp,*) 'atom:',i_at,RectilinearNM_Transfo%Z(i_at),at
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' The read atom cannot be dummy !'
+            write(out_unit,*) 'atom:',i_at,RectilinearNM_Transfo%Z(i_at),at
             STOP
           END IF
 
         END DO
         CALL dealloc_array(name_at,"name_at",name_sub)
-        !write(out_unitp,*) 'Masses: ',masses(:)
+        !write(out_unit,*) 'Masses: ',masses(:)
 
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_RectilinearNM_Transfo
 
 
@@ -292,9 +292,9 @@
             END DO
             END DO
           ELSE
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' nderiv > 4 is NOT possible',nderiv
-            write(out_unitp,*) 'It should never append! Check the source'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' nderiv > 4 is NOT possible',nderiv
+            write(out_unit,*) 'It should never append! Check the source'
             STOP
           END IF
         ELSE
@@ -333,9 +333,9 @@
             END DO
             END DO
           ELSE
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' nderiv > 4 is NOT possible',nderiv
-            write(out_unitp,*) 'It should never append! Check the source'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' nderiv > 4 is NOT possible',nderiv
+            write(out_unit,*) 'It should never append! Check the source'
             STOP
           END IF
         END IF
@@ -373,7 +373,7 @@
 
       RectilinearNM_Transfo2%inv       = RectilinearNM_Transfo1%inv
 
-!     write(out_unitp,*) 'END RectilinearNM_Transfo1TORectilinearNM_Transfo2'
+!     write(out_unit,*) 'END RectilinearNM_Transfo1TORectilinearNM_Transfo2'
 
       END SUBROUTINE RectilinearNM_Transfo1TORectilinearNM_Transfo2
 
@@ -386,24 +386,24 @@
       character (len=*), parameter :: name_sub='Write_RectilinearNM_Transfo'
 
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unitp,*) 'ncart_act,ncart',                             &
+      write(out_unit,*) 'ncart_act,ncart',                             &
                   RectilinearNM_Transfo%ncart_act,RectilinearNM_Transfo%ncart
 
-      write(out_unitp,*) 'nat_act,nat0,nat,',                           &
+      write(out_unit,*) 'nat_act,nat0,nat,',                           &
                   RectilinearNM_Transfo%nat_act,RectilinearNM_Transfo%nat0,RectilinearNM_Transfo%nat
 
-      write(out_unitp,*) 'nb_var',RectilinearNM_Transfo%nb_var
+      write(out_unit,*) 'nb_var',RectilinearNM_Transfo%nb_var
 
-      write(out_unitp,*) 'inv',RectilinearNM_Transfo%inv
-      write(out_unitp,*)  'Mat of RectilinearNM_Transfo: '
-      CALL Write_Mat(RectilinearNM_Transfo%mat,out_unitp,4)
+      write(out_unit,*) 'inv',RectilinearNM_Transfo%inv
+      write(out_unit,*)  'Mat of RectilinearNM_Transfo: '
+      CALL Write_Mat(RectilinearNM_Transfo%mat,out_unit,4)
 
-      write(out_unitp,*)  'Mat_inv of RectilinearNM_Transfo: '
-      CALL Write_Mat(RectilinearNM_Transfo%mat_inv,out_unitp,4)
+      write(out_unit,*)  'Mat_inv of RectilinearNM_Transfo: '
+      CALL Write_Mat(RectilinearNM_Transfo%mat_inv,out_unit,4)
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_RectilinearNM_Transfo
 

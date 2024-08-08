@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE Rot2CoordTransfo_m
-  use mod_system
+  use TnumTana_system_m
   IMPLICIT NONE
 
   PRIVATE
@@ -105,12 +105,12 @@ CONTAINS
     num_Rot         = 0
     list_2Coord(:)  = 0
     Inverse         = .FALSE.
-    read(in_unitp,Rot2Coord,IOSTAT=err_io)
+    read(in_unit,Rot2Coord,IOSTAT=err_io)
     IF (err_io /= 0) THEN
-       write(out_unitp,*) ' ERROR in ',name_sub
-       write(out_unitp,*) '  while reading the ',TO_string(i),'th "Rot2Coord" namelist'
-       write(out_unitp,*) ' end of file or end of record'
-       write(out_unitp,*) ' Check your data !!'
+       write(out_unit,*) ' ERROR in ',name_sub
+       write(out_unit,*) '  while reading the ',TO_string(i),'th "Rot2Coord" namelist'
+       write(out_unit,*) ' end of file or end of record'
+       write(out_unit,*) ' Check your data !!'
        STOP
     END IF
     Rot2CoordTransfo(i)%num_Rot        = num_Rot
@@ -119,11 +119,11 @@ CONTAINS
 
     !test if num_Rot are indentical. Most of the time it should be identical
     IF (Rot2CoordTransfo(i)%num_Rot /= Rot2CoordTransfo(1)%num_Rot) THEN
-      write(out_unitp,*) ' WARNING in ',name_sub
-      write(out_unitp,*) '  The "num_Rot" are not identical!!'
-      write(out_unitp,*) ' Rot2Coord transformation:',i
-      write(out_unitp,*) ' First   "num_Rot"',Rot2CoordTransfo(1)%num_Rot
-      write(out_unitp,*) ' Current "num_Rot"',Rot2CoordTransfo(i)%num_Rot
+      write(out_unit,*) ' WARNING in ',name_sub
+      write(out_unit,*) '  The "num_Rot" are not identical!!'
+      write(out_unit,*) ' Rot2Coord transformation:',i
+      write(out_unit,*) ' First   "num_Rot"',Rot2CoordTransfo(1)%num_Rot
+      write(out_unit,*) ' Current "num_Rot"',Rot2CoordTransfo(i)%num_Rot
    END IF
 
     END DO
@@ -141,18 +141,18 @@ CONTAINS
     integer :: err_mem,memory
     character (len=*), parameter :: name_sub='Write_Rot2CoordTransfo'
 
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'allo Rot2CoordTransfo:',allocated(Rot2CoordTransfo)
-    write(out_unitp,*) 'size Rot2CoordTransfo:',size(Rot2CoordTransfo)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'allo Rot2CoordTransfo:',allocated(Rot2CoordTransfo)
+    write(out_unit,*) 'size Rot2CoordTransfo:',size(Rot2CoordTransfo)
     IF (allocated(Rot2CoordTransfo)) THEN
       DO i=1,size(Rot2CoordTransfo)
-        write(out_unitp,*) 'Rot2CoordTransfo: ',i
-        write(out_unitp,*) 'Inverse:          ',Rot2CoordTransfo(i)%Inverse
-        write(out_unitp,*) 'num_Rot:          ',Rot2CoordTransfo(i)%num_Rot
-        write(out_unitp,*) 'list_2Coord:      ',Rot2CoordTransfo(i)%list_2Coord(:)
+        write(out_unit,*) 'Rot2CoordTransfo: ',i
+        write(out_unit,*) 'Inverse:          ',Rot2CoordTransfo(i)%Inverse
+        write(out_unit,*) 'num_Rot:          ',Rot2CoordTransfo(i)%num_Rot
+        write(out_unit,*) 'list_2Coord:      ',Rot2CoordTransfo(i)%list_2Coord(:)
       END DO
     END IF
-    write(out_unitp,*) 'END ',name_sub
+    write(out_unit,*) 'END ',name_sub
   END SUBROUTINE Write_Rot2CoordTransfo
   SUBROUTINE calc_Rot2CoordTransfo(dnQin,dnQout,Rot2CoordTransfo,nderiv,inTOout)
     USE ADdnSVM_m
@@ -177,8 +177,8 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'with dnS_t and dnVec_t'
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'with dnS_t and dnVec_t'
       IF (inTOout) THEN
         CALL Write_dnVec(dnQin,info='dnQin')
       ELSE
@@ -188,9 +188,9 @@ CONTAINS
     !---------------------------------------------------------------------
 
     IF (.NOT. allocated(Rot2CoordTransfo)) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' Rot2CoordTransfo is NOT allocated'
-      write(out_unitp,*) ' Check source !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' Rot2CoordTransfo is NOT allocated'
+      write(out_unit,*) ' Check source !!'
       STOP 
     END IF
 
@@ -254,7 +254,7 @@ CONTAINS
       ELSE
         CALL Write_dnVec(dnQin,info='dnQin')
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !---------------------------------------------------------------------
   END SUBROUTINE calc_Rot2CoordTransfo

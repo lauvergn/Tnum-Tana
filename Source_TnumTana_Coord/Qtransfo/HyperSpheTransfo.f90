@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_HyperSpheTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -62,22 +62,22 @@
       character (len=*), parameter :: name_sub='Read_HyperSpheTransfo'
 
 
-      read(in_unitp,*,IOSTAT=err) list_HyperSphe(:)
+      read(in_unit,*,IOSTAT=err) list_HyperSphe(:)
       IF (err /= 0) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) '  while reading "list_HyperSphe"'
-         write(out_unitp,*) ' end of file or end of record'
-         write(out_unitp,*) ' Check your data !!'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) '  while reading "list_HyperSphe"'
+         write(out_unit,*) ' end of file or end of record'
+         write(out_unit,*) ' Check your data !!'
          STOP
       END IF
 
       HyperSpheTransfo%nb_HyperSphe = count(list_HyperSphe /= 0)
 
       IF (HyperSpheTransfo%nb_HyperSphe < 2) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_HyperSphe is smaller than 2 !!'
-        write(out_unitp,*) ' Check your data !!'
-        write(out_unitp,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_HyperSphe is smaller than 2 !!'
+        write(out_unit,*) ' Check your data !!'
+        write(out_unit,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
         STOP
       END IF
 
@@ -100,10 +100,10 @@
 
       DO i=1,HyperSpheTransfo%nb_HyperSphe ! check is the list includes 1 2 3 ... (only once)
         IF (count(list_HyperSphe == i) /= 1) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Wrong list: '
-          write(out_unitp,*) 'list_HyperSphe: ',list_HyperSphe
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Wrong list: '
+          write(out_unit,*) 'list_HyperSphe: ',list_HyperSphe
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
       END DO
@@ -118,9 +118,9 @@
       END IF
 
 
-      write(out_unitp,*) 'nb_HyperSphe: ',                              &
+      write(out_unit,*) 'nb_HyperSphe: ',                              &
                  HyperSpheTransfo%nb_HyperSphe
-      write(out_unitp,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
+      write(out_unit,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
 
       END SUBROUTINE Read_HyperSpheTransfo
 
@@ -147,17 +147,17 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'dnQin'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'dnQin'
         CALL Write_dnSVM(dnQin,nderiv)
       END IF
 !---------------------------------------------------------------------
 
       IF (HyperSpheTransfo%nb_HyperSphe > 2) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  This subroutine works nb_HyperSphe = 2'
-        write(out_unitp,*) '  nb_HyperSphe: ',HyperSpheTransfo%nb_HyperSphe
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  This subroutine works nb_HyperSphe = 2'
+        write(out_unit,*) '  nb_HyperSphe: ',HyperSpheTransfo%nb_HyperSphe
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
@@ -176,7 +176,7 @@
 
         i1 = HyperSpheTransfo%list_HyperSphe(1)
         i2 = HyperSpheTransfo%list_HyperSphe(2)
-        !write(out_unitp,*) 'i1,i2',i1,i2
+        !write(out_unit,*) 'i1,i2',i1,i2
         CALL sub_dnVec_TO_dnS(dnQin,dnRho,i1,nderiv)
         CALL sub_dnVec_TO_dnS(dnQin,dnTheta,i2,nderiv)
 
@@ -189,15 +189,15 @@
         CALL sub_dnS_TO_dnVec(dnX,dnQout,i1,nderiv)
         CALL sub_dnS_TO_dnVec(dnY,dnQout,i2,nderiv)
 
-       !write(out_unitp,*) 'hyper rho,theta',dnQin%d0(i1)/pi*180._Rkind,dnQin%d0(i2)/pi*180._Rkind
-       !write(out_unitp,*) 'hyper x,y',dnQout%d0(i1)/pi*180._Rkind,dnQout%d0(i2)/pi*180._Rkind
+       !write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1)/pi*180._Rkind,dnQin%d0(i2)/pi*180._Rkind
+       !write(out_unit,*) 'hyper x,y',dnQout%d0(i1)/pi*180._Rkind,dnQout%d0(i2)/pi*180._Rkind
       ELSE
         CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
 
         i1 = HyperSpheTransfo%list_HyperSphe(1)
         i2 = HyperSpheTransfo%list_HyperSphe(2)
-        write(out_unitp,*) 'hyper i1,i2',i1,i2
-        write(out_unitp,*) 'hyper x,y',dnQout%d0(i1),dnQout%d0(i2)
+        write(out_unit,*) 'hyper i1,i2',i1,i2
+        write(out_unit,*) 'hyper x,y',dnQout%d0(i1),dnQout%d0(i2)
 
         CALL sub_dnVec_TO_dnS(dnQout,dnX,i1,nderiv)
         CALL sub_dnVec_TO_dnS(dnQout,dnY,i2,nderiv)
@@ -209,8 +209,8 @@
         CALL sub_dnS_TO_dnVec(dnRho,dnQin,i1,nderiv)
         CALL sub_dnS_TO_dnVec(dnTheta,dnQin,i2,nderiv)
 
-        write(out_unitp,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)
-        write(out_unitp,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)/pi*180._Rkind
+        write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)
+        write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)/pi*180._Rkind
 
       END IF
 
@@ -223,7 +223,7 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !---------------------------------------------------------------------
       END SUBROUTINE calc_HyperSpheTransfo

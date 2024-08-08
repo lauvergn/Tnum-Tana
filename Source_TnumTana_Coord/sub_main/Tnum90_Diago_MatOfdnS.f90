@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Coord_KEO
       IMPLICIT NONE
 
@@ -92,17 +92,17 @@
       CALL alloc_dnSVM(dng ,mole%ndimG,mole%ndimG,mole%nb_act,2)
       CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,2)
 
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
       CALL time_perso('G and g')
 
       para_Tnum%WriteT    = .TRUE.
       nderiv              = 2
       CALL get_dng_dnGG(para_Q%Qact,para_Tnum,mole,dng,dnGG,nderiv)
 
-      write(out_unitp,*) 'matrix G:',mole%nb_act
+      write(out_unit,*) 'matrix G:',mole%nb_act
       CALL Write_dnSVM(dnGG)
 
 
@@ -121,14 +121,14 @@
          CALL sub_dnMat_TO_dnS(dnGG,i,j,GOFdnS(i,j))
       END DO
       END DO
-      write(out_unitp,*) 'matrix G:',mole%nb_act
+      write(out_unit,*) 'matrix G:',mole%nb_act
       CALL Write_MatOFdnS(GOFdnS)
 
 
       CALL DIAG_MatOFdnS(GOFdnS,EigenVecOFdnS,type_diago=4)
 
       !diagonal G matrix
-      write(out_unitp,*) 'Diagonal G:'
+      write(out_unit,*) 'Diagonal G:'
       CALL Write_MatOFdnS(GOFdnS)
 
       CALL sub_ZERO_TO_dnS(dnS)
@@ -138,16 +138,16 @@
          CALL sub_ABSdnS1_PLUS_dnS2_TO_dnS2(GOFdnS(i,j),dnS)
       END DO
       END DO
-      write(out_unitp,*) 'non-Diagonal G:?'
+      write(out_unit,*) 'non-Diagonal G:?'
       CALL Write_dnS(dnS)
 
 
 
       CALL time_perso('G and g')
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
 
       CALL dealloc_MatOFdnS(EigenVecOFdnS)
       CALL dealloc_MatOFdnS(GOFdnS)
@@ -163,6 +163,6 @@
       CALL dealloc_param_Q(para_Q)
 
 
-      write(out_unitp,*) 'END Tnum'
+      write(out_unit,*) 'END Tnum'
 
       end program Tnum_f90

@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
  module mod_Tana_OpnD
- use mod_system
+ use TnumTana_system_m
  use mod_Tana_OpEl ! all
  use mod_Tana_Op1D ! all
  IMPLICIT NONE
@@ -153,9 +153,9 @@
                  CALL Write_error_null(name_sub_alloc,name_var,name_sub)
 
        IF (size(tab) < 1) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub_alloc
-         write(out_unitp,*) '   Called from ',name_sub
-         write(out_unitp,*) ' Size of ',trim(name_var),' is wrong!!'
+         write(out_unit,*) ' ERROR in ',name_sub_alloc
+         write(out_unit,*) '   Called from ',name_sub
+         write(out_unit,*) ' Size of ',trim(name_var),' is wrong!!'
          STOP
        END IF
 
@@ -326,9 +326,9 @@ subroutine check_allocate_opnd(F_nd)
                      set_opel(6,Q_El%idq, 1,Q_El%indexq,cone) )
 
      CASE DEFAULT
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) 'idq=',Q_El%idq
-       write(out_unitp,*) "This idq does not exist"
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) 'idq=',Q_El%idq
+       write(out_unit,*) "This idq does not exist"
        STOP
      END SELECT
 
@@ -345,9 +345,9 @@ subroutine check_allocate_opnd(F_nd)
      get_Pq = set_opel(4,Q_El%idq,1,Q_El%indexq,cone)
 
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=',Q_El%idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=',Q_El%idq
+     write(out_unit,*) "This idq does not exist"
      STOP
    END SELECT
 
@@ -423,9 +423,9 @@ subroutine check_allocate_opnd(F_nd)
      END IF
 
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=',Q_El%idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=',Q_El%idq
+     write(out_unit,*) "This idq does not exist"
      STOP
    END SELECT
 
@@ -452,9 +452,9 @@ subroutine check_allocate_opnd(F_nd)
        get_cos = set_opel(2,Q_El%idq,1,Q_El%indexq,cone)
      END IF
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=',Q_El%idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=',Q_El%idq
+     write(out_unit,*) "This idq does not exist"
      STOP
    END SELECT
 
@@ -486,9 +486,9 @@ subroutine check_allocate_opnd(F_nd)
                  set_opel(3,Q_El%idq,-1,Q_El%indexq,cone)
      END IF
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=',Q_El%idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=',Q_El%idq
+     write(out_unit,*) "This idq does not exist"
      STOP
    END SELECT
 
@@ -515,9 +515,9 @@ subroutine check_allocate_opnd(F_nd)
        get_sin = set_opel(3,Q_El%idq,1,Q_El%indexq,cone)
      END IF
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=',Q_El%idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=',Q_El%idq
+     write(out_unit,*) "This idq does not exist"
      STOP
    END SELECT
 
@@ -727,26 +727,26 @@ subroutine check_allocate_opnd(F_nd)
 
    String_loc = trim(adjustl(String))
    CALL string_uppercase_TO_lowercase(String_loc)
-   IF (debug) write(out_unitp,*) 'String_loc: ',String_loc ; flush(out_unitp)
+   IF (debug) write(out_unit,*) 'String_loc: ',String_loc ; flush(out_unit)
    ! first read the coef
    i_pipe  = index(String_loc,'|') !find the pipe
    IF (i_pipe < 1) THEN
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) ' The | character cannot be found in String_loc'
-     write(out_unitp,*) 'String_loc: ',String_loc
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) ' The | character cannot be found in String_loc'
+     write(out_unit,*) 'String_loc: ',String_loc
      STOP 'ERROR in StringMCTDH_TO_Opnd: no | character'
    END IF
    IF (i_pipe == 1)THEN
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) ' No coefficient before the | character.'
-     write(out_unitp,*) 'String_loc: ',String_loc
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) ' No coefficient before the | character.'
+     write(out_unit,*) 'String_loc: ',String_loc
      STOP 'ERROR in StringMCTDH_TO_Opnd: No coefficient.'
    END IF
    read(String_loc(1:i_pipe-1),*,iostat=err_io) coef
    IF (err_io /= 0)THEN
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) ' The coefficient cannot be read.'
-     write(out_unitp,*) 'String_loc: ',String_loc
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) ' The coefficient cannot be read.'
+     write(out_unit,*) 'String_loc: ',String_loc
      STOP 'ERROR in StringMCTDH_TO_Opnd: coefficient cannot be read.'
    END IF
    Fnd = coef ! initialization
@@ -754,9 +754,9 @@ subroutine check_allocate_opnd(F_nd)
 
    IF (debug) THEN
      CALL write_op(Fnd,header=.TRUE.)
-     write(out_unitp,*) 'coef: ',coef
-     write(out_unitp,*) 'String_loc: ',String_loc
-     flush(out_unitp)
+     write(out_unit,*) 'coef: ',coef
+     write(out_unit,*) 'String_loc: ',String_loc
+     flush(out_unit)
    END IF
 
    DO
@@ -765,32 +765,32 @@ subroutine check_allocate_opnd(F_nd)
      i_pipe  = index(String_loc,'|') !find the pipe
      i_space = index(String_loc,' ') !find the 1st space character
      IF (i_pipe < 1) THEN
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) ' The | character cannot be found in String_loc'
-       write(out_unitp,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) ' The | character cannot be found in String_loc'
+       write(out_unit,*) 'String_loc: ',String_loc
        STOP 'ERROR in StringMCTDH_TO_Opnd: no | character'
      END IF
      IF (i_space < i_pipe+2) THEN
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) ' The coordinate index cannot be read after the | character.'
-       write(out_unitp,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) ' The coordinate index cannot be read after the | character.'
+       write(out_unit,*) 'String_loc: ',String_loc
       STOP 'ERRORin StringMCTDH_TO_Opnd: wrong space character position'
      END IF
      ! => now we can read indexq
      read(String_loc(i_pipe+1:i_space),*,iostat=err_io) indexq
      IF (err_io /= 0)THEN
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) ' The coordinate index cannot be read.'
-       write(out_unitp,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) ' The coordinate index cannot be read.'
+       write(out_unit,*) 'String_loc: ',String_loc
        STOP 'ERROR in StringMCTDH_TO_Opnd: the coordinate index cannot be read.'
      END IF
 
      String_loc = String_loc(i_space+1:len(String_loc))
 
      IF (debug) THEN
-       write(out_unitp,*) 'indexq: ',indexq
-       write(out_unitp,*) 'String_loc: ',String_loc
-       flush(out_unitp)
+       write(out_unit,*) 'indexq: ',indexq
+       write(out_unit,*) 'String_loc: ',String_loc
+       flush(out_unit)
      END IF
 
 
@@ -803,9 +803,9 @@ subroutine check_allocate_opnd(F_nd)
        String_loc = ""
      END IF
      IF (debug) THEN
-       write(out_unitp,*) 'String_loc: ',String_loc
-       write(out_unitp,*) 'string_1D: ',string_1D
-       flush(out_unitp)
+       write(out_unit,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'string_1D: ',string_1D
+       flush(out_unit)
      END IF
 
      CALL StringMCTDH_TO_Op1D(F1d,String_1D,indexq)
@@ -988,7 +988,7 @@ subroutine check_allocate_opnd(F_nd)
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if (header_loc) then
@@ -1144,7 +1144,7 @@ subroutine check_allocate_opnd(F_nd)
      character (len=*), parameter :: routine_name='get_F1_1d_times_F2_1d_to_Fres_nd'
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'BEGINNING ',routine_name
      CALL write_op(F1_1d,header=.TRUE.)
      CALL write_op(F2_1d,header=.TRUE.)
    END IF
@@ -1157,7 +1157,7 @@ subroutine check_allocate_opnd(F_nd)
      Fres_nd = F1_1d%prod_opel(iF1_opzero)
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.TRUE.)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
      return
    end  if
@@ -1167,7 +1167,7 @@ subroutine check_allocate_opnd(F_nd)
      Fres_nd = F2_1d%prod_opel(iF2_opzero)
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.TRUE.)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
      return
    end  if
@@ -1188,7 +1188,7 @@ subroutine check_allocate_opnd(F_nd)
 
    IF (debug) THEN
      CALL write_op(Fres_nd,header=.TRUE.)
-     write(out_unitp,*) 'END ',routine_name
+     write(out_unit,*) 'END ',routine_name
    END IF
 
    END SUBROUTINE get_F1_1d_times_F2_1d_to_Fres_nd
@@ -1260,7 +1260,7 @@ subroutine check_allocate_opnd(F_nd)
      character (len=*), parameter :: routine_name='get_F1_1d_times_F2_nd_to_Fres_nd'
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'BEGINNING ',routine_name
      CALL write_op(F1_1d,header=.TRUE.)
      CALL write_op(F2_nd,header=.TRUE.)
    END IF
@@ -1274,7 +1274,7 @@ subroutine check_allocate_opnd(F_nd)
      Fres_nd = F1_1d%prod_opel(iF1_opzero)
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.TRUE.)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
      return
    end  if
@@ -1285,7 +1285,7 @@ subroutine check_allocate_opnd(F_nd)
 
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.TRUE.)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
      return
    end if
@@ -1327,7 +1327,7 @@ subroutine check_allocate_opnd(F_nd)
 
    IF (debug) THEN
      CALL write_op(Fres_nd,header=.TRUE.)
-     write(out_unitp,*) 'END ',routine_name
+     write(out_unit,*) 'END ',routine_name
    END IF
 
    END SUBROUTINE get_F1_1d_times_F2_nd_to_Fres_nd
@@ -1353,10 +1353,10 @@ subroutine check_allocate_opnd(F_nd)
      character (len=*), parameter :: routine_name='get_F1_nd_times_F2_1d_to_Fres_nd'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
+       write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F1_nd,header=.TRUE.)
      CALL write_op(F2_1d,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      CALL check_allocate_op(F1_nd)
@@ -1367,8 +1367,8 @@ subroutine check_allocate_opnd(F_nd)
        Fres_nd = F2_1d%prod_opel(iF2_opzero)
        IF (debug) THEN
          CALL write_op(Fres_nd,header=.TRUE.)
-         write(out_unitp,*) 'END ',routine_name
-         flush(out_unitp)
+         write(out_unit,*) 'END ',routine_name
+         flush(out_unit)
        END IF
        return
      end  if
@@ -1377,8 +1377,8 @@ subroutine check_allocate_opnd(F_nd)
        Fres_nd = F1_nd%prod_op1d(iF1_opzero)%prod_opel(jF1_opzero)
        IF (debug) THEN
          CALL write_op(Fres_nd,header=.TRUE.)
-         write(out_unitp,*) 'END ',routine_name
-         flush(out_unitp)
+         write(out_unit,*) 'END ',routine_name
+         flush(out_unit)
        END IF
        return
      end if
@@ -1419,8 +1419,8 @@ subroutine check_allocate_opnd(F_nd)
 
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.TRUE.)
-       write(out_unitp,*) 'END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) 'END ',routine_name
+       flush(out_unit)
      END IF
    END SUBROUTINE get_F1_nd_times_F2_1d_to_Fres_nd
 
@@ -1446,8 +1446,8 @@ subroutine check_allocate_opnd(F_nd)
      character (len=*), parameter :: routine_name='get_F1_nd_times_F2_nd_to_Fres_nd'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' BEGINNING ',routine_name
+       flush(out_unit)
      END IF
 
    CALL check_allocate_op(F1_nd)
@@ -1459,8 +1459,8 @@ subroutine check_allocate_opnd(F_nd)
        Fres_nd = F1_nd%prod_op1d(iF1_opzero)%prod_opel(jF1_opzero)
        IF (debug) THEN
          CALL write_op(Fres_nd,header=.true.)
-         write(out_unitp,*) ' END ',routine_name
-         flush(out_unitp)
+         write(out_unit,*) ' END ',routine_name
+         flush(out_unit)
        END IF
        return
      end if
@@ -1470,8 +1470,8 @@ subroutine check_allocate_opnd(F_nd)
        Fres_nd = F2_nd%prod_op1d(iF2_opzero)%prod_opel(jF2_opzero)
        IF (debug) THEN
          CALL write_op(Fres_nd,header=.true.)
-         write(out_unitp,*) ' END ',routine_name
-         flush(out_unitp)
+         write(out_unit,*) ' END ',routine_name
+         flush(out_unit)
        END IF
        return
      end if
@@ -1495,8 +1495,8 @@ subroutine check_allocate_opnd(F_nd)
 
      IF (debug) THEN
        CALL write_op(Fres_nd,header=.true.)
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
    END SUBROUTINE get_F1_nd_times_F2_nd_to_Fres_nd
@@ -1569,7 +1569,7 @@ subroutine check_allocate_opnd(F_nd)
 
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'BEGINNING ',routine_name
      CALL write_op(F_nd,header=.TRUE.)
    END IF
 
@@ -1612,7 +1612,7 @@ subroutine check_allocate_opnd(F_nd)
 
    IF (debug) THEN
      CALL write_op(F_nd,header=.TRUE.)
-     write(out_unitp,*) 'END ',routine_name
+     write(out_unit,*) 'END ',routine_name
    END IF
 
  end subroutine remove_Idop_in_F_nd
@@ -1736,10 +1736,10 @@ subroutine check_allocate_opnd(F_nd)
    character (len =*), parameter :: routine_name='Sort_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
-    write(out_unitp,*) ' Unsorted OpnD',size(FOpnD%prod_op1d)
+     write(out_unit,*) ' BEGINNING ',routine_name
+    write(out_unit,*) ' Unsorted OpnD',size(FOpnD%prod_op1d)
      CALL write_op(FOpnD,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
    n = size(FOpnD%prod_op1D)
 
@@ -1756,7 +1756,7 @@ subroutine check_allocate_opnd(F_nd)
    ELSE
      nb_J = 0
    END IF
-   !write(out_unitp,*) 'n,nb_J',n,nb_J
+   !write(out_unit,*) 'n,nb_J',n,nb_J
    IF (nb_J > 0) THEN
      temp_OpnD = FOpnD
 
@@ -1765,8 +1765,8 @@ subroutine check_allocate_opnd(F_nd)
      DO i=n,1,-1
        idqi = get_idq_OF_Op1D(temp_OpnD%prod_op1D(i))
         Li = (idqi == 5) ! Jx,Jy,Jz
-        !write(out_unitp,*) 'idqi,Li',idqi,Li ; flush(out_unitp)
-        !write(out_unitp,*) 'i,ii,i_JJ',i,ii,i_JJ ; flush(out_unitp)
+        !write(out_unit,*) 'idqi,Li',idqi,Li ; flush(out_unit)
+        !write(out_unit,*) 'i,ii,i_JJ',i,ii,i_JJ ; flush(out_unit)
         IF (Li) THEN
           FOpnD%prod_op1D(i_JJ) = temp_OpnD%prod_op1D(i)
           i_JJ = i_JJ-1
@@ -1795,10 +1795,10 @@ subroutine check_allocate_opnd(F_nd)
    END DO
 
    IF (debug) THEN
-     write(out_unitp,*) ' Sorted OpnD'
+     write(out_unit,*) ' Sorted OpnD'
      CALL write_op(FOpnD,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
  END SUBROUTINE Sort_OpnD
@@ -1817,10 +1817,10 @@ subroutine check_allocate_opnd(F_nd)
    character (len =*), parameter :: routine_name='Simplify_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
-    write(out_unitp,*) ' Unsimplified OpnD',size(FOpnD%prod_op1d)
+     write(out_unit,*) ' BEGINNING ',routine_name
+    write(out_unit,*) ' Unsimplified OpnD',size(FOpnD%prod_op1d)
      CALL write_op(FOpnD,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    ! 1) check if it is zero
@@ -1836,10 +1836,10 @@ subroutine check_allocate_opnd(F_nd)
 
 
    IF (debug) THEN
-     write(out_unitp,*) ' Simplified OpnD',size(FOpnD%prod_op1d)
+     write(out_unit,*) ' Simplified OpnD',size(FOpnD%prod_op1d)
      CALL write_op(FOpnD,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
  END SUBROUTINE Simplify_OpnD
@@ -1864,9 +1864,9 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
    character (len =*), parameter :: routine_name='Expand_OpnD_TO_SumOpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(FOpnD,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    ! 1) Determined in which prod_op1d(:) the P operator are located
@@ -1880,9 +1880,9 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
        ELSE IF (jp == 0) THEN
          jp = k
        ELSE
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) ' More than TWO Pq operators'
-         write(out_unitp,*) ' ip,jp',ip,jp
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) ' More than TWO Pq operators'
+         write(out_unit,*) ' ip,jp',ip,jp
          STOP
        END IF
      END IF
@@ -1897,9 +1897,9 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
     temp_OpnD%prod_op1d(ip) = cone
 
     IF (debug) THEN
-      write(out_unitp,*) ' temp_OpnD ',ip
+      write(out_unit,*) ' temp_OpnD ',ip
       CALL write_op(temp_OpnD)
-      write(out_unitp,*) ' FOpnD%prod_op1d(ip) ',ip
+      write(out_unit,*) ' FOpnD%prod_op1d(ip) ',ip
       CALL write_op(FOpnD%prod_op1d(ip))
     END IF
 
@@ -1907,7 +1907,7 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
     CALL Expand_Op1D_TO_SumOp1D( FOpnD%prod_op1d(ip), temp_SumOp1D_i)
 
     IF (debug) THEN
-      write(out_unitp,*) ' temp_SumOp1D_i',ip
+      write(out_unit,*) ' temp_SumOp1D_i',ip
       CALL write_op(temp_SumOp1D_i)
     END IF
 
@@ -1945,13 +1945,13 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
   CALL delete_op(temp_SumOp1D_j)
 
   IF (debug) THEN
-    write(out_unitp,*) ' Expand of OpnD',size(SumOpnD)
+    write(out_unit,*) ' Expand of OpnD',size(SumOpnD)
     DO ij=1,size(SumOpnD)
-      write(out_unitp,*) ' Term in the sum: ',ij
+      write(out_unit,*) ' Term in the sum: ',ij
       CALL write_op(SumOpnD(ij),header=.TRUE.)
     END DO
-    write(out_unitp,*) ' END ',routine_name
-    flush(out_unitp)
+    write(out_unit,*) ' END ',routine_name
+    flush(out_unit)
   END IF
 
  end subroutine Expand_OpnD_TO_SumOpnD
@@ -2069,9 +2069,9 @@ subroutine Expand_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
          CALL get_NumVal_Op1D(ValOp1D,Qval(iQval),F_nd%prod_op1d(i))
          ValOp = ValOp * ValOp1D
        END IF
-       !write(out_unitp,*) 'get_NumVal_OpnD,ValOp1D',i,ValOp1D
+       !write(out_unit,*) 'get_NumVal_OpnD,ValOp1D',i,ValOp1D
      END DO
-    !write(out_unitp,*) 'get_NumVal_OpnD,ValOp',ValOp
+    !write(out_unit,*) 'get_NumVal_OpnD,ValOp',ValOp
 
    END SUBROUTINE get_NumVal_OpnD
 

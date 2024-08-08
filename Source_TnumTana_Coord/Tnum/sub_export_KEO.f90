@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_export_KEO
-  USE mod_system
+  USE TnumTana_system_m
   use mod_dnSVM,    only: type_dnmat, alloc_dnsvm, dealloc_dnsvm,       &
                           alloc_array, set_zero_to_dnsvm, dealloc_array
   use mod_Tnum,     only: CoordType, tnum
@@ -77,8 +77,8 @@ MODULE mod_export_KEO
       perio       = .FALSE.
       periodic(:) = .FALSE.
       EVRT        = .FALSE.
-      read(in_unitp,MCTDH,end=999,err=999)
-      IF (perio) read(in_unitp,*) periodic(:)
+      read(in_unit,MCTDH,end=999,err=999)
+      IF (perio) read(in_unit,*) periodic(:)
 
  999  CONTINUE
 
@@ -91,25 +91,25 @@ MODULE mod_export_KEO
 
       IF (EVRT) CALL export_Taylor_dnG(dnGG,Qact,epsi_MCTDH,option=1)
 
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# === Taylor expansion of KEO for MCTDH ========'
-      write(out_unitp,'(a)') '# === !! The coordinates are the Qi ============'
-      write(out_unitp,'(a)') '# === But we define NQi for the KEO ============'
-      write(out_unitp,'(a)') '# === NQi=q[p] : NQi = ( Qi - p ) =============='
-      write(out_unitp,'(a)') '# = or NQi=sin[1.,p] : NQi = sin( 1.(Qi - p)) =='
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# === Taylor expansion of KEO for MCTDH ========'
+      write(out_unit,'(a)') '# === !! The coordinates are the Qi ============'
+      write(out_unit,'(a)') '# === But we define NQi for the KEO ============'
+      write(out_unit,'(a)') '# === NQi=q[p] : NQi = ( Qi - p ) =============='
+      write(out_unit,'(a)') '# = or NQi=sin[1.,p] : NQi = sin( 1.(Qi - p)) =='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
 
-      write(out_unitp,'(a)') '-----------------------------------------------'
-      write(out_unitp,*) 'LABELS-SECTION'
-      write(out_unitp,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') '-----------------------------------------------'
+      write(out_unit,*) 'LABELS-SECTION'
+      write(out_unit,'(a)') '-----------------------------------------------'
       DO i=1,mole%nb_act
         IF (periodic(i)) THEN
-          write(out_unitp,*) 'NQ',TO_string(i),'=sin[1., ',           &
+          write(out_unit,*) 'NQ',TO_string(i),'=sin[1., ',           &
                                         real_TO_char_MCTDH(Qact(i)),' ]'
        ELSE
-          write(out_unitp,*) 'NQ',TO_string(i),'=q[ ',                &
+          write(out_unit,*) 'NQ',TO_string(i),'=q[ ',                &
                                         real_TO_char_MCTDH(Qact(i)),' ]'
         END IF
       END DO
@@ -118,20 +118,20 @@ MODULE mod_export_KEO
         STOP 'grid1D does not work yet'
         CALL export3_d0G_grid1D(Qact,para_Tnum,mole,dnGG,label,epsi_MCTDH)
       ENDIF
-      write(out_unitp,'(a)') '-----------------------------------------------'
-      write(out_unitp,*) 'END-LABELS-SECTION'
-      write(out_unitp,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') '-----------------------------------------------'
+      write(out_unit,*) 'END-LABELS-SECTION'
+      write(out_unit,'(a)') '-----------------------------------------------'
 
-      write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,'(a)') '-----------------------------------------------'
-      write(out_unitp,'(a)') 'HAMILTONIAN-SECTION'
-      write(out_unitp,'(a)',advance='no') 'modes  '
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') 'HAMILTONIAN-SECTION'
+      write(out_unit,'(a)',advance='no') 'modes  '
       DO i=1,mole%nb_act
-        write(out_unitp,'(2a)',advance='no') ' | ',trim(mole%name_Qact(i))
+        write(out_unit,'(2a)',advance='no') ' | ',trim(mole%name_Qact(i))
       END DO
-      write(out_unitp,'(a)',advance='yes')
-      write(out_unitp,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)',advance='yes')
+      write(out_unit,'(a)') '-----------------------------------------------'
 
       IF (grid1D) THEN
         label = .FALSE.
@@ -141,17 +141,17 @@ MODULE mod_export_KEO
 
       CALL export3_MCTDH_dnG(dnGG,grid1D,epsi_MCTDH)
 
-      write(out_unitp,'(a)') '-----------------------------------------------'
-      write(out_unitp,'(a)') 'END-HAMILTONIAN-SECTION'
-      write(out_unitp,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') 'END-HAMILTONIAN-SECTION'
+      write(out_unit,'(a)') '-----------------------------------------------'
 
       CALL dealloc_dnSVM(dnGG)
 
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# === END: Taylor expansion of T for MCTDH ====='
-      write(out_unitp,'(a)') '# =============================================='
-      write(out_unitp,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# === END: Taylor expansion of T for MCTDH ====='
+      write(out_unit,'(a)') '# =============================================='
+      write(out_unit,'(a)') '# =============================================='
 
       end subroutine export3_MCTDH_T
 !===========================================================
@@ -202,35 +202,35 @@ MODULE mod_export_KEO
 !     - calculation of G,g and d1G,d1g.... -------
 !     --------------------------------------------
       IF (.NOT. label) THEN
-        write(out_unitp,'(a)') '-----------------------------------------------'
-        write(out_unitp,*)
-        write(out_unitp,'(a)') '-----------------------------------------------'
-        write(out_unitp,'(a)') '# Zero order part: -1/2*G^ij(Qref)'
-        write(out_unitp,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '-----------------------------------------------'
+        write(out_unit,*)
+        write(out_unit,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '# Zero order part: -1/2*G^ij(Qref)'
+        write(out_unit,'(a)') '-----------------------------------------------'
         DO i=1,mole%nb_act1
           IF (abs(dnGG%d0(i,i)) < epsi_MCTDH) cycle
 
-          write(out_unitp,*) -HALF*dnGG%d0(i,i),' |' // TO_string(i),' dq^2'
+          write(out_unit,*) -HALF*dnGG%d0(i,i),' |' // TO_string(i),' dq^2'
 
         END DO
         DO i=1,mole%nb_act1
         DO j=i+1,mole%nb_act1
           IF (abs(dnGG%d0(i,j)) < epsi_MCTDH) cycle
 
-          write(out_unitp,*) -dnGG%d0(i,j),' |' // TO_string(i),' dq',&
+          write(out_unit,*) -dnGG%d0(i,j),' |' // TO_string(i),' dq',&
                               ' |' // TO_string(j),' dq'
 
         END DO
         END DO
-        write(out_unitp,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '-----------------------------------------------'
       END IF
 !==============================================
 !     loop on active coordinates
 !==============================================
       DO iQact=1,mole%nb_act1
-        read(in_unitp,*) nb_nq,iiQact
+        read(in_unit,*) nb_nq,iiQact
         IF (iQact /= iiQact) THEN
-          write(out_unitp,*) 'ERROR iQact /= iiQact',iQact,iiQact
+          write(out_unit,*) 'ERROR iQact /= iiQact',iQact,iiQact
           STOP
         END IF
 
@@ -245,9 +245,9 @@ MODULE mod_export_KEO
         END DO
 
         DO iq=1,nb_nq
-          read(in_unitp,*) iiQact,q(iq)
+          read(in_unit,*) iiQact,q(iq)
         END DO
-        read(in_unitp,*)
+        read(in_unit,*)
         Qact(:) = Qact_ref(:)
 
 !       - grid calculation
@@ -266,10 +266,10 @@ MODULE mod_export_KEO
 
 
         IF (label) THEN
-        write(out_unitp,'(a)') '-------------------------------------------------'
-          write(out_unitp,'(2a)') '# G : 1D-grid along ',                       &
+        write(out_unit,'(a)') '-------------------------------------------------'
+          write(out_unit,'(2a)') '# G : 1D-grid along ',                       &
                             trim(adjustl(mole%name_Qact(iQact)))
-        write(out_unitp,'(a)') '-------------------------------------------------'
+        write(out_unit,'(a)') '-------------------------------------------------'
           DO i=1,mole%nb_act1
           DO j=i,mole%nb_act1
 
@@ -280,11 +280,11 @@ MODULE mod_export_KEO
             val = val / real(nb_nq,kind=Rkind)
 
             IF (val > epsi_MCTDH*ONETENTH) THEN
-!           write(out_unitp,'(a,2(i4,x),e10.4)') '# crit: ',i,j,val
+!           write(out_unit,'(a,2(i4,x),e10.4)') '# crit: ',i,j,val
 
               name_file = 'G' // trim(adjustl(mole%name_Qact(iQact))) //&
                       '_' // TO_string(i) // '_' // TO_string(j)
-              write(out_unitp,*) trim(adjustl(name_file)),              &
+              write(out_unit,*) trim(adjustl(name_file)),              &
                       ' = read1d{',trim(adjustl(name_file)),' ascii}'
 
               file_Ggrid%name = name_file
@@ -299,10 +299,10 @@ MODULE mod_export_KEO
         ELSE
 
 
-          write(out_unitp,'(a)') '-------------------------------------------------'
-          write(out_unitp,'(2a)') '# G : 1D-grid along ',                       &
+          write(out_unit,'(a)') '-------------------------------------------------'
+          write(out_unit,'(2a)') '# G : 1D-grid along ',                       &
                             trim(adjustl(mole%name_Qact(iQact)))
-          write(out_unitp,'(a)') '-------------------------------------------------'
+          write(out_unit,'(a)') '-------------------------------------------------'
           DO i=1,mole%nb_act1
           DO j=i,mole%nb_act1
 
@@ -319,33 +319,33 @@ MODULE mod_export_KEO
 
               IF (i == j) THEN
                 IF (i == iQact) THEN
-                  write(out_unitp,*) '-0.5 |',TO_string(i),' dq*',    &
+                  write(out_unit,*) '-0.5 |',TO_string(i),' dq*',    &
                                           trim(adjustl(name_file)),'*dq'
                 ELSE
-                  write(out_unitp,*) '-0.5 |',TO_string(i),' dq^2 |',   &
+                  write(out_unit,*) '-0.5 |',TO_string(i),' dq^2 |',   &
                          TO_string(iQact),' ',trim(adjustl(name_file))
                 END IF
               ELSE ! i/=j
                 IF (i == iQact .AND. j/=iQact) THEN
-                  write(out_unitp,*) '-0.5 |',TO_string(i),           &
+                  write(out_unit,*) '-0.5 |',TO_string(i),           &
                    '  dq*',trim(adjustl(name_file)),' |',TO_string(j),' dq'
 
-                  write(out_unitp,*) '-0.5 |',TO_string(i),           &
+                  write(out_unit,*) '-0.5 |',TO_string(i),           &
                     ' ',trim(adjustl(name_file)),'*dq |',TO_string(j),' dq'
 
                 ELSE IF (i /= iQact .AND. j==iQact) THEN
-                  write(out_unitp,*) '-0.5 |',TO_string(j),           &
+                  write(out_unit,*) '-0.5 |',TO_string(j),           &
                     ' dq*',trim(adjustl(name_file)),' |',TO_string(i),' dq'
 
-                  write(out_unitp,*) '-0.5 |',TO_string(j),           &
+                  write(out_unit,*) '-0.5 |',TO_string(j),           &
                     ' ',trim(adjustl(name_file)),'*dq |',TO_string(i),' dq'
 
                 ELSE IF (i /= iQact .AND. j/=iQact) THEN
-                  write(out_unitp,*) '-1.0 |',TO_string(iQact),' ',   &
+                  write(out_unit,*) '-1.0 |',TO_string(iQact),' ',   &
                     trim(adjustl(name_file)),                           &
                     ' |' // TO_string(i),' dq',' |' // TO_string(j),' dq'
                 ELSE
-                  write(out_unitp,*) 'Should never append !',i,j,iQact
+                  write(out_unit,*) 'Should never append !',i,j,iQact
                   STOP
                 END IF
               END IF
@@ -385,9 +385,9 @@ MODULE mod_export_KEO
 
       IF (.NOT. grid1D) THEN
 
-        write(out_unitp,'(a)') '-----------------------------------------------'
-        write(out_unitp,'(a)') '# Zero order part: -1/2*G^ij(Qref)'
-        write(out_unitp,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '# Zero order part: -1/2*G^ij(Qref)'
+        write(out_unit,'(a)') '-----------------------------------------------'
         n0 = 0
         k=0
         l=0
@@ -398,17 +398,17 @@ MODULE mod_export_KEO
 
           !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
 
-          write(out_unitp,*) real_TO_char_MCTDH( -HALF*dnGG%d0(i,j) ),  &
+          write(out_unit,*) real_TO_char_MCTDH( -HALF*dnGG%d0(i,j) ),  &
                          get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
           n0 = n0+1
 
         END DO
         END DO
 
-        write(out_unitp,'(a)') '-----------------------------------------------'
-        write(out_unitp,'(a)') '# First order part:'
-        write(out_unitp,'(a)') '#         -1/2*dG^ij/dNQk d./dQi * NQk * d./dQj'
-        write(out_unitp,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '-----------------------------------------------'
+        write(out_unit,'(a)') '# First order part:'
+        write(out_unit,'(a)') '#         -1/2*dG^ij/dNQk d./dQi * NQk * d./dQj'
+        write(out_unit,'(a)') '-----------------------------------------------'
         n1 = 0
         l=0
         DO i=1,dnGG%nb_var_deriv
@@ -419,7 +419,7 @@ MODULE mod_export_KEO
 
           !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
 
-          write(out_unitp,*) real_TO_char_MCTDH( -HALF*dnGG%d1(i,j,k) ),&
+          write(out_unit,*) real_TO_char_MCTDH( -HALF*dnGG%d1(i,j,k) ),&
                         get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
 
           n1 = n1+1
@@ -428,11 +428,11 @@ MODULE mod_export_KEO
         END DO
         END DO
       END IF
-      write(out_unitp,*)
-      write(out_unitp,'(a)') '-----------------------------------------------'
-      write(out_unitp,'(a)') '# Second order part:'
-      write(out_unitp,'(a)') '# -1/4*d^2G^ij/dNQk^2   d./dQi * NQk*NQl * d./dQj'
-      write(out_unitp,'(a)') '-----------------------------------------------'
+      write(out_unit,*)
+      write(out_unit,'(a)') '-----------------------------------------------'
+      write(out_unit,'(a)') '# Second order part:'
+      write(out_unit,'(a)') '# -1/4*d^2G^ij/dNQk^2   d./dQi * NQk*NQl * d./dQj'
+      write(out_unit,'(a)') '-----------------------------------------------'
 
       n2=0
       DO i=1,dnGG%nb_var_deriv
@@ -444,7 +444,7 @@ MODULE mod_export_KEO
 
         !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
 
-        write(out_unitp,*) real_TO_char_MCTDH( -QUARTER*dnGG%d2(i,j,k,l) ),&
+        write(out_unit,*) real_TO_char_MCTDH( -QUARTER*dnGG%d2(i,j,k,l) ),&
                            get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
 
         n2 = n2+1
@@ -478,49 +478,49 @@ MODULE mod_export_KEO
       character (len=*), parameter :: name_sub='export_Taylor_dnG'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'epsi_G',epsi_G
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'epsi_G',epsi_G
 
         IF (present(file_name)) THEN 
-          write(out_unitp,*) 'file_name',file_name
+          write(out_unit,*) 'file_name',file_name
         ELSE
-          write(out_unitp,*) 'file_name is not present'
+          write(out_unit,*) 'file_name is not present'
         END IF
 
         IF (present(option)) THEN 
-          write(out_unitp,*) 'option',option
+          write(out_unit,*) 'option',option
         ELSE
-          write(out_unitp,*) 'option is not present'
+          write(out_unit,*) 'option is not present'
         END IF
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 !     -----------------------------------------------------------------
 
       nb_act = dnGG%nb_var_deriv
       IF (size(Qact) < dnGG%nb_var_deriv) THEN
-         write(out_unitp,*) ' ERROR in export3_dnG'
-         write(out_unitp,*) ' size(Qact) < dnGG%nb_var_deriv'
-         write(out_unitp,*) ' size(Qact),dnGG%nb_var_deriv',            &
+         write(out_unit,*) ' ERROR in export3_dnG'
+         write(out_unit,*) ' size(Qact) < dnGG%nb_var_deriv'
+         write(out_unit,*) ' size(Qact),dnGG%nb_var_deriv',            &
                               size(Qact),dnGG%nb_var_deriv
         STOP 'ERROR in export_Taylor_dnG: wrong Qact size'
       END IF
-      IF (debug) write(out_unitp,*) ' nb_act',nb_act
+      IF (debug) write(out_unit,*) ' nb_act',nb_act
 
       IF (present(option)) THEN
         option_loc = option
       ELSE
         option_loc = 0
       END IF
-      IF (debug) write(out_unitp,*) ' option_loc',option_loc
+      IF (debug) write(out_unit,*) ' option_loc',option_loc
 
       IF (present(file_name)) THEN
         CALL file_open2(name_file = file_name, iunit=nio)
       ELSE
-        nio = out_unitp
+        nio = out_unit
       END IF
-      IF (debug) write(out_unitp,*) ' nio',nio
+      IF (debug) write(out_unit,*) ' nio',nio
 
 !     For ElVibRot (Tnum.op)
       write(nio,'(a)') '-------------------------------------------------'
@@ -631,10 +631,10 @@ MODULE mod_export_KEO
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 !     -----------------------------------------------------------------
 
       end subroutine export_Taylor_dnG
@@ -659,49 +659,49 @@ MODULE mod_export_KEO
         character (len=*), parameter :: name_sub='export_Taylor_dnVep'
   !     -----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'Qact',Qact
-          write(out_unitp,*) 'epsi_Vep',epsi_Vep
+          write(out_unit,*)
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'Qact',Qact
+          write(out_unit,*) 'epsi_Vep',epsi_Vep
   
           IF (present(file_name)) THEN 
-            write(out_unitp,*) 'file_name',file_name
+            write(out_unit,*) 'file_name',file_name
           ELSE
-            write(out_unitp,*) 'file_name is not present'
+            write(out_unit,*) 'file_name is not present'
           END IF
   
           IF (present(option)) THEN 
-            write(out_unitp,*) 'option',option
+            write(out_unit,*) 'option',option
           ELSE
-            write(out_unitp,*) 'option is not present'
+            write(out_unit,*) 'option is not present'
           END IF
         END IF
-        flush(out_unitp)
+        flush(out_unit)
   !     -----------------------------------------------------------------
   
         nb_act = dnVepref%nb_var_deriv
         IF (size(Qact) < dnVepref%nb_var_deriv) THEN
-           write(out_unitp,*) ' ERROR in export3_dnG'
-           write(out_unitp,*) ' size(Qact) < dnVepref%nb_var_deriv'
-           write(out_unitp,*) ' size(Qact),dnVepref%nb_var_deriv',            &
+           write(out_unit,*) ' ERROR in export3_dnG'
+           write(out_unit,*) ' size(Qact) < dnVepref%nb_var_deriv'
+           write(out_unit,*) ' size(Qact),dnVepref%nb_var_deriv',            &
                                 size(Qact),dnVepref%nb_var_deriv
           STOP 'ERROR in export_Taylor_dnVep: wrong Qact size'
         END IF
-        IF (debug) write(out_unitp,*) ' nb_act',nb_act
+        IF (debug) write(out_unit,*) ' nb_act',nb_act
   
         IF (present(option)) THEN
           option_loc = option
         ELSE
           option_loc = 0
         END IF
-        IF (debug) write(out_unitp,*) ' option_loc',option_loc
+        IF (debug) write(out_unit,*) ' option_loc',option_loc
   
         IF (present(file_name)) THEN
           CALL file_open2(name_file = file_name, iunit=nio)
         ELSE
-          nio = out_unitp
+          nio = out_unit
         END IF
-        IF (debug) write(out_unitp,*) ' nio',nio
+        IF (debug) write(out_unit,*) ' nio',nio
   
   !     For ElVibRot (Tnum.op)
         write(nio,'(a)') '-------------------------------------------------'
@@ -785,10 +785,10 @@ MODULE mod_export_KEO
   
   !     -----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) 'END ',name_sub
+          write(out_unit,*)
+          write(out_unit,*) 'END ',name_sub
         END IF
-        flush(out_unitp)
+        flush(out_unit)
   !     -----------------------------------------------------------------
   
         end subroutine export_Taylor_dnVep
@@ -827,10 +827,10 @@ MODULE mod_export_KEO
         T(l)   = .TRUE.
       END IF
 
-!     write(out_unitp,*) 'dQi',dQi
-!     write(out_unitp,*) 'dQj',dQj
-!     write(out_unitp,*) ' Q ',Q
-!     write(out_unitp,*) 'T: ',T
+!     write(out_unit,*) 'dQi',dQi
+!     write(out_unit,*) 'dQj',dQj
+!     write(out_unit,*) ' Q ',Q
+!     write(out_unit,*) 'T: ',T
 
       name_Op = ' '
       DO iQ=1,n
@@ -869,7 +869,7 @@ MODULE mod_export_KEO
             sepa = ' '
           END IF
           IF ( dQj(iQ) == 1 ) name_Op = trim(name_Op) // sepa // 'dq'
-!         write(out_unitp,*) 'iQ, Op',iQ,name_Op
+!         write(out_unit,*) 'iQ, Op',iQ,name_Op
         END IF
       END DO
 
@@ -910,10 +910,10 @@ MODULE mod_export_KEO
         T(l)   = .TRUE.
       END IF
 
-!     write(out_unitp,*) 'dQi',dQi
-!     write(out_unitp,*) 'dQj',dQj
-!     write(out_unitp,*) ' Q ',Q
-!     write(out_unitp,*) 'T: ',T
+!     write(out_unit,*) 'dQi',dQi
+!     write(out_unit,*) 'dQj',dQj
+!     write(out_unit,*) ' Q ',Q
+!     write(out_unit,*) 'T: ',T
 
       name_Op = ' '
 

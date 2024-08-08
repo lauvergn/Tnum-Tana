@@ -54,7 +54,7 @@ MODULE mod_dnRho
 !=====================================================================
 !
   SUBROUTINE sub3_dnrho(dnrho,dnjac,Qact,mole,nderiv,num,step,nrho)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Tnum
   IMPLICIT NONE
@@ -77,11 +77,11 @@ MODULE mod_dnRho
       character (len=*), parameter :: name_sub = 'sub3_dnrho'
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'step',step
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'step',step
+         write(out_unit,*)
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -102,16 +102,16 @@ MODULE mod_dnRho
          ! analitical (with or without vep)
          CALL sub3_dnrho_ana(dnrho,Qact,mole,nderiv)
        ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' nrho =',nrho,' is not defined'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nrho =',nrho,' is not defined'
           STOP
        END IF
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'rho'
+         write(out_unit,*) 'rho'
          CALL Write_dnSVM(dnrho)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
@@ -128,7 +128,7 @@ MODULE mod_dnRho
 !=====================================================================
 !
   SUBROUTINE sub3_dnrho_num(dnrho,Qact,mole,nderiv,step)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Tnum
   IMPLICIT NONE
@@ -158,9 +158,9 @@ MODULE mod_dnRho
       character (len=*), parameter :: name_sub = 'sub3_dnrho_num'
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -173,9 +173,9 @@ MODULE mod_dnRho
        CALL sub3_dnrho_ana(dnrho,Qact,mole,0)
 !      -----------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'step',step
-         write(out_unitp,*) 'Qact',Qact
-         write(out_unitp,*) 'f0',dnrho%d0
+         write(out_unit,*) 'step',step
+         write(out_unit,*) 'Qact',Qact
+         write(out_unit,*) 'f0',dnrho%d0
        END IF
 !      -----------------------------------------------------
 
@@ -197,8 +197,8 @@ MODULE mod_dnRho
          CALL sub3_dnrho_ana(dnrho1,Qact,mole,0)
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f1',dnrho1%d0
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f1',dnrho1%d0
          END IF
 !        -----------------------------------------------------
 
@@ -206,8 +206,8 @@ MODULE mod_dnRho
          CALL sub3_dnrho_ana(dnrho2,Qact,mole,0)
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f2',dnrho2%d0
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f2',dnrho2%d0
          END IF
 !        -----------------------------------------------------
 
@@ -240,8 +240,8 @@ MODULE mod_dnRho
          dnrho%d2(i,j) = dnrho1%d0
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
          END IF
 !        -----------------------------------------------------
 
@@ -252,8 +252,8 @@ MODULE mod_dnRho
          dnrho%d2(i,j) = dnrho%d2(i,j) + dnrho1%d0
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
          END IF
 !        -----------------------------------------------------
 
@@ -264,8 +264,8 @@ MODULE mod_dnRho
          dnrho%d2(i,j) = dnrho%d2(i,j) - dnrho1%d0
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
          END IF
 !        -----------------------------------------------------
 
@@ -277,8 +277,8 @@ MODULE mod_dnRho
          dnrho%d2(i,j) = dnrho%d2(i,j) - dnrho1%d0
 !        -----------------------------------------------------
          IF (debug) THEN
-           write(out_unitp,*) 'Qact',Qact
-           write(out_unitp,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
+           write(out_unit,*) 'Qact',Qact
+           write(out_unit,*) 'f1',dnrho1%d0,dnrho%d2(i,j)
          END IF
 !        -----------------------------------------------------
 
@@ -297,9 +297,9 @@ MODULE mod_dnRho
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'rho'
+         write(out_unit,*) 'rho'
          CALL Write_dnSVM(dnrho)
-       write(out_unitp,*) 'END ',name_sub
+       write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
@@ -315,7 +315,7 @@ MODULE mod_dnRho
 !=====================================================================
 !
   SUBROUTINE sub3_dnrho_ana(dnrho,Qact,mole,nderiv)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Tnum
   IMPLICIT NONE
@@ -341,14 +341,14 @@ MODULE mod_dnRho
       character (len=*), parameter :: name_sub = 'sub3_dnrho_ana'
 !-----------------------------------------------------------
       IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*)
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
       END IF
 !-----------------------------------------------------------
 
-       !write(out_unitp,*) 'mole%nrho_OF_Qact',mole%nrho_OF_Qact
+       !write(out_unit,*) 'mole%nrho_OF_Qact',mole%nrho_OF_Qact
 !      - initialisation --------------------------------------------------
        CALL alloc_dnSVM(dntf,1,3)
 
@@ -370,12 +370,12 @@ MODULE mod_dnRho
              iQact_transfo = 1
            END IF
          END IF
-         !write(out_unitp,*) 'iQact_transfo,type_act',type_act,iQact_transfo
+         !write(out_unit,*) 'iQact_transfo,type_act',type_act,iQact_transfo
 
          CALL sub_dntf(iQact_transfo,dntf,Qact(iQact),[(ZERO,i=1,20)], dnErr )
          IF (dnErr /= 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, iQact:',iQact
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, iQact:',iQact
            STOP 'ERROR in sub_dntf called from sub3_dnrho_ana'
          END IF
          IF (iQact_transfo == 2) THEN
@@ -411,16 +411,16 @@ MODULE mod_dnRho
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'rho'
+         write(out_unit,*) 'rho'
          CALL Write_dnSVM(dnrho)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
   end subroutine sub3_dnrho_ana
 
   SUBROUTINE Write_rho(mole)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_Tnum
   IMPLICIT NONE
 
@@ -436,10 +436,10 @@ MODULE mod_dnRho
       character (len=*), parameter :: name_sub = 'Write_rho'
 !-----------------------------------------------------------
       IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*)
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
       END IF
 !-----------------------------------------------------------
 
@@ -448,12 +448,12 @@ MODULE mod_dnRho
 !      analysis of rho as a function of the CoordType definition
        IF (print_level > -1 .AND. MPI_id==0) THEN
 
-         write(out_unitp,*)
-         write(out_unitp,*) '----------------------------------------------'
-         write(out_unitp,*) ' Definition of the volume element dV=rho.dQact1.dQact2...'
-         write(out_unitp,*) '    rho=rho(Qact1)*rho(Qact2)...'
-         write(out_unitp,*) ' Remark: only for variables of type 1'
-         write(out_unitp,'(a)') ' iQact iQact_transfo : rho(iQact)'
+         write(out_unit,*)
+         write(out_unit,*) '----------------------------------------------'
+         write(out_unit,*) ' Definition of the volume element dV=rho.dQact1.dQact2...'
+         write(out_unit,*) '    rho=rho(Qact1)*rho(Qact2)...'
+         write(out_unit,*) ' Remark: only for variables of type 1'
+         write(out_unit,'(a)') ' iQact iQact_transfo : rho(iQact)'
 !
 !
 !        ------------------------------------------------------------------
@@ -480,11 +480,11 @@ MODULE mod_dnRho
            ELSE
              name_rho = '1.'
            END IF
-           write(out_unitp,'(i6,8x,i6,a,a)') iQact,iQact_transfo,' : ',name_rho
+           write(out_unit,'(i6,8x,i6,a,a)') iQact,iQact_transfo,' : ',name_rho
 
          END DO
-         write(out_unitp,*) '----------------------------------------------'
-         write(out_unitp,*)
+         write(out_unit,*) '----------------------------------------------'
+         write(out_unit,*)
 
        END IF
   end subroutine Write_rho

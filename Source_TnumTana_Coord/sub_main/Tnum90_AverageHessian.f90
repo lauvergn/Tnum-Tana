@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Coord_KEO
       USE mod_PrimOp
       IMPLICIT NONE
@@ -128,7 +128,7 @@
 !===========================================================
 !===========================================================
 
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
       calc_QTOx    = .TRUE.
       calc_Tnum    = .TRUE.
       calc_gG      = .FALSE.
@@ -141,14 +141,14 @@
       fchk_name    = ''
       n_eval       = 1
       nb_average   = 2
-      read(in_unitp,calculation,IOSTAT=err_read)
-      write(out_unitp,calculation)
+      read(in_unit,calculation,IOSTAT=err_read)
+      write(out_unit,calculation)
       IF (err_read /= 0) THEN
-        write(out_unitp,*) ' NO namelist "calculation"!'
-        write(out_unitp,*) ' => calc_QTOx=t and calc_Tnum=t'
+        write(out_unit,*) ' NO namelist "calculation"!'
+        write(out_unit,*) ' => calc_QTOx=t and calc_Tnum=t'
 
       END IF
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
 
 !===========================================================
 !===========================================================
@@ -159,10 +159,10 @@
 !-------------------------------------------------
 !-------------------------------------------------
 !     FOR G and g metric tensors
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "====== average k and hess ============"
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "====== average k and hess ============"
+      write(out_unit,*) "======================================"
 
       CALL alloc_NParray(Qdyn,   [mole%nb_var],'Qdyn',   name_sub)
 
@@ -194,16 +194,16 @@
       hess = hess /real(nb_average,kind=Rkind)
       hess = anint(hess*TEN**4)/TEN**4
 
-      write(out_unitp,*) 'Average hessian'
-      write(out_unitp,*) mole%nb_act,nb_col
-      CALL Write_Mat(hess,out_unitp,nb_col)
+      write(out_unit,*) 'Average hessian'
+      write(out_unit,*) mole%nb_act,nb_col
+      CALL Write_Mat(hess,out_unit,nb_col)
 
       k     = k   /real(nb_average,kind=Rkind)
       !k = anint(k*TEN**4)/TEN**4
 
-      write(out_unitp,*) 'Average k (kinetic)'
-      write(out_unitp,*) mole%nb_act,nb_col
-      CALL Write_Mat(k,out_unitp,nb_col)
+      write(out_unit,*) 'Average k (kinetic)'
+      write(out_unit,*) mole%nb_act,nb_col
+      CALL Write_Mat(k,out_unit,nb_col)
 
       CALL dealloc_dnSVM(dnGG)
       CALL dealloc_NParray(k,   'k',   name_sub)
@@ -211,10 +211,10 @@
       deallocate(Tab_dnMatOp)
       CALL dealloc_NParray(Qdyn,'Qdyn',   name_sub)
 
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
+      write(out_unit,*) "======================================"
 !-------------------------------------------------
 !-------------------------------------------------
 
@@ -222,10 +222,10 @@
 !-------------------------------------------------
       !!! frequencies
       IF (calc_freq .AND. .NOT. calc_hessian) THEN
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "====== sub_freq_AT_Qact =============="
-        write(out_unitp,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "====== sub_freq_AT_Qact =============="
+        write(out_unit,*) "======================================"
         CALL alloc_array(freq,[mole%nb_act],"freq",name_sub)
 
 
@@ -233,13 +233,13 @@
 
         auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
         auTOeV     = get_Conv_au_TO_unit('E','eV')
-        write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(freq(:))*auTOcm_inv
-        write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(freq(:))*auTOeV
-        write(out_unitp,*) 'ZPE   (au): ',HALF*sum(freq(:))
+        write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(freq(:))*auTOcm_inv
+        write(out_unit,*) 'ZPE   (eV): ',HALF*sum(freq(:))*auTOeV
+        write(out_unit,*) 'ZPE   (au): ',HALF*sum(freq(:))
 
         DO i=1,mole%nb_act,3
           i2 = min(i+2,mole%nb_act)
-          write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(x,f0.4))') &
+          write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(x,f0.4))') &
                          i,i2,freq(i:i2)* auTOcm_inv
         END DO
 
@@ -247,9 +247,9 @@
 
         CALL sub_QplusDQ_TO_Cart(Qact,mole)
 
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
       END IF
 !-------------------------------------------------
 !-------------------------------------------------
@@ -262,6 +262,6 @@
       CALL dealloc_NParray(Qact,'Qact',name_sub)
 
 
-      write(out_unitp,*) 'END Tnum'
+      write(out_unit,*) 'END Tnum'
 
       END PROGRAM Tnum_f90

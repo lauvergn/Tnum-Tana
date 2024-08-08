@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 PROGRAM CurviRPH
-use mod_system
+use TnumTana_system_m
 use mod_dnSVM,     ONLY: Type_dnMat,alloc_dnSVM,Write_dnSVM
 use mod_Constant
 ! in the use mod_Coord_KEO, we have to use "only", because "calc_freq" is
@@ -111,8 +111,8 @@ implicit NONE
   nsurf = 0
   CALL sub_Init_Qmodel(ndim,nsurf,'H3_LSTH',.FALSE.,0) ! initialization
   CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
-  write(out_unitp,*) 'ndimFunc,nb_Func',ndimFunc,nb_Func
-  flush(out_unitp)
+  write(out_unit,*) 'ndimFunc,nb_Func',ndimFunc,nb_Func
+  flush(out_unit)
 
   allocate(d0Func(nb_Func))
   allocate(d1Func(ndimFunc,nb_Func))
@@ -165,25 +165,25 @@ implicit NONE
     CALL set_dnS(dnQop(i), d0=d0Func(i+1),  d1=d1Func(:,i+1),d2=d2Func(:,:,i+1))
     CALL set_dnS(dndQop(i),d0=d1Func(1,i+1),d1=d2Func(:,1,i+1))
     CALL Write_dnS(dnQop(i),info='dnQop_' // TO_string(i) )
-    flush(out_unitp)
+    flush(out_unit)
   END DO
 
-  IF (debug) write(out_unitp,*) 's,d0Qop,d1Qop',s,d0Qop,d1Qop
-  flush(out_unitp)
+  IF (debug) write(out_unit,*) 's,d0Qop,d1Qop',s,d0Qop,d1Qop
+  flush(out_unit)
 
   !Q_QML(:) = [ZERO,ZERO,-d0Func(2),  ZERO,ZERO,ZERO,  ZERO,ZERO,d0Func(3)] ! in Cartesian
   !Q_QML(:) = [d0Qop(1:2),sum(d0Qop(1:2))]
   Q_QML(:) = get_d0(dnQop) ! the 3 distances: R1,R2,R3
   CALL sub_Qmodel_VGH(V,G,H,Q_QML)
 
-  IF (debug)  CALL Write_Vec(G(1,1,:),out_unitp,5,name_info='grad')
-  IF (debug)  CALL Write_Mat(H(1,1,:,:),out_unitp,5,name_info='hess')
+  IF (debug)  CALL Write_Vec(G(1,1,:),out_unit,5,name_info='grad')
+  IF (debug)  CALL Write_Mat(H(1,1,:,:),out_unit,5,name_info='hess')
 
   !Qact(:) = [d0Qop(1:2),-0.9999_Rkind] ! in 3D Valence coordinates (to be changed)
   Qact(:) = [get_d0(dnQop(1:2)),-0.9999_Rkind] ! in 3D Valence coordinates (to be changed)
 
-  IF (debug)  write(out_unitp,*) 's,Qact',s,Qact(:)
-  flush(out_unitp)
+  IF (debug)  write(out_unit,*) 's,Qact',s,Qact(:)
+  flush(out_unit)
 
   !===========================================================================
 
@@ -198,7 +198,7 @@ implicit NONE
   IF (associated(dng%d3)) dng_new%d3 = dng%d3
 
   CALL get_d0g_d0GG(Qact,para_Tnum,mole,d0g=d0g,d0GG=d0GG,def=.FALSE.)
-  !IF (debug) write(out_unitp,*) 'dng'
+  !IF (debug) write(out_unit,*) 'dng'
   !IF (debug) CALL Write_dnSVM(dng)
   IF (debug) CALL Write_dnMat(dng_new,info='dng_new')
 
@@ -223,23 +223,23 @@ STOP
   !===========================================================================
   ! get the metric tensors
   d0g = matmul(transpose(JacON),matmul(d0g,JacON))
-  IF (debug) CALL Write_Mat(d0g,out_unitp,5,name_info='d0g new')
+  IF (debug) CALL Write_Mat(d0g,out_unit,5,name_info='d0g new')
 
   CALL inv_OF_Mat_TO_Mat_inv(d0g,d0GG,0,ZERO)
-  IF (debug) CALL Write_Mat(d0GG,out_unitp,5,name_info='d0GG new')
+  IF (debug) CALL Write_Mat(d0GG,out_unit,5,name_info='d0GG new')
 
   ! get the new hessian (without the gradient contribution)
-  IF (debug) write(out_unitp,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
+  IF (debug) write(out_unit,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
   hessNew = matmul(transpose(JacON(1:2,1:2)),matmul(H(1,1,1:2,1:2),JacON(1:2,1:2)))
-  IF (debug) CALL Write_Mat(hessNew,out_unitp,5,name_info='hessNew')
+  IF (debug) CALL Write_Mat(hessNew,out_unit,5,name_info='hessNew')
 
-  write(out_unitp,*) 's,d0Qop,G,V,freq',s,d0Qop,d0GG(1,1),d0GG(2,2),V,hessNew(2,2),sqrt(hessNew(2,2)*d0GG(2,2))*219475._Rkind
+  write(out_unit,*) 's,d0Qop,G,V,freq',s,d0Qop,d0GG(1,1),d0GG(2,2),V,hessNew(2,2),sqrt(hessNew(2,2)*d0GG(2,2))*219475._Rkind
 !END DO
 
 
 CONTAINS
   SUBROUTINE make_JacON(JacON,alphaON,d1Qop)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: JacON(:,:)
@@ -263,12 +263,12 @@ CONTAINS
       JacON(1:n,j) = alphaON(:,i)
       j = j + 1
     END DO
-    IF (debug) CALL Write_Mat(JacON,out_unitp,5,name_info='JacON')
+    IF (debug) CALL Write_Mat(JacON,out_unit,5,name_info='JacON')
 
   END SUBROUTINE make_JacON
 
   SUBROUTINE make_d1JacON(d1JacON,d1alphaON,d2Qop)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: d1JacON(:,:,:)
@@ -295,14 +295,14 @@ CONTAINS
 
     IF (debug) THEN
       DO i=1,size(d1JacON,dim=3)
-        CALL Write_Mat(d1JacON(:,:,j),out_unitp,5,name_info='d1JacON(:,:,j)')
+        CALL Write_Mat(d1JacON(:,:,j),out_unit,5,name_info='d1JacON(:,:,j)')
       END DO
     END IF
 
   END SUBROUTINE make_d1JacON
 
   SUBROUTINE check_gnew(d0g,alphaON,betaO)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(in) :: d0g(:,:)
@@ -322,7 +322,7 @@ CONTAINS
   END SUBROUTINE check_gnew
 
   SUBROUTINE make_alphaON(alphaON,betaO)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: alphaON(:,:)
@@ -339,14 +339,14 @@ CONTAINS
     ! Schmidt ortho
     alphaON = Identity_Mat(n=n)
 
-    !CALL Write_Mat(alphaON,out_unitp,5,name_info='alphaON')
+    !CALL Write_Mat(alphaON,out_unit,5,name_info='alphaON')
     DO i=1,n ! new coord
       ! first ortho against betaO
       x = dot_product(alphaON(:,i),betaO)
-      IF (debug) write(out_unitp,*) i,x
+      IF (debug) write(out_unit,*) i,x
       alphaON(:,i) = alphaON(:,i) - x*betaO
       x = dot_product(alphaON(:,i),betaO)
-      IF (debug) write(out_unitp,*) i,x
+      IF (debug) write(out_unit,*) i,x
 
       ! then ortho against the previous vectors
       DO j=1,i-1
@@ -354,10 +354,10 @@ CONTAINS
         IF (sqrt(abs(norm2)) < ONETENTH**10) CYCLE
 
         x = dot_product(alphaON(:,i),alphaON(:,j))/norm2
-        IF (debug) write(out_unitp,*) i,j,x
+        IF (debug) write(out_unit,*) i,j,x
         alphaON(:,i) = alphaON(:,i) - x*alphaON(:,j)
         x = dot_product(alphaON(:,i),alphaON(:,j))/norm2
-        IF (debug) write(out_unitp,*) i,j,x
+        IF (debug) write(out_unit,*) i,j,x
       END DO
 
       norm2 = dot_product(alphaON(:,i),alphaON(:,i))
@@ -367,19 +367,19 @@ CONTAINS
         alphaON(:,i) = alphaON(:,i)/sqrt(norm2)
       END IF
 
-      IF (debug) write(out_unitp,*) i,alphaON(:,i)
+      IF (debug) write(out_unit,*) i,alphaON(:,i)
     END DO
 
     !IF (debug) THEN
       DO i=1,n
-        write(out_unitp,*) 'alphaON(:,i)',i,alphaON(:,i)
+        write(out_unit,*) 'alphaON(:,i)',i,alphaON(:,i)
       END DO
     !END IF
 
   END SUBROUTINE make_alphaON
 
   SUBROUTINE make_betaO(betaO,d0g,d1Qop)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(in)    :: d0g(:,:),d1Qop(:)
@@ -397,14 +397,14 @@ CONTAINS
       betaO(i) = dot_product(d0g(1:n,i),d1Qop)
     END DO
 
-    IF (debug) write(out_unitp,*) 'betaO',betaO(:)
+    IF (debug) write(out_unit,*) 'betaO',betaO(:)
     betaO = betaO / sqrt(dot_product(betaO,betaO))
-    IF (debug) write(out_unitp,*) 'Normalized betaO',betaO(:)
+    IF (debug) write(out_unit,*) 'Normalized betaO',betaO(:)
 
 
   END SUBROUTINE make_betaO
   SUBROUTINE make_dnbeta(dnbeta,dng_new,dndQop)
-    use mod_system
+    use TnumTana_system_m
     use ADdnSVM_m, only : dnS_t,dnMat_t,dnMat_TO_dnS,get_nderiv,get_nVar,dot_product
     implicit NONE
 
@@ -421,9 +421,9 @@ CONTAINS
 
     IF (debug) THEN
       CALL dnMat_TO_dnS(dng_new,dng_ij,1,1)
-      write(out_unitp,*) 'size dnbeta dndQop',size(dnbeta),size(dndQop)
-      write(out_unitp,*) 'nderiv dng_ij dndQop',get_nderiv(dng_ij),get_nderiv(dndQop(1))
-      write(out_unitp,*) 'nVar dng_ij dndQop',get_nVar(dng_ij),get_nVar(dndQop(1))
+      write(out_unit,*) 'size dnbeta dndQop',size(dnbeta),size(dndQop)
+      write(out_unit,*) 'nderiv dng_ij dndQop',get_nderiv(dng_ij),get_nderiv(dndQop(1))
+      write(out_unit,*) 'nVar dng_ij dndQop',get_nVar(dng_ij),get_nVar(dndQop(1))
 
       CALL Write_dnS(dng_ij,info='dng_ij')
       CALL Write_dnS(dndQop(1),info='dndQop(1)')
@@ -443,7 +443,7 @@ CONTAINS
     END DO
 
     IF (debug) THEN
-      write(out_unitp,*) 'dnbeta'
+      write(out_unit,*) 'dnbeta'
       DO i=1,n
         CALL Write_dnS(dnbeta(i))
       END DO
@@ -452,7 +452,7 @@ CONTAINS
     !dnbeta = dnbeta / sqrt(dot_product(dnbeta,dnbeta))
 
     IF (debug) THEN
-      write(out_unitp,*) 'Normalized dnbeta'
+      write(out_unit,*) 'Normalized dnbeta'
       DO i=1,n
         CALL Write_dnS(dnbeta(i))
       END DO

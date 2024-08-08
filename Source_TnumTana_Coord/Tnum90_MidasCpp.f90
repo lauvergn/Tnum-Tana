@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 PROGRAM Tnum90_MidasCpp
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Constant
   USE mod_Coord_KEO
@@ -117,7 +117,7 @@ PROGRAM Tnum90_MidasCpp
 
   CALL sub_QactTOd0x(Qxyz,Qact,mole,Gcenter=.FALSE.)
 
-  !write(out_unitp,*) 'Qxyz: ',Qxyz
+  !write(out_unit,*) 'Qxyz: ',Qxyz
   CALL Write_XYZ(Qxyz,mole)
 !-------------------------------------------------
 !-------------------------------------------------
@@ -131,12 +131,12 @@ PROGRAM Tnum90_MidasCpp
   Taylor          = .FALSE.
   vepTaylor_Order = 2
   GTaylor_Order   = 2
-  read(in_unitp,NewQ,IOSTAT=err_io)
+  read(in_unit,NewQ,IOSTAT=err_io)
   IF (err_io == 0) THEN
-    read(in_unitp,*,IOSTAT=err_io) Qact
+    read(in_unit,*,IOSTAT=err_io) Qact
     IF (err_io == 0) THEN
       CALL sub_QactTOd0x(Qxyz,Qact,mole,Gcenter=Gcenter)
-      CALL Write_XYZ(Qxyz,mole,unit='bohr',io_unit=out_unitp)
+      CALL Write_XYZ(Qxyz,mole,unit='bohr',io_unit=out_unit)
      END IF
   ELSE
      Tana   = .TRUE.
@@ -150,10 +150,10 @@ PROGRAM Tnum90_MidasCpp
 !-------------------------------------------------
   IF (Tana .AND. Tana_FROM_para_Tnum) THEN
     para_Tnum%Tana = Tana_FROM_para_Tnum
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
     CALL time_perso('Tana')
 
     CALL compute_analytical_KEO(TWOxKEO,mole,para_Tnum,Qact)
@@ -170,26 +170,26 @@ PROGRAM Tnum90_MidasCpp
     para_Tnum%WriteT    = .FALSE.
     CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
-    write(out_unitp,*) 'Coordinate, value, GQQ'
+    write(out_unit,*) 'Coordinate, value, GQQ'
     DO i=1,mole%nb_act
-      write(out_unitp,*) 'Q' // TO_string(i-1),Qact(i),dnGG%d0(i,i)
+      write(out_unit,*) 'Q' // TO_string(i-1),Qact(i),dnGG%d0(i,i)
     END DO
 
     CALL dealloc_dnSVM(dnGG)
 
     CALL time_perso('Tana')
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
  END IF
 !-------------------------------------------------
 
   IF (Taylor) THEN
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
     CALL time_perso('Taylor expansion of G and Vep')
 
     IF (GTaylor_Order >= 0) THEN
@@ -213,10 +213,10 @@ PROGRAM Tnum90_MidasCpp
     END IF
 
     CALL time_perso('Taylor expansion of G and Vep')
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
-    write(out_unitp,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
   END IF
 
 
@@ -224,6 +224,6 @@ PROGRAM Tnum90_MidasCpp
   CALL dealloc_NParray(Qact,'Qact',name_sub)
   CALL dealloc_NParray(Qxyz,'Qxyz',name_sub)
 
-  write(out_unitp,*) 'END ',name_sub
+  write(out_unit,*) 'END ',name_sub
 
 END PROGRAM Tnum90_MidasCpp

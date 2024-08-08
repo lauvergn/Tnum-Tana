@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant
       USE mod_Coord_KEO
@@ -95,8 +95,8 @@
       CALL time_perso('Tnum90_MCTDH')
 
       IF (para_Tnum%Tana_Init_Only) THEN
-        write(out_unitp,*) ' Initialization only'
-        write(out_unitp,*) 'END Tnum'
+        write(out_unit,*) ' Initialization only'
+        write(out_unit,*) 'END Tnum'
         STOP 'END Tnum'
       END IF
       !-----------------------------------------------------------------
@@ -111,14 +111,14 @@
 !     - Cartesian coordinates --------------------
 !     --------------------------------------------
 
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
        mole%WriteCC = .FALSE.
        CALL alloc_NParray(Qxyz,[mole%ncart_act],'Qxyz',name_sub)
 
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
        CALL time_perso('Qact->Qxyz')
 
        DO i=1,n
@@ -126,23 +126,23 @@
        END DO
 
        CALL time_perso('Qact->Qxyz')
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
 
        mole%WriteCC = .TRUE.
        CALL sub_QactTOd0x(Qxyz,Qact,mole,Gcenter=.FALSE.)
 
-       write(out_unitp,*) ' Cartesian coordinates:'
+       write(out_unit,*) ' Cartesian coordinates:'
        CALL Write_Cartg98(Qxyz,mole)
 
        mole%WriteCC = .FALSE.
 
        CALL dealloc_NParray(Qxyz,'Qxyz',name_sub)
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) n,' evaluation of sub_QactTOd0x'
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) n,' evaluation of sub_QactTOd0x'
+       write(out_unit,*) "======================================"
 
 !-------------------------------------------------
 !-------------------------------------------------
@@ -158,11 +158,11 @@
        CALL alloc_array(Tcor1,[3],                      'Tcor1',name_sub)
        CALL alloc_array(Trot, [3,3],                    'Trot', name_sub)
 
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) n,' evaluation of calc3_f2_f1Q_num'
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) n,' evaluation of calc3_f2_f1Q_num'
+       write(out_unit,*) "======================================"
        para_Tnum%WriteT = .FALSE.
        CALL time_perso('f2')
        DO i=1,n-1
@@ -179,11 +179,11 @@
                                  para_Tnum,mole)
        para_Tnum%WriteT = .FALSE.
        CALL time_perso('f2')
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) n,' evaluation of calc3_f2_f1Q_num'
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) n,' evaluation of calc3_f2_f1Q_num'
+       write(out_unit,*) "======================================"
 
 !-------------------------------------------------
 !      FOR MCTDH (the calc3_f2_f1Q_num subroutine can be supressed)
@@ -199,8 +199,8 @@
        CALL dealloc_CoordType(mole)
        CALL dealloc_NParray(Qact,'Qact',name_sub)
 
-       write(out_unitp,*) 'mem_tot,max_mem_used',para_mem%mem_tot,para_mem%max_mem_used
-       write(out_unitp,*) 'nb_alloc,nb_dealloc',para_mem%nb_alloc,para_mem%nb_dealloc
-       write(out_unitp,*) 'END Tnum'
+       write(out_unit,*) 'mem_tot,max_mem_used',para_mem%mem_tot,para_mem%max_mem_used
+       write(out_unit,*) 'nb_alloc,nb_dealloc',para_mem%nb_alloc,para_mem%nb_dealloc
+       write(out_unit,*) 'END Tnum'
 
       END PROGRAM Tnum_f90

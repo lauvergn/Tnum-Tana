@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_dnGG_dng
-  use mod_system
+  use TnumTana_system_m
   use mod_dnSVM
   use mod_paramQ,  only: sub_QactTOdnMWx, Write_dnx, analyze_dnx
   use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType
@@ -94,19 +94,19 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dnGG_vep'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*)
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*)
       CALL Write_CoordType(mole)
-      write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-      write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+      write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
     END IF
     !---------------------------------------------------------
 
@@ -118,11 +118,11 @@ MODULE mod_dnGG_dng
 
     !---------------------------------------------------------
     IF (debug .OR. para_Tnum%WriteT) THEN
-      write(out_unitp,*) 'vep',vep
-      write(out_unitp,*)
-      write(out_unitp,*) 'dnGG'
+      write(out_unit,*) 'vep',vep
+      write(out_unit,*)
+      write(out_unit,*) 'dnGG'
       CALL Write_dnSVM(dnGG)
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
 
@@ -162,34 +162,34 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_CoordType'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*)
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      !write(out_unitp,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      !write(out_unit,*)
       !CALL Write_CoordType(mole)
-      write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-      write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*) 'GTaylor_Order',para_Tnum%GTaylor_Order
-      write(out_unitp,*)
-      write(out_unitp,*) 'present dnGG',present(dnGG)
-      write(out_unitp,*) 'present dng ',present(dng)
-      write(out_unitp,*) 'present vep ',present(vep)
-      write(out_unitp,*)
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+      write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*) 'GTaylor_Order',para_Tnum%GTaylor_Order
+      write(out_unit,*)
+      write(out_unit,*) 'present dnGG',present(dnGG)
+      write(out_unit,*) 'present dng ',present(dng)
+      write(out_unit,*) 'present vep ',present(vep)
+      write(out_unit,*)
 
-      flush(out_unitp)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------------
 
     !-----------------------------------------------------------------
     IF (.NOT. present(dnGG) .AND. .NOT. present(dng)) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' dng and dnGG are not present !!'
-        write(out_unitp,*) '  check the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) ' dng and dnGG are not present !!'
+        write(out_unit,*) '  check the fortran!!'
         STOP
     END IF
     !-----------------------------------------------------------------
@@ -265,7 +265,7 @@ MODULE mod_dnGG_dng
                                          dng=dng,dnGG=dnGG,             &
                                          vep=vep_loc,vep_done=vep_done, &
                                          nderiv=nderiv)
-            write(out_unitp,*) 'WARNING vep_type=-100. vep',vep_loc
+            write(out_unit,*) 'WARNING vep_type=-100. vep',vep_loc
           ELSE
             CALL get_dng_dnGG_WITH_type100(Qact,para_Tnum,mole,         &
                                          dng=dng,dnGG=dnGG,             &
@@ -279,7 +279,7 @@ MODULE mod_dnGG_dng
                                          dnGG=dnGG,                     &
                                          vep=vep_loc,vep_done=vep_done, &
                                          nderiv=nderiv)
-            write(out_unitp,*) 'WARNING vep_type=-100. vep',vep_loc
+            write(out_unit,*) 'WARNING vep_type=-100. vep',vep_loc
           ELSE
             CALL get_dng_dnGG_WITH_type100(Qact,para_Tnum,mole,         &
                                          dnGG=dnGG,                     &
@@ -359,17 +359,17 @@ MODULE mod_dnGG_dng
 !-----------------------------------------------------------
       IF (debug) THEN
         IF (present(dnGG)) THEN
-          write(out_unitp,*) 'dnGG'
+          write(out_unit,*) 'dnGG'
           CALL Write_dnSVM(dnGG)
         END IF
 
         IF (present(dng)) THEN
-          write(out_unitp,*) 'dng'
+          write(out_unit,*) 'dng'
           CALL Write_dnSVM(dng)
         END IF
-        IF (present(vep) .AND. vep_done) write(out_unitp,*) 'vep',vep
+        IF (present(vep) .AND. vep_done) write(out_unit,*) 'vep',vep
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
@@ -403,9 +403,9 @@ MODULE mod_dnGG_dng
           dng%d0 =  inv_OF_Mat_TO(para_Tnum%Gref)
         END IF
       ELSE
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) ' You cannot call this subroutine when para_Tnum%Gref in not associated.'
-        write(out_unitp,*) '  check the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) ' You cannot call this subroutine when para_Tnum%Gref in not associated.'
+        write(out_unit,*) '  check the fortran!!'
         STOP 'ERROR in get_dng_dnGG_WITH_Gcte, para_Tnum%Gref is not associated.'
       END IF
 
@@ -431,37 +431,37 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_GTaylor'
 !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*)
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*) 'Qact0',mole%ActiveTransfo%Qact0
-      write(out_unitp,*)
-      write(out_unitp,*) 'GTaylor_Order',para_Tnum%GTaylor_Order
-      write(out_unitp,*)
-      write(out_unitp,*) 'present dnGG',present(dnGG)
-      write(out_unitp,*) 'present dng ',present(dng)
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'Qact0',mole%ActiveTransfo%Qact0
+      write(out_unit,*)
+      write(out_unit,*) 'GTaylor_Order',para_Tnum%GTaylor_Order
+      write(out_unit,*)
+      write(out_unit,*) 'present dnGG',present(dnGG)
+      write(out_unit,*) 'present dng ',present(dng)
+      write(out_unit,*)
+      flush(out_unit)
     END IF
 
     IF (.NOT. present(dnGG) .OR. present(dng)) THEN
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' This subroutine works ONLY with dnGG, and ...'
-      write(out_unitp,*) ' dnGG is not present or dng is present'
-      write(out_unitp,*) ' present(dnGG)',present(dnGG)
-      write(out_unitp,*) ' present(dng) ',present(dng)
-      write(out_unitp,*) '  check the fortran!!'
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' This subroutine works ONLY with dnGG, and ...'
+      write(out_unit,*) ' dnGG is not present or dng is present'
+      write(out_unit,*) ' present(dnGG)',present(dnGG)
+      write(out_unit,*) ' present(dng) ',present(dng)
+      write(out_unit,*) '  check the fortran!!'
       STOP 'ERROR in get_dng_dnGG_WITH_GTaylor, Problem with dnGG or dng.'
     END IF
     IF (.NOT. present(dnGG) .OR. present(dng)) THEN
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' This subroutine works ONLY with dnGG, and ...'
-      write(out_unitp,*) ' dnGG is not present or dng is present'
-      write(out_unitp,*) ' present(dnGG)',present(dnGG)
-      write(out_unitp,*) ' present(dng) ',present(dng)
-      write(out_unitp,*) '  check the fortran!!'
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' This subroutine works ONLY with dnGG, and ...'
+      write(out_unit,*) ' dnGG is not present or dng is present'
+      write(out_unit,*) ' present(dnGG)',present(dnGG)
+      write(out_unit,*) ' present(dng) ',present(dng)
+      write(out_unit,*) '  check the fortran!!'
       STOP 'ERROR in get_dng_dnGG_WITH_GTaylor, Problem with dnGG or dng.'
     END IF
 
@@ -470,8 +470,8 @@ MODULE mod_dnGG_dng
 
     DQ = Qact - mole%ActiveTransfo%Qact0
     IF (debug) THEN 
-      write(out_unitp,*) 'DQ',DQ(:)
-      write(out_unitp,*) 'para_Tnum%dnGGref'
+      write(out_unit,*) 'DQ',DQ(:)
+      write(out_unit,*) 'para_Tnum%dnGGref'
       CALL Write_dnSVM(para_Tnum%dnGGref)
     END IF
 
@@ -522,10 +522,10 @@ MODULE mod_dnGG_dng
     deallocate(DQ)
 
     IF (debug) THEN
-      write(out_unitp,*) 'dnGG'
+      write(out_unit,*) 'dnGG'
       CALL Write_dnSVM(dnGG)
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
 
   END SUBROUTINE get_dng_dnGG_WITH_GTaylor
@@ -563,8 +563,8 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_f2f1_ana'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      flush(out_unit)
     END IF
 
     !-----------------------------------------------------------
@@ -603,8 +603,8 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -637,8 +637,8 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_type100'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNIG ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNIG ',name_sub
+      flush(out_unit)
     END IF
     vep      = ZERO
     vep_done = .FALSE.
@@ -666,8 +666,8 @@ MODULE mod_dnGG_dng
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 
         IF (debug) THEN
-          write(out_unitp,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
-          write(out_unitp,*)
+          write(out_unit,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
+          write(out_unit,*)
           CALL Write_CoordType(mole100)
         END IF
 
@@ -680,7 +680,7 @@ MODULE mod_dnGG_dng
         END IF
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnGG100'
+          write(out_unit,*) 'dnGG100'
           CALL Write_dnSVM(dnGG100)
         END IF
       END IF
@@ -713,8 +713,8 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -748,8 +748,8 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_type100_bug_dng'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNIG ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNIG ',name_sub
+      flush(out_unit)
     END IF
     vep      = ZERO
     vep_done = .FALSE.
@@ -775,10 +775,10 @@ MODULE mod_dnGG_dng
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 
         IF (debug) THEN
-          write(out_unitp,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
-          write(out_unitp,*)
+          write(out_unit,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
+          write(out_unit,*)
           CALL Write_CoordType(mole100)
-          write(out_unitp,*)
+          write(out_unit,*)
         END IF
 
         CALL alloc_dnSVM(dnGG100,                                     &
@@ -794,9 +794,9 @@ MODULE mod_dnGG_dng
         ! Up to here, it is correct
 
         IF (debug) THEN
-          write(out_unitp,*) 'dng100'
+          write(out_unit,*) 'dng100'
           CALL Write_dnSVM(dng100)
-          write(out_unitp,*) 'dnGG100'
+          write(out_unit,*) 'dnGG100'
           CALL Write_dnSVM(dnGG100)
         END IF
       END IF
@@ -837,8 +837,8 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -871,20 +871,20 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_d0GG'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*)
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*)
       !CALL Write_CoordType(mole)
-      write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-      write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+      write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
+      flush(out_unit)
     END IF
 
 
@@ -918,8 +918,8 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      CALL Write_Mat(d0GG,out_unitp,5,info='d0GG')
-      write(out_unitp,*) 'END ',name_sub
+      CALL Write_Mat(d0GG,out_unit,5,info='d0GG')
+      write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
 
@@ -949,20 +949,20 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_d0g_d0GG'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*)
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*)
       CALL Write_CoordType(mole)
-      write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-      write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+      write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
+      flush(out_unit)
     END IF
 
     IF ( present(d0g) .AND. present(d0GG) ) THEN
@@ -985,9 +985,9 @@ MODULE mod_dnGG_dng
       CALL get_dng_dnGG(Qact,para_Tnum,mole,dng=dng,nderiv=0)
 
     ELSE
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' d0g and d0GG are not present !!'
-      write(out_unitp,*) '  check the fortran!!'
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' d0g and d0GG are not present !!'
+      write(out_unit,*) '  check the fortran!!'
       STOP
     END IF
 
@@ -1013,12 +1013,12 @@ MODULE mod_dnGG_dng
     !-----------------------------------------------------------
     IF (debug) THEN
       IF (present(d0GG)) THEN
-        CALL Write_Mat(d0GG,out_unitp,5,info='d0GG')
+        CALL Write_Mat(d0GG,out_unit,5,info='d0GG')
       END IF
       IF (present(d0g)) THEN
-        CALL Write_Mat(d0g,out_unitp,5,info='d0g')
+        CALL Write_Mat(d0g,out_unit,5,info='d0g')
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
 
@@ -1051,23 +1051,23 @@ MODULE mod_dnGG_dng
       character (len=*), parameter :: name_sub = 'get_dnGG'
       !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ndimG',mole%ndimG
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-        write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-        write(out_unitp,*) 'step',para_Tnum%stepT
-        write(out_unitp,*) 'JJ',para_Tnum%JJ
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ndimG',mole%ndimG
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+        write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+        write(out_unit,*) 'step',para_Tnum%stepT
+        write(out_unit,*) 'JJ',para_Tnum%JJ
+        write(out_unit,*)
+        flush(out_unit)
       END IF
 
       !---------------------------------------------------------------
       IF (para_Tnum%num_GG .AND. nderiv > 0) THEN
 
         IF (para_Tnum%stepT == ZERO) THEN
-          write(out_unitp,*) ' ERROR : stepT is zero'
+          write(out_unit,*) ' ERROR : stepT is zero'
           STOP
         END IF
         step2 = ONE/(para_Tnum%stepT*para_Tnum%stepT)
@@ -1152,7 +1152,7 @@ MODULE mod_dnGG_dng
         !------------------------------------------------------------
         CALL alloc_dnSVM(dng,mole%ndimG,mole%ndimG,mole%nb_act,nderiv)
         CALL get_dng(Qact,dng,nderiv,para_Tnum,mole)
-        !write(out_unitp,*) 'dng'
+        !write(out_unit,*) 'dng'
         !CALL Write_dnSVM(dng)
 
         CALL INV_dnMat1_TO_dnMat2(dng,dnGG,nderiv)
@@ -1163,9 +1163,9 @@ MODULE mod_dnGG_dng
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnGG'
+        write(out_unit,*) 'dnGG'
         CALL Write_dnSVM(dnGG)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
@@ -1196,15 +1196,15 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nderiv',nderiv
-      write(out_unitp,*) 'ndimG',mole%ndimG
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-      write(out_unitp,*) 'step',para_Tnum%stepT
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'ndimG',mole%ndimG
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+      write(out_unit,*) 'step',para_Tnum%stepT
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
+      flush(out_unit)
     END IF
     !---------------------------------------------------------------
 
@@ -1223,9 +1223,9 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'dng'
+      write(out_unit,*) 'dng'
       CALL Write_dnSVM(dng)
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
 
@@ -1260,14 +1260,14 @@ MODULE mod_dnGG_dng
       character (len=*), parameter :: name_sub = 'sub3_dnA_ana'
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'ndimA',dnA%nb_var_Matl
-         write(out_unitp,*) 'ndimA',dnA%nb_var_Matc
-         write(out_unitp,*) 'nderivA',nderivA
-         write(out_unitp,*) 'Qact',Qact
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'ndimA',dnA%nb_var_Matl
+         write(out_unit,*) 'ndimA',dnA%nb_var_Matc
+         write(out_unit,*) 'nderivA',nderivA
+         write(out_unit,*) 'Qact',Qact
+         write(out_unit,*)
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -1310,13 +1310,13 @@ MODULE mod_dnGG_dng
 !-----------------------------------------------------------
       IF (debug) THEN
 
-        write(out_unitp,*) 'dnMWx'
+        write(out_unit,*) 'dnMWx'
         CALL write_dnx(1,mole%ncart,dnMWx,nderivX)
 
-        write(out_unitp,*) 'dnA'
+        write(out_unit,*) 'dnA'
         CALL Write_dnSVM(dnA)
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
   END SUBROUTINE sub3_dnA_ana
@@ -1354,16 +1354,16 @@ MODULE mod_dnGG_dng
       character (len=*), parameter :: name_sub = 'sub3_dnA_num'
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'ndimA',dnA%nb_var_Matl
-         write(out_unitp,*) 'ndimA',dnA%nb_var_Matc
-         write(out_unitp,*) 'nderivA',nderivA
-         write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-         write(out_unitp,*) 'step',para_Tnum%stepT
-         write(out_unitp,*) 'Qact',Qact
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'ndimA',dnA%nb_var_Matl
+         write(out_unit,*) 'ndimA',dnA%nb_var_Matc
+         write(out_unit,*) 'nderivA',nderivA
+         write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+         write(out_unit,*) 'step',para_Tnum%stepT
+         write(out_unit,*) 'Qact',Qact
+         write(out_unit,*)
          CALL Write_CoordType(mole)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -1371,8 +1371,8 @@ MODULE mod_dnGG_dng
 !----- some step ----------------------------------------------------
       Gcenter = .TRUE.
       IF (para_Tnum%stepT == ZERO) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' para_Tnum%stepT is zero'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' para_Tnum%stepT is zero'
         STOP ' ERROR : para_Tnum%stepT is zero'
       END IF
       step2 = ONE/(para_Tnum%stepT*para_Tnum%stepT)
@@ -1501,11 +1501,11 @@ MODULE mod_dnGG_dng
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'nderivA',nderivA
-        write(out_unitp,*) 'dnA'
+        write(out_unit,*) 'nderivA',nderivA
+        write(out_unit,*) 'dnA'
         CALL Write_dnSVM(dnA)
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
@@ -1542,12 +1542,12 @@ MODULE mod_dnGG_dng
        !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING sub_d0A'
-         write(out_unitp,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
+         write(out_unit,*) 'BEGINNING sub_d0A'
+         write(out_unit,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
                      nb_act,nat_act,ncart,ncart_act,ndimA
-         write(out_unitp,*) 'Without_Rot',Without_Rot
+         write(out_unit,*) 'Without_Rot',Without_Rot
          CALL Write_d0Q(0,'d0x',d0x,3)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -1665,8 +1665,8 @@ MODULE mod_dnGG_dng
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         CALL Write_Mat(A,out_unitp,4,Rformat='e30.20',info='d0A')
-         write(out_unitp,*) 'END sub_d0A'
+         CALL Write_Mat(A,out_unit,4,Rformat='e30.20',info='d0A')
+         write(out_unit,*) 'END sub_d0A'
        END IF
 !-----------------------------------------------------------
 
@@ -1702,8 +1702,8 @@ MODULE mod_dnGG_dng
        !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING sub_d1A'
-         write(out_unitp,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
+         write(out_unit,*) 'BEGINNING sub_d1A'
+         write(out_unit,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
                      nb_act,nat_act,ncart,ncart_act,ndimA
        END IF
 !-----------------------------------------------------------
@@ -1812,9 +1812,9 @@ MODULE mod_dnGG_dng
 
       IF (debug) THEN
         DO ii=1,nb_act
-          CALL Write_Mat(d1A(:,:,ii),out_unitp,4,Rformat='e30.20',info='d1A')
+          CALL Write_Mat(d1A(:,:,ii),out_unit,4,Rformat='e30.20',info='d1A')
         END DO
-        write(out_unitp,*) 'END sub_d1A'
+        write(out_unit,*) 'END sub_d1A'
       END IF
 
 END SUBROUTINE sub_d1A
@@ -1849,8 +1849,8 @@ END SUBROUTINE sub_d1A
 !     logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING sub_d2A'
-         write(out_unitp,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
+         write(out_unit,*) 'BEGINNING sub_d2A'
+         write(out_unit,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
                      nb_act,nat_act,ncart,ncart_act,ndimA
        END IF
 !-----------------------------------------------------------
@@ -2004,10 +2004,10 @@ END SUBROUTINE sub_d1A
   IF (debug) THEN
     DO ii=1,nb_act
     DO jj=1,nb_act
-      CALL Write_Mat(d2A(:,:,ii,jj),out_unitp,4,Rformat='e30.20',info='d2A')
+      CALL Write_Mat(d2A(:,:,ii,jj),out_unit,4,Rformat='e30.20',info='d2A')
     END DO
     END DO
-    write(out_unitp,*) 'END sub_d2A'
+    write(out_unit,*) 'END sub_d2A'
   END IF
 END SUBROUTINE sub_d2A
 FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
@@ -2044,22 +2044,22 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
     character (len=*), parameter :: name_sub = 'get_vep_rho'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nrho       ',para_Tnum%nrho
-      write(out_unitp,*) 'vep_type   ',para_Tnum%vep_type
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nrho       ',para_Tnum%nrho
+      write(out_unit,*) 'vep_type   ',para_Tnum%vep_type
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
 
       IF (present(dnGG)) THEN
-        write(out_unitp,*) 'dnGG'
-        write(out_unitp,*) 'ndimG      ',mole%ndimG
-        write(out_unitp,*) 'dnGG%nderiv',dnGG%nderiv
+        write(out_unit,*) 'dnGG'
+        write(out_unit,*) 'ndimG      ',mole%ndimG
+        write(out_unit,*) 'dnGG%nderiv',dnGG%nderiv
         CALL write_dnMat(dnGG)
       END IF
-      !write(out_unitp,*)
+      !write(out_unit,*)
       !CALL Write_CoordType(mole)
-      !write(out_unitp,*)
-      flush(out_unitp)
+      !write(out_unit,*)
+      flush(out_unit)
     END IF
     !---------------------------------------------------------
 
@@ -2069,8 +2069,8 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
       WithTaylor_loc = (para_Tnum%vepTaylor_Order > -1)
     END IF
     IF (debug) THEN
-      write(out_unitp,*) 'WithTaylor_loc',WithTaylor_loc
-      flush(out_unitp)
+      write(out_unit,*) 'WithTaylor_loc',WithTaylor_loc
+      flush(out_unit)
     END IF
 
     vep_done = .FALSE.
@@ -2092,8 +2092,8 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
       END IF
 
       IF (debug) THEN
-        write(out_unitp,*) 'dnGG_OK,vep_done',dnGG_OK,vep_done
-        flush(out_unitp)
+        write(out_unit,*) 'dnGG_OK,vep_done',dnGG_OK,vep_done
+        flush(out_unit)
       END IF
 
       IF (.NOT. vep_done) THEN
@@ -2115,9 +2115,9 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
         END IF
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnJac'
+          write(out_unit,*) 'dnJac'
           CALL write_dnS(dnJac)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 
         !----------------------------------------------------
@@ -2128,9 +2128,9 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
                         para_Tnum%nrho)
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnrho'
+          write(out_unit,*) 'dnrho'
           CALL write_dnS(dnrho)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 
         !----------------------------------------------------
@@ -2158,7 +2158,7 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
 
         IF (present(rho)) THEN 
           rho = dnrho%d0
-          !write(out_unitp,*) 'rho :',rho
+          !write(out_unit,*) 'rho :',rho
           rho_done = .TRUE.
         END IF
   
@@ -2187,7 +2187,7 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
         CALL sub3_dnDetGG(dnJac,dnGG_loc,nderiv_loc,mole%masses,mole%Mtot_inv,mole%ncart)
         CALL dealloc_dnSVM(dnGG_loc)
       END IF
-      IF (debug) write(out_unitp,*) 'dnJac'
+      IF (debug) write(out_unit,*) 'dnJac'
       IF (debug) CALL write_dnS(dnJac)
 
       !----------------------------------------------------
@@ -2197,7 +2197,7 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
                       nderiv_loc,para_Tnum%num_x,para_Tnum%stepT,     &
                       para_Tnum%nrho)
 
-      IF (debug) write(out_unitp,*) 'dnrho'
+      IF (debug) write(out_unit,*) 'dnrho'
       IF (debug) CALL write_dnS(dnrho)
       rho = dnrho%d0
       rho_done = .TRUE.
@@ -2208,9 +2208,9 @@ FUNCTION get_vep_rho(Qact,mole,para_Tnum,dnGG,rho,WithTaylor) RESULT (vep)
 
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'vep',vep
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'vep',vep
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -2241,13 +2241,13 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
     character (len=*), parameter :: name_sub = 'get_vepTaylor'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'vep_type   ',para_Tnum%vep_type
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      !write(out_unitp,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'vep_type   ',para_Tnum%vep_type
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      !write(out_unit,*)
       !CALL Write_CoordType(mole)
-      !write(out_unitp,*)
+      !write(out_unit,*)
     END IF
     !---------------------------------------------------------
 
@@ -2255,8 +2255,8 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
 
     DQ = Qact - mole%ActiveTransfo%Qact0
     IF (debug) THEN 
-      write(out_unitp,*) 'DQ',DQ(:)
-      write(out_unitp,*) 'para_Tnum%dnVepref'
+      write(out_unit,*) 'DQ',DQ(:)
+      write(out_unit,*) 'para_Tnum%dnVepref'
       CALL Write_dnSVM(para_Tnum%dnVepref)
     END IF
 
@@ -2283,9 +2283,9 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
 
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'vep',vep
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'vep',vep
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -2318,25 +2318,25 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
     character (len=*), parameter :: name_sub = 'Calc_vep_rho_from_dnGG'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nrho       ',para_Tnum%nrho
-      write(out_unitp,*) 'vep_type   ',para_Tnum%vep_type
-      write(out_unitp,*) 'dnGG%nderiv',dnGG%nderiv
-      write(out_unitp,*) 'ndimG      ',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nrho       ',para_Tnum%nrho
+      write(out_unit,*) 'vep_type   ',para_Tnum%vep_type
+      write(out_unit,*) 'dnGG%nderiv',dnGG%nderiv
+      write(out_unit,*) 'ndimG      ',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
 
-      write(out_unitp,*) 'dnGG'
+      write(out_unit,*) 'dnGG'
       CALL write_dnMat(dnGG)
-      !write(out_unitp,*)
+      !write(out_unit,*)
       !CALL Write_CoordType(mole)
-      !write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG',para_Tnum%num_GG
-      write(out_unitp,*) 'num_g ',para_Tnum%num_g
-      write(out_unitp,*) 'num_x ',para_Tnum%num_x
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
+      !write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG',para_Tnum%num_GG
+      write(out_unit,*) 'num_g ',para_Tnum%num_g
+      write(out_unit,*) 'num_x ',para_Tnum%num_x
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
     END IF
     !---------------------------------------------------------
 
@@ -2355,7 +2355,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
       CALL sub3_dnDetGG(dnJac,dnGG,nderiv_loc,                          &
                                  mole%masses,mole%Mtot_inv,mole%ncart)
-      IF (debug) write(out_unitp,*) 'dnJac'
+      IF (debug) write(out_unit,*) 'dnJac'
       IF (debug) CALL write_dnS(dnJac)
       !----------------------------------------------------
       !-- f0,fi,Fij calculation
@@ -2364,8 +2364,8 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
                       nderiv_loc,para_Tnum%num_x,para_Tnum%stepT,     &
                       para_Tnum%nrho)
       rho = dnrho%d0
-      !write(out_unitp,*) 'rho :',rho
-      IF (debug) write(out_unitp,*) 'dnrho'
+      !write(out_unit,*) 'rho :',rho
+      IF (debug) write(out_unit,*) 'dnrho'
       IF (debug) CALL write_dnS(dnrho)
       !----------------------------------------------------
       !-- vep calculation
@@ -2391,7 +2391,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
       CALL sub3_dnDetGG(dnJac,dnGG,nderiv_loc,                          &
                                  mole%masses,mole%Mtot_inv,mole%ncart)
-      !write(out_unitp,*) 'dnJac'
+      !write(out_unit,*) 'dnJac'
       !CALL write_dnS(dnJac)
       !----------------------------------------------------
       !-- f0,fi,Fij calculation
@@ -2411,9 +2411,9 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'vep',vep
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'vep',vep
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -2448,25 +2448,25 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       character (len=*), parameter :: name_sub = 'Calc_vepTalylor_rho_from_dnGG'
       !---------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nrho       ',para_Tnum%nrho
-        write(out_unitp,*) 'vep_type   ',para_Tnum%vep_type
-        write(out_unitp,*) 'dnGG%nderiv',dnGG%nderiv
-        write(out_unitp,*) 'ndimG      ',mole%ndimG
-        write(out_unitp,*)
-        write(out_unitp,*) 'Qact',Qact
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nrho       ',para_Tnum%nrho
+        write(out_unit,*) 'vep_type   ',para_Tnum%vep_type
+        write(out_unit,*) 'dnGG%nderiv',dnGG%nderiv
+        write(out_unit,*) 'ndimG      ',mole%ndimG
+        write(out_unit,*)
+        write(out_unit,*) 'Qact',Qact
   
-        write(out_unitp,*) 'dnGG'
+        write(out_unit,*) 'dnGG'
         CALL write_dnMat(dnGG)
-        !write(out_unitp,*)
+        !write(out_unit,*)
         !CALL Write_CoordType(mole)
-        !write(out_unitp,*)
-        write(out_unitp,*)
-        write(out_unitp,*) 'num_GG',para_Tnum%num_GG
-        write(out_unitp,*) 'num_g ',para_Tnum%num_g
-        write(out_unitp,*) 'num_x ',para_Tnum%num_x
-        write(out_unitp,*) 'JJ',para_Tnum%JJ
-        write(out_unitp,*)
+        !write(out_unit,*)
+        write(out_unit,*)
+        write(out_unit,*) 'num_GG',para_Tnum%num_GG
+        write(out_unit,*) 'num_g ',para_Tnum%num_g
+        write(out_unit,*) 'num_x ',para_Tnum%num_x
+        write(out_unit,*) 'JJ',para_Tnum%JJ
+        write(out_unit,*)
       END IF
       !---------------------------------------------------------
 
@@ -2475,8 +2475,8 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
   
       DQ = Qact - mole%ActiveTransfo%Qact0
       IF (debug) THEN 
-        write(out_unitp,*) 'DQ',DQ(:)
-        write(out_unitp,*) 'para_Tnum%dnVepref'
+        write(out_unit,*) 'DQ',DQ(:)
+        write(out_unit,*) 'para_Tnum%dnVepref'
         CALL Write_dnSVM(para_Tnum%dnVepref)
       END IF
   
@@ -2511,7 +2511,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
   
       CALL sub3_dnDetGG(dnJac,dnGG,nderiv_loc,                          &
                                  mole%masses,mole%Mtot_inv,mole%ncart)
-      !write(out_unitp,*) 'dnJac'
+      !write(out_unit,*) 'dnJac'
       !CALL write_dnS(dnJac)
       !----------------------------------------------------
       !-- f0,fi,Fij calculation
@@ -2526,9 +2526,9 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
       !---------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'vep',vep
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'vep',vep
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------
   
@@ -2562,18 +2562,18 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       character (len=*), parameter :: name_sub = 'Set_dnVepTaylor'
       !---------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'vepTaylor_Order   ',para_Tnum%vepTaylor_Order
-        write(out_unitp,*)
-        write(out_unitp,*) 'Qact',Qact
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'vepTaylor_Order   ',para_Tnum%vepTaylor_Order
+        write(out_unit,*)
+        write(out_unit,*) 'Qact',Qact
+        flush(out_unit)
       END IF
       !---------------------------------------------------------
 
       IF (TaylorOrder < 0) RETURN
       IF (para_Tnum%stepT == ZERO) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' para_Tnum%stepT is zero'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' para_Tnum%stepT is zero'
         STOP ' ERROR : para_Tnum%stepT is zero'
       END IF
       step2  = ONE/(para_Tnum%stepT*para_Tnum%stepT)
@@ -2666,10 +2666,10 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
       !---------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnVep'
+        write(out_unit,*) 'dnVep'
         CALL write_dnS(dnVep)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------
   
@@ -2704,24 +2704,24 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
     character (len=*), parameter :: name_sub = 'Calc_vep_rho_from_dng_AND_dnGG'
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nrho       ',para_Tnum%nrho
-      write(out_unitp,*) 'vep_type   ',para_Tnum%vep_type
-      write(out_unitp,*) 'dng%nderiv',dng%nderiv
-      write(out_unitp,*) 'ndimG      ',mole%ndimG
-      write(out_unitp,*)
-      write(out_unitp,*) 'Qact',Qact
-      write(out_unitp,*) 'dng'
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nrho       ',para_Tnum%nrho
+      write(out_unit,*) 'vep_type   ',para_Tnum%vep_type
+      write(out_unit,*) 'dng%nderiv',dng%nderiv
+      write(out_unit,*) 'ndimG      ',mole%ndimG
+      write(out_unit,*)
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'dng'
       CALL write_dnMat(dng)
-      !write(out_unitp,*)
+      !write(out_unit,*)
       !CALL Write_CoordType(mole)
-      !write(out_unitp,*)
-      write(out_unitp,*)
-      write(out_unitp,*) 'num_GG',para_Tnum%num_GG
-      write(out_unitp,*) 'num_g ',para_Tnum%num_g
-      write(out_unitp,*) 'num_x ',para_Tnum%num_x
-      write(out_unitp,*) 'JJ',para_Tnum%JJ
-      write(out_unitp,*)
+      !write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'num_GG',para_Tnum%num_GG
+      write(out_unit,*) 'num_g ',para_Tnum%num_g
+      write(out_unit,*) 'num_x ',para_Tnum%num_x
+      write(out_unit,*) 'JJ',para_Tnum%JJ
+      write(out_unit,*)
     END IF
     !---------------------------------------------------------
 
@@ -2741,7 +2741,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       CALL sub3_dndetA(dnJac,dng,nderiv_loc,                            &
                        mole%masses,mole%Mtot_inv,mole%ncart)
 
-      IF (debug) write(out_unitp,*) 'dnJac'
+      IF (debug) write(out_unit,*) 'dnJac'
       IF (debug) CALL write_dnS(dnJac)
       !----------------------------------------------------
       !-- f0,fi,Fij calculation
@@ -2750,8 +2750,8 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
                       nderiv_loc,para_Tnum%num_x,para_Tnum%stepT,     &
                       para_Tnum%nrho)
       rho = dnrho%d0
-      !write(out_unitp,*) 'rho :',rho
-      IF (debug) write(out_unitp,*) 'dnrho'
+      !write(out_unit,*) 'rho :',rho
+      IF (debug) write(out_unit,*) 'dnrho'
       IF (debug) CALL write_dnS(dnrho)
       !----------------------------------------------------
       !-- vep calculation
@@ -2778,7 +2778,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       CALL sub3_dndetA(dnJac,dng,nderiv_loc,                            &
                        mole%masses,mole%Mtot_inv,mole%ncart)
 
-      !write(out_unitp,*) 'dnJac'
+      !write(out_unit,*) 'dnJac'
       !CALL write_dnS(dnJac)
       !----------------------------------------------------
       !-- f0,fi,Fij calculation
@@ -2798,9 +2798,9 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
     !---------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'vep',vep
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'vep',vep
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
@@ -2831,11 +2831,11 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       END DO
       END DO
 
-!     write(out_unitp,*) 'd0invA',d0invA
-!     write(out_unitp,*) 'd1invA',d1invA
-!     write(out_unitp,*) 'fi,jaci',fi,jaci
-!     write(out_unitp,*) 'Fij,JACij',Fij,JACij
-!     write(out_unitp,*) 'vep',vep
+!     write(out_unit,*) 'd0invA',d0invA
+!     write(out_unit,*) 'd1invA',d1invA
+!     write(out_unit,*) 'fi,jaci',fi,jaci
+!     write(out_unit,*) 'Fij,JACij',Fij,JACij
+!     write(out_unit,*) 'vep',vep
 !     ------------------------------------------------------------
       end subroutine sub_vep_new
 
@@ -2895,11 +2895,11 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       END DO
       vep = -vep/FOUR
 
-!     write(out_unitp,*) 'd0invA',d0invA
-!     write(out_unitp,*) 'd1invA',d1invA
-!     write(out_unitp,*) 'fi,jaci',fi,jaci
-!     write(out_unitp,*) 'Fij,JACij',Fij,JACij
-!     write(out_unitp,*) 'vep',vep
+!     write(out_unit,*) 'd0invA',d0invA
+!     write(out_unit,*) 'd1invA',d1invA
+!     write(out_unit,*) 'fi,jaci',fi,jaci
+!     write(out_unit,*) 'Fij,JACij',Fij,JACij
+!     write(out_unit,*) 'vep',vep
 !     ------------------------------------------------------------
       end subroutine sub_vep
 
@@ -2923,15 +2923,15 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
 
 
       IF (mole100%ndimG /= mole%ndimG+mole%nb_rigid100) THEN
-        write(out_unitp,*) ' ERROR in dngG100_TO_dngG'
-        write(out_unitp,*) ' mole100%ndimG NOT = mole%ndimG+mole%nb_rigid100'
-        write(out_unitp,*) mole100%ndimG,mole%ndimG,mole%nb_rigid100
+        write(out_unit,*) ' ERROR in dngG100_TO_dngG'
+        write(out_unit,*) ' mole100%ndimG NOT = mole%ndimG+mole%nb_rigid100'
+        write(out_unit,*) mole100%ndimG,mole%ndimG,mole%nb_rigid100
         STOP
       END IF
       IF (dnG100%nderiv /= dnG%nderiv) THEN
-        write(out_unitp,*) ' ERROR in dngG100_TO_dngG'
-        write(out_unitp,*) ' dnG100%nderiv NOT = dnG%nderiv'
-        write(out_unitp,*) dnG100%nderiv,dnG%nderiv
+        write(out_unit,*) ' ERROR in dngG100_TO_dngG'
+        write(out_unit,*) ' dnG100%nderiv NOT = dnG%nderiv'
+        write(out_unit,*) dnG100%nderiv,dnG%nderiv
         STOP
       END IF
 
@@ -2965,9 +2965,9 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       integer :: i,j,i100,j100
 
       IF (mole100%ndimG /= mole%ndimG+mole%nb_rigid100) THEN
-        write(out_unitp,*) ' ERROR in gG100TOgG'
-        write(out_unitp,*) ' mole100%ndimG NOT = mole%ndimG+mole%nb_rigid100'
-        write(out_unitp,*) mole100%ndimG,mole%ndimG,mole%nb_rigid100
+        write(out_unit,*) ' ERROR in gG100TOgG'
+        write(out_unit,*) ' mole100%ndimG NOT = mole%ndimG+mole%nb_rigid100'
+        write(out_unit,*) mole100%ndimG,mole%ndimG,mole%nb_rigid100
         STOP
       END IF
 
@@ -2998,26 +2998,26 @@ RETURN
       allocate(Vec(n,n))
       allocate(vp(n))
 
-      CALL Write_Mat(g,out_unitp,5,info='g')
+      CALL Write_Mat(g,out_unit,5,info='g')
       CALL diagonalization(g,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
-      CALL Write_Mat(Vec,out_unitp,5,info='Vec')
-      CALL Write_Vec(vp,out_unitp,5,info='vp')
-      write(out_unitp,*)
-      flush(out_unitp)
+      CALL Write_Mat(Vec,out_unit,5,info='Vec')
+      CALL Write_Vec(vp,out_unit,5,info='vp')
+      write(out_unit,*)
+      flush(out_unit)
 
       gij = g(1:n-1,1:n-1)
       gsi = g(1:n-1,n)
-      CALL Write_Vec(gsi,out_unitp,5,info='gsi')
-      write(out_unitp,*)
+      CALL Write_Vec(gsi,out_unit,5,info='gsi')
+      write(out_unit,*)
 
       allocate(d1f(n-1))
 
       CALL Linear_Sys(gij,gsi,d1f,n-1)
       gnsi = gsi(:) - matmul(gij,d1f)
 
-      CALL Write_Vec(gnsi,out_unitp,5,info='gnsi')
-      write(out_unitp,*)
-      flush(out_unitp)
+      CALL Write_Vec(gnsi,out_unit,5,info='gnsi')
+      write(out_unit,*)
+      flush(out_unit)
 
 
       gn = g
@@ -3029,12 +3029,12 @@ RETURN
       END DO
       gn(n,1:n-1) = gsi(:) - matmul(gij,d1f) ! zero
       gn(1:n-1,n) = gn(n,1:n-1)               ! zero
-      CALL Write_Mat(gn,out_unitp,5,info='gn')
+      CALL Write_Mat(gn,out_unit,5,info='gn')
 
       CALL diagonalization(gn,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
-      CALL Write_Mat(Vec,out_unitp,5,info='Vec')
-      CALL Write_Vec(vp,out_unitp,5,info='vp')
-      flush(out_unitp)
+      CALL Write_Mat(Vec,out_unit,5,info='Vec')
+      CALL Write_Vec(vp,out_unit,5,info='vp')
+      flush(out_unit)
 
 
       deallocate(Vec)

@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Coord_KEO
       USE mod_PrimOp
       IMPLICIT NONE
@@ -132,7 +132,7 @@
       xc12(1) = sum(xread(1,1:15))
       xc12(2) = sum(xread(2,1:15))
       xc12(3) = sum(xread(3,1:15))
-      write(out_unitp,*) 'xc12',xc12
+      write(out_unit,*) 'xc12',xc12
 
       DO i=1,15
         xread(:,i) = xread(:,i) - xc12(:)
@@ -155,14 +155,14 @@ stop
 
       nderiv = 0
       CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
 
       CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,.FALSE.)
 
 
-      write(out_unitp,*) 'Cart : ',mole%ncart
+      write(out_unit,*) 'Cart : ',mole%ncart
       CALL Write_Cartg98(dnx%d0,mole)
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
       CALL dealloc_dnSVM(dnx)
 
 
@@ -184,7 +184,7 @@ stop
 !===========================================================
 !===========================================================
 
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
       calc_QTOx    = .TRUE.
       calc_Tnum    = .TRUE.
       calc_gG      = .FALSE.
@@ -194,14 +194,14 @@ stop
       OnTheFly     = .FALSE.
       outm_name    = ''
       fchk_name    = ''
-      read(in_unitp,calculation,IOSTAT=err_read)
-      write(out_unitp,calculation)
+      read(in_unit,calculation,IOSTAT=err_read)
+      write(out_unit,calculation)
       IF (err_read /= 0) THEN
-        write(out_unitp,*) ' NO namelist "calculation"!'
-        write(out_unitp,*) ' => calc_QTOx=t and calc_Tnum=t'
+        write(out_unit,*) ' NO namelist "calculation"!'
+        write(out_unit,*) ' => calc_QTOx=t and calc_Tnum=t'
 
       END IF
-      write(out_unitp,*) "======================================"
+      write(out_unit,*) "======================================"
 
 !===========================================================
 !===========================================================
@@ -232,21 +232,21 @@ stop
 
       ! read the hessian (only once)
       IF (len_trim(outm_name) > 0) THEN
-        write(out_unitp,*) 'read FCC from molpro file:',outm_name
+        write(out_unit,*) 'read FCC from molpro file:',outm_name
         CALL Read_GradHess_Molpro(dnFCC,outm_name,nderiv,mole%ncart_act)
       ELSE IF (len_trim(fchk_name) > 0) THEN
-        write(out_unitp,*) 'read FCC from gaussian file:',fchk_name
+        write(out_unit,*) 'read FCC from gaussian file:',fchk_name
         CALL Read_hess_Fchk(dnFCC,fchk_name,nderiv,mole%ncart_act)
       ELSE
-        write(out_unitp,*) 'read FCC from the input file:'
+        write(out_unit,*) 'read FCC from the input file:'
         ! read the gradient
-        read(in_unitp,*,IOSTAT=err_read)
+        read(in_unit,*,IOSTAT=err_read)
         DO icart=1,mole%ncart_act,3
-          read(in_unitp,*,iostat=err_read) name_i,dnFCC%d1(icart:icart+2)
+          read(in_unit,*,iostat=err_read) name_i,dnFCC%d1(icart:icart+2)
         END DO
         IF (err_read /= 0) THEN
-          write(out_unitp,*) ' ERROR while reading the gradient'
-          write(out_unitp,*) ' => check your data!!'
+          write(out_unit,*) ' ERROR while reading the gradient'
+          write(out_unit,*) ' => check your data!!'
           STOP
         END IF
         ! read the hessian
@@ -256,13 +256,13 @@ stop
 
 !======================================================================
       ! calculation at different minima .... to be done !!!
-      write(out_unitp,*) '======================================================'
-      write(out_unitp,*) '======================================================'
-      write(out_unitp,*) '======================================================'
+      write(out_unit,*) '======================================================'
+      write(out_unit,*) '======================================================'
+      write(out_unit,*) '======================================================'
 
       CALL sub_dnFCC_TO_dnFcurvi(para_Q%Qact,dnFCC,dnFcurvi,mole)
-      write(out_unitp,*) 'Curvilinear hessian:'
-      CALL Write_VecMat(dnFcurvi%d2,out_unitp,5)
+      write(out_unit,*) 'Curvilinear hessian:'
+      CALL Write_VecMat(dnFcurvi%d2,out_unit,5)
 
       ! frequencies calculation
 
@@ -277,16 +277,16 @@ stop
                          mole%const_phys%auTOcm_inv)
 
 
-      write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*mole%const_phys%auTOcm_inv
-     !write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*mole%const_phys%auTOeV
-      write(out_unitp,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
+      write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*mole%const_phys%auTOcm_inv
+     !write(out_unit,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*mole%const_phys%auTOeV
+      write(out_unit,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
 
-      write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*mole%const_phys%auTOcm_inv
+      write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*mole%const_phys%auTOcm_inv
 
 
-      write(out_unitp,*) '======================================================'
-      write(out_unitp,*) '======================================================'
-      write(out_unitp,*) '======================================================'
+      write(out_unit,*) '======================================================'
+      write(out_unit,*) '======================================================'
+      write(out_unit,*) '======================================================'
 
       CALL permut_cart(xperm,xread,mole%nat)
       xperm(:,16) = [ONE,ZERO,ZERO]
@@ -319,8 +319,8 @@ stop
 
 
       CALL sub_dnFCC_TO_dnFcurvi(para_Q%Qact,dnFCC,dnFcurvi,mole)
-      write(out_unitp,*) 'Curvilinear hessian:'
-      CALL Write_VecMat(dnFcurvi%d2,out_unitp,5)
+      write(out_unit,*) 'Curvilinear hessian:'
+      CALL Write_VecMat(dnFcurvi%d2,out_unit,5)
 
       ! frequencies calculation
 
@@ -336,11 +336,11 @@ stop
 
 
 
-      write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*mole%const_phys%auTOcm_inv
-     !write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*mole%const_phys%auTOeV
-      write(out_unitp,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
+      write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*mole%const_phys%auTOcm_inv
+     !write(out_unit,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*mole%const_phys%auTOeV
+      write(out_unit,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
 
-      write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*mole%const_phys%auTOcm_inv
+      write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*mole%const_phys%auTOcm_inv
 
 
 !======================================================================
@@ -375,12 +375,12 @@ stop
       CALL dealloc_param_Q(para_Q)
 
 
-      write(out_unitp,*) 'END Tnum'
+      write(out_unit,*) 'END Tnum'
 
       end program Tnum_f90
 
       SUBROUTINE permut_cart(xperm,xread,n)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer :: n

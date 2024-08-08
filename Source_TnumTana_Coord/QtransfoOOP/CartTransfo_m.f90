@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE CartTransfo_m
-  USE mod_system
+  USE TnumTana_system_m
   USE QtransfoBase_m
   IMPLICIT NONE
 
@@ -101,19 +101,19 @@ CONTAINS
     IF(MPI_id==0) THEN
       CALL this%QtransfoBase_t%write()
 
-      write(out_unitp,*) 'nat0     ',this%nat0
-      write(out_unitp,*) 'nat      ',this%nat
-      write(out_unitp,*) 'nat_act  ',this%nat_act
-      write(out_unitp,*)
-      write(out_unitp,*) 'ncart    ',this%ncart
-      write(out_unitp,*) 'ncart_act',this%ncart_act
-      write(out_unitp,*)
-      IF (allocated(this%masses))  write(out_unitp,*) 'masses (au)       ',this%masses
-      IF (allocated(this%d0sm))    write(out_unitp,*) 'd0sm=sqrt(masses) ',this%d0sm
-      write(out_unitp,*) 'Mtot     ',this%Mtot
-      write(out_unitp,*) 'Mtot_inv ',this%Mtot_inv
+      write(out_unit,*) 'nat0     ',this%nat0
+      write(out_unit,*) 'nat      ',this%nat
+      write(out_unit,*) 'nat_act  ',this%nat_act
+      write(out_unit,*)
+      write(out_unit,*) 'ncart    ',this%ncart
+      write(out_unit,*) 'ncart_act',this%ncart_act
+      write(out_unit,*)
+      IF (allocated(this%masses))  write(out_unit,*) 'masses (au)       ',this%masses
+      IF (allocated(this%d0sm))    write(out_unit,*) 'd0sm=sqrt(masses) ',this%d0sm
+      write(out_unit,*) 'Mtot     ',this%Mtot
+      write(out_unit,*) 'Mtot_inv ',this%Mtot_inv
     ENDIF ! for MPI_id==0
-    flush(out_unitp)
+    flush(out_unit)
 
   END SUBROUTINE Write_CartTransfo_Tnum
   SUBROUTINE WriteNice_CartTransfo_Tnum(this)
@@ -124,8 +124,8 @@ CONTAINS
 
     character (len=*), parameter :: name_sub = "WriteNice_CartTransfo_Tnum"
 
-    write(out_unitp,'(a)') 'Cartesian coordinates recentered from the center of mass.'
-    flush(out_unitp)
+    write(out_unit,'(a)') 'Cartesian coordinates recentered from the center of mass.'
+    flush(out_unit)
 
   END SUBROUTINE WriteNice_CartTransfo_Tnum
   FUNCTION get_TransfoType_CartTransfo_Tnum(this) RESULT(TransfoType)
@@ -156,8 +156,8 @@ CONTAINS
     !------------------------------------------------------------------
 
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      flush(out_unit)
     END IF
 
     this%name_transfo    = 'Cart'
@@ -165,10 +165,10 @@ CONTAINS
     this%Primitive_Coord = .FALSE.
 
     IF (debug) THEN
-      write(out_unitp,*) '======= Qt_old ==========='
+      write(out_unit,*) '======= Qt_old ==========='
       CALL Qt_old%Write()
-      write(out_unitp,*) '=========================='
-      flush(out_unitp)
+      write(out_unit,*) '=========================='
+      flush(out_unit)
     END IF
 
 
@@ -181,16 +181,16 @@ CONTAINS
       this%ncart     = Qt_old%ncart
 
       IF (.NOT. allocated(Qt_old%masses)) THEN
-        write(out_unitp,*) "ERROR in ",name_sub
-        write(out_unitp,*) " masses(:) is not allocated"
+        write(out_unit,*) "ERROR in ",name_sub
+        write(out_unit,*) " masses(:) is not allocated"
         STOP 'ERROR in Init_CartTransfo_Tnum: masses(:) is not allocated'
       END IF
       this%masses   = Qt_old%masses
 
     CLASS DEFAULT
-      write(out_unitp,*) "ERROR in ",name_sub
-      write(out_unitp,*) " Wrong dynamical type."
-      write(out_unitp,*) " It should be 'ZmatTransfo_t' or ...."
+      write(out_unit,*) "ERROR in ",name_sub
+      write(out_unit,*) " Wrong dynamical type."
+      write(out_unit,*) " It should be 'ZmatTransfo_t' or ...."
       STOP 'ERROR in Init_CartTransfo_Tnum: Wrong dynamical type'
     END SELECT
  
@@ -214,9 +214,9 @@ CONTAINS
 
     IF (debug) THEN
       CALL Write_CartTransfo_Tnum(this)
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
-    flush(out_unitp)
+    flush(out_unit)
 
   END FUNCTION Init_CartTransfo_Tnum
 
@@ -276,14 +276,14 @@ CONTAINS
     character (len=*), parameter :: name_sub='QinTOQout_CartTransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*)
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nderiv',get_nderiv(Qin)
-      write(out_unitp,*)
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',get_nderiv(Qin)
+      write(out_unit,*)
       CALL this%Write()
-      write(out_unitp,*) 'Cartesian coordinates NOT recentered for the COM:'
+      write(out_unit,*) 'Cartesian coordinates NOT recentered for the COM:'
       CALL write_dnx(1,this%nb_Qin,Qin,nderiv_debug)
-      flush(out_unitp)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------------
 
@@ -293,7 +293,7 @@ CONTAINS
     dnG(2) = dot_product(this%masses(2::3),dnS_Qin(2::3)) * this%Mtot_inv
     dnG(3) = dot_product(this%masses(3::3),dnS_Qin(3::3)) * this%Mtot_inv
 
-    IF (debug) write(out_unitp,*) 'COM:',get_d0(dnG)
+    IF (debug) write(out_unit,*) 'COM:',get_d0(dnG)
 
     dnS_Qin(1::3) = dnS_Qin(1::3) - dnG(1)
     dnS_Qin(2::3) = dnS_Qin(2::3) - dnG(2)
@@ -303,11 +303,11 @@ CONTAINS
    
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'Cartesian coordinates recentered for the COM:'
+      write(out_unit,*) 'Cartesian coordinates recentered for the COM:'
       CALL write_dnx(1,this%nb_Qout,Qout,nderiv_debug)
-      write(out_unitp,*) 'END ',name_sub
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------------
 
@@ -329,12 +329,12 @@ CONTAINS
     character (len=*), parameter :: name_sub='QoutTOQin_CartTransfo_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*)
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nderiv',get_nderiv(Qout)
-      write(out_unitp,*)
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',get_nderiv(Qout)
+      write(out_unit,*)
       CALL this%Write()
-      write(out_unitp,*) 'Qout (dnx)'
+      write(out_unit,*) 'Qout (dnx)'
       CALL Write_dnVec(Qout)
     END IF
     !-----------------------------------------------------------------
@@ -344,11 +344,11 @@ CONTAINS
 
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'Qin (dnQzmat)'
+      write(out_unit,*) 'Qin (dnQzmat)'
       CALL write_dnVec(Qin,nderiv_debug)
-      write(out_unitp,*) 'END ',name_sub
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------------
 

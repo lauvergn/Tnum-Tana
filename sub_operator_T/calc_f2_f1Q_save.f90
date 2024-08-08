@@ -14,7 +14,7 @@
                                  Tdef2,Tdef1,vep,rho,                   &
                                  Tcor2,Tcor1,Trot,                      &
                                  para_Tnum,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       USE mod_Constant
       IMPLICIT NONE
@@ -40,17 +40,17 @@
       !logical, parameter :: debug = .TRUE.
       !-----------------------------------------------------------
        IF (debug .OR. para_Tnum%WriteT) THEN
-         write(out_unitp,*) 'BEGINNING calc_f2_f1Q_ana'
-         write(out_unitp,*) 'mole%nb_act',mole%nb_act
-         write(out_unitp,*) 'mole%nb_var',mole%nb_var
-         write(out_unitp,*) 'Qsym0',Qsym0
+         write(out_unit,*) 'BEGINNING calc_f2_f1Q_ana'
+         write(out_unit,*) 'mole%nb_act',mole%nb_act
+         write(out_unit,*) 'mole%nb_var',mole%nb_var
+         write(out_unit,*) 'Qsym0',Qsym0
          IF (debug) THEN
-           write(out_unitp,*)
+           write(out_unit,*)
            CALL Write_CoordType(mole)
-           write(out_unitp,*)
+           write(out_unit,*)
          END IF
-         write(out_unitp,*) 'JJ',para_Tnum%JJ
-         write(out_unitp,*)
+         write(out_unit,*) 'JJ',para_Tnum%JJ
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
 
@@ -66,7 +66,7 @@
 
 !-----------------------------------------------------------
       IF (debug .OR. para_Tnum%WriteT) THEN
-        write(out_unitp,*) 'END calc_f2_f1Q_ana'
+        write(out_unit,*) 'END calc_f2_f1Q_ana'
       END IF
 !-----------------------------------------------------------
 

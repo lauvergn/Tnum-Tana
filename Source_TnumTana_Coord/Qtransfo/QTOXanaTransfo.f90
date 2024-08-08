@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_QTOXanaTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       use mod_Constant,  only: table_atom, get_mass_tnum
       IMPLICIT NONE
@@ -73,13 +73,13 @@
 
        character (len=*), parameter :: name_sub = 'alloc_QTOXanaTransfo'
 
-!      write(out_unitp,*) 'BEGINNING ',name_sub
-!      write(out_unitp,*) 'nat',QTOXanaTransfo%nat
+!      write(out_unit,*) 'BEGINNING ',name_sub
+!      write(out_unit,*) 'nat',QTOXanaTransfo%nat
 
        IF (QTOXanaTransfo%nat < 3) THEN
-         write(out_unitp,*) ' ERROR in alloc_QTOXanaTransfo'
-         write(out_unitp,*) ' wrong value of nat',QTOXanaTransfo%nat
-         write(out_unitp,*) ' CHECK the source !!'
+         write(out_unit,*) ' ERROR in alloc_QTOXanaTransfo'
+         write(out_unit,*) ' wrong value of nat',QTOXanaTransfo%nat
+         write(out_unit,*) ' CHECK the source !!'
          STOP
        END IF
 
@@ -95,7 +95,7 @@
                        "QTOXanaTransfo%masses",name_sub)
        QTOXanaTransfo%masses(:) = ZERO
 
-!      write(out_unitp,*) 'END ',name_sub
+!      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE alloc_QTOXanaTransfo
 
@@ -105,7 +105,7 @@
 
        TYPE (Type_QTOXanaTransfo), intent(inout) :: QTOXanaTransfo
 
-       !write(out_unitp,*) 'BEGINNING dealloc_QTOXanaTransfo'; flush(out_unitp)
+       !write(out_unit,*) 'BEGINNING dealloc_QTOXanaTransfo'; flush(out_unit)
 
        IF (associated(QTOXanaTransfo%Z))  THEN
          CALL dealloc_array(QTOXanaTransfo%Z,                           &
@@ -132,7 +132,7 @@
 
        nullify(QTOXanaTransfo%type_Qin)
 
-       !write(out_unitp,*) 'END dealloc_QTOXanaTransfo'; flush(out_unitp)
+       !write(out_unit,*) 'END dealloc_QTOXanaTransfo'; flush(out_unit)
 
       END SUBROUTINE dealloc_QTOXanaTransfo
 
@@ -153,20 +153,20 @@
        character (len=*), parameter :: name_sub = 'Read_QTOXanaTransfo'
        !-----------------------------------------------------------------------
        IF (print_level > 1) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'nat0,nat ',QTOXanaTransfo%nat0,QTOXanaTransfo%nat
-         write(out_unitp,*) 'nb_var   ',QTOXanaTransfo%nb_var
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'nat0,nat ',QTOXanaTransfo%nat0,QTOXanaTransfo%nat
+         write(out_unit,*) 'nb_var   ',QTOXanaTransfo%nb_var
        END IF
 
 
           QTOXanaTransfo%type_Qin(:) = 0
-          read(in_unitp,*,IOSTAT=err_io) QTOXanaTransfo%type_Qin(:)
+          read(in_unit,*,IOSTAT=err_io) QTOXanaTransfo%type_Qin(:)
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the type of the coordinates.'
-            write(out_unitp,*) ' QTOXanaTransfo%type_Qin',QTOXanaTransfo%type_Qin(:)
-            write(out_unitp,*) ' end of file or end of record'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading the type of the coordinates.'
+            write(out_unit,*) ' QTOXanaTransfo%type_Qin',QTOXanaTransfo%type_Qin(:)
+            write(out_unit,*) ' end of file or end of record'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -174,12 +174,12 @@
 
           nullify(name_at)
           CALL alloc_array(name_at,[QTOXanaTransfo%nat0],"name_at",name_sub)
-          read(in_unitp,*,IOSTAT=err_io) (name_at(i),i=1,QTOXanaTransfo%nat0)
+          read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,QTOXanaTransfo%nat0)
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading a mass.'
-            write(out_unitp,*) ' end of file or end of record'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading a mass.'
+            write(out_unit,*) ' end of file or end of record'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -187,13 +187,13 @@
             QTOXanaTransfo%Z(i) = -1
             QTOXanaTransfo%symbole(i) = name_at(i)
             at = get_mass_Tnum(mendeleev,Z=QTOXanaTransfo%Z(i),name=name_at(i))
-            IF (print_level > 0) write(out_unitp,*) i,QTOXanaTransfo%Z(i),at
+            IF (print_level > 0) write(out_unit,*) i,QTOXanaTransfo%Z(i),at
 
 !            IF (at == ZERO) THEN
-!              write(out_unitp,*) ' ERROR in ',name_sub
-!              write(out_unitp,*) '  One mass is ZERO.'
-!              write(out_unitp,*) '  It is not possible for this transformation'
-!              write(out_unitp,*) ' Check your data'
+!              write(out_unit,*) ' ERROR in ',name_sub
+!              write(out_unit,*) '  One mass is ZERO.'
+!              write(out_unit,*) '  It is not possible for this transformation'
+!              write(out_unit,*) ' Check your data'
 !              STOP
 !            END IF
 
@@ -201,7 +201,7 @@
           END DO
           CALL dealloc_array(name_at,"name_at",name_sub)
 
-      IF (print_level > 1) write(out_unitp,*) 'END ',name_sub
+      IF (print_level > 1) write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_QTOXanaTransfo
 
 
@@ -230,7 +230,7 @@
       QTOXanaTransfo2%Z(:)         = QTOXanaTransfo1%Z(:)
       QTOXanaTransfo2%symbole(:)   = QTOXanaTransfo1%symbole(:)
 
-      !write(out_unitp,*) 'END QTOXanaTransfo1TOQTOXanaTransfo2'
+      !write(out_unit,*) 'END QTOXanaTransfo1TOQTOXanaTransfo2'
 
       END SUBROUTINE QTOXanaTransfo1TOQTOXanaTransfo2
 
@@ -243,21 +243,21 @@
       character (len=*), parameter :: name_sub='Write_QTOXanaTransfo'
 
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unitp,*) 'ncart_act,ncart',                             &
+      write(out_unit,*) 'ncart_act,ncart',                             &
                   QTOXanaTransfo%ncart_act,QTOXanaTransfo%ncart
 
-      write(out_unitp,*) 'nat_act,nat0,nat,',                           &
+      write(out_unit,*) 'nat_act,nat0,nat,',                           &
                   QTOXanaTransfo%nat_act,QTOXanaTransfo%nat0,QTOXanaTransfo%nat
 
-      write(out_unitp,*) 'nb_var',QTOXanaTransfo%nb_var
+      write(out_unit,*) 'nb_var',QTOXanaTransfo%nb_var
 
-      write(out_unitp,*) 'masses : ',QTOXanaTransfo%masses(:)
-      write(out_unitp,*) 'Z      : ',QTOXanaTransfo%Z(:)
-      write(out_unitp,*) 'symbole: ',QTOXanaTransfo%symbole(:)
+      write(out_unit,*) 'masses : ',QTOXanaTransfo%masses(:)
+      write(out_unit,*) 'Z      : ',QTOXanaTransfo%Z(:)
+      write(out_unit,*) 'symbole: ',QTOXanaTransfo%symbole(:)
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_QTOXanaTransfo
 

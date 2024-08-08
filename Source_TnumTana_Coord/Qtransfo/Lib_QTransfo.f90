@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Lib_QTransfo
-      use mod_system
+      use TnumTana_system_m
       use mod_dnSVM, only: type_dnvec, type_dns, write_dnsvm,        &
                            sub_dnvec1_prod_dns2_to_dnvec3,           &
                            sub_dns1_prod_dns2_to_dns3,               &
@@ -86,9 +86,9 @@ CONTAINS
 
 !      -----------------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'nderiv',nderiv
-         write(out_unitp,*) 'icf',icf
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'nderiv',nderiv
+         write(out_unit,*) 'icf',icf
        END IF
 !      -----------------------------------------------------------------
 
@@ -101,7 +101,7 @@ CONTAINS
 !      -----------------------------------------------------------------
        IF (debug) THEN
          CALL write_dnx(icf,3,dnx,nderiv_debug)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !      -----------------------------------------------------------------
 
@@ -131,17 +131,17 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf',icf
-        write(out_unitp,*) 'dnd'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf',icf
+        write(out_unit,*) 'dnd'
         CALL Write_dnSVM(dnd)
       END IF
 !     -----------------------------------------------------------------
 
       IF (dnd%d0 < ONETENTH**10 .AND. check) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'The distance is too small. dnd:'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'The distance is too small. dnd:'
         CALL Write_dnSVM(dnd)
         STOP
       END IF
@@ -153,7 +153,7 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         CALL write_dnx(icf,3,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -194,24 +194,24 @@ CONTAINS
       character (len=*), parameter :: name_sub = 'sub3_dnx_AT3_new'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf ic1',icf,ic1
-        write(out_unitp,*) 'dnd'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf ic1',icf,ic1
+        write(out_unit,*) 'dnd'
         CALL Write_dnSVM(dnd)
-        write(out_unitp,*) 'dnsin(val)'
+        write(out_unit,*) 'dnsin(val)'
         CALL Write_dnSVM(dnsval)
-        write(out_unitp,*) 'dncos(val)'
+        write(out_unit,*) 'dncos(val)'
         CALL Write_dnSVM(dncval)
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
       END IF
 !      -----------------------------------------------------------------
 
 
        IF (dnd%d0 < ONETENTH**10  .AND. check) THEN
-         write(out_unitp,*) 'ERROR in ',name_sub
-         write(out_unitp,*) 'The distance is too small',dnd%d0
+         write(out_unit,*) 'ERROR in ',name_sub
+         write(out_unit,*) 'The distance is too small',dnd%d0
          STOP
        END IF
 
@@ -249,7 +249,7 @@ CONTAINS
 !      -----------------------------------------------------------------
        IF (debug) THEN
          CALL write_dnx(icf,3,dnx,nderiv_debug)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !      -----------------------------------------------------------------
 
@@ -290,22 +290,22 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf,ic1,ic2,ic3',icf,ic1,ic2,ic3
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf,ic1,ic2,ic3',icf,ic1,ic2,ic3
 
-        write(out_unitp,*) 'dnd'
+        write(out_unit,*) 'dnd'
         CALL Write_dnSVM(dnd)
-        write(out_unitp,*) 'dnsin(val)'
+        write(out_unit,*) 'dnsin(val)'
         CALL Write_dnSVM(dnsval)
-        write(out_unitp,*) 'dncos(val)'
+        write(out_unit,*) 'dncos(val)'
         CALL Write_dnSVM(dncval)
-        write(out_unitp,*) 'dnsin(dih)'
+        write(out_unit,*) 'dnsin(dih)'
         CALL Write_dnSVM(dnsdih)
-        write(out_unitp,*) 'dncos(dih)'
+        write(out_unit,*) 'dncos(dih)'
         CALL Write_dnSVM(dncdih)
 
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
@@ -313,8 +313,8 @@ CONTAINS
 !================================================
 
       IF (dnd%d0 < ONETENTH**10 .AND. check) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'The distance is too small',dnd%d0
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'The distance is too small',dnd%d0
         STOP
       END IF
 
@@ -385,7 +385,7 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -413,14 +413,14 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf',icf
-        write(out_unitp,*) 'dna'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf',icf
+        write(out_unit,*) 'dna'
         CALL Write_dnSVM(dna,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dnb'
+        write(out_unit,*) 'dnb'
         CALL Write_dnSVM(dnb,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dnb'
+        write(out_unit,*) 'dnb'
         CALL Write_dnSVM(dnb,nderiv=nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
@@ -435,9 +435,9 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         icf=icf-2
-        write(out_unitp,*) 'icf',icf
+        write(out_unit,*) 'icf',icf
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -467,21 +467,21 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf',icf
-        write(out_unitp,*) 'dna'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf',icf
+        write(out_unit,*) 'dna'
         CALL Write_dnSVM(dna,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dnb'
+        write(out_unit,*) 'dnb'
         CALL Write_dnSVM(dnb,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dnc'
+        write(out_unit,*) 'dnc'
         CALL Write_dnSVM(dnc,nderiv=nderiv_debug)
 
-        write(out_unitp,*) 'dnx3'
+        write(out_unit,*) 'dnx3'
         CALL Write_dnSVM(dnx3,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dny3'
+        write(out_unit,*) 'dny3'
         CALL Write_dnSVM(dny3,nderiv=nderiv_debug)
-        write(out_unitp,*) 'dnz3'
+        write(out_unit,*) 'dnz3'
         CALL Write_dnSVM(dnz3,nderiv=nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
@@ -518,9 +518,9 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         icf=icf-2
-        write(out_unitp,*) 'icf',icf
+        write(out_unit,*) 'icf',icf
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -566,22 +566,22 @@ CONTAINS
       character (len=*), parameter :: name_sub = 'sub3_dnx_AT4_poly'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf,ic1,ic2,ic3',icf,ic1,ic2,ic3
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf,ic1,ic2,ic3',icf,ic1,ic2,ic3
 
-        write(out_unitp,*) 'dnd'
+        write(out_unit,*) 'dnd'
         CALL Write_dnSVM(dnd)
-        write(out_unitp,*) 'dnsin(val)'
+        write(out_unit,*) 'dnsin(val)'
         CALL Write_dnSVM(dnsval)
-        write(out_unitp,*) 'dncos(val)'
+        write(out_unit,*) 'dncos(val)'
         CALL Write_dnSVM(dncval)
-        write(out_unitp,*) 'dnsin(dih)'
+        write(out_unit,*) 'dnsin(dih)'
         CALL Write_dnSVM(dnsdih)
-        write(out_unitp,*) 'dncos(dih)'
+        write(out_unit,*) 'dncos(dih)'
         CALL Write_dnSVM(dncdih)
 
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
@@ -590,8 +590,8 @@ CONTAINS
 !================================================
 
       IF (dnd%d0 < ONETENTH**10 .AND. check) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'The distance is too small',dnd%d0
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'The distance is too small',dnd%d0
         STOP
       END IF
 
@@ -625,8 +625,8 @@ CONTAINS
       CALL sub_dnS_TO_dnVec(dnf2,dnv1,2,nderiv)
       CALL sub_dnS_TO_dnVec(dnf3,dnv1,3,nderiv)
 !     -----------------------------------------------------------------
-      IF (debug) write(out_unitp,*) 'ic1,dnx',ic1,dnx%d0(ic1:ic1+2)
-      IF (debug) write(out_unitp,*) 'dnv1'
+      IF (debug) write(out_unit,*) 'ic1,dnx',ic1,dnx%d0(ic1:ic1+2)
+      IF (debug) write(out_unit,*) 'dnv1'
       IF (debug) CALL Write_dnSVM(dnv1)
 
 !     ---------------------------------------------------------
@@ -641,7 +641,7 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -669,11 +669,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub3_dnx_TO_dnVec'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ic1 ic2',ic1,ic2
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ic1 ic2',ic1,ic2
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv)
       END IF
 !     -----------------------------------------------------------------
@@ -706,9 +706,9 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnVec'
+        write(out_unit,*) 'dnVec'
         CALL Write_dnSVM(dnVec)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !      -----------------------------------------------------------------
 
@@ -744,11 +744,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub3_dnVec123_TOx'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf,ic1 ',icf,ic1
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf,ic1 ',icf,ic1
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv)
       END IF
 !     -----------------------------------------------------------------
@@ -782,9 +782,9 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*) 'dnx'
         CALL write_dnx(icf,3,dnx,nderiv)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -807,11 +807,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub3_dnVec_PLUS_x1TOxf'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'ic1 icf',ic1,icf
-        write(out_unitp,*) 'dnx,ic1'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'ic1 icf',ic1,icf
+        write(out_unit,*) 'dnx,ic1'
         CALL write_dnx(ic1,3,dnx,nderiv)
       END IF
 !     -----------------------------------------------------------------
@@ -834,9 +834,9 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnx,icf'
+        write(out_unit,*) 'dnx,icf'
         CALL write_dnx(icf,3,dnx,nderiv)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -859,11 +859,11 @@ CONTAINS
       character (len=*), parameter :: name_sub='sub3_dnVec_TOxf'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'icf ',icf
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'icf ',icf
+        write(out_unit,*) 'dnx'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv)
       END IF
 !     -----------------------------------------------------------------
@@ -885,9 +885,9 @@ CONTAINS
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnx'
+        write(out_unit,*) 'dnx'
         CALL write_dnx(icf,3,dnx,nderiv)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -907,12 +907,12 @@ CONTAINS
 
       IF (sqrt(dot_product(d0x,d0x)) < ONETENTH**6) THEN
 
-        write(out_unitp,*) 'coordinates : 0'
+        write(out_unit,*) 'coordinates : 0'
 
       ELSE
 
         DO i=1,ncart,3
-          write(out_unitp,111) d0x(i+0),d0x(i+1),d0x(i+2)
+          write(out_unit,111) d0x(i+0),d0x(i+1),d0x(i+2)
  111      format(1x,3(2x,f20.9))
         END DO
 
@@ -936,18 +936,18 @@ CONTAINS
           nsize      = get_size(dnx)
   
           IF (ncart_e > nsize) THEN
-            write(out_unitp,*) ' ERROR in write_dnx'
-            write(out_unitp,*) ' ncart_e > vector size',ncart_e,nsize
-            write(out_unitp,*) ' Check the fortran !!!!'
+            write(out_unit,*) ' ERROR in write_dnx'
+            write(out_unit,*) ' ncart_e > vector size',ncart_e,nsize
+            write(out_unit,*) ' Check the fortran !!!!'
             STOP
           END IF
   
-           write(out_unitp,*) 'd0x ='
+           write(out_unit,*) 'd0x ='
            CALL Write_Cart(ncart_e,dnx%d0(ic:ic+ncart_e-1))
   
            IF (nderiv_loc >= 1) THEN
              DO i=1,nb_act
-               write(out_unitp,*) 'd1x =',i
+               write(out_unit,*) 'd1x =',i
                CALL Write_Cart(ncart_e,dnx%d1(ic:ic+ncart_e-1,i))
              END DO
            END IF
@@ -955,7 +955,7 @@ CONTAINS
            IF (nderiv_loc >= 2 ) THEN
              DO i=1,nb_act
              DO j=i,nb_act
-               write(out_unitp,*) 'd2x =',i,j
+               write(out_unit,*) 'd2x =',i,j
                CALL Write_Cart(ncart_e,dnx%d2(ic:ic+ncart_e-1,i,j))
              END DO
              END DO
@@ -965,7 +965,7 @@ CONTAINS
              DO i=1,nb_act
              DO j=i,nb_act
              DO k=k,nb_act
-               write(out_unitp,*) 'd3x =',i,j,k
+               write(out_unit,*) 'd3x =',i,j,k
                CALL Write_Cart(ncart_e,dnx%d3(ic:ic+ncart_e-1,i,j,k))
              END DO
              END DO
@@ -988,18 +988,18 @@ CONTAINS
         nb_act = dnx%nb_var_deriv
 
         IF (ncart_e > dnx%nb_var_vec) THEN
-          write(out_unitp,*) ' ERROR in write_dnx'
-          write(out_unitp,*) ' ncart_e > nb_var_vec',ncart_e,dnx%nb_var_vec
-          write(out_unitp,*) ' Check the fortran !!!!'
+          write(out_unit,*) ' ERROR in write_dnx'
+          write(out_unit,*) ' ncart_e > nb_var_vec',ncart_e,dnx%nb_var_vec
+          write(out_unit,*) ' Check the fortran !!!!'
           STOP
         END IF
 
-         write(out_unitp,*) 'd0x ='
+         write(out_unit,*) 'd0x ='
          CALL Write_Cart(ncart_e,dnx%d0(ic:ic+ncart_e-1))
 
          IF (nderiv_loc >= 1) THEN
            DO i=1,nb_act
-             write(out_unitp,*) 'd1x =',i
+             write(out_unit,*) 'd1x =',i
              CALL Write_Cart(ncart_e,dnx%d1(ic:ic+ncart_e-1,i))
            END DO
          END IF
@@ -1007,7 +1007,7 @@ CONTAINS
          IF (nderiv_loc >= 2 ) THEN
            DO i=1,nb_act
            DO j=1,nb_act
-             write(out_unitp,*) 'd2x =',i,j
+             write(out_unit,*) 'd2x =',i,j
              CALL Write_Cart(ncart_e,dnx%d2(ic:ic+ncart_e-1,i,j))
            END DO
            END DO
@@ -1017,7 +1017,7 @@ CONTAINS
            DO i=1,nb_act
            DO j=1,nb_act
            DO k=1,nb_act
-             write(out_unitp,*) 'd3x =',i,j,k
+             write(out_unit,*) 'd3x =',i,j,k
              CALL Write_Cart(ncart_e,dnx%d3(ic:ic+ncart_e-1,i,j,k))
            END DO
            END DO
@@ -1045,8 +1045,8 @@ CONTAINS
 
       norm = sqrt( dot_product(v,v))
 
-!     write(out_unitp,*) 'v,n1,n2,norm',v,n1,n2,norm
-!      write(out_unitp,*) 'v,nc1,nc2,norm',v,nc1,nc2,norm
+!     write(out_unit,*) 'v,n1,n2,norm',v,n1,n2,norm
+!      write(out_unit,*) 'v,nc1,nc2,norm',v,nc1,nc2,norm
 
 
       end subroutine calc_vector
@@ -1057,14 +1057,14 @@ CONTAINS
       integer           :: ndim
       real (kind=Rkind) :: x(ndim),v(3),norm
 
-      !write(out_unitp,*) 'X1',nc1,x(nc1+0:nc1+2)
-      !write(out_unitp,*) 'X2',nc2,x(nc2+0:nc2+2)
+      !write(out_unit,*) 'X1',nc1,x(nc1+0:nc1+2)
+      !write(out_unit,*) 'X2',nc2,x(nc2+0:nc2+2)
 
       v(:) = x(nc2+0:nc2+2) - x(nc1+0:nc1+2)
 
       norm = sqrt( dot_product(v,v))
 
-      !write(out_unitp,*) 'v,nc1,nc2,norm',v,nc1,nc2,norm
+      !write(out_unit,*) 'v,nc1,nc2,norm',v,nc1,nc2,norm
 
 
       end subroutine calc_vector2
@@ -1080,13 +1080,13 @@ CONTAINS
 
       real (kind=Rkind) :: c
 
-!     write(out_unitp,*) 'v1,norm1',v1,norm1
-!     write(out_unitp,*) 'v2,norm2',v2,norm2
+!     write(out_unit,*) 'v1,norm1',v1,norm1
+!     write(out_unit,*) 'v2,norm2',v2,norm2
 
       IF (abs(norm1) < ONETENTH**10 .OR. abs(norm2) < ONETENTH**10) THEN
-        write(out_unitp,*) 'ERROR in angle'
-        write(out_unitp,*)  ' norm1 = 0 or norm2 = 0'
-        write(out_unitp,*) 'norm1,norm2',norm1,norm2
+        write(out_unit,*) 'ERROR in angle'
+        write(out_unit,*)  ' norm1 = 0 or norm2 = 0'
+        write(out_unit,*) 'norm1,norm2',norm1,norm2
         STOP
       END IF
 
@@ -1099,7 +1099,7 @@ CONTAINS
       ELSE
         angle = acos(c)
       END IF
-      !write(out_unitp,*) 'angle',angle
+      !write(out_unit,*) 'angle',angle
 
       end subroutine calc_angle
 !================================================================
@@ -1132,16 +1132,16 @@ CONTAINS
       real (kind=Rkind) :: angle_d
       real (kind=Rkind) :: ca,sa
 
-!     write(out_unitp,*) 'v1,norm1',v1,norm1
-!     write(out_unitp,*) 'v2,norm2',v2,norm2
-!     write(out_unitp,*) 'v3,norm3',v3,norm3
+!     write(out_unit,*) 'v1,norm1',v1,norm1
+!     write(out_unit,*) 'v2,norm2',v2,norm2
+!     write(out_unit,*) 'v3,norm3',v3,norm3
 
       IF (abs(norm1) < ONETENTH**10 .OR.                                &
           abs(norm2) < ONETENTH**10 .OR.                                &
           abs(norm3) < ONETENTH**10) THEN
-        write(out_unitp,*) 'ERROR in angle'
-        write(out_unitp,*)  ' norm1 = 0 or norm2 = 0 or norm3 = 0'
-        write(out_unitp,*) 'norm1,norm2,norm3',norm1,norm2,norm3
+        write(out_unit,*) 'ERROR in angle'
+        write(out_unit,*)  ' norm1 = 0 or norm2 = 0 or norm3 = 0'
+        write(out_unit,*) 'norm1,norm2,norm3',norm1,norm2,norm3
         STOP
       END IF
 
@@ -1153,7 +1153,7 @@ CONTAINS
            /(norm1*norm2*norm3)
 
       angle_d = atan2(sa,ca)
-!     write(out_unitp,*) 'angle_d',angle_d
+!     write(out_unit,*) 'angle_d',angle_d
 
       end subroutine calc_angle_d
 !================================================================
@@ -1185,16 +1185,16 @@ CONTAINS
       real (kind=Rkind) :: vcp(3),normcp
       real (kind=Rkind) :: theta,stheta
 
-!     write(out_unitp,*) 'v1,norm1',v1,norm1
-!     write(out_unitp,*) 'v2,norm2',v2,norm2
-!     write(out_unitp,*) 'v3,norm3',v3,norm3
+!     write(out_unit,*) 'v1,norm1',v1,norm1
+!     write(out_unit,*) 'v2,norm2',v2,norm2
+!     write(out_unit,*) 'v3,norm3',v3,norm3
 
       IF (abs(norm1) < ONETENTH**10 .OR.                                &
           abs(norm2) < ONETENTH**10 .OR.                                &
           abs(norm3) < ONETENTH**10) THEN
-        write(out_unitp,*) 'ERROR in angle'
-        write(out_unitp,*)  ' norm1 = 0 or norm2 = 0 or norm3 = 0'
-        write(out_unitp,*) 'norm1,norm2,norm3',norm1,norm2,norm3
+        write(out_unit,*) 'ERROR in angle'
+        write(out_unit,*)  ' norm1 = 0 or norm2 = 0 or norm3 = 0'
+        write(out_unit,*) 'norm1,norm2,norm3',norm1,norm2,norm3
         STOP
       END IF
 
@@ -1205,7 +1205,7 @@ CONTAINS
       theta = asin(stheta)
 
 
-!     write(out_unitp,*) 'OutOfPlane',theta
+!     write(out_unit,*) 'OutOfPlane',theta
 
       end subroutine calc_OutOfPlane
 
@@ -1223,38 +1223,38 @@ CONTAINS
       logical, save :: liste_pb(max_cc) = .FALSE.
 
       IF (print_level < 0) RETURN
-!     write(out_unitp,*) 'iz,Q,type_Q',iz,Q,type_Q
+!     write(out_unit,*) 'iz,Q,type_Q',iz,Q,type_Q
       IF (iz > max_cc) RETURN
 
 !$OMP CRITICAL (check_Valence_CRIT)
 
       IF ( type_Q == 3 .AND. (Q <= ZERO .OR. Q >= Pi)                   &
                                          .AND. .NOT. liste_pb(iz) ) THEN
-        write(out_unitp,*) ' WARNNING in check_Valence'
-        write(out_unitp,*) ' The value of the valence angle (',iz,') : ',Q
-        write(out_unitp,*) ' is out of range ]0,Pi(',pi,')['
-        write(out_unitp,*) ' type_Q',type_Q
-        write(out_unitp,*) ' ONLY one warning for this coordinate'
-        write(out_unitp,*) ' END WARNNING in check_Valence'
+        write(out_unit,*) ' WARNNING in check_Valence'
+        write(out_unit,*) ' The value of the valence angle (',iz,') : ',Q
+        write(out_unit,*) ' is out of range ]0,Pi(',pi,')['
+        write(out_unit,*) ' type_Q',type_Q
+        write(out_unit,*) ' ONLY one warning for this coordinate'
+        write(out_unit,*) ' END WARNNING in check_Valence'
 
         liste_pb(iz) = .TRUE.
       ELSE IF ( type_Q == -3 .AND. abs(Q) >= ONE                        &
                                .AND. .NOT. liste_pb(iz) ) THEN
-        write(out_unitp,*) ' WARNNING in check_Valence'
-        write(out_unitp,*) ' The value of the cos(valence angle) (',iz,') :',Q
-        write(out_unitp,*) ' is out of range ]-1,1['
-        write(out_unitp,*) ' type_Q',type_Q
-        write(out_unitp,*) ' ONLY one warning for this coordinate'
-        write(out_unitp,*) ' END WARNNING in check_Valence'
+        write(out_unit,*) ' WARNNING in check_Valence'
+        write(out_unit,*) ' The value of the cos(valence angle) (',iz,') :',Q
+        write(out_unit,*) ' is out of range ]-1,1['
+        write(out_unit,*) ' type_Q',type_Q
+        write(out_unit,*) ' ONLY one warning for this coordinate'
+        write(out_unit,*) ' END WARNNING in check_Valence'
         liste_pb(iz) = .TRUE.
       ELSE IF ( type_Q == 2 .AND. Q <= ZERO                             &
                                .AND. .NOT. liste_pb(iz) ) THEN
-        write(out_unitp,*) ' WARNNING in check_Valence'
-        write(out_unitp,*) ' The value of the distance (',iz,') :',Q
-        write(out_unitp,*) ' is out of range ]0,+inf['
-        write(out_unitp,*) ' type_Q',type_Q
-        write(out_unitp,*) ' ONLY one warning for this coordinate'
-        write(out_unitp,*) ' END WARNNING in check_Valence'
+        write(out_unit,*) ' WARNNING in check_Valence'
+        write(out_unit,*) ' The value of the distance (',iz,') :',Q
+        write(out_unit,*) ' is out of range ]0,+inf['
+        write(out_unit,*) ' type_Q',type_Q
+        write(out_unit,*) ' ONLY one warning for this coordinate'
+        write(out_unit,*) ' END WARNNING in check_Valence'
         liste_pb(iz) = .TRUE.
       END IF
 !$OMP END CRITICAL (check_Valence_CRIT)
@@ -1269,7 +1269,7 @@ CONTAINS
 
       integer :: i
 
-!     write(out_unitp,*) 'func_ic',i,3*i-2
+!     write(out_unit,*) 'func_ic',i,3*i-2
       IF (i > 0) THEN
         func_ic = 3*i-2
       ELSE
@@ -1283,7 +1283,7 @@ CONTAINS
 
       integer :: if
 
-!     write(out_unitp,*) 'func_iat',i,3*i-2
+!     write(out_unit,*) 'func_iat',i,3*i-2
       IF (if > 0) THEN
         func_iat = (if+2)/3
       ELSE
@@ -1294,7 +1294,7 @@ CONTAINS
 
 
   SUBROUTINE calc_Tab_dnQflex_QML(Tab_dnQflex,dnQact,nderiv,list_Type_var,list_QMLMapping)
-    USE mod_system
+    USE TnumTana_system_m
     USE ADdnSVM_m
     USE Model_m
     IMPLICIT NONE
@@ -1322,20 +1322,20 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'Qact',get_d0(dnQact)
-      write(out_unitp,*) 'nderiv',nderiv
-      write(out_unitp,*) 'list_Type_var',list_Type_var
-      write(out_unitp,*) 'list_QMLMapping',list_QMLMapping
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'Qact',get_d0(dnQact)
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'list_Type_var',list_Type_var
+      write(out_unit,*) 'list_QMLMapping',list_QMLMapping
+      flush(out_unit)
     END IF
     !---------------------------------------------------------------------
     
-    IF (debug) write(out_unitp,*) 'in ',name_sub,' with QML'
+    IF (debug) write(out_unit,*) 'in ',name_sub,' with QML'
 
     CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
 
-    IF (debug) write(out_unitp,*) 'nb_Func,ndimFunc',nb_Func,ndimFunc
+    IF (debug) write(out_unit,*) 'nb_Func,ndimFunc',nb_Func,ndimFunc
 
     allocate(dnFunc(nb_Func))
     CALL QuantumModel%QM%EvalFunc_QModel(dnFunc,dnQact,nderiv=nderiv)
@@ -1344,10 +1344,10 @@ CONTAINS
       type_var = list_Type_var(i_Qdyn)
       ifunc = list_QMLMapping(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 21) THEN
-        IF (debug) write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+        IF (debug) write(out_unit,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
         Tab_dnQflex(i_Qdyn) = dnFunc(ifunc)
       ELSE IF (type_var == 200) THEN ! just the value. No derivative
-        IF (debug) write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+        IF (debug) write(out_unit,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
         CALL set_dnS(Tab_dnQflex(i_Qdyn),get_d0(dnFunc(ifunc)))
       END IF
     END DO
@@ -1358,17 +1358,17 @@ CONTAINS
     !---------------------------------------------------------------------
     IF (debug) THEN
       DO i_Qdyn=1,size(list_Type_var)
-        write(out_unitp,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
+        write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
         CALL write_dnS(tab_dnQflex(i_Qdyn))
       END DO
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
   END SUBROUTINE calc_Tab_dnQflex_QML
 
 
   SUBROUTINE calc_Tab_dnQflex_NotQML(Tab_dnQflex,nb_var,dnQact,nb_act1,nderiv,it,list_Type_var,With_Tab_dnQflex)
-    USE mod_system
+    USE TnumTana_system_m
     USE mod_dnSVM
     USE ADdnSVM_m
     IMPLICIT NONE
@@ -1401,13 +1401,13 @@ CONTAINS
 
     !---------------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'Qact',get_d0(dnQact)
-      write(out_unitp,*) 'nb_var,nb_act1',nb_var,nb_act1
-      write(out_unitp,*) 'nderiv,it',nderiv,it
-      write(out_unitp,*) 'list_Type_var',list_Type_var
-      write(out_unitp,*) 'With_Tab_dnQflex',With_Tab_dnQflex
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'Qact',get_d0(dnQact)
+      write(out_unit,*) 'nb_var,nb_act1',nb_var,nb_act1
+      write(out_unit,*) 'nderiv,it',nderiv,it
+      write(out_unit,*) 'list_Type_var',list_Type_var
+      write(out_unit,*) 'With_Tab_dnQflex',With_Tab_dnQflex
+      flush(out_unit)
     END IF
     !---------------------------------------------------------------------
 
@@ -1417,15 +1417,15 @@ CONTAINS
       type_var = list_Type_var(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
         CALL alloc_dnSVM(Tab_dnQflex_loc(i_Qdyn),nb_act1,nderiv)
-        IF (debug) write(out_unitp,*) 'i_Qdyn,type_var',i_Qdyn,type_var
+        IF (debug) write(out_unit,*) 'i_Qdyn,type_var',i_Qdyn,type_var
       END IF
     END DO
 
     IF (With_Tab_dnQflex) THEN
-      IF (debug) write(out_unitp,*) 'in ',name_sub,' with Tab_dnQflex'
+      IF (debug) write(out_unit,*) 'in ',name_sub,' with Tab_dnQflex'
       CALL Calc_tab_dnQflex(Tab_dnQflex_loc,nb_var,Qact,nb_act1,nderiv,it)
     ELSE
-      IF (debug) write(out_unitp,*) 'in ',name_sub,' with dnQflex'
+      IF (debug) write(out_unit,*) 'in ',name_sub,' with dnQflex'
     
       DO i_Qdyn=1,nb_var
         type_var = list_Type_var(i_Qdyn)
@@ -1485,17 +1485,17 @@ STOP 'calc_Tab_dnQflex_NotQML: not yet'
     !---------------------------------------------------------------------
     IF (debug) THEN
       DO i_Qdyn=1,nb_var
-        write(out_unitp,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
+        write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
         !CALL write_dnS(tab_dnQflex(i_Qdyn),nderiv)
       END DO
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
 
 END SUBROUTINE calc_Tab_dnQflex_NotQML
 SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     &
                                  list_Type_var,list_QMLMapping,QMlib,With_Tab_dnQflex)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   IMPLICIT NONE
 
@@ -1527,15 +1527,15 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
 
   !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'Qact',Qact
-    write(out_unitp,*) 'nb_var,nb_act1',nb_var,nb_act1
-    write(out_unitp,*) 'nderiv,it',nderiv,it
-    write(out_unitp,*) 'list_Type_var',list_Type_var
-    write(out_unitp,*) 'list_QMLMapping',list_QMLMapping
-    write(out_unitp,*) 'QMLib',QMLib
-    write(out_unitp,*) 'With_Tab_dnQflex',With_Tab_dnQflex
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'Qact',Qact
+    write(out_unit,*) 'nb_var,nb_act1',nb_var,nb_act1
+    write(out_unit,*) 'nderiv,it',nderiv,it
+    write(out_unit,*) 'list_Type_var',list_Type_var
+    write(out_unit,*) 'list_QMLMapping',list_QMLMapping
+    write(out_unit,*) 'QMLib',QMLib
+    write(out_unit,*) 'With_Tab_dnQflex',With_Tab_dnQflex
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
 
@@ -1543,26 +1543,26 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
     type_var = list_Type_var(i_Qdyn)
     IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
       CALL alloc_dnSVM(tab_dnQflex(i_Qdyn),nb_act1,nderiv)
-      IF (debug) write(out_unitp,*) 'i_Qdyn,type_var',i_Qdyn,type_var
+      IF (debug) write(out_unit,*) 'i_Qdyn,type_var',i_Qdyn,type_var
     END IF
   END DO
 
   IF (QMLib) THEN
-    IF (debug) write(out_unitp,*) 'in ',name_sub,' with QML'
+    IF (debug) write(out_unit,*) 'in ',name_sub,' with QML'
 
     CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
     CALL get_Qmodel_IndexesFunc(IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess)
 
     IF (debug) THEN
-       write(out_unitp,*) 'IndexFunc_Ene,IndexFunc_Qop',IndexFunc_Ene,IndexFunc_Qop
+       write(out_unit,*) 'IndexFunc_Ene,IndexFunc_Qop',IndexFunc_Ene,IndexFunc_Qop
        DO i_Qdyn=1,nb_var
          type_var = list_Type_var(i_Qdyn)
          !ifunc = IndexFunc_Qop - 1 + i_Qdyn - nb_act1
          ifunc = list_QMLMapping(i_Qdyn)
          IF (type_var == 20 .OR. type_var == 21) THEN
-           write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+           write(out_unit,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
          ELSE IF (type_var == 200) THEN
-           write(out_unitp,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
+           write(out_unit,*) 'type_var,i_Qdyn,ifunc',type_var,i_Qdyn,ifunc
          END IF
        END DO
      END IF
@@ -1573,7 +1573,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
       allocate(d0Func(nb_Func))
       CALL get_Qmodel_d0Func(d0Func,Qact,nb_Func,ndimFunc)
 
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       DO i_Qdyn=1,nb_var
         type_var = list_Type_var(i_Qdyn)
@@ -1585,7 +1585,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
         ELSE IF (type_var == 200) THEN
           Tab_dnQflex(i_Qdyn)%d0 = d0Func(ifunc)
         END IF
-        IF (debug) write(out_unitp,*) 'i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0',i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0
+        IF (debug) write(out_unit,*) 'i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0',i_Qdyn,ifunc,Tab_dnQflex(i_Qdyn)%d0
       END DO
 
       deallocate(d0Func)
@@ -1595,7 +1595,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
       allocate(d1Func(ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1Func(d0Func,d1Func,Qact,nb_Func,ndimFunc)
 
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       DO i_Qdyn=1,nb_var
         type_var = list_Type_var(i_Qdyn)
@@ -1619,7 +1619,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
       allocate(d2Func(ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2Func(d0Func,d1Func,d2Func,Qact,nb_Func,ndimFunc)
 
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       DO i_Qdyn=1,nb_var
         type_var = list_Type_var(i_Qdyn)
@@ -1646,7 +1646,7 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
       allocate(d3Func(ndimFunc,ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2d3Func(d0Func,d1Func,d2Func,d3Func,Qact,nb_Func,ndimFunc)
 
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       DO i_Qdyn=1,nb_var
         type_var = list_Type_var(i_Qdyn)
@@ -1671,10 +1671,10 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
     END SELECT
 
   ELSE IF (With_Tab_dnQflex) THEN
-    IF (debug) write(out_unitp,*) 'in ',name_sub,' with Tab_dnQflex'
+    IF (debug) write(out_unit,*) 'in ',name_sub,' with Tab_dnQflex'
     CALL Calc_tab_dnQflex(tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it)
   ELSE
-    IF (debug) write(out_unitp,*) 'in ',name_sub,' with dnQflex'
+    IF (debug) write(out_unit,*) 'in ',name_sub,' with dnQflex'
 
     DO i_Qdyn=1,nb_var
       type_var = list_Type_var(i_Qdyn)
@@ -1692,18 +1692,18 @@ SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     
   !---------------------------------------------------------------------
   IF (debug) THEN
     DO i_Qdyn=1,nb_var
-      write(out_unitp,*) 'tab_dnQflex : ',i_Qdyn,Qact
+      write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,Qact
       IF (tab_dnQflex(i_Qdyn)%alloc) CALL write_dnS(tab_dnQflex(i_Qdyn),nderiv)
     END DO
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
 
 END SUBROUTINE calc_Tab_dnQflex_gene
 SUBROUTINE calc_Tab_dnQflex_gene2(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     &
                                   list_act_OF_Qdyn,list_QMLMapping,QMlib,With_Tab_dnQflex)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE ADdnSVM_m
   IMPLICIT NONE
@@ -1733,7 +1733,7 @@ SUBROUTINE calc_Tab_dnQflex_gene2(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,    
 END SUBROUTINE calc_Tab_dnQflex_gene2
 
 SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act1,nderiv,QMlib)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   IMPLICIT NONE
 
@@ -1764,20 +1764,20 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
 
   !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'Qact',Qact
-    write(out_unitp,*) 'nb_inact21,nb_act1',nb_inact21,nb_act1
-    write(out_unitp,*) 'nderiv',nderiv
-    write(out_unitp,*) 'QMLib',QMLib
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'Qact',Qact
+    write(out_unit,*) 'nb_inact21,nb_act1',nb_inact21,nb_act1
+    write(out_unit,*) 'nderiv',nderiv
+    write(out_unit,*) 'QMLib',QMLib
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
-  !write(out_unitp,*) 'in ',name_sub
+  !write(out_unit,*) 'in ',name_sub
 
     CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
     CALL get_Qmodel_IndexesFunc(IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess)
 
-    IF (debug) write(out_unitp,*) 'IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess', &
+    IF (debug) write(out_unit,*) 'IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess', &
                                    IndexFunc_Ene,IndexFunc_Qop,IndexFunc_Grad,IndexFunc_Hess
 
     iG = IndexFunc_Grad
@@ -1785,11 +1785,11 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
     iH = IndexFunc_Hess
     fH = IndexFunc_Hess-1+nb_inact21**2
 
-    IF (debug) write(out_unitp,*) 'iG,fG,iH,fH',iG,fG,iH,fH
+    IF (debug) write(out_unit,*) 'iG,fG,iH,fH',iG,fG,iH,fH
 
     Grad = (IndexFunc_Grad > 0 .AND. IndexFunc_Grad+nb_inact21 == IndexFunc_Hess)
     Hess = (IndexFunc_Hess > 0 .AND. IndexFunc_Hess-1+nb_inact21**2 <= nb_Func)
-    IF (debug) write(out_unitp,*) 'Grad,Hess',Grad,Hess
+    IF (debug) write(out_unit,*) 'Grad,Hess',Grad,Hess
 
     IF (Grad) THEN
       DO i=1,nb_inact21
@@ -1806,7 +1806,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
     CASE (0)
       allocate(d0Func(nb_Func))
       CALL get_Qmodel_d0Func(d0Func,Qact,nb_Func,ndimFunc)
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1825,7 +1825,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d0Func(nb_Func))
       allocate(d1Func(ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1Func(d0Func,d1Func,Qact,nb_Func,ndimFunc)
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1848,7 +1848,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d1Func(ndimFunc,nb_Func))
       allocate(d2Func(ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2Func(d0Func,d1Func,d2Func,Qact,nb_Func,ndimFunc)
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1875,7 +1875,7 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
       allocate(d2Func(ndimFunc,ndimFunc,nb_Func))
       allocate(d3Func(ndimFunc,ndimFunc,ndimFunc,nb_Func))
       CALL get_Qmodel_d0d1d2d3Func(d0Func,d1Func,d2Func,d3Func,Qact,nb_Func,ndimFunc)
-      IF (debug) write(out_unitp,*) 'd0Func',d0Func
+      IF (debug) write(out_unit,*) 'd0Func',d0Func
 
       IF (Grad) THEN
         DO i=1,nb_inact21
@@ -1903,17 +1903,17 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
 
   !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'Qact (for Tab_dnGrad and Tab_dnHess) : ',Qact
+    write(out_unit,*) 'Qact (for Tab_dnGrad and Tab_dnHess) : ',Qact
     DO i=1,size(Tab_dnGrad)
-      write(out_unitp,*) 'Tab_dnGrad : ',i,Tab_dnGrad(i)%alloc
+      write(out_unit,*) 'Tab_dnGrad : ',i,Tab_dnGrad(i)%alloc
       IF (Tab_dnGrad(i)%alloc) CALL write_dnS(Tab_dnGrad(i),nderiv)
     END DO
     DO i=1,size(Tab_dnHess)
-      write(out_unitp,*) 'Tab_dnHess : ',i,Tab_dnHess(i)%alloc
+      write(out_unit,*) 'Tab_dnHess : ',i,Tab_dnHess(i)%alloc
       IF (Tab_dnHess(i)%alloc) CALL write_dnS(Tab_dnHess(i),nderiv)
     END DO
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
 
@@ -1943,6 +1943,6 @@ SUBROUTINE make_nameQ(nameQ,baseQ,iQ,it)
   END IF
 
 
-  !write(out_unitp,*) 'nameQ...: ',nameQ,nameW1,nameW2
+  !write(out_unit,*) 'nameQ...: ',nameQ,nameW1,nameW2
 END SUBROUTINE make_nameQ
 END MODULE mod_Lib_QTransfo

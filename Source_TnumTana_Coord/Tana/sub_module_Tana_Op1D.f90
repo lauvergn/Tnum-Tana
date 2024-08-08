@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
  MODULE mod_Tana_Op1D
- USE mod_system
+ USE TnumTana_system_m
  USE mod_Tana_OpEl
  IMPLICIT NONE
  PRIVATE
@@ -176,9 +176,9 @@
              CALL Write_error_null(name_sub_alloc,name_var,name_sub)
 
        IF (size(tab) < 1) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub_alloc
-         write(out_unitp,*) '   Called from ',name_sub
-         write(out_unitp,*) ' Size of ',trim(name_var),' is wrong!!'
+         write(out_unit,*) ' ERROR in ',name_sub_alloc
+         write(out_unit,*) '   Called from ',name_sub
+         write(out_unit,*) ' Size of ',trim(name_var),' is wrong!!'
          STOP
        END IF
 
@@ -311,20 +311,20 @@
           &  F_1d%prod_opel(i)%idq /=  5 .or. &
           &  F_1d%prod_opel(i)%idq /= -5  )) then
 
-         write(out_unitp,*) ' ERROR in',routine_name
+         write(out_unit,*) ' ERROR in',routine_name
          !CALL write_op(F_1d%prod_opel(i_optmp),header=.TRUE.)
          !CALL write_op(F_1d%prod_opel(i),header=.FALSE.)
 
           CALL write_op(F_1d,header=.TRUE.)
 
-         write(out_unitp,*) string// ": Check the initialization of F_1d."
-         write(out_unitp,*) " idq should be 0 or equal to ",idq
+         write(out_unit,*) string// ": Check the initialization of F_1d."
+         write(out_unit,*) " idq should be 0 or equal to ",idq
          STOP
        end if
        l_cmp = compare_indexq(F_1d%prod_opel(1), F_1d%prod_opel(i))
        if(.not.l_cmp) then
-         write(out_unitp,*) ' ERROR in',routine_name
-         write(out_unitp,*) string // " The 1d data structures should have the same indexq"
+         write(out_unit,*) ' ERROR in',routine_name
+         write(out_unit,*) string // " The 1d data structures should have the same indexq"
          STOP
        end if
      end do
@@ -755,8 +755,8 @@
    end  if
 
    IF (.NOT. compare_indexq(F1_1d,F2_1d) ) THEN
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) "Input arrays F1_1d and F2_1d should have the same indexQ"
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) "Input arrays F1_1d and F2_1d should have the same indexQ"
          STOP
    END IF
 
@@ -796,13 +796,13 @@
      end if
 
      IF (.NOT. compare_indexQ(F1el,F2el)) THEN
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' F1el'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' F1el'
        CALL write_op(F1el,header=.TRUE.)
-       write(out_unitp,*) ' F2el'
+       write(out_unit,*) ' F2el'
        CALL write_op(F2el,header=.TRUE.)
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Input arrays F1el and F2_1el should have the same indexQ"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Input arrays F1el and F2_1el should have the same indexQ"
        STOP
      END IF
 
@@ -853,13 +853,13 @@
    end  if
 
    if( .NOT. compare_indexq(F1el, F2_1d)) THEN
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) ' F1el'
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) ' F1el'
      CALL write_op(F1el)
-     write(out_unitp,*) ' F2_1d'
+     write(out_unit,*) ' F2_1d'
      CALL write_op(F2_1d)
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) "Input arrays F1el and F2_1d should have the same indexq"
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) "Input arrays F1el and F2_1d should have the same indexq"
      STOP
    end if
 
@@ -910,13 +910,13 @@
    end  if
 
    if( .NOT. compare_indexq(F2el, F1_1d)) THEN
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) ' F1_1d'
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) ' F1_1d'
      CALL write_op(F1_1d)
-     write(out_unitp,*) ' F2el'
+     write(out_unit,*) ' F2el'
      CALL write_op(F2el)
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) "Input arrays F1_1d and F2el should have the same indexq"
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) "Input arrays F1_1d and F2el should have the same indexq"
      STOP
    end if
 
@@ -1101,11 +1101,11 @@
      character (len=*), parameter :: routine_name='F1_Sum1d_plus_F2_1D'
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNIG ',routine_name
+       write(out_unit,*) 'BEGINNIG ',routine_name
 
-       write(out_unitp,*) 'F1_Sum1D'
+       write(out_unit,*) 'F1_Sum1D'
        CALL write_op(F1_Sum1D)
-       write(out_unitp,*) 'F2_1d'
+       write(out_unit,*) 'F2_1d'
        CALL write_op(F2_1d)
      END IF
 
@@ -1121,9 +1121,9 @@
      CALL Simplify_Sum_OF_Op1D(Fres)
 
      IF (debug) THEN
-       write(out_unitp,*) 'Fres'
+       write(out_unit,*) 'Fres'
        CALL write_op(Fres)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
 
    end function F1_Sum1d_plus_F2_1D
@@ -1140,12 +1140,12 @@
      character (len =*), parameter :: routine_name='F1_Sum1d_plus_F2_Sum1D'
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
-       write(out_unitp,*) 'F1_Sum1d'
+       write(out_unit,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'F1_Sum1d'
        CALL write_op(F1_Sum1D)
-       write(out_unitp,*) 'F2_Sum1D'
+       write(out_unit,*) 'F2_Sum1D'
        CALL write_op(F2_Sum1D)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      CALL allocate_op(Fres,size(F1_Sum1D%Sum_Op1D) + size(F2_Sum1D%Sum_Op1D))
@@ -1164,10 +1164,10 @@
      CALL Simplify_Sum_OF_Op1D(Fres)
 
      IF (debug) THEN
-       write(out_unitp,*) 'Fres'
+       write(out_unit,*) 'Fres'
        CALL write_op(Fres)
-       write(out_unitp,*) 'END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) 'END ',routine_name
+       flush(out_unit)
      END IF
 
    end function F1_Sum1d_plus_F2_Sum1D
@@ -1239,9 +1239,9 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    character (len =*), parameter :: routine_name='Der1_OF_d0Op1D'
 
     IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
+       write(out_unit,*) ' BEGINNING ',routine_name
        CALL write_op(d0Op1D)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
    CALL check_allocate_op(d0Op1D)
@@ -1251,8 +1251,8 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    CALL get_pqJL_OF_Op1D(pq,JJ,LL,d0Op1D)
    IF (pq(1) > 0) THEN
      CALL write_Op(d0Op1D)
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'The 1D operotor could not contain P operators'
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'The 1D operotor could not contain P operators'
      STOP
    END IF
 
@@ -1286,8 +1286,8 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
 
     IF (debug) THEN
        CALL write_op(d1Op1D)
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
  end function Der1_OF_d0Op1D
@@ -1305,10 +1305,10 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    character (len =*), parameter :: routine_name='Der1_OF_d0SumOp1D'
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
-     write(out_unitp,*) 'd0SumOp1D',size(d0SumOp1D%Sum_Op1D)
+     write(out_unit,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'd0SumOp1D',size(d0SumOp1D%Sum_Op1D)
      CALL write_op(d0SumOp1D)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    allocate(temp_d1SumOp1D(size(d0SumOp1D%Sum_Op1D)) )
@@ -1336,10 +1336,10 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
 
 
    IF (debug) THEN
-     write(out_unitp,*) 'd1SumOp1D'
+     write(out_unit,*) 'd1SumOp1D'
      CALL write_op(d1SumOp1D)
-     write(out_unitp,*) 'END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) 'END ',routine_name
+     flush(out_unit)
    END IF
 
  end function Der1_OF_d0SumOp1D
@@ -1366,9 +1366,9 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    character (len =*), parameter :: routine_name='Der2_OF_d0Op1D'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(d0Op1D,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    CALL check_allocate_op(d0Op1D)
@@ -1377,8 +1377,8 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    CALL get_pqJL_OF_Op1D(pq,JJ,LL,d0Op1D)
    IF (pq(1) > 0) THEN
      CALL write_Op(d0Op1D)
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'The 1D operotor could not contain P operators'
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'The 1D operotor could not contain P operators'
      STOP
    END IF
 
@@ -1396,18 +1396,18 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
      Op1D_OF_d0OpEli = d0Op1D%prod_opel(i)
 
      IF (debug) THEN
-       write(out_unitp,*) 'Op1D_OF_d0OpEli'
+       write(out_unit,*) 'Op1D_OF_d0OpEli'
        CALL write_op(Op1D_OF_d0OpEli,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      ! 2- First derivative of Op1D_OF_d0OpEli => Op1D_OF_d1OpEli
      Op1D_OF_d1OpEli = Der1_OF_d0Op1D(Op1D_OF_d0OpEli)
 
      IF (debug) THEN
-       write(out_unitp,*) 'Op1D_OF_d1OpEli'
+       write(out_unit,*) 'Op1D_OF_d1OpEli'
        CALL write_op(Op1D_OF_d1OpEli,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      IF (size(Op1D_OF_d1OpEli%Sum_op1d) > 1) STOP 'Too many terms (>1) in d1OpEli'
@@ -1415,9 +1415,9 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
      ! 3- 2d derivative of Op1D_OF_d0OpEl => Op1D_OF_d2OpEl
      Op1D_OF_d2OpEli = Der1_OF_d0Op1D(Op1D_OF_d1OpEli%Sum_op1d(1))
      IF (debug) THEN
-       write(out_unitp,*) 'Op1D_OF_d2OpEli'
+       write(out_unit,*) 'Op1D_OF_d2OpEli'
        CALL write_op(Op1D_OF_d2OpEli,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      IF (size(Op1D_OF_d2OpEli%Sum_op1d) > 2) STOP 'Too many terms (>2) in d2OpEli'
@@ -1441,7 +1441,7 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
 
    END DO
 
-   !write(out_unitp,*) 'iSum',iSum ; flush(out_unitp)
+   !write(out_unit,*) 'iSum',iSum ; flush(out_unit)
 
 
    DO i=1,ndim0
@@ -1463,7 +1463,7 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
        ndim1j = size(Op1D_OF_d1OpElj%Sum_op1D(1)%prod_opel)
 
        ndim_term = ndim0 + ndim1i + ndim1j
-       !write(out_unitp,*) 'ndim0,ndim1i,ndim1j,ndim_term',ndim0,ndim1i,ndim1j,ndim_term
+       !write(out_unit,*) 'ndim0,ndim1i,ndim1j,ndim_term',ndim0,ndim1i,ndim1j,ndim_term
 
        iSum = iSum + 1
        CALL allocate_op(d2Op1D%Sum_op1D(ISum),ndim_term)
@@ -1474,12 +1474,12 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
 
        i1 = ndim0+1
        i2 = i1-1+ndim1i
-       write(out_unitp,*) 'i,j,i1,i2',i,j,i1,i2 ; flush(out_unitp)
+       write(out_unit,*) 'i,j,i1,i2',i,j,i1,i2 ; flush(out_unit)
        d2Op1D%Sum_op1D(ISum)%prod_opel(i1:i2)       = Op1D_OF_d1OpEli%Sum_op1D(1)%prod_opel(:)
 
        i1 = i2+1
        i2 = i1-1+ndim1j
-       write(out_unitp,*) 'i,j,i1,i2',i,j,i1,i2 ; flush(out_unitp)
+       write(out_unit,*) 'i,j,i1,i2',i,j,i1,i2 ; flush(out_unit)
        d2Op1D%Sum_op1D(ISum)%prod_opel(i1:i2)       = Op1D_OF_d1OpElj%Sum_op1D(1)%prod_opel(:)
 
        CALL Simplify_Op1D(d2Op1D%Sum_op1D(ISum))
@@ -1492,7 +1492,7 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
    CALL Simplify_Sum_OF_Op1D(d2Op1D)
 
 
-   !write(out_unitp,*) 'iSum',iSum ; flush(out_unitp)
+   !write(out_unit,*) 'iSum',iSum ; flush(out_unit)
 
    CALL delete_op(Op1D_OF_d0OpEli)
    CALL delete_op(Op1D_OF_d1OpEli)
@@ -1503,10 +1503,10 @@ function Der1_OF_d0Op1D(d0Op1D) result(d1Op1D)
 
 
    IF (debug) THEN
-     write(out_unitp,*) 'd2Op1D',size(d2Op1D%Sum_op1D)
+     write(out_unit,*) 'd2Op1D',size(d2Op1D%Sum_op1D)
      CALL write_op(d2Op1D,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
  end function Der2_OF_d0Op1D
@@ -1536,9 +1536,9 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    character (len =*), parameter :: routine_name='Expand_Op1D_TO_SumOp1D'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_Op1D,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    CALL check_allocate_op(F_Op1D)
@@ -1549,9 +1549,9 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    CALL Split_Op1D_TO_SplitOp1D(F_Op1D,SplitOp1D)
 
    IF (debug) THEN
-     write(out_unitp,*) ' SplitOp1D:'
+     write(out_unit,*) ' SplitOp1D:'
      CALL write_op(SplitOp1D,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
 
@@ -1582,15 +1582,15 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      END IF
 
      IF (index_split > size(FS_Op1D)) THEN
-       write(out_unitp,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' ERROR in ',routine_name
        CALL write_op(SplitOp1D)
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' Too many P operators!!'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' Too many P operators!!'
        STOP
      END IF
 
    END DO
-   !write(out_unitp,*) 'tab_ndim',tab_ndim ; flush(out_unitp)
+   !write(out_unit,*) 'tab_ndim',tab_ndim ; flush(out_unit)
 
    ! Then allocation of the FS_Op1D(:)%prod_opel with tab_ndim
    DO index_split=1,size(FS_Op1D)
@@ -1618,20 +1618,20 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
 
      IF (index_split > size(FS_Op1D)) THEN
        CALL write_op(SplitOp1D)
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' Too many P operators!!'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' Too many P operators!!'
        STOP
      END IF
 
    END DO
 
    IF (debug) THEN
-     write(out_unitp,*) ' Split terms:'
+     write(out_unit,*) ' Split terms:'
      DO index_split=1,size(FS_Op1D)
-       write(out_unitp,*) '   Term:',index_split
+       write(out_unit,*) '   Term:',index_split
        CALL write_op(FS_Op1D(index_split),header=.TRUE.)
      END DO
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
 
@@ -1639,13 +1639,13 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    CALL get_pqJL_OF_Op1D(pq,J,L,SplitOp1D)
 
    IF (pq(1) == 0 .AND. pq(2) == 0) THEN
-     IF (debug) write(out_unitp,*) ' # P terms: 0'
+     IF (debug) write(out_unit,*) ' # P terms: 0'
 
      SumOp1D = F_Op1D
 
 
    ELSE IF (pq(1) > 0 .AND. pq(2) == 0) THEN
-     IF (debug)  write(out_unitp,*) ' # P terms: 1'
+     IF (debug)  write(out_unit,*) ' # P terms: 1'
 
      temp_Op1D = FS_Op1D(2) * set_opel(4, idq, alfa=1, indexq=indexQ, coeff=cone) ! FS_Op1d(2)*P
 
@@ -1655,8 +1655,8 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      CALL delete_op(temp_Op1D)
 
    ELSE
-     IF (debug)  write(out_unitp,*) ' # P terms: 2'
-     flush(out_unitp)
+     IF (debug)  write(out_unit,*) ' # P terms: 2'
+     flush(out_unit)
 
 
      F2F3      = F1_1d_times_F2_1d (FS_Op1D(2) , FS_Op1D(3) )
@@ -1664,13 +1664,13 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      Temp_F2F3 = F2PF3 + (-EYE) * Der1_OF_d0SumOp1D(F2F3)
 
      IF (debug) THEN
-       write(out_unitp,*) ' F2F3:'
+       write(out_unit,*) ' F2F3:'
        CALL write_op(F2F3,header=.TRUE.)
-       write(out_unitp,*) ' F2PF3:'
+       write(out_unit,*) ' F2PF3:'
        CALL write_op(F2PF3,header=.TRUE.)
-       write(out_unitp,*) ' Temp_F2F3: F2PF3 + Der1(F2F3)'
+       write(out_unit,*) ' Temp_F2F3: F2PF3 + Der1(F2F3)'
        CALL write_op(Temp_F2F3,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      temp_Op1D = set_opel(4, idq, alfa=2, indexq=indexQ, coeff=cone)
@@ -1695,10 +1695,10 @@ subroutine Expand_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
 
 
    IF (debug) THEN
-     write(out_unitp,*) ' SumOp1D:'
+     write(out_unit,*) ' SumOp1D:'
      CALL write_op(SumOp1D,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
 
@@ -1737,9 +1737,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    character (len =*), parameter :: routine_name='Expand_Sin2_IN_Op1D_TO_SumOp1D'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_Op1D,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    CALL check_allocate_op(F_Op1D)
@@ -1750,9 +1750,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    CALL Split_Op1D_TO_SplitOp1D(F_Op1D,SplitOp1D)
 
    IF (debug) THEN
-     write(out_unitp,*) ' SplitOp1D:'
+     write(out_unit,*) ' SplitOp1D:'
      CALL write_op(SplitOp1D,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
 
@@ -1769,8 +1769,8 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        !alfa and r_sin are such : el%alfa = (2*alfa+r) with r < 2. alfa MUST be an integer
        alfa    = SplitOp1D%prod_opel(i)%alfa%num/(2*SplitOp1D%prod_opel(i)%alfa%den)
        r_sin   = SplitOp1D%prod_opel(i)%alfa - (alfa+alfa)
-       !write(out_unitp,*) 'Fel%alfa: ',TO_string(SplitOp1D%prod_opel(i)%alfa)
-       !write(out_unitp,*) 'alfa,r_sin: ',TO_string(alfa),' ',TO_string(r_sin)
+       !write(out_unit,*) 'Fel%alfa: ',TO_string(SplitOp1D%prod_opel(i)%alfa)
+       !write(out_unit,*) 'alfa,r_sin: ',TO_string(alfa),' ',TO_string(r_sin)
 
        idf_sin = SplitOp1D%prod_opel(i)%idf
        IF (idf_sin == 3) THEN
@@ -1778,7 +1778,7 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        ELSE
          idf_cos = 5
        END IF
-       IF (debug) write(out_unitp,*) 'Sin : i,alfa',i,alfa
+       IF (debug) write(out_unit,*) 'Sin : i,alfa',i,alfa
        ! here we have: F_Op1_i and sin^alfa     (the other part are dealed after)
 
        ! sin^(2*alfa+r)  is expanded as sin^(r)*(1-cos^2)^alpha => SumOp1D_ExpandSin
@@ -1794,17 +1794,17 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
 
        END DO
        IF (debug) THEN
-         write(out_unitp,*) ' SumOp1D_ExpandSin ',i
+         write(out_unit,*) ' SumOp1D_ExpandSin ',i
          CALL write_op(SumOp1D_ExpandSin)
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 
        SumOp1D_ExpandSin = F_Op1_i * SumOp1D_ExpandSin
 
        IF (debug) THEN
-         write(out_unitp,*) ' F_Op1_i * SumOp1D_ExpandSin ',i
+         write(out_unit,*) ' F_Op1_i * SumOp1D_ExpandSin ',i
          CALL write_op(SumOp1D_ExpandSin)
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 
 
@@ -1812,21 +1812,21 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        F_Op1_i = CONE
 
        IF (debug) THEN
-         write(out_unitp,*) ' SumOp1D (temp) ',i
+         write(out_unit,*) ' SumOp1D (temp) ',i
          CALL write_op(SumOp1D)
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 
 
      ELSE ! the sin is not found, prod_opel(i) is added to F_Op1_i
-       IF (debug) write(out_unitp,*) 'NO Sin : i',i
+       IF (debug) write(out_unit,*) 'NO Sin : i',i
 
        F_Op1_i = F_Op1_i * SplitOp1D%prod_opel(i)
 
        IF (debug) THEN
-         write(out_unitp,*) ' F_Op1_i ',i
+         write(out_unit,*) ' F_Op1_i ',i
          CALL write_op(F_Op1_i)
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 
 
@@ -1834,18 +1834,18 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    END DO
    SumOp1D = SumOp1D * F_Op1_i ! for the last part
    IF (debug) THEN
-     write(out_unitp,*) ' SumOp1D (not simplified): '
+     write(out_unit,*) ' SumOp1D (not simplified): '
     CALL write_op(SumOp1D)
-    flush(out_unitp)
+    flush(out_unit)
    END IF
 
    CALL Simplify_Sum_OF_Op1D(SumOp1D)
 
    IF (debug) THEN
-     write(out_unitp,*) ' SumOp1D:'
+     write(out_unit,*) ' SumOp1D:'
      CALL write_op(SumOp1D,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
 
@@ -1931,9 +1931,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    character (len=*), parameter :: routine_name='Simplify_Op1D'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_1d)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
 
@@ -1958,7 +1958,7 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      CALL Sort_TabOpEl(F_1d%prod_opel(ii:size(F_1d%prod_opel)))
 
 
-     !write(out_unitp,*) ' after sort'
+     !write(out_unit,*) ' after sort'
      !CALL write_op(F_1d)
 
 
@@ -1966,21 +1966,21 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      !  Q * Q => Q^2    , P * P => P^2 ....
      CALL Merge_TabOpEl(F_1d%prod_opel)
 
-     !write(out_unitp,*) ' after merge'
+     !write(out_unit,*) ' after merge'
      !CALL write_op(F_1d)
 
      ! 3) remove Id operator
      CALL remove_Idop_in_F_1d(F_1d)
 
-     !write(out_unitp,*) ' after remove Id'
+     !write(out_unit,*) ' after remove Id'
      !CALL write_op(F_1d)
 
    END IF
 
    IF (debug) THEN
      CALL write_op(F_1d)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
 
@@ -2001,9 +2001,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
    character (len=*), parameter :: routine_name='Simplify_Sum_OF_Op1D'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_1d)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    DO i=1,size(F_1d%Sum_Op1D)
@@ -2050,8 +2050,8 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
 
    IF (debug) THEN
      CALL write_op(F_1d)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
  end subroutine Simplify_Sum_OF_Op1D
@@ -2148,7 +2148,7 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
 
    String_loc = trim(adjustl(String))
    CALL string_uppercase_TO_lowercase(String_loc)
-   IF (debug) write(out_unitp,*) 'String_loc: ',String_loc ; flush(out_unitp)
+   IF (debug) write(out_unit,*) 'String_loc: ',String_loc ; flush(out_unit)
 
    DO
      IF (len(String_loc) == 0) EXIT
@@ -2160,8 +2160,8 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        String_El  = String_loc
        String_loc = ""
      END IF
-     IF (debug) write(out_unitp,*) 'String_loc: ',String_loc ; flush(out_unitp)
-     IF (debug) write(out_unitp,*) 'String_El: ',String_El ; flush(out_unitp)
+     IF (debug) write(out_unit,*) 'String_loc: ',String_loc ; flush(out_unit)
+     IF (debug) write(out_unit,*) 'String_El: ',String_El ; flush(out_unit)
 
      CALL StringMCTDH_TO_opel(Fel,String_El,indexq)
 
@@ -2315,7 +2315,7 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if (header_loc) then
@@ -2348,7 +2348,7 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if (header_loc) then
@@ -2403,9 +2403,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
          indexQ = F_1d%prod_opel(i)%indexQ
        ELSE
          IF (indexQ /= F_1d%prod_opel(i)%indexQ) THEN
-           write(out_unitp,*) ' WARNING in ',routine_name
+           write(out_unit,*) ' WARNING in ',routine_name
            CALL write_op1d(F_1d,header=.TRUE.)
-           write(out_unitp,*) ' Inconsistent value of indexQ in F_1d%prod_opel(:)'
+           write(out_unit,*) ' Inconsistent value of indexQ in F_1d%prod_opel(:)'
            STOP
          END IF
        END IF
@@ -2436,9 +2436,9 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
          idq = F_1d%prod_opel(i)%idq
        ELSE
          IF (idq /= F_1d%prod_opel(i)%idq) THEN
-           write(out_unitp,*) ' ERROR in ',routine_name
+           write(out_unit,*) ' ERROR in ',routine_name
            CALL write_op1d(F_1d,header=.TRUE.)
-           write(out_unitp,*) ' Inconsistent value of idq in F_1d%prod_opel(:)'
+           write(out_unit,*) ' Inconsistent value of idq in F_1d%prod_opel(:)'
            STOP
          END IF
        END IF
@@ -2477,10 +2477,10 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        ELSE IF (PP(2) == 0) THEN
          PP(2) = p(1)
        ELSE
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) ' More than TWO P (pq or J or L) operators'
-         write(out_unitp,*) ' PP(:) ',PP
-         write(out_unitp,*) ' p(:)  ',p
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) ' More than TWO P (pq or J or L) operators'
+         write(out_unit,*) ' PP(:) ',PP
+         write(out_unit,*) ' p(:)  ',p
          STOP
        END IF
      END IF
@@ -2488,10 +2488,10 @@ subroutine Expand_Sin2_IN_Op1D_TO_SumOp1D(F_Op1D,SumOp1D)
        IF (PP(2) == 0) THEN
          PP(2) = p(2)
        ELSE
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) ' More than TWO P (pq or J or L) operators'
-         write(out_unitp,*) ' PP(:) ',PP
-         write(out_unitp,*) ' p(:)  ',p
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) ' More than TWO P (pq or J or L) operators'
+         write(out_unit,*) ' PP(:) ',PP
+         write(out_unit,*) ' p(:)  ',p
          STOP
        END IF
      END IF

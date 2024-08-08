@@ -37,7 +37,7 @@
    !! @description: This module defines the data structures. It contains also
    !!               the some standard routine that initilize, 
    !!               allocate and delete the data structure
- USE mod_system
+ USE TnumTana_system_m
  USE mod_Tana_OpEl
  USE mod_Tana_Op1D
  USE mod_Tana_OpnD

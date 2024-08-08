@@ -35,7 +35,7 @@
 !===========================================================================
    MODULE mod_Tana_op
    !Description:
-   USE mod_system
+   USE TnumTana_system_m
    USE mod_Tana_OpEl
    USE mod_Tana_Op1D
    USE mod_Tana_OpnD
@@ -86,13 +86,13 @@
      END IF
 
      if(abs(fbeta%idq) /= 7 .or. fgamma%idq /= 8) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq of fbeta or fgamma are not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq of fbeta or fgamma are not correct"
        STOP
      end if
      if(fgamma%idf /= 1 .or. fbeta%idf /= 1) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -181,13 +181,13 @@
      END IF
 
      if(falpha%idq /= 6 .or. abs(fbeta%idq) /= 7 .or. fgamma%idq /= 8 ) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq in falpha or fbeta or fgamma are not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq in falpha or fbeta or fgamma are not correct"
        STOP
      end if
      if(falpha%idf /= 1 .or. fbeta%idf /= 1 .OR. fgamma%idf /= 1 ) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -281,13 +281,13 @@
      END IF
 
      if(falpha%idq /= 6 .or. abs(fbeta%idq) /= 7 .or. fgamma%idq /= 8 ) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq in falpha or fbeta or fgamma are not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq in falpha or fbeta or fgamma are not correct"
        STOP
      end if
      if(falpha%idf /= 1 .or. fbeta%idf /= 1 .OR. fgamma%idf /= 1 ) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -381,26 +381,26 @@
      END IF
 
      if(F1el%idq /=6 .or. (F2el%idq /= 7 .and. F2el%idq /=-7)) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq in F1el or in F2el is not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq in F1el or in F2el is not correct"
        STOP
      end if
      if(present(F3el)) then
        if(F3el%idq /= 8 ) then
-         write(out_unitp,*) ' ERROR in',routine_name
-         write(out_unitp,*) "Data structure of idq in F3el is not correct"
+         write(out_unit,*) ' ERROR in',routine_name
+         write(out_unit,*) "Data structure of idq in F3el is not correct"
          STOP
        end if
      end if
      if(F1el%idf /= 1 .or. F2el%idf /= 1) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
      if(present(F3el)) then
        if(F3el%idf /= 1 ) then
-         write(out_unitp,*) ' ERROR in',routine_name
-         write(out_unitp,*) "The elementary operators should be the Id"
+         write(out_unit,*) ' ERROR in',routine_name
+         write(out_unit,*) "The elementary operators should be the Id"
          STOP
        end if
      end if
@@ -463,8 +463,8 @@
          call M_opnd_times_V_in_Vres(M_opnd, V, opJ)
        end if
      else
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Less than three Euler's angles is not yet taken into account"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Less than three Euler's angles is not yet taken into account"
        STOP
      end if
 
@@ -511,13 +511,13 @@
      END IF
 
      if((fbeta%idq /= 7 .and. fbeta%idq /=-7).or. fgamma%idq /= 8) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "TData structure of idq of fbeta or fgamma is not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "TData structure of idq of fbeta or fgamma is not correct"
        STOP
      end if
      if(fgamma%idf /= 1 .or. fbeta%idf /= 1) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -636,18 +636,18 @@
      if((phi%idq /=4 .and. phi%idq /=6) .or. &
        & (theta%idq /= 3 .and. theta%idq /=-3  .and.&
        &  theta%idq /= 7 .and. theta%idq /=-7)) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq in theta or in phi is not correct"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq in theta or in phi is not correct"
        STOP
      end if
      if(theta%idf /= 1 .or. phi%idf /= 1) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
      if(index_L < 3) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The routine evaluates only L_i, i = 3, Ndim_L-1"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The routine evaluates only L_i, i = 3, Ndim_L-1"
        STOP
      end if
 
@@ -732,9 +732,9 @@
        END IF
 
      CASE Default
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) '  No default Spherical_convention'
-       write(out_unitp,*) '  Check the fortran'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) '  No default Spherical_convention'
+       write(out_unit,*) '  Check the fortran'
        STOP
      END SELECT
 
@@ -772,28 +772,28 @@
      character (len=*), parameter :: routine_name='get_opL1'
 
      if(index_L /= 1) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The routine can be call only for index_L = 1"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The routine can be call only for index_L = 1"
        STOP
      end if
 
-     !write(out_unitp,*) 'get_opL1'
+     !write(out_unit,*) 'get_opL1'
 
      call copy_F1_into_F2(J, Vtmp)
-     !write(out_unitp,*) 'J'
+     !write(out_unit,*) 'J'
      !CALL write_op(J)
-     !write(out_unitp,*) 'END J'
+     !write(out_unit,*) 'END J'
 
      do i = 2, size(L_all)
-       !write(out_unitp,*) 'L(i)',i
+       !write(out_unit,*) 'L(i)',i
        !CALL write_op(L_all(i))
-       !write(out_unitp,*) 'END L(i)',i
+       !write(out_unit,*) 'END L(i)',i
        call V1_plus_V2_in_Vres(V1 = Vtmp, V2 = L_all(i), Vres = L1, minus = .true.)
        call copy_F1_into_F2(L1, Vtmp)
      end do
      call delete_op(Vtmp)
 
-     !write(out_unitp,*) 'END get_opL1'
+     !write(out_unit,*) 'END get_opL1'
 
 
    END SUBROUTINE get_opL1
@@ -830,14 +830,14 @@
 
 
      if(index_L /= 2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "The routine can be call only for index_L = 2"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "The routine can be call only for index_L = 2"
        STOP
      end if
 
      if(Fel%idf /= 1) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -877,8 +877,8 @@
        L%vec_sum(2)%Cn(:) = -L%vec_sum(2)%Cn(:)
 
      else
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "In Fel, the idq should be 3, -3, 7 or -7"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "In Fel, the idq should be 3, -3, 7 or -7"
        STOP
      end if
 
@@ -913,8 +913,8 @@
      END IF
 
      if(beta%idf /= 1 .AND. abs(beta%idq) == 3 ) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -944,12 +944,12 @@
        end if
        L1%vec_sum(2)%Cn = -L1%vec_sum(2)%Cn
      else
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "In beta, the idq should be 3, -3, 7 or -7"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "In beta, the idq should be 3, -3, 7 or -7"
        STOP
      end if
 
-     !write(out_unitp,*) ' L1_beta',dag_loc
+     !write(out_unit,*) ' L1_beta',dag_loc
      !CALL write_op(L1)
    END SUBROUTINE get_opL1_beta
 
@@ -976,26 +976,26 @@
      character (len=*), parameter :: routine_name='get_opPi'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
-       write(out_unitp,*) ' L'
+       write(out_unit,*) ' BEGINNING ',routine_name
+       write(out_unit,*) ' L'
        CALL write_op(L,header=.TRUE.)
-       write(out_unitp,*) ' E'
+       write(out_unit,*) ' E'
        CALL write_op(E,header=.TRUE.)
-       write(out_unitp,*) ' FRel'
+       write(out_unit,*) ' FRel'
        CALL write_op(FRel,header=.TRUE.)
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      if(FRel%idq /= 2) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "Data structure of idq of FRel should be 2"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "Data structure of idq of FRel should be 2"
        STOP
      end if
 
 
      if(FRel%idf /= 1) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      end if
 
@@ -1020,10 +1020,10 @@
     call delete_op(F_sum_nd)
 
      IF (debug) THEN
-       write(out_unitp,*) ' P'
+       write(out_unit,*) ' P'
        CALL write_op(P,header=.TRUE.)
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
    END SUBROUTINE get_opPi
@@ -1049,14 +1049,14 @@
      character (len=*), parameter :: routine_name='get_opPi_dagger'
 
      IF (FRel%idq /= 2) THEN
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "Data structure of idq of FRel should be 2"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "Data structure of idq of FRel should be 2"
        STOP
      END IF
 
      IF (FRel%idf /= 1) THEN
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "The elementary operators should be the Id"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "The elementary operators should be the Id"
        STOP
      END IF
 
@@ -1125,9 +1125,9 @@
          V%vec_sum(1)   =  get_cos(theta)
 
        CASE Default
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) '  No default Spherical_convention'
-         write(out_unitp,*) '  Check the fortran'
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) '  No default Spherical_convention'
+         write(out_unit,*) '  Check the fortran'
          STOP
        END SELECT
 
@@ -1465,9 +1465,9 @@
 
 
       if(.not.F_system_parent%tab_BFTransfo(1)%frame) then
-        write(out_unitp,*) ' ERROR in',routine_name
-        write(out_unitp,*) "This routine can be called only "
-        write(out_unitp,*) "  if frame=T for the first vector"
+        write(out_unit,*) ' ERROR in',routine_name
+        write(out_unit,*) "This routine can be called only "
+        write(out_unit,*) "  if frame=T for the first vector"
         STOP
       end if
 
@@ -1522,14 +1522,14 @@
 
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
-       write(out_unitp,*) 'F_system%frame',F_system%frame
-       write(out_unitp,*) 'nsub_syst (in F_system)',count(F_system%tab_BFTransfo(:)%frame)
+       write(out_unit,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'F_system%frame',F_system%frame
+       write(out_unit,*) 'nsub_syst (in F_system)',count(F_system%tab_BFTransfo(:)%frame)
 
      END IF
 
-     write(out_unitp,*) 'entree S_(', F_system%tab_num_frame,')'
-     flush(out_unitp)
+     write(out_unit,*) 'entree S_(', F_system%tab_num_frame,')'
+     flush(out_unit)
 
      DO i_syst = F_system%nb_vect, 1, -1
        IF (F_system%tab_BFTransfo(i_syst)%frame) THEN
@@ -1539,8 +1539,8 @@
        END IF
      END DO
 
-     write(out_unitp,*) 'sub_system S_(', F_system%tab_num_frame,')'
-     flush(out_unitp)
+     write(out_unit,*) 'sub_system S_(', F_system%tab_num_frame,')'
+     flush(out_unit)
 
      IF (F_system%frame) THEN
 
@@ -1569,14 +1569,14 @@
          END IF
        END IF
 
-       write(out_unitp,*) 'system S_r, r=', F_system%tab_num_frame
-       write(out_unitp,*) 'size before simplify', size(F_system%KEO%sum_prod_op1d)
-       flush(out_unitp)
+       write(out_unit,*) 'system S_r, r=', F_system%tab_num_frame
+       write(out_unit,*) 'size before simplify', size(F_system%KEO%sum_prod_op1d)
+       flush(out_unit)
 
        call Simplify_Sum_OpnD(F_system%KEO,Expand_Sin2=.TRUE.)
 
-       write(out_unitp,*) 'size after simplify', size(F_system%KEO%sum_prod_op1d)
-       flush(out_unitp)
+       write(out_unit,*) 'size after simplify', size(F_system%KEO%sum_prod_op1d)
+       flush(out_unit)
        CALL F1_sum_nd_PLUS_TO_Fres_sum_nd(F_system%KEO,TWOxKEO)
 
      END IF
@@ -1584,7 +1584,7 @@
 
      IF (debug) THEN
        CALL write_op(F_system%keo)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
 
    END SUBROUTINE get_opKEO
@@ -1652,7 +1652,7 @@
 
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'BEGINNING ',routine_name
      END IF
 
      nullify(Pi_BF)
@@ -1674,8 +1674,8 @@
        true_BF = .false.
      end if
 
-     IF (debug) write(out_unitp,*) 'nsub_syst,nvec,nvec_tot',nsub_syst,nvec,nvec_tot
-     IF (debug) write(out_unitp,*) 'true_BF',true_BF
+     IF (debug) write(out_unit,*) 'nsub_syst,nvec,nvec_tot',nsub_syst,nvec,nvec_tot
+     IF (debug) write(out_unit,*) 'true_BF',true_BF
 
      do i = 1, nvec
        if(.not.associated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
@@ -1703,7 +1703,7 @@
      CALL alloc_array(zero_Pi_BF,shape(P_Euler),'zero_Pi_BF',routine_name)
 
      ! Initiliation of the elementary operators, J and Jdag
-     write(out_unitp,*) 'init elementaries op. for S_(',F_system%tab_num_frame,')'
+     write(out_unit,*) 'init elementaries op. for S_(',F_system%tab_num_frame,')'
 
      Ja_el = F_system%QEuler(1) ! alpha
      Jb_el = F_system%QEuler(2) ! beta or cos(beta)
@@ -2141,7 +2141,7 @@
 
      IF (debug) THEN
        CALL write_op(F_system%keo)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
 
    END SUBROUTINE get_opKEO_subsyst
@@ -2172,13 +2172,13 @@
      character (len = *), parameter :: routine_name= 'get_opKEO_subsyst_nvectot1'
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'BEGINNING ',routine_name
      END IF
 
      IF (F_system%nb_vect_tot /= 1) THEN
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' F_system%nb_vect_tot > 1 is not possible in this subroutine'
-       write(out_unitp,*) ' F_system%nb_vect_tot: ',F_system%nb_vect_tot
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' F_system%nb_vect_tot > 1 is not possible in this subroutine'
+       write(out_unit,*) ' F_system%nb_vect_tot: ',F_system%nb_vect_tot
        STOP
      END IF
 
@@ -2196,8 +2196,8 @@
        end if
      end do
 
-       write(out_unitp,*) 'processing S_(',F_system%tab_num_frame,')'
-       flush(out_unitp)
+       write(out_unit,*) 'processing S_(',F_system%tab_num_frame,')'
+       flush(out_unit)
        CALL alloc_NParray(E,    [nvec],'E',routine_name)
        CALL alloc_NParray(L,    [nvec],'L',routine_name)
        CALL alloc_NParray(L_dag,[nvec],'L_dag',routine_name)
@@ -2310,7 +2310,7 @@
 
      IF (debug) THEN
        CALL write_op(F_system%keo)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
 
    END SUBROUTINE get_opKEO_subsyst_nvectot1
@@ -2367,7 +2367,7 @@
      character (len = *), parameter  :: routine_name='get_opKEO_subsyst_2euler'
 
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'BEGINNING ',routine_name
      END IF
 
      nsub_syst = 0
@@ -2387,9 +2387,9 @@
      end do
 
      if(.not.compare_tab(F_system%euler, [.false., .true., .true.])) then
-       write(out_unitp,*) ' ERROR in',routine_name
-       write(out_unitp,*) "This routine can be call only for a subsystem"
-       write(out_unitp,*) "which has two Euler's angles"
+       write(out_unit,*) ' ERROR in',routine_name
+       write(out_unit,*) "This routine can be call only for a subsystem"
+       write(out_unit,*) "which has two Euler's angles"
        STOP
      end if
 
@@ -2414,9 +2414,9 @@
      CALL alloc_NParray(zero_Pi_BF,shape(P_Euler),'zero_Pi_BF',routine_name)
 
      !Computation the elementary operators
-     write(out_unitp,*) 'get elementaries op. S_(',F_system%tab_num_frame,')'
-     write(out_unitp,*) 'with euler(1) = false'
-     flush(out_unitp)
+     write(out_unit,*) 'get elementaries op. S_(',F_system%tab_num_frame,')'
+     write(out_unit,*) 'with euler(1) = false'
+     flush(out_unit)
      iv = 1
 
      nvec_parent = count( .NOT. F_system_parent%tab_BFTransfo(:)%frame )
@@ -2439,11 +2439,11 @@
 
 
      else if(compare_tab(F_system_parent%euler, [.true., .true., .false.])) then
-       write(out_unitp,*) 'Case not possible'
+       write(out_unit,*) 'Case not possible'
        stop
      end if
-    ! write(out_unitp,*) 'euler parent', F_system_parent%euler
-    ! write(out_unitp,*) 'euler parent', F_system_parent%tab_num_frame
+    ! write(out_unit,*) 'euler parent', F_system_parent%euler
+    ! write(out_unit,*) 'euler parent', F_system_parent%tab_num_frame
 
      do i =  F_system_parent%nb_vect, 2, -1
        if(F_system_parent%tab_BFTransfo(i)%frame) then
@@ -2463,9 +2463,9 @@
      end do
      CALL dealloc_NParray(Liz_parent,'Liz_parent',routine_name)
 
-     !write(out_unitp,*) 'Ja_sum'
-     !call write_op(Ja_sum, out_unitp, header=.true.)
-     !write(out_unitp,*) 'END Ja_sum'
+     !write(out_unit,*) 'Ja_sum'
+     !call write_op(Ja_sum, out_unit, header=.true.)
+     !write(out_unit,*) 'END Ja_sum'
 
      call get_opJ_projected_into_BFEq171(F_system%J,    Ja_sum,     F_system%QEuler(2),F_system%QEuler(3))
      call get_opJ_projected_into_BFEq171(F_system%Jdag, Ja_sum_dag, F_system%QEuler(2),F_system%QEuler(3), dag = .true.)
@@ -2485,8 +2485,8 @@
        Lz(i) = czero
      end do
      if(nvec>=3) then
-       write(out_unitp,*) 'computation of Pi, i>=3 for S_(',F_system%tab_num_frame,')'
-       write(out_unitp,*) 'with euler(1) = false'
+       write(out_unit,*) 'computation of Pi, i>=3 for S_(',F_system%tab_num_frame,')'
+       write(out_unit,*) 'with euler(1) = false'
      end if
 
      ! Initiliation of the Li (i>2) operators
@@ -2563,8 +2563,8 @@
 
      if(F_system%nb_vect >0) then
        if(.not.F_system%tab_BFTransfo(1)%frame) then
-         write(out_unitp,*) 'computation of P2, for S_(',F_system%tab_num_frame,')'
-         write(out_unitp,*) 'with euler(1) = false'
+         write(out_unit,*) 'computation of P2, for S_(',F_system%tab_num_frame,')'
+         write(out_unit,*) 'with euler(1) = false'
 
          call get_opL2(L = L(2),     Fel = F_system%tab_BFTransfo(1)%Qvec(2), &
                        Jz = F_system%J%vec_sum(3), Lz_all = Lz, index_L = 2)
@@ -2704,13 +2704,13 @@
 
      end if
 
-     !write(out_unitp,*) 'L1L1'
+     !write(out_unit,*) 'L1L1'
      !CALL write_op(L1L1)
-     !write(out_unitp,*) 'END L1L1'
+     !write(out_unit,*) 'END L1L1'
      !STOP
 
-     write(out_unitp,*) 'computation of P1, for S_(',F_system%tab_num_frame,')'
-     write(out_unitp,*) 'with euler(1) = false'
+     write(out_unit,*) 'computation of P1, for S_(',F_system%tab_num_frame,')'
+     write(out_unit,*) 'with euler(1) = false'
 
      call get_opPi(       Pi_BF(F_system%listVFr(1)),     F_system%Qvec(1), L(1),    &
                           E=F_system%Unit_Vector)
@@ -2853,7 +2853,7 @@
 
      IF (debug) THEN
        CALL write_op(F_system%keo)
-       write(out_unitp,*) 'END ',routine_name
+       write(out_unit,*) 'END ',routine_name
      END IF
 
    END SUBROUTINE get_opKEO_subsyst_2euler
@@ -2886,8 +2886,8 @@
    character (len=*), parameter :: routine_name='get_keo_for_Qactiv'
 
    if(.not.allocated(TWOxKEO%sum_prod_op1d)) then
-     write(out_unitp,*) ' ERROR in',routine_name
-     write(out_unitp,*) "TWOxKEO should be allocated"
+     write(out_unit,*) ' ERROR in',routine_name
+     write(out_unit,*) "TWOxKEO should be allocated"
      STOP
    end if
 
@@ -2895,13 +2895,13 @@
    nb_act = count(list_Qactiv == 1 .OR. list_Qactiv == 21)
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING in ',routine_name
-     write(out_unitp,*) 'nb_var',nb_var
-     write(out_unitp,*) 'nb_act',nb_act
-     write(out_unitp,*) 'Qval',Qval
-     write(out_unitp,*) 'list_Qactiv',list_Qactiv
-     write(out_unitp,*) 'list_QpolytoQact',list_QpolytoQact
-     write(out_unitp,*) 'before removing inactive terms'
+     write(out_unit,*) ' BEGINNING in ',routine_name
+     write(out_unit,*) 'nb_var',nb_var
+     write(out_unit,*) 'nb_act',nb_act
+     write(out_unit,*) 'Qval',Qval
+     write(out_unit,*) 'list_Qactiv',list_Qactiv
+     write(out_unit,*) 'list_QpolytoQact',list_QpolytoQact
+     write(out_unit,*) 'before removing inactive terms'
      CALL write_op(TWOxKEO,header=.TRUE.)
    END IF
 
@@ -2926,14 +2926,14 @@
 
 
    IF (debug) THEN
-     write(out_unitp,*) ' Change indexq (active order)'
+     write(out_unit,*) ' Change indexq (active order)'
      CALL write_op(TWOxKEO,header=.TRUE.)
    END IF
 
    IF (nb_act == nb_var) THEN
      IF (debug) THEN
-       write(out_unitp,*) ' no constraint'
-       write(out_unitp,*) ' END in',routine_name
+       write(out_unit,*) ' no constraint'
+       write(out_unit,*) ' END in',routine_name
      END IF
      RETURN
    END IF
@@ -2942,9 +2942,9 @@
    ! remove all terms with PQi PQj where Qi or Qj are inactive coordinates
    DO i = 1, size(TWOxKEO%sum_prod_op1d)
      CALL get_pqJL_OF_OpnD(Pq,JJ,LL,TWOxKEO%sum_prod_op1d(i))
-     !write(out_unitp,*)
-     !write(out_unitp,*) 'i (sum), Pq',i,Pq
-     !write(out_unitp,*) 'i (sum), #Pq inact',i,count(Pq>nb_act)
+     !write(out_unit,*)
+     !write(out_unit,*) 'i (sum), Pq',i,Pq
+     !write(out_unit,*) 'i (sum), #Pq inact',i,count(Pq>nb_act)
      !CALL write_op(TWOxKEO%sum_prod_op1d(i))
 
      IF ( count(Pq>nb_act) > 0 ) THEN
@@ -2957,11 +2957,11 @@
    CALL remove_opzero_in_F_sum_nd(TWOxKEO, 'TWOxKEO '// routine_name)
 
    IF (debug) THEN
-     write(out_unitp,*) 'After removing inactive terms'
+     write(out_unit,*) 'After removing inactive terms'
      CALL write_op(TWOxKEO,header=.TRUE.)
    END IF
 
-   !write(out_unitp,*) 'Transfert inactive coef'
+   !write(out_unit,*) 'Transfert inactive coef'
 
    ! calculation of Op1D for inactive coordinates and transfert it to Cn(i)
    ! Then, these Op1D are removed
@@ -2971,22 +2971,22 @@
        indexq = get_indexQ_OF_Op1D(TWOxKEO%sum_prod_op1d(i)%prod_op1d(k))
 
        IF (indexq > nb_act .AND. indexq <= nb_var) THEN
-         !write(out_unitp,*) 'inactiv coord, i (sum),k (op1d)',i,k
-         !write(out_unitp,*) 'inactiv coord, indexq',indexq
+         !write(out_unit,*) 'inactiv coord, i (sum),k (op1d)',i,k
+         !write(out_unit,*) 'inactiv coord, indexq',indexq
          CALL get_NumVal_Op1D(opval,Qval(indexq),TWOxKEO%sum_prod_op1d(i)%prod_op1d(k))
-         !write(out_unitp,*) 'old Cn',i,k,TWOxKEO%Cn(i)
+         !write(out_unit,*) 'old Cn',i,k,TWOxKEO%Cn(i)
 
-         !write(out_unitp,*) 'inactiv coord, opval',opval
+         !write(out_unit,*) 'inactiv coord, opval',opval
 
          TWOxKEO%Cn(i) = TWOxKEO%Cn(i) * opval
          TWOxKEO%sum_prod_op1d(i)%prod_op1d(k) = cone ! IdOp
-         !write(out_unitp,*) 'new Cn',i,k,TWOxKEO%Cn(i)
+         !write(out_unit,*) 'new Cn',i,k,TWOxKEO%Cn(i)
 
        END IF
 
      END DO
-     !write(out_unitp,*)
-     !write(out_unitp,*) 'i (sum)',i
+     !write(out_unit,*)
+     !write(out_unit,*) 'i (sum)',i
      !CALL write_op(TWOxKEO%sum_prod_op1d(i))
 
      call Simplify_OpnD(TWOxKEO%sum_prod_op1d(i)) ! remove Id op
@@ -2996,9 +2996,9 @@
 
 
    IF (debug) THEN
-     write(out_unitp,*) 'After new coef'
+     write(out_unit,*) 'After new coef'
      CALL write_op(TWOxKEO,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
+     write(out_unit,*) ' END ',routine_name
    END IF
 
  END subroutine get_keo_for_Qactiv
@@ -3132,9 +3132,9 @@
        STOP 'nrho /= 0,1,2,3'
      END SELECT
 
-     write(out_unitp,*) 'x (sqrt(rho/jac)'
+     write(out_unit,*) 'x (sqrt(rho/jac)'
      CALL write_op(x)
-     write(out_unitp,*) 'x_inv (sqrt(jac/rho)'
+     write(out_unit,*) 'x_inv (sqrt(jac/rho)'
      CALL write_op(x_inv)
 
      call delete_op(x)
@@ -3173,13 +3173,13 @@
      character (len=*), parameter  :: routine_name='Get_F2_F1_FROM_TWOxKEO'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
+       write(out_unit,*) ' BEGINNING ',routine_name
        CALL write_op(TWOxKEO,header=.TRUE.)
 
        DO i=1,size(tabQact_Qel)
          CALL write_op(tabQact_Qel(i))
        END DO
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      ! first extract G(ij)
@@ -3192,41 +3192,41 @@
 
        iG = 0
        jG = 0
-       !write(out_unitp,*) 'term:',i
+       !write(out_unit,*) 'term:',i
        IF (pq(1) > 0 .AND. pq(2) > 0) THEN ! def
-         !write(out_unitp,*) 'def'
+         !write(out_unit,*) 'def'
          iG = pq(1)
          jG = pq(2)
        ELSE IF (pq(1) > 0 .AND. JJ(1) > 0) THEN ! cor
-         !write(out_unitp,*) 'cor'
+         !write(out_unit,*) 'cor'
          iG = pq(1)
          jG = JJ(1) -(nb_var-nb_act)
        ELSE IF (JJ(1) > 0 .AND. JJ(2) > 0) THEN ! rot
-         !write(out_unitp,*) 'rot'
+         !write(out_unit,*) 'rot'
          iG = JJ(1) -(nb_var-nb_act)
          jG = JJ(2) -(nb_var-nb_act)
        ELSE IF (JJ(1) == 0 .AND. pq(1) > 0) THEN ! rot
-         !write(out_unitp,*) 'pq^1'
+         !write(out_unit,*) 'pq^1'
          !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
          iG = pq(1)
          jG = 0
        ELSE IF(JJ(1) > 0 .AND. pq(1) == 0) THEN ! rot
-         !write(out_unitp,*) 'J^1'
+         !write(out_unit,*) 'J^1'
          !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
          iG = JJ(1) -(nb_var-nb_act)
          jG = 0
        END IF
 
-       !write(out_unitp,*) i,'pq,JJ',pq,JJ
-       !write(out_unitp,*) i,'iG,jG',iG,jG
+       !write(out_unit,*) i,'pq,JJ',pq,JJ
+       !write(out_unit,*) i,'iG,jG',iG,jG
 
        IF (iG > nb_act+3 .OR. jG > nb_act+3 .OR. iG < 0 .OR. jG < 0) THEN
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) ' iG or jG have a wrong range'
-         write(out_unitp,*) ' iG, jG',iG,jG
-         write(out_unitp,*) 'range: [1:',nb_act+3,'] or '
-         write(out_unitp,*) 'iG = 0 and iG = 0 for the vep'
-         write(out_unitp,*) 'CHECK the FORTRAN'
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) ' iG or jG have a wrong range'
+         write(out_unit,*) ' iG, jG',iG,jG
+         write(out_unit,*) 'range: [1:',nb_act+3,'] or '
+         write(out_unit,*) 'iG = 0 and iG = 0 for the vep'
+         write(out_unit,*) 'CHECK the FORTRAN'
          STOP
        END IF
 
@@ -3251,20 +3251,20 @@
          END IF
 
        END IF
-       !write(out_unitp,*) 'i,iG, jG',i,iG,jG
+       !write(out_unit,*) 'i,iG, jG',i,iG,jG
      END DO
      CALL delete_op(Gij)
 
      !DO iG=1,nb_act+3
      !DO jG=1,nb_act+3
-     !  write(out_unitp,*) 'Gana,iG, jG',iG,jG
+     !  write(out_unit,*) 'Gana,iG, jG',iG,jG
      !  CALL write_op(Gana(iG,jG))
      !END DO
      !END DO
 
-     write(out_unitp,*) '================================================'
-     write(out_unitp,*) '=========== der of Gana ========================'
-     write(out_unitp,*) '================================================'
+     write(out_unit,*) '================================================'
+     write(out_unit,*) '=========== der of Gana ========================'
+     write(out_unit,*) '================================================'
 
 
      ! 2d the 1st derivative of G(ij), just for the deformation
@@ -3274,16 +3274,16 @@
      DO iG=1,nb_act
      DO jG=1,nb_act
        CALL Der1_OF_Sum_OpnD_TO_Sum_OpnD(Gana(iG,jG),jG,d1Gana(iG,jG))
-       !write(out_unitp,*) 'Gana,iG, jG',iG,jG
+       !write(out_unit,*) 'Gana,iG, jG',iG,jG
        !CALL write_op(Gana(iG,jG))
-       !write(out_unitp,*) 'd1Gana,iG, jG (der)',iG,jG
+       !write(out_unit,*) 'd1Gana,iG, jG (der)',iG,jG
        !CALL write_op(d1Gana(iG,jG))
      END DO
      END DO
 
-     write(out_unitp,*) '================================================'
-     write(out_unitp,*) '=========== d1lnrho ============================'
-     write(out_unitp,*) '================================================'
+     write(out_unit,*) '================================================'
+     write(out_unit,*) '=========== d1lnrho ============================'
+     write(out_unit,*) '================================================'
 
      CALL alloc_NParray(d1lnrho,[nb_act],'d1lnrho',routine_name)
      DO i=1,size(d1lnrho)
@@ -3328,21 +3328,21 @@
 
      END DO
 
-     write(out_unitp,*) 'rho'
+     write(out_unit,*) 'rho'
      CALL write_op(rho)
-     write(out_unitp,*) 'rho_inv'
+     write(out_unit,*) 'rho_inv'
      CALL write_op(rho_inv)
-     write(out_unitp,*) 'd1lnrho'
+     write(out_unit,*) 'd1lnrho'
      DO i=1,size(d1lnrho)
-       write(out_unitp,*) 'd1lnrho',i
-       flush(out_unitp)
+       write(out_unit,*) 'd1lnrho',i
+       flush(out_unit)
        CALL write_op(d1lnrho(i))
      END DO
 
 
-     write(out_unitp,*) '================================================'
-     write(out_unitp,*) '=========== F2+F1 =============================='
-     write(out_unitp,*) '================================================'
+     write(out_unit,*) '================================================'
+     write(out_unit,*) '=========== F2+F1 =============================='
+     write(out_unit,*) '================================================'
      ExpandTWOxKEO = CZERO
      DO iG=1,nb_act
      DO jG=1,nb_act
@@ -3377,8 +3377,8 @@
 
      IF (debug) THEN
        CALL write_op(ExpandTWOxKEO,header=.TRUE.)
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
    END SUBROUTINE Get_F2_F1_FROM_TWOxKEO
@@ -3423,7 +3423,7 @@
        end do
 
        if(indexq1 /= 0 .and. indexq2 /= 0 .and. indexq1 /= indexq2) then
-         !write(out_unitp,*) 'indexq1=', indexq1, 'indexq2=', indexq2
+         !write(out_unit,*) 'indexq1=', indexq1, 'indexq2=', indexq2
 
          RiRj_term = keo%sum_prod_op1d(i)
          RiRj_term%Cn(1) = -keo%Cn(i)
@@ -3468,13 +3468,13 @@
      character (len=*), parameter  :: routine_name='Get_Gana_FROM_TWOxKEO'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
+       write(out_unit,*) ' BEGINNING ',routine_name
        CALL write_op(TWOxKEO,header=.TRUE.)
 
        DO i=1,size(tabQact_Qel)
          CALL write_op(tabQact_Qel(i))
        END DO
-       flush(out_unitp)
+       flush(out_unit)
      END IF
 
      ! first extract G(ij)
@@ -3487,41 +3487,41 @@
 
        iG = 0
        jG = 0
-       !write(out_unitp,*) 'term:',i
+       !write(out_unit,*) 'term:',i
        IF (pq(1) > 0 .AND. pq(2) > 0) THEN ! def
-         !write(out_unitp,*) 'def'
+         !write(out_unit,*) 'def'
          iG = pq(1)
          jG = pq(2)
        ELSE IF (pq(1) > 0 .AND. JJ(1) > 0) THEN ! cor
-         !write(out_unitp,*) 'cor'
+         !write(out_unit,*) 'cor'
          iG = pq(1)
          jG = JJ(1) -(nb_var-nb_act)
        ELSE IF (JJ(1) > 0 .AND. JJ(2) > 0) THEN ! rot
-         !write(out_unitp,*) 'rot'
+         !write(out_unit,*) 'rot'
          iG = JJ(1) -(nb_var-nb_act)
          jG = JJ(2) -(nb_var-nb_act)
        ELSE IF (JJ(1) == 0 .AND. pq(1) > 0) THEN ! rot
-         !write(out_unitp,*) 'pq^1'
+         !write(out_unit,*) 'pq^1'
          !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
          iG = pq(1)
          jG = 0
        ELSE IF(JJ(1) > 0 .AND. pq(1) == 0) THEN ! rot
-         !write(out_unitp,*) 'J^1'
+         !write(out_unit,*) 'J^1'
          !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
          iG = JJ(1) -(nb_var-nb_act)
          jG = 0
        END IF
 
-       !write(out_unitp,*) i,'pq,JJ',pq,JJ
-       !write(out_unitp,*) i,'iG,jG',iG,jG
+       !write(out_unit,*) i,'pq,JJ',pq,JJ
+       !write(out_unit,*) i,'iG,jG',iG,jG
 
        IF (iG > nb_act+3 .OR. jG > nb_act+3 .OR. iG < 0 .OR. jG < 0) THEN
-         write(out_unitp,*) ' ERROR in ',routine_name
-         write(out_unitp,*) ' iG or jG have a wrong range'
-         write(out_unitp,*) ' iG, jG',iG,jG
-         write(out_unitp,*) 'range: [1:',nb_act+3,'] or '
-         write(out_unitp,*) 'iG = 0 and iG = 0 for the vep'
-         write(out_unitp,*) 'CHECK the FORTRAN'
+         write(out_unit,*) ' ERROR in ',routine_name
+         write(out_unit,*) ' iG or jG have a wrong range'
+         write(out_unit,*) ' iG, jG',iG,jG
+         write(out_unit,*) 'range: [1:',nb_act+3,'] or '
+         write(out_unit,*) 'iG = 0 and iG = 0 for the vep'
+         write(out_unit,*) 'CHECK the FORTRAN'
          STOP
        END IF
 
@@ -3546,7 +3546,7 @@
          END IF
 
        END IF
-       !write(out_unitp,*) 'i,iG, jG',i,iG,jG
+       !write(out_unit,*) 'i,iG, jG',i,iG,jG
      END DO
 
      call delete_op(Gij)
@@ -3554,12 +3554,12 @@
      IF (debug) THEN
        DO iG=1,nb_act+3
        DO jG=1,nb_act+3
-         write(out_unitp,*) 'Gana,iG, jG',iG,jG
+         write(out_unit,*) 'Gana,iG, jG',iG,jG
          CALL write_op(Gana(iG,jG))
        END DO
        END DO
-       write(out_unitp,*) ' END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' END ',routine_name
+       flush(out_unit)
      END IF
 
    END SUBROUTINE Get_Gana_FROM_TWOxKEO

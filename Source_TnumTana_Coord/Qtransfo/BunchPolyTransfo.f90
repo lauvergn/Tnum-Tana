@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_BunchPolyTransfo
-      use mod_system
+      use TnumTana_system_m
       use mod_dnSVM ! only all
       use mod_Constant,     only: table_atom, get_mass_tnum
       use mod_Lib_QTransfo, only: write_dnx, sub3_dnvec_toxf, func_ic, make_nameQ
@@ -170,7 +170,7 @@
 
       character (len=*), parameter :: name_sub='alloc_FrameType'
 
-      !write(out_unitp,*) 'BEGINNING ',name_sub
+      !write(out_unit,*) 'BEGINNING ',name_sub
 
       CALL dealloc_FrameType(BFTransfo)
 
@@ -198,7 +198,7 @@
       END IF
 
 
-      !write(out_unitp,*) 'END ',name_sub
+      !write(out_unit,*) 'END ',name_sub
       END SUBROUTINE alloc_FrameType
 
       SUBROUTINE dealloc_FrameType(BFTransfo)
@@ -206,7 +206,7 @@
 
       character (len=*), parameter :: name_sub='dealloc_FrameType'
 
-      !write(out_unitp,*) 'BEGINNING ',name_sub
+      !write(out_unit,*) 'BEGINNING ',name_sub
 
       IF (associated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
         CALL dealloc_array(BFTransfo%Coef_Vect_FOR_xFrame,              &
@@ -232,7 +232,7 @@
       END IF
       BFTransfo%Type_Vect = 'zxy'
 
-      !write(out_unitp,*) 'END ',name_sub
+      !write(out_unit,*) 'END ',name_sub
       END SUBROUTINE dealloc_FrameType
 
       SUBROUTINE Write_FrameType(BFTransfo)
@@ -241,32 +241,32 @@
 
       character (len=*), parameter :: name_sub='Write_FrameType'
 
-      !write(out_unitp,*) 'BEGINNING ',name_sub
+      !write(out_unit,*) 'BEGINNING ',name_sub
 
 
-      write(out_unitp,*) 'Frame,Frame_type',BFTransfo%Frame,BFTransfo%Frame_type
+      write(out_unit,*) 'Frame,Frame_type',BFTransfo%Frame,BFTransfo%Frame_type
       IF (BFTransfo%Frame_type /= 0) THEN
 
         IF (associated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
-            write(out_unitp,*) 'Coef_Vect_FOR_xFrame(:)',BFTransfo%Coef_Vect_FOR_xFrame(:)
+            write(out_unit,*) 'Coef_Vect_FOR_xFrame(:)',BFTransfo%Coef_Vect_FOR_xFrame(:)
         END IF
         IF (associated(BFTransfo%Coef_Vect_FOR_yFrame)) THEN
-            write(out_unitp,*) 'Coef_Vect_FOR_yFrame(:)',BFTransfo%Coef_Vect_FOR_yFrame(:)
+            write(out_unit,*) 'Coef_Vect_FOR_yFrame(:)',BFTransfo%Coef_Vect_FOR_yFrame(:)
         END IF
         IF (associated(BFTransfo%Coef_Vect_FOR_zFrame)) THEN
-            write(out_unitp,*) 'Coef_Vect_FOR_zFrame(:)',BFTransfo%Coef_Vect_FOR_zFrame(:)
+            write(out_unit,*) 'Coef_Vect_FOR_zFrame(:)',BFTransfo%Coef_Vect_FOR_zFrame(:)
         END IF
 
         IF (associated(BFTransfo%Coef_OF_Vect1)) THEN
-          write(out_unitp,*) 'Coef_OF_Vect1(:)',BFTransfo%Coef_OF_Vect1(:)
+          write(out_unit,*) 'Coef_OF_Vect1(:)',BFTransfo%Coef_OF_Vect1(:)
         END IF
         IF (associated(BFTransfo%Coef_OF_Vect2)) THEN
-          write(out_unitp,*) 'Coef_OF_Vect2(:)',BFTransfo%Coef_OF_Vect2(:)
+          write(out_unit,*) 'Coef_OF_Vect2(:)',BFTransfo%Coef_OF_Vect2(:)
         END IF
-        write(out_unitp,*) 'Type_Vect: ',BFTransfo%Type_Vect
+        write(out_unit,*) 'Type_Vect: ',BFTransfo%Type_Vect
       END IF
 
-      !write(out_unitp,*) 'END ',name_sub
+      !write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Write_FrameType
 
 
@@ -293,13 +293,13 @@
       character (len=*), parameter :: name_sub='calc_Rot_Vect'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
 
         DO iv=1,size(tab_dnXVect)
-          write(out_unitp,*) 'tab_dnXVect(:)',iv
+          write(out_unit,*) 'tab_dnXVect(:)',iv
           CALL Write_dnVec(tab_dnXVect(iv))
         END DO
 
@@ -311,7 +311,7 @@
       lz = (sum(abs(BFTransfo%Coef_Vect_FOR_zFrame)) == 0)
       l12 = (sum(abs(BFTransfo%Coef_OF_Vect1)) == 0 .OR.                &
              sum(abs(BFTransfo%Coef_OF_Vect2)) == 0)
-      IF (debug) write(out_unitp,*) 'lx,ly,lz,l12',lx,ly,lz,l12
+      IF (debug) write(out_unit,*) 'lx,ly,lz,l12',lx,ly,lz,l12
 
       IF (.NOT. lx .AND. .NOT. lz .AND. ly .AND. l12) THEN ! with ZX
          CALL calc_Vect_zx(dnVecxBF,dnVecyBF,dnVeczBF,tab_dnXVect,BFTransfo,nderiv)
@@ -341,13 +341,13 @@
           CALL sub_dnVec_TO_dnS(dnVeczBF,Rot(izn,i),i,nderiv)
         END DO
         IF (debug) THEN
-          write(out_unitp,*) 'Rotational matrix:'
+          write(out_unit,*) 'Rotational matrix:'
           CALL Write_MatOFdnS(Rot,nderiv=0)
         END IF
         !Rotation to change the orientation of the frame
         DO iv=1,BFTransfo%nb_vect_tot
 
-          IF (debug) write(out_unitp,*) 'Old Vector: ',iv
+          IF (debug) write(out_unit,*) 'Old Vector: ',iv
           IF (debug) CALL Write_dnVec(tab_dnXVect(iv),nderiv_debug)
 
           CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),Vect1(1),1) ! x
@@ -360,7 +360,7 @@
           CALL sub_dnS_TO_dnVec(Vect2(2),tab_dnXVect(iv),2) !y
           CALL sub_dnS_TO_dnVec(Vect2(3),tab_dnXVect(iv),3) !z
 
-          IF (debug) write(out_unitp,*) 'New Vector: ',iv
+          IF (debug) write(out_unit,*) 'New Vector: ',iv
           IF (debug) CALL Write_dnVec(tab_dnXVect(iv),nderiv_debug)
         END DO
       ELSE
@@ -368,7 +368,7 @@
           CALL sub_dot_product_dnVec1_dnVec2_TO_dnS(dnVecxBF,tab_dnXVect(iv),dnSx,nderiv)
           CALL sub_dot_product_dnVec1_dnVec2_TO_dnS(dnVecyBF,tab_dnXVect(iv),dnSy,nderiv)
           CALL sub_dot_product_dnVec1_dnVec2_TO_dnS(dnVeczBF,tab_dnXVect(iv),dnSz,nderiv)
-          IF (debug) write(out_unitp,*) 'New Vector: ',iv,dnSx%d0,dnSy%d0,dnSz%d0
+          IF (debug) write(out_unit,*) 'New Vector: ',iv,dnSx%d0,dnSy%d0,dnSz%d0
           CALL sub_dnS_TO_dnVec(dnSx,tab_dnXVect(iv),1,nderiv)
           CALL sub_dnS_TO_dnVec(dnSy,tab_dnXVect(iv),2,nderiv)
           CALL sub_dnS_TO_dnVec(dnSz,tab_dnXVect(iv),3,nderiv)
@@ -392,9 +392,9 @@
 
       !----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
 
 
@@ -422,13 +422,13 @@
       character (len=*), parameter :: name_sub='calc_Vect_12zx'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
 
         DO iv=1,size(tab_dnXVect)
-          write(out_unitp,*) 'tab_dnXVect(:)',iv
+          write(out_unit,*) 'tab_dnXVect(:)',iv
           CALL Write_dnVec(tab_dnXVect(iv))
         END DO
 
@@ -450,7 +450,7 @@
          Coefx = BFTransfo%Coef_Vect_FOR_xFrame(iv)
          Coef1 = BFTransfo%Coef_OF_Vect1(iv)
          Coef2 = BFTransfo%Coef_OF_Vect2(iv)
-         IF (debug) write(out_unitp,*) 'iv,Coef1,Coef2,Coefx',iv,Coef1,Coef2,Coefx
+         IF (debug) write(out_unit,*) 'iv,Coef1,Coef2,Coefx',iv,Coef1,Coef2,Coefx
 
          IF (Coefx /= ZERO .OR. Coef1 /= ZERO .OR. Coef2 /= ZERO) THEN
            CALL sub_dnVec1_TO_dnVec2(tab_dnXVect(iv),dnVec,nderiv=nderiv)
@@ -477,7 +477,7 @@
       CALL Sub_crossproduct_dnVec1_dnVec2_TO_dnVec3(dnVec1,dnVec2,dnVeczBF,nderiv)
       CALL sub_Normalize_dnVec(dnVeczBF) ! normalyzed dnVeczBF
 
-      IF (debug) write(out_unitp,*) 'New ez: '
+      IF (debug) write(out_unit,*) 'New ez: '
       IF (debug) CALL Write_dnVec(dnVeczBF,nderiv=0)
 
       ! new xBZ
@@ -488,14 +488,14 @@
       CALL sub_dnVec1_wADDTO_dnVec2(dnVec1,1,-ONE,dnVecxBF,1,ONE,3,nderiv)
       CALL sub_Normalize_dnVec(dnVecxBF)
 
-      IF (debug) write(out_unitp,*) 'New ex: '
+      IF (debug) write(out_unit,*) 'New ex: '
       IF (debug) CALL Write_dnVec(dnVecxBF,nderiv=0)
 
       ! new yBZ
       CALL Sub_crossproduct_dnVec1_dnVec2_TO_dnVec3(dnVeczBF,dnVecxBF,dnVecyBF,nderiv)
       CALL sub_Normalize_dnVec(dnVecyBF)
 
-      IF (debug) write(out_unitp,*) 'New ey: '
+      IF (debug) write(out_unit,*) 'New ey: '
       IF (debug) CALL Write_dnVec(dnVecyBF,nderiv=0)
 
 
@@ -507,9 +507,9 @@
 
       !----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
 
 
@@ -533,13 +533,13 @@
       character (len=*), parameter :: name_sub='calc_Rot_Vect_zx'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
 
         DO iv=1,size(tab_dnXVect)
-          write(out_unitp,*) 'tab_dnXVect(:)',iv
+          write(out_unit,*) 'tab_dnXVect(:)',iv
           CALL Write_dnVec(tab_dnXVect(iv))
         END DO
 
@@ -558,7 +558,7 @@
       DO iv=1,size(tab_dnXVect)
          Coefz = BFTransfo%Coef_Vect_FOR_zFrame(iv)
          Coefx = BFTransfo%Coef_Vect_FOR_xFrame(iv)
-         IF (debug) write(out_unitp,*) 'iv,Coefz,Coefx',iv,Coefz,Coefx
+         IF (debug) write(out_unit,*) 'iv,Coefz,Coefx',iv,Coefz,Coefx
 
          IF (Coefx /= ZERO .OR. Coefz /= ZERO) THEN
            CALL sub_dnVec1_TO_dnVec2(tab_dnXVect(iv),dnVec1,nderiv=nderiv)
@@ -580,7 +580,7 @@
       ! new zBF
       CALL sub_Normalize_dnVec(dnVeczBF)
 
-      IF (debug) write(out_unitp,*) 'New ez: ',dnVeczBF%d0
+      IF (debug) write(out_unit,*) 'New ez: ',dnVeczBF%d0
       IF (debug) CALL Write_dnVec(dnVeczBF,nderiv=0)
 
       ! new xBF
@@ -591,14 +591,14 @@
       CALL sub_dnVec1_wADDTO_dnVec2(dnVec1,1,-ONE,dnVecxBF,1,ONE,3,nderiv)
       CALL sub_Normalize_dnVec(dnVecxBF)
 
-      IF (debug) write(out_unitp,*) 'New ex: ',dnVecxBF%d0
+      IF (debug) write(out_unit,*) 'New ex: ',dnVecxBF%d0
       IF (debug) CALL Write_dnVec(dnVecxBF,nderiv=0)
 
       ! new yBF
       CALL Sub_crossproduct_dnVec1_dnVec2_TO_dnVec3(dnVeczBF,dnVecxBF,dnVecyBF,nderiv)
       CALL sub_Normalize_dnVec(dnVecyBF)
 
-      IF (debug) write(out_unitp,*) 'New ey: ',dnVecyBF%d0
+      IF (debug) write(out_unit,*) 'New ey: ',dnVecyBF%d0
       IF (debug) CALL Write_dnVec(dnVecyBF,nderiv=0)
 
       CALL dealloc_dnSVM(dnNorm_inv)
@@ -607,9 +607,9 @@
 
       !----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
       END IF
 
 
@@ -627,10 +627,10 @@
       character (len=*), parameter :: name_sub='FrameType1TOBFrameType2'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
         CALL Write_FrameType(BFTransfo1)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 
 
@@ -657,10 +657,10 @@
       BFTransfo2%Type_Vect = BFTransfo1%Type_Vect
 
       IF (debug) THEN
-        write(out_unitp,*)
+        write(out_unit,*)
         CALL Write_FrameType(BFTransfo2)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
       END SUBROUTINE FrameType1TOBFrameType2
@@ -672,7 +672,7 @@
       integer :: iv,jv
       character (len=*), parameter :: name_sub='dealloc_BFTransfo'
 
-      !write(out_unitp,*) 'BEGINNING ',name_sub
+      !write(out_unit,*) 'BEGINNING ',name_sub
 
       ! the variables type_Qin and name_Qin are TRUE pointers.
       ! => they cannot be deallocated, but just nullified
@@ -727,7 +727,7 @@
 
       CALL dealloc_TanaVar_FROM_BFTransfo(BFTransfo)
 
-      !write(out_unitp,*) 'END ',name_sub
+      !write(out_unit,*) 'END ',name_sub
       END SUBROUTINE dealloc_BFTransfo
 
    RECURSIVE SUBROUTINE dealloc_TanaVar_FROM_BFTransfo(BFTransfo)
@@ -883,13 +883,13 @@
       !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
 !-----------------------------------------------------------
       IF (BunchTransfo%nb_vect > max_vect) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) 'max_vect is too small',max_vect
-        write(out_unitp,*) ' it MUST be larger than',BunchTransfo%nb_vect
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) 'max_vect is too small',max_vect
+        write(out_unit,*) ' it MUST be larger than',BunchTransfo%nb_vect
         STOP
       END IF
 
@@ -927,26 +927,26 @@
       name_gamma    = "gamma_"
       name_Frame    = ""
 
-      read(in_unitp,vector,IOSTAT=err_io)
+      read(in_unit,vector,IOSTAT=err_io)
       IF (err_io < 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "vector"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Probably, nb_vect is to large ...'
-        write(out_unitp,*) '   or you have forgotten the namelist.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "vector"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Probably, nb_vect is to large ...'
+        write(out_unit,*) '   or you have forgotten the namelist.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
       IF (err_io > 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "vector"'
-        write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "vector"'
+        write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
-      IF (debug .OR. print_level > 1) write(out_unitp,vector)
-      flush(out_unitp)
+      IF (debug .OR. print_level > 1) write(out_unit,vector)
+      flush(out_unit)
 
       IF (iv_tot == 1) zmat_order_save = zmat_order
 
@@ -959,9 +959,9 @@
       IF (len_trim(name_Frame) > 0) name_F = trim("  " // trim(name_Frame))
       BFTransfo%Frame             = Frame
       IF (.NOT. Frame .AND. Frame_type /= 0) THEN
-        write(out_unitp,*) ' WARNING in ',name_sub
-        write(out_unitp,*) ' Frame=F and Frame_type /= 0'
-        write(out_unitp,*) ' Check your DATA !!'
+        write(out_unit,*) ' WARNING in ',name_sub
+        write(out_unit,*) ' Frame=F and Frame_type /= 0'
+        write(out_unit,*) ' Check your DATA !!'
       END IF
       IF (.NOT. Frame) Frame_type = 0
       IF (Frame_type /= 0) THEN
@@ -972,20 +972,20 @@
         Coef_OF_Vect2(:) = ZERO
         Type_Vect        = 'zxy'
 
-        read(in_unitp,Vect_FOR_AxisFrame,IOSTAT=err_io)
+        read(in_unit,Vect_FOR_AxisFrame,IOSTAT=err_io)
         IF (err_io < 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
-          write(out_unitp,*) ' end of file or end of record'
-          write(out_unitp,*) ' Probably, you have forgotten the namelist.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
+          write(out_unit,*) ' end of file or end of record'
+          write(out_unit,*) ' Probably, you have forgotten the namelist.'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
         IF (err_io > 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
-          write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
+          write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
@@ -1004,10 +1004,10 @@
         CASE ("zxy","zyx","xyz","xzy","yzx","yxz")
           CONTINUE
         CASE default
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Wrong "Type_Vect": ',Type_Vect
-          write(out_unitp,*) ' The 6 possibilities are "zxy", "zyx", "xyz", "xzy", "yzx" and "yxz"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Wrong "Type_Vect": ',Type_Vect
+          write(out_unit,*) ' The 6 possibilities are "zxy", "zyx", "xyz", "xzy", "yzx" and "yxz"'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END SELECT
 
@@ -1021,10 +1021,10 @@
       CASE ("zxy","x-zy")
         CONTINUE
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' Wrong "Spherical_convention": ',Spherical_convention
-        write(out_unitp,*) ' The possibilities are "zxy", "x-zy"'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' Wrong "Spherical_convention": ',Spherical_convention
+        write(out_unit,*) ' The possibilities are "zxy", "x-zy"'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END SELECT
 
@@ -1034,15 +1034,15 @@
       BFTransfo%cos_th            = cos_th
 
       IF (nb_vect < 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' the number of vector is < 0!!',nb_vect
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' the number of vector is < 0!!',nb_vect
         STOP
       END IF
 
       IF (.NOT. BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The first vector MUST defined a Frame (BF)'
-        write(out_unitp,*) ' Frame, num_vect_in_BF',Frame,BFTransfo%num_vect_in_BF
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The first vector MUST defined a Frame (BF)'
+        write(out_unit,*) ' Frame, num_vect_in_BF',Frame,BFTransfo%num_vect_in_BF
         STOP
       END IF
       IF (BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
@@ -1107,15 +1107,15 @@
 
 
         IF (debug .OR. print_level > 1) THEN
-          write(out_unitp,*) '.................................................'
-          write(out_unitp,*) ' NEW Frame, rec_level: ',rec_level
-          write(out_unitp,*) '   name_Frame,tab_num_Frame: ',trim(adjustl(BFTransfo%name_Frame)),' ',BFTransfo%tab_num_Frame(:)
-          write(out_unitp,*) '   num_Frame_in_BF',BFTransfo%num_Frame_in_BF
-          write(out_unitp,*) '   num_Frame_in_Container',BFTransfo%num_Frame_in_Container
-          write(out_unitp,*)
-          write(out_unitp,*) ' NEW vector (1st): '
-          write(out_unitp,*) '   num_vect_in_Frame,num_vect_in_BF',BFTransfo%num_vect_in_Frame,BFTransfo%num_vect_in_BF
-          write(out_unitp,*) '   name_v: ',trim(adjustl(name_v))
+          write(out_unit,*) '.................................................'
+          write(out_unit,*) ' NEW Frame, rec_level: ',rec_level
+          write(out_unit,*) '   name_Frame,tab_num_Frame: ',trim(adjustl(BFTransfo%name_Frame)),' ',BFTransfo%tab_num_Frame(:)
+          write(out_unit,*) '   num_Frame_in_BF',BFTransfo%num_Frame_in_BF
+          write(out_unit,*) '   num_Frame_in_Container',BFTransfo%num_Frame_in_Container
+          write(out_unit,*)
+          write(out_unit,*) ' NEW vector (1st): '
+          write(out_unit,*) '   num_vect_in_Frame,num_vect_in_BF',BFTransfo%num_vect_in_Frame,BFTransfo%num_vect_in_BF
+          write(out_unit,*) '   name_v: ',trim(adjustl(name_v))
         END IF
 
 
@@ -1150,10 +1150,10 @@
         IF (allocated(name_v)) deallocate(name_v)
 
         IF (cart .OR. Li) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The first vector of a frame CANNOT be defined'
-          write(out_unitp,*) '   with Cartesian Coordinates or with Li'
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The first vector of a frame CANNOT be defined'
+          write(out_unit,*) '   with Cartesian Coordinates or with Li'
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
         IF (nb_vect > 0) THEN
@@ -1200,7 +1200,7 @@
         IF (BFTransfo%nb_vect_tot == 1) BFTransfo%euler(3) = .FALSE.
         nb_var = max(1,3*BFTransfo%nb_vect_tot-3)
         BFTransfo%nb_var = nb_var
-        !write(out_unitp,*) 'nb_var',nb_var
+        !write(out_unit,*) 'nb_var',nb_var
 
         BFTransfo%Frame_type     = 0
         IF (BFTransfo%euler(1) .AND. BFTransfo%euler(2) .AND. BFTransfo%euler(3)) THEN
@@ -1270,13 +1270,13 @@
         END IF
 
         IF (debug .OR. print_level > 1) THEN
-          write(out_unitp,*) '    END new Frame'
-          write(out_unitp,*) '.................................................'
+          write(out_unit,*) '    END new Frame'
+          write(out_unit,*) '.................................................'
         END IF
         rec_level = rec_level - 1
         IF (rec_level == 0) THEN
-          write(out_unitp,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
-          write(out_unitp,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
+          write(out_unit,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
+          write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
           !STOP
         END IF
       ELSE   ! new vector in the frame
@@ -1286,17 +1286,17 @@
 
 
         IF (debug .OR. print_level > 1) THEN
-          write(out_unitp,*) ' NEW vector: '
-          write(out_unitp,*) '   num_vect_in_Frame,num_vect_in_BF',BFTransfo%num_vect_in_Frame,BFTransfo%num_vect_in_BF
-          write(out_unitp,*) '   name_v: ',trim(adjustl(name_v))
+          write(out_unit,*) ' NEW vector: '
+          write(out_unit,*) '   num_vect_in_Frame,num_vect_in_BF',BFTransfo%num_vect_in_Frame,BFTransfo%num_vect_in_BF
+          write(out_unit,*) '   name_v: ',trim(adjustl(name_v))
         END IF
 
         BFTransfo%nb_vect_tot = BFTransfo%nb_vect_tot + 1
         IF ( (cart .OR. Li) .AND. BFTransfo%num_vect_in_Frame < 3) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The second vector of a frame CANNOT be defined:'
-          write(out_unitp,*) '   with Cartesian Coordinates or with Li'
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The second vector of a frame CANNOT be defined:'
+          write(out_unit,*) '   with Cartesian Coordinates or with Li'
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
 
@@ -1419,7 +1419,7 @@
       END IF
 
       IF (debug) CALL RecWrite_BFTransfo(BFTransfo,recur=.FALSE.)
-      IF (debug) write(out_unitp,*) 'END ',name_sub
+      IF (debug) write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE RecRead_BFTransfo
 
@@ -1438,57 +1438,57 @@
       recur_loc = .TRUE.
       IF (present(recur)) recur_loc = recur
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       CALL Write_FrameType(BFTransfo)
 
-      write(out_unitp,*) 'num_vect_in_Frame',BFTransfo%num_vect_in_Frame
-      write(out_unitp,*) 'num_vect_in_BF',BFTransfo%num_vect_in_BF
+      write(out_unit,*) 'num_vect_in_Frame',BFTransfo%num_vect_in_Frame
+      write(out_unit,*) 'num_vect_in_BF',BFTransfo%num_vect_in_BF
 
-      write(out_unitp,*) 'num_Frame_in_BF',BFTransfo%num_Frame_in_BF
-      write(out_unitp,*) 'num_Frame_in_Container',BFTransfo%num_Frame_in_Container
-      write(out_unitp,*) 'name_Frame: ',BFTransfo%name_Frame
+      write(out_unit,*) 'num_Frame_in_BF',BFTransfo%num_Frame_in_BF
+      write(out_unit,*) 'num_Frame_in_Container',BFTransfo%num_Frame_in_Container
+      write(out_unit,*) 'name_Frame: ',BFTransfo%name_Frame
       IF (associated(BFTransfo%tab_num_Frame))                          &
-           write(out_unitp,*) 'tab_num_Frame',BFTransfo%tab_num_Frame(:)
+           write(out_unit,*) 'tab_num_Frame',BFTransfo%tab_num_Frame(:)
 
-      write(out_unitp,*) 'nb_vect,nb_vect_tot',                         &
+      write(out_unit,*) 'nb_vect,nb_vect_tot',                         &
                          BFTransfo%nb_vect,BFTransfo%nb_vect_tot
 
-      write(out_unitp,*) 'nb_var,nb_var_Rot',                           &
+      write(out_unit,*) 'nb_var,nb_var_Rot',                           &
                          BFTransfo%nb_var,BFTransfo%nb_var_Rot
 
-      write(out_unitp,*) 'BF,local Frame,euler',BFTransfo%BF,BFTransfo%Frame,BFTransfo%euler(:)
+      write(out_unit,*) 'BF,local Frame,euler',BFTransfo%BF,BFTransfo%Frame,BFTransfo%euler(:)
 
-      write(out_unitp,*) 'Cart',BFTransfo%cart
-      write(out_unitp,*) 'Li',BFTransfo%Li
-      write(out_unitp,*) 'Spherical_convention',BFTransfo%Spherical_convention
+      write(out_unit,*) 'Cart',BFTransfo%cart
+      write(out_unit,*) 'Li',BFTransfo%Li
+      write(out_unit,*) 'Spherical_convention',BFTransfo%Spherical_convention
 
-      write(out_unitp,*) 'Def_cos_th,cos_th',BFTransfo%Def_cos_th,BFTransfo%cos_th
-      write(out_unitp,*) ' Elementary operators for Tana:'
-      write(out_unitp,*) ' R, theta ( or u_theta), phi or x, y, z:'
+      write(out_unit,*) 'Def_cos_th,cos_th',BFTransfo%Def_cos_th,BFTransfo%cos_th
+      write(out_unit,*) ' Elementary operators for Tana:'
+      write(out_unit,*) ' R, theta ( or u_theta), phi or x, y, z:'
       CALL write_op(BFTransfo%Qvec(1))
       CALL write_op(BFTransfo%Qvec(2))
       CALL write_op(BFTransfo%Qvec(3))
-      write(out_unitp,*) ' alpha, beta ( or u_beta), gamma:'
+      write(out_unit,*) ' alpha, beta ( or u_beta), gamma:'
       CALL write_op(BFTransfo%QEuler(1))
       CALL write_op(BFTransfo%QEuler(2))
       CALL write_op(BFTransfo%QEuler(3))
-      write(out_unitp,*) ' Unit_vector:'
+      write(out_unit,*) ' Unit_vector:'
       CALL write_op(BFTransfo%Unit_Vector)
 
       IF (associated(BFTransfo%type_Qin) .AND.                          &
           associated(BFTransfo%name_Qin)  )      THEN
-        write(out_unitp,*) 'type_Qin',BFTransfo%type_Qin(:)
-        write(out_unitp,*) 'name_Qin: ',                                &
+        write(out_unit,*) 'type_Qin',BFTransfo%type_Qin(:)
+        write(out_unit,*) 'name_Qin: ',                                &
               (trim(BFTransfo%name_Qin(iq))," ",iq=1,BFTransfo%nb_var)
       END IF
 
       IF (associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
-        write(out_unitp,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
+        write(out_unit,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
       END IF
 
       IF (associated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
-        write(out_unitp,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
+        write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
       END IF
 
       IF (recur_loc .AND. associated(BFTransfo%tab_BFTransfo)) THEN
@@ -1497,8 +1497,8 @@
         END DO
       END IF
 
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
 
       END SUBROUTINE RecWrite_BFTransfo
 
@@ -1530,10 +1530,10 @@
       character (len=*), parameter :: name_sub='calc_PolyTransfo'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING RECURSIVE ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'i_Qpoly,iv_in',i_Qpoly,iv_in
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING RECURSIVE ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'i_Qpoly,iv_in',i_Qpoly,iv_in
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
       END IF
 !      -----------------------------------------------------------------
@@ -1554,17 +1554,17 @@
 
 
       IF (BFTransfo%Frame) THEN
-        !write(out_unitp,*) 'BFTransfo%euler : ',BFTransfo%euler(:)
+        !write(out_unit,*) 'BFTransfo%euler : ',BFTransfo%euler(:)
         !==========================================
         ! 1st vector
-        !write(out_unitp,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+        !write(out_unit,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
         iv = 0
         i_Qpoly = i_Qpoly + 1
         IF (.NOT. associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  "list_Qpoly_TO_Qprim" is not associated'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not associated'
           CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
-          write(out_unitp,*) ' Check the fortran source !!'
+          write(out_unit,*) ' Check the fortran source !!'
           STOP
         END IF
         i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
@@ -1574,9 +1574,9 @@
 
         !---------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) '-------------------------------------------------'
-          write(out_unitp,*) 'Vector :',iv+1,' in ',BFTransfo%name_Frame
+          write(out_unit,*)
+          write(out_unit,*) '-------------------------------------------------'
+          write(out_unit,*) 'Vector :',iv+1,' in ',BFTransfo%name_Frame
           CALL write_dnx(1,3,tab_dnXVect(iv+1),nderiv_debug)
         END IF
         !---------------------------------------------------------------
@@ -1584,7 +1584,7 @@
         liv = 2
         DO iv=1,BFTransfo%nb_vect
           uiv = ubound(tab_dnXVect(:),dim=1)
-          !write(out_unitp,*) 'iv,BFTransfo%nb_vect,liv,uiv',iv,BFTransfo%tab_BFTransfo(iv)%nb_vect_tot,liv,uiv
+          !write(out_unit,*) 'iv,BFTransfo%nb_vect,liv,uiv',iv,BFTransfo%tab_BFTransfo(iv)%nb_vect_tot,liv,uiv
           CALL calc_PolyTransfo(dnQin,i_Qpoly,dnQout,tab_dnXVect(liv:uiv),&
                                 iv,BFTransfo%tab_BFTransfo(iv),nderiv)
           liv = liv + BFTransfo%tab_BFTransfo(iv)%nb_vect_tot
@@ -1595,7 +1595,7 @@
         IF (BFTransfo%Frame_type /= 0) CALL calc_Rot_Vect(tab_dnXVect,BFTransfo,nderiv)
 
         ! For the overall rotation in the local BF frame (not F0)
-        !write(out_unitp,*) 'Overall rotation: ',BFTransfo%name_Frame
+        !write(out_unit,*) 'Overall rotation: ',BFTransfo%name_Frame
         CALL alloc_dnSVM(dna,nb_var_deriv,nderiv)
         CALL alloc_dnSVM(dnCa,nb_var_deriv,nderiv)
         CALL alloc_dnSVM(dnSa,nb_var_deriv,nderiv)
@@ -1607,13 +1607,13 @@
           ieuler = count(BFTransfo%euler(:))
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot gamma / Z , iQgamma',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot gamma / Z , iQgamma',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! gamma
           CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
           CALL sub_dnS1_TO_dntR2(dna,dnSa,3,nderiv)
 
           DO iv=2,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot gamma / Z ',iv
+            !write(out_unit,*) 'Rot gamma / Z ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfy,2) ! y
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -1637,7 +1637,7 @@
           ieuler = count(BFTransfo%euler(1:2))
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot beta / Y ,iQbeta',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot beta / Y ,iQbeta',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! beta
           IF (BFTransfo%type_Qin(i_Qprim) == 3) THEN
             CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
@@ -1646,14 +1646,14 @@
             CALL sub_dnS1_TO_dnS2(dna,dnCa,nderiv)
             CALL sub_dnS1_TO_dntR2(dna,dnSa,4,nderiv,dnErr=dnErr)
             IF (dnErr /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
               STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
             END IF
           END IF
 
           DO iv=1,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot beta / Y ',iv
+            !write(out_unit,*) 'Rot beta / Y ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfz,3) ! z
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -1679,12 +1679,12 @@
           ieuler = 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot alpha / Z , iQalpha',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot alpha / Z , iQalpha',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! alpha
           CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
           CALL sub_dnS1_TO_dntR2(dna,dnSa,3,nderiv)
           DO iv=1,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot alpha / Z ',iv
+            !write(out_unit,*) 'Rot alpha / Z ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfy,2) ! y
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -1714,7 +1714,7 @@
         CALL dealloc_dnSVM(dnfz)
       ELSE
         IF (iv_in == 1) THEN
-          !write(out_unitp,*) 'd1,th1,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+          !write(out_unit,*) 'd1,th1,iv_in,name_frame',iv_in,BFTransfo%name_Frame
           i_Qpoly = i_Qpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
           CALL sub_dnVec_TO_dnS(dnQin,dnd,i_Qprim)
@@ -1731,8 +1731,8 @@
             CALL sub_dnS1_TO_dnS2(dnQval,dnCval,nderiv)
             CALL sub_dnS1_TO_dntR2(dnQval,dnSval,4,nderiv,dnErr=dnErr)
             IF (dnErr /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
               STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
             END IF
           END IF
@@ -1755,7 +1755,7 @@
           i_Qpoly = i_Qpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
 
-          !write(out_unitp,*) 'd2,th2,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+          !write(out_unit,*) 'd2,th2,iv_in,name_frame',iv_in,BFTransfo%name_Frame
           IF (BFTransfo%type_Qin(i_Qprim) == 1) THEN ! cartesian coordinates
             CALL sub_dnVec_TO_dnS(dnQin,dnf1,i_Qprim) !x
             i_Qpoly = i_Qpoly + 1
@@ -1776,8 +1776,8 @@
               CALL sub_dnS1_TO_dnS2(dnQval,dnCval,nderiv)
               CALL sub_dnS1_TO_dntR2(dnQval,dnSval,4,nderiv,dnErr=dnErr)
               IF (dnErr /= 0) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
                 STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
               END IF
             END IF
@@ -1806,7 +1806,7 @@
 
             !-----------------------------------------------------------
           END IF
-          !write(out_unitp,*) 'dnf1,dnf2,dnf3:',dnf1%d0,dnf2%d0,dnf3%d0
+          !write(out_unit,*) 'dnf1,dnf2,dnf3:',dnf1%d0,dnf2%d0,dnf3%d0
           SELECT CASE(BFTransfo%Spherical_convention)
           CASE ('zxy')
             CALL sub_dnS_TO_dnVec(dnf1,tab_dnXVect(1),1,nderiv) !x
@@ -1818,23 +1818,23 @@
             CALL sub_Weight_dnS(dnf1,-ONE,nderiv)
             CALL sub_dnS_TO_dnVec(dnf1,tab_dnXVect(1),3,nderiv) !-x
           CASE Default
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  No default Spherical_convention'
-            write(out_unitp,*) '  Check the fortran'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  No default Spherical_convention'
+            write(out_unit,*) '  Check the fortran'
             STOP
           END SELECT
-          !write(out_unitp,*) 'Vector :',tab_dnXVect(1)%d0
+          !write(out_unit,*) 'Vector :',tab_dnXVect(1)%d0
         ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  Wrong iv_in for Frame = F',iv_in,BFTransfo%Frame
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  Wrong iv_in for Frame = F',iv_in,BFTransfo%Frame
           STOP
         END IF
 
         !-------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) '-----------------------------------------------'
-          write(out_unitp,*) 'Vector :',iv_in,' in ',BFTransfo%name_Frame
+          write(out_unit,*)
+          write(out_unit,*) '-----------------------------------------------'
+          write(out_unit,*) 'Vector :',iv_in,' in ',BFTransfo%name_Frame
           CALL write_dnx(1,3,tab_dnXVect(1),nderiv_debug)
         END IF
         !-------------------------------------------------------------
@@ -1866,12 +1866,12 @@
 
       !----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*)
+        write(out_unit,*) 'dnQout'
         CALL Write_dnSVM(dnQout,nderiv_debug)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END RECURSIVE ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END RECURSIVE ',name_sub
+        write(out_unit,*)
       END IF
 
 
@@ -1899,18 +1899,18 @@
       character (len=*), parameter :: name_sub='calc_PolyTransfo_outTOin'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'dnQvect (dnQout): '
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'dnQvect (dnQout): '
         CALL Write_dnSVM(dnQout,nderiv_debug)
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
       END IF
 !      -----------------------------------------------------------------
       IF (nderiv /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  This subroutine cannot be use with nderiv > 0',nderiv
-        write(out_unitp,*) '  Check the fortran source !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  This subroutine cannot be use with nderiv > 0',nderiv
+        write(out_unit,*) '  Check the fortran source !!'
         STOP
       END IF
 
@@ -1934,7 +1934,7 @@
       CALL RecGet_Vec_Fi_For_poly(dnVect,BFTransfo%nb_vect_tot,         &
                                   iv_tot,1,UnitVect_F0,                 &
                                   dnQin,iQin,BFTransfo)
-      !write(out_unitp,*) 'iv_tot',iv_tot
+      !write(out_unit,*) 'iv_tot',iv_tot
 
       CALL dealloc_dnSVM(UnitVect_F0(1))
       CALL dealloc_dnSVM(UnitVect_F0(2))
@@ -1943,12 +1943,12 @@
 
         !----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) 'dnQin (dnQpoly):'
+          write(out_unit,*)
+          write(out_unit,*) 'dnQin (dnQpoly):'
           CALL Write_dnSVM(dnQin,nderiv_debug)
-          write(out_unitp,*)
-          write(out_unitp,*) 'END ',name_sub
-          write(out_unitp,*)
+          write(out_unit,*)
+          write(out_unit,*) 'END ',name_sub
+          write(out_unit,*)
         END IF
 
 
@@ -1980,10 +1980,10 @@
       character (len=*), parameter :: name_sub='Export_Fortran_PolyTransfo'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING RECURSIVE ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'i_Qpoly,iv_in',i_Qpoly,iv_in
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING RECURSIVE ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'i_Qpoly,iv_in',i_Qpoly,iv_in
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
       END IF
 !      -----------------------------------------------------------------
@@ -2004,17 +2004,17 @@
 
 
       IF (BFTransfo%Frame) THEN
-        write(out_unitp,*) 'BFTransfo%euler : ',BFTransfo%euler(:)
+        write(out_unit,*) 'BFTransfo%euler : ',BFTransfo%euler(:)
         !==========================================
         ! 1st vector
-        write(out_unitp,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+        write(out_unit,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
         iv = 0
         i_Qpoly = i_Qpoly + 1
         IF (.NOT. associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  "list_Qpoly_TO_Qprim" is not associated'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not associated'
           CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
-          write(out_unitp,*) ' Check the fortran source !!'
+          write(out_unit,*) ' Check the fortran source !!'
           STOP
         END IF
         i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
@@ -2024,9 +2024,9 @@
 
         !---------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) '-------------------------------------------------'
-          write(out_unitp,*) 'Vector :',iv+1,' in ',BFTransfo%name_Frame
+          write(out_unit,*)
+          write(out_unit,*) '-------------------------------------------------'
+          write(out_unit,*) 'Vector :',iv+1,' in ',BFTransfo%name_Frame
           CALL write_dnx(1,3,tab_dnXVect(iv+1),nderiv_debug)
         END IF
         !---------------------------------------------------------------
@@ -2034,7 +2034,7 @@
         liv = 2
         DO iv=1,BFTransfo%nb_vect
           uiv = ubound(tab_dnXVect(:),dim=1)
-          !write(out_unitp,*) 'iv,BFTransfo%nb_vect,liv,uiv',iv,BFTransfo%tab_BFTransfo(iv)%nb_vect_tot,liv,uiv
+          !write(out_unit,*) 'iv,BFTransfo%nb_vect,liv,uiv',iv,BFTransfo%tab_BFTransfo(iv)%nb_vect_tot,liv,uiv
           CALL calc_PolyTransfo(dnQin,i_Qpoly,dnQout,tab_dnXVect(liv:uiv),&
                                 iv,BFTransfo%tab_BFTransfo(iv),nderiv)
           liv = liv + BFTransfo%tab_BFTransfo(iv)%nb_vect_tot
@@ -2045,7 +2045,7 @@
         IF (BFTransfo%Frame_type /= 0) CALL calc_Rot_Vect(tab_dnXVect,BFTransfo,nderiv)
 
         ! For the overall rotation in the local BF frame (not F0)
-        write(out_unitp,*) 'Overall rotation: ',BFTransfo%name_Frame
+        write(out_unit,*) 'Overall rotation: ',BFTransfo%name_Frame
         CALL alloc_dnSVM(dna,nb_var_deriv,nderiv)
         CALL alloc_dnSVM(dnCa,nb_var_deriv,nderiv)
         CALL alloc_dnSVM(dnSa,nb_var_deriv,nderiv)
@@ -2057,13 +2057,13 @@
           ieuler = count(BFTransfo%euler(:))
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot gamma / Z , iQgamma',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot gamma / Z , iQgamma',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! gamma
           CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
           CALL sub_dnS1_TO_dntR2(dna,dnSa,3,nderiv)
 
           DO iv=2,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot gamma / Z ',iv
+            !write(out_unit,*) 'Rot gamma / Z ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfy,2) ! y
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -2088,7 +2088,7 @@
           ieuler = count(BFTransfo%euler(1:2))
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot beta / Y ,iQbeta',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot beta / Y ,iQbeta',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! beta
           IF (BFTransfo%type_Qin(i_Qprim) == 3) THEN
             CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
@@ -2097,14 +2097,14 @@
             CALL sub_dnS1_TO_dnS2(dna,dnCa,nderiv)
             CALL sub_dnS1_TO_dntR2(dna,dnSa,4,nderiv,dnErr=dnErr)
             IF (dnErr /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
               STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
             END IF
           END IF
 
           DO iv=1,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot beta / Y ',iv
+            !write(out_unit,*) 'Rot beta / Y ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfz,3) ! z
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -2130,12 +2130,12 @@
           ieuler = 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly+ieuler)
 
-          !write(out_unitp,*) 'Rot alpha / Z , iQalpha',i_Qpoly+ieuler
+          !write(out_unit,*) 'Rot alpha / Z , iQalpha',i_Qpoly+ieuler
           CALL sub_dnVec_TO_dnS(dnQin,dna,i_Qprim) ! alpha
           CALL sub_dnS1_TO_dntR2(dna,dnCa,2,nderiv)
           CALL sub_dnS1_TO_dntR2(dna,dnSa,3,nderiv)
           DO iv=1,BFTransfo%nb_vect_tot
-            !write(out_unitp,*) 'Rot alpha / Z ',iv
+            !write(out_unit,*) 'Rot alpha / Z ',iv
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfx,1) ! x
             CALL sub_dnVec_TO_dnS(tab_dnXVect(iv),dnfy,2) ! y
             CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnfx,dnCa,dnf1,nderiv) ! Rx = cos*x
@@ -2165,7 +2165,7 @@
         CALL dealloc_dnSVM(dnfz)
       ELSE
         IF (iv_in == 1) THEN
-          !write(out_unitp,*) 'd1,th1,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+          !write(out_unit,*) 'd1,th1,iv_in,name_frame',iv_in,BFTransfo%name_Frame
           i_Qpoly = i_Qpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
           CALL sub_dnVec_TO_dnS(dnQin,dnd,i_Qprim)
@@ -2182,8 +2182,8 @@
             CALL sub_dnS1_TO_dnS2(dnQval,dnCval,nderiv)
             CALL sub_dnS1_TO_dntR2(dnQval,dnSval,4,nderiv,dnErr=dnErr)
             IF (dnErr /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
               STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
             END IF
           END IF
@@ -2206,7 +2206,7 @@
           i_Qpoly = i_Qpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
 
-          !write(out_unitp,*) 'd2,th2,iv_in,name_frame',iv_in,BFTransfo%name_Frame
+          !write(out_unit,*) 'd2,th2,iv_in,name_frame',iv_in,BFTransfo%name_Frame
           IF (BFTransfo%type_Qin(i_Qprim) == 1) THEN ! cartesian coordinates
             CALL sub_dnVec_TO_dnS(dnQin,dnf1,i_Qprim) !x
             i_Qpoly = i_Qpoly + 1
@@ -2227,8 +2227,8 @@
               CALL sub_dnS1_TO_dnS2(dnQval,dnCval,nderiv)
               CALL sub_dnS1_TO_dntR2(dnQval,dnSval,4,nderiv,dnErr=dnErr)
               IF (dnErr /= 0) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, i_Qprim:',i_Qprim
                 STOP 'ERROR in sub_dntf called from calc_PolyTransfo'
               END IF
             END IF
@@ -2263,16 +2263,16 @@
           CALL sub_dnS_TO_dnVec(dnf3,tab_dnXVect(1),3,nderiv) !z
 
         ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  Wrong iv_in for Frame = F',iv_in,BFTransfo%Frame
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  Wrong iv_in for Frame = F',iv_in,BFTransfo%Frame
           STOP
         END IF
 
         !-------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) '-----------------------------------------------'
-          write(out_unitp,*) 'Vector :',iv_in,' in ',BFTransfo%name_Frame
+          write(out_unit,*)
+          write(out_unit,*) '-----------------------------------------------'
+          write(out_unit,*) 'Vector :',iv_in,' in ',BFTransfo%name_Frame
           CALL write_dnx(1,3,tab_dnXVect(1),nderiv_debug)
         END IF
         !-------------------------------------------------------------
@@ -2304,12 +2304,12 @@
 
       !----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*)
+        write(out_unit,*) 'dnQout'
         CALL Write_dnSVM(dnQout,nderiv_debug)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END RECURSIVE ',name_sub
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END RECURSIVE ',name_sub
+        write(out_unit,*)
       END IF
 
 
@@ -2352,15 +2352,15 @@
 !      -----------------------------------------------------------------
 
       iv_tot = iv_tot + 1
-      !write(out_unitp,*) 'RecGet_Vec_Fi: nb_vect_tot,iv_Fi,iv_tot',nb_vect_tot,iv_Fi,iv_tot
-      !write(out_unitp,*) 'vect:',tab_Vect_Fi(iv_tot)%d0
+      !write(out_unit,*) 'RecGet_Vec_Fi: nb_vect_tot,iv_Fi,iv_tot',nb_vect_tot,iv_Fi,iv_tot
+      !write(out_unit,*) 'vect:',tab_Vect_Fi(iv_tot)%d0
 
       nb_vect = BFTransfo%nb_vect
       Frame   = BFTransfo%Frame
 
       IF (Frame) THEN
-        IF (debug) write(out_unitp,*) '============================================='
-        IF (debug) write(out_unitp,*) ' Frame = T, iv_tot',iv_tot
+        IF (debug) write(out_unit,*) '============================================='
+        IF (debug) write(out_unit,*) ' Frame = T, iv_tot',iv_tot
         ! norm of the vector (distance)
         Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
 
@@ -2386,9 +2386,9 @@
           UnitVect_Fij(2)%d0(3) =                                       &
                        UnitVect_Fij(3)%d0(1) * UnitVect_Fij(1)%d0(2) -  &
                        UnitVect_Fij(3)%d0(2) * UnitVect_Fij(1)%d0(1)
-          !write(out_unitp,*) 'ex_Fij',UnitVect_Fij(1)%d0
-          !write(out_unitp,*) 'ey_Fij',UnitVect_Fij(2)%d0
-          !write(out_unitp,*) 'ez_Fij',UnitVect_Fij(3)%d0
+          !write(out_unit,*) 'ex_Fij',UnitVect_Fij(1)%d0
+          !write(out_unit,*) 'ey_Fij',UnitVect_Fij(2)%d0
+          !write(out_unit,*) 'ez_Fij',UnitVect_Fij(3)%d0
         END IF
 
         ! Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0)) !already calculated
@@ -2402,17 +2402,17 @@
         alphaiv = atan2(py,px)
         CALL dihedral_range(alphaiv,2) ! [0:2pi]
 
-        IF (debug) write(out_unitp,*) 'R       : ',iv_Fi,':',Riv,Riv
+        IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
         iQpoly  = iQpoly + 1
         i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
         dnQpoly%d0(i_Qprim) = Riv
 
         ! loop on the vectors in frame Fij
         DO iv_Fij=2,nb_vect+1
-!          write(out_unitp,*) 'iv_Fij,nb_vect+1',iv_Fij,nb_vect+1
-!          write(out_unitp,*) 'shape tab_BFTransfo',shape(BFTransfo%tab_BFTransfo)
-!          write(out_unitp,*) 'lbound tab_BFTransfo',lbound(BFTransfo%tab_BFTransfo)
-!          write(out_unitp,*) 'ubound tab_BFTransfo',ubound(BFTransfo%tab_BFTransfo)
+!          write(out_unit,*) 'iv_Fij,nb_vect+1',iv_Fij,nb_vect+1
+!          write(out_unit,*) 'shape tab_BFTransfo',shape(BFTransfo%tab_BFTransfo)
+!          write(out_unit,*) 'lbound tab_BFTransfo',lbound(BFTransfo%tab_BFTransfo)
+!          write(out_unit,*) 'ubound tab_BFTransfo',ubound(BFTransfo%tab_BFTransfo)
 
           CALL RecGet_Vec_Fi_For_poly(tab_Vect_Fi,nb_vect_tot,          &
                                       iv_tot,iv_Fij,UnitVect_Fij,       &
@@ -2429,14 +2429,14 @@
             ELSE
               dnQpoly%d0(i_Qprim) = betaiv
             END IF
-            IF (debug) write(out_unitp,*) 'coucou beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
+            IF (debug) write(out_unit,*) 'coucou beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
           END IF
         ELSE ! iv_Fi /= 2
           iQpoly  = iQpoly + 1
           IF (iQpoly <= dnQpoly%nb_var_vec) THEN
             i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
             dnQpoly%d0(i_Qprim) = alphaiv
-            IF (debug) write(out_unitp,*) 'alpha   : ',iv_Fi,':',alphaiv*radTOdeg,alphaiv
+            IF (debug) write(out_unit,*) 'alpha   : ',iv_Fi,':',alphaiv*radTOdeg,alphaiv
           END IF
 
           iQpoly = iQpoly + 1
@@ -2447,7 +2447,7 @@
             ELSE
               dnQpoly%d0(i_Qprim) = betaiv
             END IF
-            IF (debug) write(out_unitp,*) 'beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
+            IF (debug) write(out_unit,*) 'beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
           END IF
         END IF
 
@@ -2455,7 +2455,7 @@
           ! for gamma we use ex_BF projected on the SF
           px = dot_product(UnitVect_Fij(1)%d0,UnitVect_Fi(3)%d0)
           py = dot_product(UnitVect_Fij(2)%d0,UnitVect_Fi(3)%d0)
-          !write(out_unitp,*) 'for gamma, px,py',px,py
+          !write(out_unit,*) 'for gamma, px,py',px,py
           gammaiv = atan2(py,-px)
           CALL dihedral_range(gammaiv,2) ! [0:2pi]
 
@@ -2463,7 +2463,7 @@
           IF (iQpoly <= dnQpoly%nb_var_vec) THEN
             i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
             dnQpoly%d0(i_Qprim) = gammaiv
-            IF (debug) write(out_unitp,*) 'gamma   : ',iv_Fi,':',gammaiv*radTOdeg,gammaiv
+            IF (debug) write(out_unit,*) 'gamma   : ',iv_Fi,':',gammaiv*radTOdeg,gammaiv
           END IF
 
         END IF
@@ -2472,17 +2472,17 @@
         CALL dealloc_dnSVM(UnitVect_Fij(2))
         CALL dealloc_dnSVM(UnitVect_Fij(3))
 
-        IF (debug) write(out_unitp,*) '============================================='
+        IF (debug) write(out_unit,*) '============================================='
       ELSE
 
-!        write(out_unitp,*) 'ex_Fi',UnitVect_Fi(1)%d0
-!        write(out_unitp,*) 'ey_Fi',UnitVect_Fi(2)%d0
-!        write(out_unitp,*) 'ez_Fi',UnitVect_Fi(3)%d0
+!        write(out_unit,*) 'ex_Fi',UnitVect_Fi(1)%d0
+!        write(out_unit,*) 'ey_Fi',UnitVect_Fi(2)%d0
+!        write(out_unit,*) 'ez_Fi',UnitVect_Fi(3)%d0
 
         IF (iv_Fi == 1) THEN
-          write(out_unitp,*) ' ERROR in RecGet_Vec_Fi'
-          write(out_unitp,*) ' iv_Fi=1 and frame=F is NOT possible'
-          write(out_unitp,*) ' check the fortran!'
+          write(out_unit,*) ' ERROR in RecGet_Vec_Fi'
+          write(out_unit,*) ' iv_Fi=1 and frame=F is NOT possible'
+          write(out_unit,*) ' check the fortran!'
           STOP
         ELSE IF (iv_Fi == 2) THEN
           ! norm of the vector (distance)
@@ -2495,7 +2495,7 @@
           iQpoly = iQpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
           dnQpoly%d0(i_Qprim) = Riv
-          IF (debug) write(out_unitp,*) 'R       : ',iv_Fi,':',Riv,Riv
+          IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
 
           iQpoly = iQpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
@@ -2505,7 +2505,7 @@
           ELSE
               dnQpoly%d0(i_Qprim) = thiv
           END IF
-          IF (debug) write(out_unitp,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
+          IF (debug) write(out_unit,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
 
         ELSE
           IF (BFTransfo%cart) THEN
@@ -2524,9 +2524,9 @@
             !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(3)
             dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
 
-            IF (debug) write(out_unitp,*) 'x       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(1)
-            IF (debug) write(out_unitp,*) 'y       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(2)
-            IF (debug) write(out_unitp,*) 'z       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(3)
+            IF (debug) write(out_unit,*) 'x       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(1)
+            IF (debug) write(out_unit,*) 'y       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(2)
+            IF (debug) write(out_unit,*) 'z       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(3)
           ELSE
             ! norm of the vector (distance)
             Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
@@ -2541,9 +2541,9 @@
               px = -dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
               py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
             CASE Default
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  No default Spherical_convention'
-              write(out_unitp,*) '  Check the fortran'
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  No default Spherical_convention'
+              write(out_unit,*) '  Check the fortran'
               STOP
             END SELECT
 
@@ -2555,7 +2555,7 @@
             iQpoly = iQpoly + 1
             i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
             dnQpoly%d0(i_Qprim) = Riv
-            IF (debug) write(out_unitp,*) 'R       : ',iv_Fi,':',Riv,Riv
+            IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
 
             iQpoly = iQpoly + 1
             i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
@@ -2564,12 +2564,12 @@
             ELSE
               dnQpoly%d0(i_Qprim) = thiv
             END IF
-            IF (debug) write(out_unitp,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
+            IF (debug) write(out_unit,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
 
             iQpoly = iQpoly + 1
             i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
             dnQpoly%d0(i_Qprim) = phiv
-            IF (debug) write(out_unitp,*) 'phi     : ',iv_Fi,':',phiv*radTOdeg,phiv
+            IF (debug) write(out_unit,*) 'phi     : ',iv_Fi,':',phiv*radTOdeg,phiv
           END IF
 
         END IF
@@ -2594,10 +2594,10 @@
       character (len=*), parameter :: name_sub='Rec_BFTransfo1TOBFTransfo2'
 !      -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING RECURSIVE ',name_sub
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING RECURSIVE ',name_sub
         CALL RecWrite_BFTransfo(BFTransfo1,.FALSE.)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 
 
@@ -2668,10 +2668,10 @@
       END IF
 
       IF (debug) THEN
-        write(out_unitp,*)
+        write(out_unit,*)
         CALL RecWrite_BFTransfo(BFTransfo2,.FALSE.)
-        write(out_unitp,*) 'END RECURSIVE ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END RECURSIVE ',name_sub
+        flush(out_unit)
       END IF
 
       END SUBROUTINE Rec_BFTransfo1TOBFTransfo2
@@ -2688,16 +2688,16 @@
        character (len=*), parameter :: name_sub = 'alloc_BunchTransfo'
 
 
-!      write(out_unitp,*) 'BEGINNING ',name_sub
-!      write(out_unitp,*) 'nat,nb_var,ncart',BunchTransfo%nat,BunchTransfo%nb_var,BunchTransfo%ncart
+!      write(out_unit,*) 'BEGINNING ',name_sub
+!      write(out_unit,*) 'nat,nb_var,ncart',BunchTransfo%nat,BunchTransfo%nb_var,BunchTransfo%ncart
 
        IF (BunchTransfo%nat < 3 .OR. BunchTransfo%nb_vect < 1 .OR.      &
            BunchTransfo%ncart < 9 .OR. BunchTransfo%nat_act < 2) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' wrong value of nat, nat_act, nb_vect or ncart',&
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' wrong value of nat, nat_act, nb_vect or ncart',&
                                       BunchTransfo%nat,BunchTransfo%nat_act, &
                                       BunchTransfo%nb_vect,BunchTransfo%ncart
-         write(out_unitp,*) ' CHECK the source !!'
+         write(out_unit,*) ' CHECK the source !!'
          STOP
        END IF
 
@@ -2756,7 +2756,7 @@
                        "BunchTransfo%masses_OF_At",name_sub)
        BunchTransfo%masses_OF_At(:) = ZERO
 
-!      write(out_unitp,*) 'END ',name_sub
+!      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE alloc_BunchTransfo
 
@@ -2768,7 +2768,7 @@
       integer :: err_mem,memory
        character (len=*), parameter :: name_sub='dealloc_BunchTransfo'
 
-       !write(out_unitp,*) 'BEGINNING ',name_sub ; flush(out_unitp)
+       !write(out_unit,*) 'BEGINNING ',name_sub ; flush(out_unit)
 
       IF (.NOT. associated(BunchTransfo)) RETURN
 
@@ -2837,7 +2837,7 @@
        CALL error_memo_allo(err_mem,-memory,'BunchTransfo',name_sub,'Type_BunchTransfo')
        nullify(BunchTransfo)
 
-       !write(out_unitp,*) 'END dealloc_BunchTransfo'  ; flush(out_unitp)
+       !write(out_unit,*) 'END dealloc_BunchTransfo'  ; flush(out_unit)
 
       END SUBROUTINE dealloc_BunchTransfo
 
@@ -2875,13 +2875,13 @@
       !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !---------------------- Tana -------------------------------------
       !--------------------------------------------------------
-      write(out_unitp,*) '  Read the vector connectivities'
-      write(out_unitp,*) '  nb_vect',BunchTransfo%nb_vect
-      write(out_unitp,*) '  nat',BunchTransfo%nat
+      write(out_unit,*) '  Read the vector connectivities'
+      write(out_unit,*) '  nb_vect',BunchTransfo%nb_vect
+      write(out_unit,*) '  nat',BunchTransfo%nat
 
 
       BunchTransfo%type_Qin(:) = 1
@@ -2928,8 +2928,8 @@
        nat_dum = BunchTransfo%nat-1
 
        IF (nb_vect < 1) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' the number of vector is < 1',nb_vect
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' the number of vector is < 1',nb_vect
          STOP
        END IF
 
@@ -2943,47 +2943,47 @@
        masses(1) = ZERO
       !--------------------------------------------------------
 
-      write(out_unitp,*) '---------------------------------------------'
-      write(out_unitp,*) '                                             '
-      write(out_unitp,*) 'vector,V i: |----.-------->                  '
-      write(out_unitp,*) '            A----X--------B                  '
-      write(out_unitp,*) '                                             '
-      write(out_unitp,*) '            | -w |          : A = X -w.V     '
-      write(out_unitp,*) '                 |   1-w  | : B = X + (1-w).V'
-      write(out_unitp,*) ' Remark: V = B-A                             '
-      write(out_unitp,*) ' Read: #vect:i, #linked_at:X, weight:w, ',    &
+      write(out_unit,*) '---------------------------------------------'
+      write(out_unit,*) '                                             '
+      write(out_unit,*) 'vector,V i: |----.-------->                  '
+      write(out_unit,*) '            A----X--------B                  '
+      write(out_unit,*) '                                             '
+      write(out_unit,*) '            | -w |          : A = X -w.V     '
+      write(out_unit,*) '                 |   1-w  | : B = X + (1-w).V'
+      write(out_unit,*) ' Remark: V = B-A                             '
+      write(out_unit,*) ' Read: #vect:i, #linked_at:X, weight:w, ',    &
                          'new_at:A and B'
-      write(out_unitp,*) '---------------------------------------------'
+      write(out_unit,*) '---------------------------------------------'
 
       i_at = 1
       DO i=1,nb_vect
         CALL make_nameQ(BunchTransfo%name_Qin(3*i-2),"Xbunch",i)
         CALL make_nameQ(BunchTransfo%name_Qin(3*i-1),"Ybunch",i)
         CALL make_nameQ(BunchTransfo%name_Qin(3*i-0),"Zbunch",i)
-        read(in_unitp,*,IOSTAT=err_io) BunchTransfo%ind_vect(1,i),iat1, &
+        read(in_unit,*,IOSTAT=err_io) BunchTransfo%ind_vect(1,i),iat1, &
                                        weight_vect(i),name1_at,name2_at
 
         IF (err_io /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while the vector definition (bunch)'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while the vector definition (bunch)'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
         IF (print_level > 1) THEN
-          write(out_unitp,*) BunchTransfo%ind_vect(1,i),iat1,           &
+          write(out_unit,*) BunchTransfo%ind_vect(1,i),iat1,           &
                                         weight_vect(i),name1_at,name2_at
         END IF
 
         icf1 = tab_iAtTOiCart(iat1)
         BunchTransfo%ind_vect(2,i) = icf1
         IF (icf1 == 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) '  The vector (',                       &
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) '  The vector (',                       &
              BunchTransfo%ind_vect(1,i),                              &
             ') is linked to an undefined atom (',iat1,').'
 
-           write(out_unitp,*) i_at,                                   &
+           write(out_unit,*) i_at,                                   &
                  '  atoms have been of already defined'
            STOP
         END IF
@@ -2992,7 +2992,7 @@
         BunchTransfo%Z(i_at)       = -1
         BunchTransfo%symbole(i_at) = name1_at
         at =get_mass_Tnum(mendeleev,Z=BunchTransfo%Z(i_at),name=name1_at)
-        !write(out_unitp,*) 'atom1:',i,BunchTransfo%Z(i),at
+        !write(out_unit,*) 'atom1:',i,BunchTransfo%Z(i),at
         IF (at > ZERO) THEN
           BunchTransfo%nat_act = BunchTransfo%nat_act + 1
           icf = func_ic(BunchTransfo%nat_act)
@@ -3012,13 +3012,13 @@
         BunchTransfo%masses(icf+0:icf+2)  = at
         BunchTransfo%ind_vect(3,i)        = icf
         tab_iAtTOiCart(i_at) = icf
-        write(out_unitp,*) '# vect,# at1,icf1,mass1',i,i_at,icf,at
+        write(out_unit,*) '# vect,# at1,icf1,mass1',i,i_at,icf,at
 
         i_at                       = i_at +1
         BunchTransfo%Z(i_at)       = -1
         BunchTransfo%symbole(i_at) = name2_at
         at =get_mass_Tnum(mendeleev,Z=BunchTransfo%Z(i_at),name=name2_at)
-        !write(out_unitp,*) 'atom2:',i,BunchTransfo%Z(i),at
+        !write(out_unit,*) 'atom2:',i,BunchTransfo%Z(i),at
         IF (at > ZERO) THEN
           BunchTransfo%nat_act = BunchTransfo%nat_act + 1
           icf = func_ic(BunchTransfo%nat_act)
@@ -3038,26 +3038,26 @@
         BunchTransfo%masses(icf+0:icf+2)  = at
         BunchTransfo%ind_vect(4,i)        = icf
         tab_iAtTOiCart(i_at)              = icf
-        write(out_unitp,*) '# vect,# at2,icf2,mass2',i,i_at,icf,at
+        write(out_unit,*) '# vect,# at2,icf2,mass2',i,i_at,icf,at
 
       END DO
       IF (BunchTransfo%nat_act /= BunchTransfo%nb_vect+1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  The number of true atoms (not dummy) is ' // &
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  The number of true atoms (not dummy) is ' // &
                'wrong ',BunchTransfo%nat_act
-        write(out_unitp,*) '  It MUST be equal to ',BunchTransfo%nb_vect+1
-        write(out_unitp,*) '  Probably, you have too many or not ' //   &
+        write(out_unit,*) '  It MUST be equal to ',BunchTransfo%nb_vect+1
+        write(out_unit,*) '  Probably, you have too many or not ' //   &
                                                   'enough dummy atoms'
 
-        write(out_unitp,*) '  CHECK your data!!'
+        write(out_unit,*) '  CHECK your data!!'
         STOP
       END IF
 
       !--------------------------------------------------------
-      write(out_unitp,*) '---------------------------------------------'
-      write(out_unitp,*) '                                             '
-      write(out_unitp,*) '   ADD centers of masses'
-      write(out_unitp,*) '     nb_G:',BunchTransfo%nb_G
+      write(out_unit,*) '---------------------------------------------'
+      write(out_unit,*) '                                             '
+      write(out_unit,*) '   ADD centers of masses'
+      write(out_unit,*) '     nb_G:',BunchTransfo%nb_G
 
 
       DO i=1,BunchTransfo%nb_G
@@ -3065,29 +3065,29 @@
         tab_At_recenter(:) = 0
         GAt                = 0
 
-        read(in_unitp,recenterG,IOSTAT=err_io)
+        read(in_unit,recenterG,IOSTAT=err_io)
         IF (err_io /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while the nemalist "recenterG"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while the nemalist "recenterG"'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-         !write(out_unitp,recenterG)
+         !write(out_unit,recenterG)
          IF (count(tab_At_recenter > 0) == 0) tab_At_recenter(:) = tab_At_TO_G(:)
-         write(out_unitp,*) '    G:',i,'Gat:',Gat
+         write(out_unit,*) '    G:',i,'Gat:',Gat
 
          nb_at = count(tab_At_TO_G > 0)
          IF (nb_at > BunchTransfo%nat) STOP 'wrong nat!!!'
-         write(out_unitp,*) '    tab_At_TO_G     :',tab_At_TO_G(1:nb_at)
+         write(out_unit,*) '    tab_At_TO_G     :',tab_At_TO_G(1:nb_at)
 
          nb_at = count(tab_At_recenter > 0)
          IF (nb_at > BunchTransfo%nat) STOP 'wrong nat!!!'
 
-         write(out_unitp,*) '    tab_At_recenter :',tab_At_recenter(1:nb_at)
+         write(out_unit,*) '    tab_At_recenter :',tab_At_recenter(1:nb_at)
 
          IF (GAt < 1) THEN
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) 'GAt is < 0',Gat
+            write(out_unit,*) 'ERROR in ',name_sub
+            write(out_unit,*) 'GAt is < 0',Gat
             STOP
          END IF
 
@@ -3095,34 +3095,34 @@
          ! center of masses: i
          BG(:) = ZERO
          Mtot  = ZERO
-         !write(out_unitp,*) 'i,G',i
+         !write(out_unit,*) 'i,G',i
          DO j=1,count(tab_At_TO_G(:) > 0)
             i_at = tab_At_TO_G(j)
             Mtot = Mtot + masses(i_at)
-            !write(out_unitp,*) 'i,j,i_At',i,j,iAt,
+            !write(out_unit,*) 'i,j,i_At',i,j,iAt,
             BG(:) = BG(:) + masses(i_at) * B(i_at,:)
          END DO
 
          ! Add the position of GAt
-         !write(out_unitp,*) 'i,iAt of Gat',i,GAt
+         !write(out_unit,*) 'i,iAt of Gat',i,GAt
          BG(:) = B(GAt,:) - BG(:)/Mtot
 
          ! recenter the atom: i
          DO j=1,count(tab_At_recenter(:) > 0)
             i_at = tab_At_recenter(j)
-            !write(out_unitp,*) 'i,j,iAt',i,j,iAt
+            !write(out_unit,*) 'i,j,iAt',i,j,iAt
             B(i_at,:) = B(i_at,:) + BG(:)
          END DO
         !---------------------- Tana -----------------------------------
 
       END DO
-      write(out_unitp,*) '   END ADD centers of masses                 '
-      write(out_unitp,*) '                                             '
-      write(out_unitp,*) '---------------------------------------------'
+      write(out_unit,*) '   END ADD centers of masses                 '
+      write(out_unit,*) '                                             '
+      write(out_unit,*) '---------------------------------------------'
 
       !ncart_act number of active cartesian coordinates (without dummy atom and G)
       BunchTransfo%ncart_act = 3 * BunchTransfo%nat_act
-      IF (debug) write(out_unitp,*) 'nat_act,ncart_act',                &
+      IF (debug) write(out_unit,*) 'nat_act,ncart_act',                &
                             BunchTransfo%nat_act,BunchTransfo%ncart_act
       !-------------------------------------------------------
       !-- end Read bunch of vectors  -------------------------
@@ -3165,17 +3165,17 @@
         END IF
       END DO
       IF (print_level > 1) THEN
-        write(out_unitp,*) 'masses',masses(:)
-        write(out_unitp,*) 'A_inv'
-        CALL Write_Mat(BB,out_unitp,5)
+        write(out_unit,*) 'masses',masses(:)
+        write(out_unit,*) 'A_inv'
+        CALL Write_Mat(BB,out_unit,5)
       END IF
 
       !calculation of A (not mass weighted)
       CALL inv_OF_Mat_TO_Mat_inv(BB,A,0,ZERO) ! not SVD
 
       IF (print_level > 1) THEN
-        write(out_unitp,*) 'A'
-        CALL Write_Mat(A,out_unitp,5)
+        write(out_unit,*) 'A'
+        CALL Write_Mat(A,out_unit,5)
       END IF
 
       !Use the massweighted relation and sort the dummy atoms (centers of mass)
@@ -3193,12 +3193,12 @@
 
       !calculation of M (included the M of the center of mass)
       M_Tana = matmul(A,transpose(A))
-      write(out_unitp,*) 'M_Tana (with the center-of-mass contribution)'
-      CALL Write_Mat(M_Tana,out_unitp,5)
+      write(out_unit,*) 'M_Tana (with the center-of-mass contribution)'
+      CALL Write_Mat(M_Tana,out_unit,5)
 
       BunchTransfo%M_Tana(:,:) = M_Tana(1:nb_vect,1:nb_vect)
-      write(out_unitp,*) 'M_Tana (without the center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unitp,5)
+      write(out_unit,*) 'M_Tana (without the center-of-mass contribution)'
+      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
 
       CALL dealloc_array(tab_iAtTOiCart,"tab_iAtTOiCart",name_sub)
       CALL dealloc_array(weight_vect,   "weight_vect",   name_sub)
@@ -3210,7 +3210,7 @@
       CALL dealloc_NParray(masses,        "masses",        name_sub)
 
       !--------------------------------------------------------
-      IF (debug) write(out_unitp,*) 'END ',name_sub
+      IF (debug) write(out_unit,*) 'END ',name_sub
       !--------------------------------------------------------
 
       END SUBROUTINE Read_BunchTransfo
@@ -3246,12 +3246,12 @@
       !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
       END IF
       !--------------------------------------------------------
-        write(out_unitp,*) '  Read the atoms'
-        write(out_unitp,*) '  nb_vect',BunchTransfo%nb_vect
-        write(out_unitp,*) '  nat',BunchTransfo%nat
+        write(out_unit,*) '  Read the atoms'
+        write(out_unit,*) '  nb_vect',BunchTransfo%nb_vect
+        write(out_unit,*) '  nat',BunchTransfo%nat
 
         ! allocation of the variables:
         CALL alloc_BunchTransfo(BunchTransfo)
@@ -3266,16 +3266,16 @@
         nb_vect = BunchTransfo%nb_vect
 
         nb_at = BunchTransfo%nat_act + BunchTransfo%nb_G + BunchTransfo%nb_X
-        write(out_unitp,*) '  nat_act',BunchTransfo%nat_act
+        write(out_unit,*) '  nat_act',BunchTransfo%nat_act
         nullify(name_at)
         CALL alloc_array(name_at,[nb_at],"name_at",name_sub)
 
-        read(in_unitp,*,IOSTAT=err_io) (name_at(i),i=1,BunchTransfo%nat_act)
+        read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,BunchTransfo%nat_act)
 
         IF (err_io /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the list of atoms or masses'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the list of atoms or masses'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
@@ -3291,36 +3291,36 @@
 
           BunchTransfo%masses_OF_At(i_at)  = at
           BunchTransfo%masses(icf+0:icf+2) = at
-          !write(out_unitp,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
+          !write(out_unit,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
           Mtot = Mtot + at
           IF (at == ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' The readed atom cannot be dummy !'
-            write(out_unitp,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' The readed atom cannot be dummy !'
+            write(out_unit,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
             STOP
           END IF
 
         END DO
 
         CALL dealloc_array(name_at,"name_at",name_sub)
-        !write(out_unitp,*) 'Masses: ',BunchTransfo%masses(:)
+        !write(out_unit,*) 'Masses: ',BunchTransfo%masses(:)
 
         ! for the centers of mass
         IF (BunchTransfo%nb_G > 0)                                      &
-              write(out_unitp,'(a,i0)') '  Read the centers of mass',BunchTransfo%nb_G
+              write(out_unit,'(a,i0)') '  Read the centers of mass',BunchTransfo%nb_G
 
         DO i_at=BunchTransfo%nat_act+1,BunchTransfo%nat_act+BunchTransfo%nb_G
 
           tab_At_TO_G(:)     = 0
 
-          read(in_unitp,recenterG,IOSTAT=err_io)
+          read(in_unit,recenterG,IOSTAT=err_io)
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while the namelist "recenterG"'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while the namelist "recenterG"'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) write(out_unitp,recenterG)
+          IF (debug) write(out_unit,recenterG)
 
           CALL Add_DummyG(BunchTransfo%Mat_At_TO_centers,               &
                           BunchTransfo%COM,i_at,                        &
@@ -3329,30 +3329,30 @@
         END DO
 
         IF (BunchTransfo%nb_X > 0)                                      &
-                        write(out_unitp,*) '  Read the dummy atoms, X'
+                        write(out_unit,*) '  Read the dummy atoms, X'
         DO i_at=BunchTransfo%nat_act+BunchTransfo%nb_G+1,BunchTransfo%nat_act+BunchTransfo%nb_G+BunchTransfo%nb_x
           tab_At_TO_X(:)     = 0
           wX                 = ZERO
           type_dummyX        = 'COM'
 
-          read(in_unitp,dummyX,IOSTAT=err_io)
+          read(in_unit,dummyX,IOSTAT=err_io)
           IF (err_io < 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the namelist "dummyX"'
-            write(out_unitp,*) ' end of file or end of record'
-            write(out_unitp,*) ' Probably, nb_X is to large in the namelist "Coord_transfo"'
-            write(out_unitp,*) '   or you have forgotten the namelist.'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading the namelist "dummyX"'
+            write(out_unit,*) ' end of file or end of record'
+            write(out_unit,*) ' Probably, nb_X is to large in the namelist "Coord_transfo"'
+            write(out_unit,*) '   or you have forgotten the namelist.'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
           IF (err_io > 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the namelist "dummyX"'
-            write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading the namelist "dummyX"'
+            write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) write(out_unitp,dummyX)
+          IF (debug) write(out_unit,dummyX)
 
           CALL string_uppercase_TO_lowercase(type_dummyX)
 
@@ -3368,9 +3368,9 @@
             iAtA = tab_At_TO_X(1)
             iAtB = tab_At_TO_X(2)
             IF (iAtA < 1 .OR. iAtA > i_at-1 .OR. iAtB<1 .OR. iAtB > i_at-1) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) ' the atom indexes iAtA, iAtB are out of range: [1,',i_at-1,']'
-              write(out_unitp,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) ' the atom indexes iAtA, iAtB are out of range: [1,',i_at-1,']'
+              write(out_unit,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
               STOP
             END IF
             BunchTransfo%Mat_At_TO_centers(:,i_at) =                    &
@@ -3383,12 +3383,12 @@
                                 BunchTransfo%masses_OF_At,tab_At_TO_X)
 
           CASE DEFAULT
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' Wrong type_dummyX: ',trim(type_dummyX)
-            write(out_unitp,*) ' The possibilities are:'
-            write(out_unitp,*) '  COM : center of mass'
-            write(out_unitp,*) '  wX : weighted average of two centers'
-            write(out_unitp,*) '  Radau : confocal point of Radau coordinates'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' Wrong type_dummyX: ',trim(type_dummyX)
+            write(out_unit,*) ' The possibilities are:'
+            write(out_unit,*) '  COM : center of mass'
+            write(out_unit,*) '  wX : weighted average of two centers'
+            write(out_unit,*) '  Radau : confocal point of Radau coordinates'
             STOP
           END SELECT
 
@@ -3398,17 +3398,17 @@
         !--------------------------------------------------------------
 
         IF (with_vect) THEN
-          write(out_unitp,*) '  Read the vector connectivities'
+          write(out_unit,*) '  Read the vector connectivities'
 
           !--------------------------------------------------------------
           !  read the vecteurs
           !--------------------------------------------------------------
           DO iv=1,BunchTransfo%nb_vect
-            read(in_unitp,*,IOSTAT=err_io) BunchTransfo%ind_vect(3:4,iv)
+            read(in_unit,*,IOSTAT=err_io) BunchTransfo%ind_vect(3:4,iv)
             IF (err_io /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  while reading the vecors indices.'
-              write(out_unitp,*) ' Check your data !!'
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  while reading the vecors indices.'
+              write(out_unit,*) ' Check your data !!'
               STOP
             END IF
             IF (BunchTransfo%ind_vect(3,iv) < 1     .OR.                &
@@ -3416,10 +3416,10 @@
                 BunchTransfo%ind_vect(4,iv) < 1     .OR.                &
                 BunchTransfo%ind_vect(4,iv) > nb_at) THEN
 
-               write(out_unitp,*) ' ERROR in ',name_sub
-               write(out_unitp,*) '  The vector (',iv,') indexes are out-of-range'
-               write(out_unitp,*) '   BunchTransfo%ind_vect(3:4,iv)',BunchTransfo%ind_vect(3:4,iv)
-               write(out_unitp,*) ' Check your data !!'
+               write(out_unit,*) ' ERROR in ',name_sub
+               write(out_unit,*) '  The vector (',iv,') indexes are out-of-range'
+               write(out_unit,*) '   BunchTransfo%ind_vect(3:4,iv)',BunchTransfo%ind_vect(3:4,iv)
+               write(out_unit,*) ' Check your data !!'
                STOP
             END IF
           END DO
@@ -3428,21 +3428,21 @@
 
         ! ncart_act number of active cartesian coordinates (without dummy atom and G)
         BunchTransfo%ncart_act = 3 * BunchTransfo%nat_act
-        write(out_unitp,*) '  nat_act,ncart_act',                       &
+        write(out_unit,*) '  nat_act,ncart_act',                       &
                             BunchTransfo%nat_act,BunchTransfo%ncart_act
 
         IF (print_level > 1) THEN
-          write(out_unitp,*) '  Mat_At_TO_centers'
-          CALL Write_Mat(BunchTransfo%Mat_At_TO_centers,out_unitp,5)
+          write(out_unit,*) '  Mat_At_TO_centers'
+          CALL Write_Mat(BunchTransfo%Mat_At_TO_centers,out_unit,5)
 
-          write(out_unitp,*) '  COM'
+          write(out_unit,*) '  COM'
           DO i=1,ubound(BunchTransfo%COM,dim=2)
-            write(out_unitp,*) '  Atom list for COM',i,': ',BunchTransfo%COM(:,i)
+            write(out_unit,*) '  Atom list for COM',i,': ',BunchTransfo%COM(:,i)
           END DO
         END IF
 
       !--------------------------------------------------------
-      IF (debug) write(out_unitp,*) 'END ',name_sub
+      IF (debug) write(out_unit,*) 'END ',name_sub
       !--------------------------------------------------------
       END SUBROUTINE Read2_BunchTransfo
 
@@ -3465,7 +3465,7 @@
       !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !--------------------------------------------------------
 
@@ -3476,18 +3476,18 @@
        DO j=1,count(tab_At_TO_G > 0)
          jat = tab_At_TO_G(j)
          IF (jat < 1 .OR. jat > iG-1) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) ' The index of the center-of-mass is out of range: [1,',iG-1,']'
-           write(out_unitp,*) ' tab_At_TO_G(:) ',tab_At_TO_G(1:count(tab_At_TO_G > 0))
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) ' The index of the center-of-mass is out of range: [1,',iG-1,']'
+           write(out_unit,*) ' tab_At_TO_G(:) ',tab_At_TO_G(1:count(tab_At_TO_G > 0))
            STOP
          END IF
 
          DO i=1,nat_act
            IF (Mat_At_TO_centers(i,iG) /= ZERO .AND. Mat_At_TO_centers(i,jat) /= ZERO ) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) ' Two partial centers of mass are developped on the same atoms!'
-             write(out_unitp,*) ' tab_At_TO_G(:) ',tab_At_TO_G(1:count(tab_At_TO_G > 0))
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) ' Two partial centers of mass are developped on the same atoms!'
+             write(out_unit,*) ' tab_At_TO_G(:) ',tab_At_TO_G(1:count(tab_At_TO_G > 0))
+             write(out_unit,*) ' Check your data !!'
              STOP
            ELSE IF (Mat_At_TO_centers(i,jat) /= ZERO ) THEN
              Mat_At_TO_centers(i,iG) = masses_OF_At(i)
@@ -3499,21 +3499,21 @@
        MtotG = sum(Mat_At_TO_centers(:,iG))
 
        IF (abs(MtotG) == ZERO) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' MtotG = 0'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' MtotG = 0'
 
          DO j=1,ubound(Mat_At_TO_centers,dim=2)
-           write(out_unitp,*) 'MtotG,Mat_At_TO_centers(:,j):',Mat_At_TO_centers(:,j)
+           write(out_unit,*) 'MtotG,Mat_At_TO_centers(:,j):',Mat_At_TO_centers(:,j)
          END DO
-         write(out_unitp,*) ' Check your data !!'
+         write(out_unit,*) ' Check your data !!'
          STOP
        END IF
        Mat_At_TO_centers(:,iG) = Mat_At_TO_centers(:,iG) / MtotG
 
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'iG,MtotG,Mat_At_TO_centers(:,iG):',iG,MtotG,Mat_At_TO_centers(:,iG)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'iG,MtotG,Mat_At_TO_centers(:,iG):',iG,MtotG,Mat_At_TO_centers(:,iG)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !--------------------------------------------------------
 
@@ -3540,33 +3540,33 @@
       !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !--------------------------------------------------------
 
             iAt0 = tab_At_TO_X(1)
             IF (iAt0 < 1 .OR. iAt0 > iX-1) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) ' the atom index iAt0 is out of range: [1,',iX-1,']'
-              write(out_unitp,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) ' the atom index iAt0 is out of range: [1,',iX-1,']'
+              write(out_unit,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
               STOP
             END IF
 
             !M_iAt0 = masses_OF_At(iAt0)
             M_iAt0 = get_Mass(Mat_At_TO_centers,iAt0,masses_OF_At,tab_At_TO_G)
             IF (M_iAt0 == ZERO) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) ' the mass of the atom iAt0 is zero'
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) ' the mass of the atom iAt0 is zero'
               STOP
             END IF
-            IF (debug) write(out_unitp,*) 'iAt0,M_iAt0,Mat_At_TO_iAt0(:)', &
+            IF (debug) write(out_unit,*) 'iAt0,M_iAt0,Mat_At_TO_iAt0(:)', &
                                      iAt0,M_iAt0,Mat_At_TO_centers(:,iAt0)
 
             nb_At_FOR_G = count(tab_At_TO_X > 0) - 1
             IF (nb_At_FOR_G < 2) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) ' For Radau coordinates, you need at list three centers'
-                write(out_unitp,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) ' For Radau coordinates, you need at list three centers'
+                write(out_unit,*) ' tab_At_TO_X(:) ',tab_At_TO_X(1:count(tab_At_TO_X > 0))
                 STOP
             END IF
 
@@ -3576,7 +3576,7 @@
                             tab_At_TO_X(2:nb_At_FOR_G+1))
             ! .... then it is transferred in Mat_At_TO_G
             Mat_At_TO_G(:) = Mat_At_TO_centers(:,iX)
-            IF (debug) write(out_unitp,*) 'MtotG,Mat_At_TO_G(:)',MtotG,Mat_At_TO_G(:)
+            IF (debug) write(out_unit,*) 'MtotG,Mat_At_TO_G(:)',MtotG,Mat_At_TO_G(:)
 
             ! Then, wX and the dummy atom for the Radau coordinates
             ! from F. T. Smith, PRL, 1980, vol 45, p1157
@@ -3599,9 +3599,9 @@
 
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'iX,xW',iX,wX
-        write(out_unitp,*) 'Mat_At_TO_centers(:,iX)',Mat_At_TO_centers(:,iX)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'iX,xW',iX,wX
+        write(out_unit,*) 'Mat_At_TO_centers(:,iX)',Mat_At_TO_centers(:,iX)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !--------------------------------------------------------
 
@@ -3628,7 +3628,7 @@
       logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !--------------------------------------------------------
 
@@ -3637,8 +3637,8 @@
        Vec_At_TO_centers(:) = ZERO
 
        IF (jat < 1 .OR. jat > nat) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' The index of the center-of-mass is out of range: [1,',nat,']'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' The index of the center-of-mass is out of range: [1,',nat,']'
          STOP
        END IF
 
@@ -3651,12 +3651,12 @@
        MtotG = sum(Vec_At_TO_centers(:))
 
        IF (abs(MtotG) == ZERO) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' ERROR in ',name_sub
          DO j=1,ubound(Mat_At_TO_centers,dim=2)
-           write(out_unitp,*) 'MtotG,Mat_At_TO_centers(:,j):',Mat_At_TO_centers(:,j)
+           write(out_unit,*) 'MtotG,Mat_At_TO_centers(:,j):',Mat_At_TO_centers(:,j)
          END DO
-         write(out_unitp,*) ' The mass of the center is ZERO!!'
-         write(out_unitp,*) ' Check you data !!'
+         write(out_unit,*) ' The mass of the center is ZERO!!'
+         write(out_unit,*) ' Check you data !!'
 
          STOP
        END IF
@@ -3666,8 +3666,8 @@
 
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'MtotG,Vec_At_TO_centers(:):',MtotG,Vec_At_TO_centers(:)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'MtotG,Vec_At_TO_centers(:):',MtotG,Vec_At_TO_centers(:)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !--------------------------------------------------------
 
@@ -3695,7 +3695,7 @@
       logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !--------------------------------------------------------
 
@@ -3714,7 +3714,7 @@
 
       IF (debug) THEN
         DO iatA=1,ubound(BunchTransfo%Mat_At_TO_centers,dim=2)
-          write(out_unitp,*) 'iat,Mat_At_TO_centers',iatA,              &
+          write(out_unit,*) 'iat,Mat_At_TO_centers',iatA,              &
                                 BunchTransfo%Mat_At_TO_centers(:,iAtA)
         END DO
       END IF
@@ -3724,7 +3724,7 @@
       DO iv=1,BunchTransfo%nb_vect
         iAtA = BunchTransfo%ind_vect(3,iv)
         iAtB = BunchTransfo%ind_vect(4,iv)
-        IF (debug) write(out_unitp,*) 'iAtA,iAtB',iAtA,iAtB
+        IF (debug) write(out_unit,*) 'iAtA,iAtB',iAtA,iAtB
         A(iv,:) = BunchTransfo%Mat_At_TO_centers(:,iAtB) -            &
                   BunchTransfo%Mat_At_TO_centers(:,iAtA)
       END DO
@@ -3734,8 +3734,8 @@
       Asave(:,:) = A(:,:)
       BunchTransfo%A(:,:) = A(:,:)
       IF (debug) THEN
-        write(out_unitp,*) 'A'
-        CALL Write_Mat(A,out_unitp,5)
+        write(out_unit,*) 'A'
+        CALL Write_Mat(A,out_unit,5)
       END IF
       ! calculation of A_inv (B)
       CALL inv_OF_Mat_TO_Mat_inv(Asave,BB,0,ZERO) ! not SVD
@@ -3745,13 +3745,13 @@
         BunchTransfo%A_inv(i_at,:) = BB(i_at,:)
       END DO
       IF (debug) THEN
-        write(out_unitp,*) 'A_inv:'
-        write(out_unitp,*) 'Each line corresponds to a linear combinaison of the vectors to form an atomic position'
+        write(out_unit,*) 'A_inv:'
+        write(out_unit,*) 'Each line corresponds to a linear combinaison of the vectors to form an atomic position'
 
         DO iv=1,size(BB,dim=1)
-          write(out_unitp,*) iv,BB(iv,:)
+          write(out_unit,*) iv,BB(iv,:)
         END DO
-        CALL Write_Mat(BB,out_unitp,5)
+        CALL Write_Mat(BB,out_unit,5)
       END IF
 
 
@@ -3763,12 +3763,12 @@
 
       ! calculation of M (included the M of the center of mass)
       M_Tana = matmul(A,transpose(A))
-      write(out_unitp,*) '  M_Tana (with the center-of-mass contribution)'
-      CALL Write_Mat(M_Tana,out_unitp,5)
+      write(out_unit,*) '  M_Tana (with the center-of-mass contribution)'
+      CALL Write_Mat(M_Tana,out_unit,5)
 
       BunchTransfo%M_Tana(:,:) = M_Tana(1:BunchTransfo%nb_vect,1:BunchTransfo%nb_vect)
-      write(out_unitp,*) '  M_Tana (without the center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unitp,5)
+      write(out_unit,*) '  M_Tana (without the center-of-mass contribution)'
+      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
 
       CALL dealloc_NParray(A,     "A",     name_sub)
       CALL dealloc_NParray(Asave, "Asave", name_sub)
@@ -3777,7 +3777,7 @@
 
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
       !--------------------------------------------------------
       END SUBROUTINE M_Tana_FROM_Bunch2Transfo
@@ -3791,34 +3791,34 @@
 
       IF (.NOT. associated(BunchTransfo)) RETURN
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unitp,*) 'ncart_act,ncart',                             &
+      write(out_unit,*) 'ncart_act,ncart',                             &
                   BunchTransfo%ncart_act,BunchTransfo%ncart
 
-      write(out_unitp,*) 'nat_act,nat0,nat,',                           &
+      write(out_unit,*) 'nat_act,nat0,nat,',                           &
                  BunchTransfo%nat_act,BunchTransfo%nat0,BunchTransfo%nat
 
-      write(out_unitp,*) 'nb_var',BunchTransfo%nb_var
-      write(out_unitp,*) 'nb_vect',BunchTransfo%nb_vect
+      write(out_unit,*) 'nb_var',BunchTransfo%nb_var
+      write(out_unit,*) 'nb_vect',BunchTransfo%nb_vect
 
 
-     write(out_unitp,*) 'A(iv,iat): Xat=>Vect'
-     CALL Write_Mat(BunchTransfo%A,out_unitp,5)
+     write(out_unit,*) 'A(iv,iat): Xat=>Vect'
+     CALL Write_Mat(BunchTransfo%A,out_unit,5)
 
-     write(out_unitp,*) 'A_inv(iat,iv): Vect=>Xat'
-     CALL Write_Mat(BunchTransfo%A_inv,out_unitp,5)
+     write(out_unit,*) 'A_inv(iat,iv): Vect=>Xat'
+     CALL Write_Mat(BunchTransfo%A_inv,out_unit,5)
 
 
-      write(out_unitp,*) '---------------------------------------------'
-      write(out_unitp,*) '------------ Tana ---------------------------'
-      write(out_unitp,*) '---------------------------------------------'
-      write(out_unitp,*) 'M_Tana (without center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unitp,5)
-      write(out_unitp,*) '---------------------------------------------'
-      write(out_unitp,*) '---------------------------------------------'
+      write(out_unit,*) '---------------------------------------------'
+      write(out_unit,*) '------------ Tana ---------------------------'
+      write(out_unit,*) '---------------------------------------------'
+      write(out_unit,*) 'M_Tana (without center-of-mass contribution)'
+      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
+      write(out_unit,*) '---------------------------------------------'
+      write(out_unit,*) '---------------------------------------------'
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_BunchTransfo
 
@@ -3842,23 +3842,23 @@
       character (len=*), parameter :: name_sub='calc_BunchTransfo'
       !--------------------------------------------------------
       IF (.NOT. associated(BunchTransfo)) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'BunchTransfo is not associated!'
-        write(out_unitp,*) ' CHECK the fortran!!'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'BunchTransfo is not associated!'
+        write(out_unit,*) ' CHECK the fortran!!'
         STOP
       END IF
 
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*)
         CALL Write_BunchTransfo(BunchTransfo)
-        write(out_unitp,*) 'dnx: '
+        write(out_unit,*) 'dnx: '
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'dnQvect: '
+        write(out_unit,*) 'dnQvect: '
         CALL Write_dnSVM(dnQvect,nderiv_debug)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
       !--------------------------------------------------------
 
@@ -3877,7 +3877,7 @@
               CALL sub_dnVec1_wADDTO_dnVec2(dnQvect,ivect_iv,weight,    &
                                             dnx,ivect_at,ONE,3,nderiv)
             END IF
-            !write(out_unitp,*) 'i_at,iv,A_inv',i_at,iv,weight
+            !write(out_unit,*) 'i_at,iv,A_inv',i_at,iv,weight
           END DO
         END DO
 
@@ -3886,7 +3886,7 @@
         ! Xat => Xvect
         CALL Set_ZERO_TO_dnSVM(dnQvect)
 
-        !write(out_unitp,*) 'BunchTransfo%A',BunchTransfo%A
+        !write(out_unit,*) 'BunchTransfo%A',BunchTransfo%A
         DO iv=1,BunchTransfo%nb_vect
           ivect_iv = func_ic(iv)
           DO i_at=1,BunchTransfo%nat_act
@@ -3894,7 +3894,7 @@
 
             IF (abs(weight) > ZERO) THEN
               ivect_at = func_ic(i_at)  ! 3*i-2
-              !write(out_unitp,*) 'i_at,weight',i_at,weight
+              !write(out_unit,*) 'i_at,weight',i_at,weight
               CALL sub_dnVec1_wADDTO_dnVec2(dnx,ivect_at,weight,        &
                                           dnQvect,ivect_iv,ONE,3,nderiv)
             END IF
@@ -3903,13 +3903,13 @@
       END IF
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnx: '
+        write(out_unit,*) 'dnx: '
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unitp,*) 'dnQvect: '
+        write(out_unit,*) 'dnQvect: '
         CALL Write_dnSVM(dnQvect,nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
-        write(out_unitp,*)
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
+        flush(out_unit)
       END IF
       !--------------------------------------------------------
 
@@ -3929,7 +3929,7 @@
       IF (.NOT. associated(BunchTransfo1)) RETURN
 
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
         CALL Write_BunchTransfo(BunchTransfo1)
       END IF
       !--------------------------------------------------------
@@ -3984,7 +3984,7 @@
       !--------------------------------------------------------
       IF (debug) THEN
         CALL Write_BunchTransfo(BunchTransfo2)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-------------------------------------------------------
       END SUBROUTINE BunchTransfo1TOBunchTransfo2
@@ -4040,9 +4040,9 @@
            V%vec_sum(1)    =  get_cos(Qvec(2))
 
          CASE Default
-           write(out_unitp,*) ' ERROR in ',routine_name
-           write(out_unitp,*) '  No default Spherical_convention'
-           write(out_unitp,*) '  Check the fortran'
+           write(out_unit,*) ' ERROR in ',routine_name
+           write(out_unit,*) '  No default Spherical_convention'
+           write(out_unit,*) '  Check the fortran'
            STOP
          END SELECT
 

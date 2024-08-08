@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 module mod_Tana_Sum_OpnD
-   USE mod_system
+   USE TnumTana_system_m
    USE mod_Tana_OpEl
    USE mod_Tana_Op1D
    USE mod_Tana_OpnD
@@ -488,7 +488,7 @@ module mod_Tana_Sum_OpnD
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if(present(header)) then
@@ -563,7 +563,7 @@ module mod_Tana_Sum_OpnD
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if(present(header)) then
@@ -576,7 +576,7 @@ module mod_Tana_Sum_OpnD
      CALL alloc_array(l_J,shape(F_sum_nd%sum_prod_op1d),'l_J',routine_name)
      l_J(:) = .true.
 
-     if(i_open == out_unitp) then
+     if(i_open == out_unit) then
        i_open = i_file
        do i = 1, size(F_sum_nd%sum_prod_op1d)
          do j = 1, size(F_sum_nd%sum_prod_op1d(i)%prod_op1d)
@@ -659,7 +659,7 @@ module mod_Tana_Sum_OpnD
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      do i = 1, size(Mat_sum_nd(1,:))
@@ -1150,8 +1150,8 @@ module mod_Tana_Sum_OpnD
      character (len=*), parameter :: routine_name='get_F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd'
 
      IF (debug) THEN
-       write(out_unitp,*) ' BEGINNING ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) ' BEGINNING ',routine_name
+       flush(out_unit)
      END IF
 
    CALL check_allocate_op(F1_sum_nd)
@@ -1174,8 +1174,8 @@ module mod_Tana_Sum_OpnD
 
 
    IF (debug) THEN
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
    END SUBROUTINE get_F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd
@@ -1292,10 +1292,10 @@ module mod_Tana_Sum_OpnD
    character (len=*), parameter :: routine_name="Simplify_Sum_OpnD"
 
    IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',routine_name
-       write(out_unitp,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
-       write(out_unitp,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
-       flush(out_unitp)
+       write(out_unit,*) 'BEGINNING ',routine_name
+       write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
+       write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
+       flush(out_unit)
    END IF
 
    IF (present(Expand_Sin2)) THEN
@@ -1330,10 +1330,10 @@ module mod_Tana_Sum_OpnD
    END IF
 
    IF (debug) THEN
-       write(out_unitp,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
-       write(out_unitp,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
-       write(out_unitp,*) 'END ',routine_name
-       flush(out_unitp)
+       write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
+       write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
+       write(out_unit,*) 'END ',routine_name
+       flush(out_unit)
    END IF
 
  end subroutine Simplify_Sum_OpnD
@@ -1420,9 +1420,9 @@ subroutine Expand_Sin2_IN_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
    character (len =*), parameter :: routine_name='Expand_Sin2_IN_OpnD_TO_SumOpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(FOpnD,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    SumOpnD = CONE
@@ -1444,10 +1444,10 @@ subroutine Expand_Sin2_IN_OpnD_TO_SumOpnD(FOpnD,SumOpnD)
 
 
   IF (debug) THEN
-    write(out_unitp,*) ' Expand sin^2 in OpnD'
+    write(out_unit,*) ' Expand sin^2 in OpnD'
     CALL write_op(SumOpnD)
-    write(out_unitp,*) ' END ',routine_name
-    flush(out_unitp)
+    write(out_unit,*) ' END ',routine_name
+    flush(out_unit)
   END IF
 
  end subroutine Expand_Sin2_IN_OpnD_TO_SumOpnD
@@ -1465,9 +1465,9 @@ subroutine Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD(F_Sum_nD,ExpandF_Sum_nD)
    character (len =*), parameter :: routine_name='Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_sum_nd,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    CALL alloc_NParray(Temp_ExpandF_Sum_nD,[size(F_sum_nd%sum_prod_op1d)], &
@@ -1497,10 +1497,10 @@ subroutine Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD(F_Sum_nD,ExpandF_Sum_nD)
    CALL Simplify_Sum_OpnD(ExpandF_Sum_nD,Expand_Sin2=.FALSE.)
 
   IF (debug) THEN
-    write(out_unitp,*) ' ExpandF_sum_nd'
+    write(out_unit,*) ' ExpandF_sum_nd'
     CALL write_op(ExpandF_sum_nd,header=.TRUE.)
-    write(out_unitp,*) ' END ',routine_name
-    flush(out_unitp)
+    write(out_unit,*) ' END ',routine_name
+    flush(out_unit)
   END IF
 
  end subroutine Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD
@@ -1522,9 +1522,9 @@ subroutine Expand_Sum_OpnD_TO_Sum_OpnD(F_Sum_nD,ExpandF_Sum_nD,With_Vep)
    character (len =*), parameter :: routine_name='Expand_Sum_OpnD_TO_Sum_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' BEGINNING ',routine_name
      CALL write_op(F_sum_nd,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    IF (present(With_Vep)) THEN
@@ -1538,15 +1538,15 @@ subroutine Expand_Sum_OpnD_TO_Sum_OpnD(F_Sum_nD,ExpandF_Sum_nD,With_Vep)
 
    ndim = 0
    DO i=1,size(F_sum_nd%sum_prod_op1d)
-     !write(out_unitp,*)
-     !write(out_unitp,*) 'i (sum)',i
+     !write(out_unit,*)
+     !write(out_unit,*) 'i (sum)',i
      !CALL write_op(F_sum_nd%sum_prod_op1d(i))
      CALL Expand_OpnD_TO_SumOpnD(F_sum_nd%sum_prod_op1d(i),             &
                                  Temp_ExpandF_Sum_nD(i)%sum_prod_op1d)
      ndimi = size(Temp_ExpandF_Sum_nD(i)%sum_prod_op1d)
      CALL alloc_NParray(Temp_ExpandF_Sum_nD(i)%Cn,[ndimi],'Cn',routine_name)
      Temp_ExpandF_Sum_nD(i)%Cn = CONE
-     !write(out_unitp,*) 'Expansion',i
+     !write(out_unit,*) 'Expansion',i
      !CALL write_op(Temp_ExpandF_Sum_nD(i))
 
      ndim = ndim + ndimi
@@ -1575,10 +1575,10 @@ subroutine Expand_Sum_OpnD_TO_Sum_OpnD(F_Sum_nD,ExpandF_Sum_nD,With_Vep)
    CALL Simplify_Sum_OpnD(ExpandF_Sum_nD,Expand_Sin2=.TRUE.)
 
   IF (debug) THEN
-    write(out_unitp,*) ' ExpandF_sum_nd'
+    write(out_unit,*) ' ExpandF_sum_nd'
     CALL write_op(ExpandF_sum_nd,header=.TRUE.)
-    write(out_unitp,*) ' END ',routine_name
-    flush(out_unitp)
+    write(out_unit,*) ' END ',routine_name
+    flush(out_unit)
   END IF
 
  end subroutine Expand_Sum_OpnD_TO_Sum_OpnD
@@ -1600,11 +1600,11 @@ subroutine Der1_OF_OpnD_TO_Sum_OpnD(F_nD,ider,Der1_nD)
    character (len =*), parameter :: routine_name='Der1_OF_OpnD_TO_Sum_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
-     write(out_unitp,*) ' ider: ',ider
+     write(out_unit,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' ider: ',ider
      CALL write_op(F_nD,header=.TRUE.)
-     flush(out_unitp)
-     write(out_unitp,*) ' ---------------------------'
+     flush(out_unit)
+     write(out_unit,*) ' ---------------------------'
    END IF
 
    Temp_nD = CONE
@@ -1632,11 +1632,11 @@ subroutine Der1_OF_OpnD_TO_Sum_OpnD(F_nD,ider,Der1_nD)
    CALL Simplify_Sum_OpnD(Der1_nD)
 
    IF (debug) THEN
-     write(out_unitp,*) ' -------------------------'
-     write(out_unitp,*) ' Der1_nD'
+     write(out_unit,*) ' -------------------------'
+     write(out_unit,*) ' Der1_nD'
      CALL write_op(Der1_nD,header=.TRUE.)
-     write(out_unitp,*) ' END ',routine_name
-     flush(out_unitp)
+     write(out_unit,*) ' END ',routine_name
+     flush(out_unit)
    END IF
 
  end subroutine Der1_OF_OpnD_TO_Sum_OpnD
@@ -1655,10 +1655,10 @@ subroutine Der1_OF_Sum_OpnD_TO_Sum_OpnD(F_SumnD,ider,Der1_SumnD)
    character (len =*), parameter :: routine_name='Der1_OF_Sum_OpnD_TO_Sum_OpnD'
 
    IF (debug) THEN
-     write(out_unitp,*) ' BEGINNING ',routine_name
-     write(out_unitp,*) ' ider: ',ider
+     write(out_unit,*) ' BEGINNING ',routine_name
+     write(out_unit,*) ' ider: ',ider
      CALL write_op(F_SumnD,header=.TRUE.)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
    Der1_SumnD = CZERO
@@ -1674,10 +1674,10 @@ subroutine Der1_OF_Sum_OpnD_TO_Sum_OpnD(F_SumnD,ider,Der1_SumnD)
    CALL Simplify_Sum_OpnD(Der1_SumnD)
 
   IF (debug) THEN
-    write(out_unitp,*) ' Der1_SumnD'
+    write(out_unit,*) ' Der1_SumnD'
     CALL write_op(Der1_SumnD,header=.TRUE.)
-    write(out_unitp,*) ' END ',routine_name
-    flush(out_unitp)
+    write(out_unit,*) ' END ',routine_name
+    flush(out_unit)
   END IF
 
  end subroutine Der1_OF_Sum_OpnD_TO_Sum_OpnD

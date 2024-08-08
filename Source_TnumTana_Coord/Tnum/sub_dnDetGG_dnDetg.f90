@@ -52,7 +52,7 @@ MODULE mod_dnDetGG_dnDetg
 !
       SUBROUTINE sub3_dndetA(dndetA,dnA,nderiv,                         &
                              masses,Mtot_inv,ncart)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -80,10 +80,10 @@ MODULE mod_dnDetGG_dnDetg
       character (len=*), parameter :: name_sub = 'sub3_dndetA'
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
 
-        write(out_unitp,*) 'dnA'
+        write(out_unit,*) 'dnA'
         CALL Write_dnSVM(dnA,nderiv)
       END IF
 !-----------------------------------------------------------
@@ -120,7 +120,7 @@ MODULE mod_dnDetGG_dnDetg
         d0Aii_inv(i) = ONE / dnA%d0(i,i)
         d0Aii_sqinv(i) = d0Aii_inv(i)*d0Aii_inv(i)
       END DO
-!     write(out_unitp,*) ' det(A)=det(g) :',d0d
+!     write(out_unit,*) ' det(A)=det(g) :',d0d
 
       DO i=dnA%nb_var_Matl+1,ncart
         mass = masses(i)
@@ -128,7 +128,7 @@ MODULE mod_dnDetGG_dnDetg
         dndetA%d0 = dndetA%d0/mass
       END DO
       dndetA%d0 = dndetA%d0/(Mtot_inv**3)
-!     write(out_unitp,*) ' det(A)=det(g) :',d0d
+!     write(out_unit,*) ' det(A)=det(g) :',d0d
       dndetA%d0 = sqrt(dndetA%d0)
 !----------------------------------------------------------
 
@@ -173,9 +173,9 @@ MODULE mod_dnDetGG_dnDetg
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'dn lnJ (from g)'
+         write(out_unit,*) 'dn lnJ (from g)'
          CALL Write_dnSVM(dndetA)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
@@ -192,7 +192,7 @@ MODULE mod_dnDetGG_dnDetg
 !
       SUBROUTINE sub3_dnDetGG(dndetA,dnGG,nderiv,                      &
                               masses,Mtot_inv,ncart)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -223,10 +223,10 @@ MODULE mod_dnDetGG_dnDetg
       character (len=*), parameter :: name_sub = 'sub3_dnDetGG'
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
 
-        write(out_unitp,*) 'dnGG'
+        write(out_unit,*) 'dnGG'
         CALL Write_dnSVM(dnGg,nderiv)
       END IF
 !-----------------------------------------------------------
@@ -242,13 +242,13 @@ MODULE mod_dnDetGG_dnDetg
       IF (new) THEN
         !CALL Det_OF_m1(dnGG%d0,det,dnGG%nb_var_Matl)
         det = Det_OF(dnGG%d0)
-        write(out_unitp,*) 'nGG%d0 and det,jac',det,ONE/sqrt(det)
+        write(out_unit,*) 'nGG%d0 and det,jac',det,ONE/sqrt(det)
         CALL Write_Mat(dnGG%d0,6,6)
         CALL Det_OF_dnMat_TO_dnS(dnGG,dndetA,nderiv)
         mass = product(masses,mask=(masses > ONETENTH**5))
-        write(out_unitp,*) 'masses',masses
+        write(out_unit,*) 'masses',masses
 
-        write(out_unitp,*) 'mass',mass
+        write(out_unit,*) 'mass',mass
 
 
         IF (nderiv >= 1) THEN ! d_i det / det
@@ -298,7 +298,7 @@ MODULE mod_dnDetGG_dnDetg
         d0Aii_inv(i) = ONE / dnGG%d0(i,i)
         d0Aii_sqinv(i) = d0Aii_inv(i)*d0Aii_inv(i)
       END DO
-      !write(out_unitp,*) ' det(GG) :',dndetA%d0
+      !write(out_unit,*) ' det(GG) :',dndetA%d0
 
 !      DO i=dnGG%nb_var_Matl+1,ncart
 !        mass = masses(i)
@@ -306,7 +306,7 @@ MODULE mod_dnDetGG_dnDetg
 !        dndetA%d0 = dndetA%d0 * mass
 !      END DO
 !      dndetA%d0 = dndetA%d0 * (Mtot_inv**3)
-      !write(out_unitp,*) ' det(GG) :',dndetA%d0
+      !write(out_unit,*) ' det(GG) :',dndetA%d0
       dndetA%d0 = ONE/sqrt(dndetA%d0)
 !----------------------------------------------------------
 
@@ -356,9 +356,9 @@ MODULE mod_dnDetGG_dnDetg
 !-----------------------------------------------------------
 
        IF (debug) THEN
-         write(out_unitp,*) 'dn lnJ (from G)'
+         write(out_unit,*) 'dn lnJ (from G)'
          CALL Write_dnSVM(dndetA)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
@@ -374,7 +374,7 @@ MODULE mod_dnDetGG_dnDetg
 !
       SUBROUTINE sub3_dndetMat(dnLndetMat,dnMat,nderiv,                 &
                                masses,Mtot_inv,ncart)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -400,10 +400,10 @@ MODULE mod_dnDetGG_dnDetg
       character (len=*), parameter :: name_sub = 'sub3_dndetGG'
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
 
-        write(out_unitp,*) 'dnMat'
+        write(out_unit,*) 'dnMat'
         CALL Write_dnSVM(dnMat,nderiv)
       END IF
 !-----------------------------------------------------------
@@ -440,7 +440,7 @@ MODULE mod_dnDetGG_dnDetg
         d0Matii_inv(i) = ONE / dnMat%d0(i,i)
         d0Matii_sqinv(i) = d0Matii_inv(i)*d0Matii_inv(i)
       END DO
-!     write(out_unitp,*) ' det(A)=det(g) :',d0d
+!     write(out_unit,*) ' det(A)=det(g) :',d0d
 
       DO i=dnMat%nb_var_Matl+1,ncart
         mass = masses(i)
@@ -448,7 +448,7 @@ MODULE mod_dnDetGG_dnDetg
         dnLndetMat%d0 = dnLndetMat%d0 * mass
       END DO
       dnLndetMat%d0 = dnLndetMat%d0 * (Mtot_inv**3)
-!     write(out_unitp,*) ' det(A)=det(g) :',d0d
+!     write(out_unit,*) ' det(A)=det(g) :',d0d
 !----------------------------------------------------------
 
 !-----------------------------------------------------------
@@ -491,9 +491,9 @@ MODULE mod_dnDetGG_dnDetg
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'dn ln(det(Mat))'
+         write(out_unit,*) 'dn ln(det(Mat))'
          CALL Write_dnSVM(dnLndetMat)
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'END ',name_sub
        END IF
 !-----------------------------------------------------------
 
@@ -503,7 +503,7 @@ MODULE mod_dnDetGG_dnDetg
 !       and permutation
 !================================================================
       SUBROUTINE sub3_pivot(i,d0d,dnA,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -556,14 +556,14 @@ MODULE mod_dnDetGG_dnDetg
       END IF
 !----------------------------------------------------------------
 
-!     write(out_unitp,*) 'perm',i,line,d0d,d0A(i,i)
+!     write(out_unit,*) 'perm',i,line,d0d,d0A(i,i)
 
       end subroutine sub3_pivot
 !================================================================
 !     determine the new line with the pivot
 !================================================================
       SUBROUTINE sub3_newline(i,dnA,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -654,7 +654,7 @@ MODULE mod_dnDetGG_dnDetg
 !       permutation of lines i and j
 !================================================================
       SUBROUTINE sub3_permutation(i,j,A,ndimA)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer ndimA
@@ -672,7 +672,7 @@ MODULE mod_dnDetGG_dnDetg
           A(j,k) = piv
         END DO
       END IF
-!     write(out_unitp,*) 'perm',i,j,d,A(i,i)
+!     write(out_unit,*) 'perm',i,j,d,A(i,i)
 !----------------------------------------------------------------
 
       end subroutine sub3_permutation

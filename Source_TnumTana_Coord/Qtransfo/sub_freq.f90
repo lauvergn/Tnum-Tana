@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_freq
-      use mod_system
+      use TnumTana_system_m
       USE mod_Constant, ONLY: get_Conv_au_TO_unit
       IMPLICIT NONE
 
@@ -58,16 +58,16 @@ MODULE mod_freq
       IMPLICIT NONE
       TYPE (degenerate_freq_t), INTENT(IN) :: degenerate_freq
 
-        write(out_unitp,*) 'BEGINNING Write_degenerate_freq'
+        write(out_unit,*) 'BEGINNING Write_degenerate_freq'
 
-        write(out_unitp,*) 'option',degenerate_freq%option
-        write(out_unitp,*) 'epsi',degenerate_freq%epsi
+        write(out_unit,*) 'option',degenerate_freq%option
+        write(out_unit,*) 'epsi',degenerate_freq%epsi
         IF (allocated(degenerate_freq%list_k_check)) THEN
-          write(out_unitp,*) 'list_k_check(:)',degenerate_freq%list_k_check
+          write(out_unit,*) 'list_k_check(:)',degenerate_freq%list_k_check
         END IF
 
-        write(out_unitp,*) 'END Write_degenerate_freq'
-        flush(out_unitp)
+        write(out_unit,*) 'END Write_degenerate_freq'
+        flush(out_unit)
 
       END SUBROUTINE Write_degenerate_freq
       SUBROUTINE Read_degenerate_freq(degene_freq,n)
@@ -81,41 +81,41 @@ MODULE mod_freq
       NAMELIST /degenerate_freq/ option,epsi
       character(len=*), PARAMETER :: name_sub = 'Read_degenerate_freq'
 
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
 
         CALL alloc_NParray(degene_freq%list_k_check,[n],'list_k_check',name_sub)
 
         epsi   = ONETENTH**8
         option = 0
-       read(in_unitp,degenerate_freq,IOSTAT=err_read)
+       read(in_unit,degenerate_freq,IOSTAT=err_read)
        IF (err_read /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the "degenerate_freq" namelist'
-          write(out_unitp,*) ' end of file or end of record'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the "degenerate_freq" namelist'
+          write(out_unit,*) ' end of file or end of record'
+          write(out_unit,*) ' Check your data !!'
           STOP
        END IF
-       write(out_unitp,degenerate_freq)
+       write(out_unit,degenerate_freq)
 
        degene_freq%option = option
        degene_freq%epsi   = epsi
        IF (option == 1) THEN
-         read(in_unitp,*,IOSTAT=err_read) degene_freq%list_k_check(:)
-         !write(out_unitp,*) 'list_k_check',degene_freq%list_k_check
+         read(in_unit,*,IOSTAT=err_read) degene_freq%list_k_check(:)
+         !write(out_unit,*) 'list_k_check',degene_freq%list_k_check
          IF (err_read /= 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) '  while reading "list_k_check"'
-           write(out_unitp,*) ' end of file or end of record'
-           write(out_unitp,*) ' Check your data !!'
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) '  while reading "list_k_check"'
+           write(out_unit,*) ' end of file or end of record'
+           write(out_unit,*) ' Check your data !!'
            STOP
          END IF
        END IF
-       flush(out_unitp)
+       flush(out_unit)
 
        CALL Write_degenerate_freq(degene_freq)
 
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
 
       END SUBROUTINE Read_degenerate_freq
       SUBROUTINE Init_degenerate_freq(degene_freq,n)
@@ -124,15 +124,15 @@ MODULE mod_freq
       integer,                  INTENT(in)    :: n
 
 
-        write(out_unitp,*) 'BEGINNING Init_degenerate_freq'
+        write(out_unit,*) 'BEGINNING Init_degenerate_freq'
 
         CALL alloc_NParray(degene_freq%list_k_check,[n],'list_k_check','Init_degenerate_freq')
         degene_freq%list_k_check(:) = .TRUE.
         degene_freq%epsi   = ONETENTH**8
         degene_freq%option = 0
 
-        write(out_unitp,*) 'END Init_degenerate_freq'
-        flush(out_unitp)
+        write(out_unit,*) 'END Init_degenerate_freq'
+        flush(out_unit)
 
       END SUBROUTINE Init_degenerate_freq
       SUBROUTINE dealloc_degenerate_freq(degene_freq)
@@ -193,14 +193,14 @@ MODULE mod_freq
       !logical, parameter :: debug = .TRUE.
       !-----------------------------------------------------------
       IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING calc_freq_new'
-         write(out_unitp,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unitp,5)
-         write(out_unitp,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unitp,5)
-         write(out_unitp,*) 'd0c_ini',nb_var
-         CALL Write_Mat(d0c_ini,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*) 'BEGINNING calc_freq_new'
+         write(out_unit,*) 'd0h',nb_var
+         CALL Write_Mat(d0h,out_unit,5)
+         write(out_unit,*) 'd0k',nb_var
+         CALL Write_Mat(d0k,out_unit,5)
+         write(out_unit,*) 'd0c_ini',nb_var
+         CALL Write_Mat(d0c_ini,out_unit,5)
+         flush(out_unit)
       END IF
 
       !-----------------------------------------------------------
@@ -216,7 +216,7 @@ MODULE mod_freq
 !      DO i=1,nb_var
 !       d = d * d0ch(i,i)/d0ck(i,i)
 !      END DO
-!      write(out_unitp,*) 'det d0c',sqrt(sqrt(d))
+!      write(out_unit,*) 'det d0c',sqrt(sqrt(d))
 !      ----------------------------------------
 
 
@@ -232,9 +232,9 @@ MODULE mod_freq
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'vp de d0k'
-         write(out_unitp,*) (d0ek(i),i=1,nb_var)
-         flush(out_unitp)
+         write(out_unit,*) 'vp de d0k'
+         write(out_unit,*) (d0ek(i),i=1,nb_var)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
        DO i=1,nb_var
@@ -242,7 +242,7 @@ MODULE mod_freq
            d0ek(i) =  sqrt(d0ek(i))
          ELSE
            d0ek(i) = -sqrt(-d0ek(i))
-           write(out_unitp,*) 'ERROR: d0k has one negative eigenvalue !'
+           write(out_unit,*) 'ERROR: d0k has one negative eigenvalue !'
            !STOP
          END IF
        END DO
@@ -254,10 +254,10 @@ MODULE mod_freq
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*)
-         write(out_unitp,*) 'd0ck(:,i)*sqrt(d0ek(i))'
-         CALL Write_Mat(d0ck,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*)
+         write(out_unit,*) 'd0ck(:,i)*sqrt(d0ek(i))'
+         CALL Write_Mat(d0ck,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -276,10 +276,10 @@ MODULE mod_freq
 !      -- problem with gfortran ---
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*)
-         write(out_unitp,*) 'd0h dans la nouvelle base'
-         CALL Write_Mat(d0k,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*)
+         write(out_unit,*) 'd0h dans la nouvelle base'
+         CALL Write_Mat(d0k,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -293,7 +293,7 @@ MODULE mod_freq
            d0eh(i) =  sqrt(d0eh(i))
          ELSE
            d0eh(i) =  sqrt(-d0eh(i))
-           write(out_unitp,*) ' ERROR : one imaginary frequency',               &
+           write(out_unit,*) ' ERROR : one imaginary frequency',               &
                                     d0eh(i)*get_Conv_au_TO_unit('E','cm-1')
 !          STOP
          END IF
@@ -305,15 +305,15 @@ MODULE mod_freq
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
-         !write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','eV')
-         write(out_unitp,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
+         write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
+         !write(out_unit,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','eV')
+         write(out_unit,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
 
-         write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
-         write(out_unitp,*)
-         write(out_unitp,*) 'modes normaux: d0ch'
-         CALL Write_Mat(d0ch,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
+         write(out_unit,*)
+         write(out_unit,*) 'modes normaux: d0ch'
+         CALL Write_Mat(d0ch,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -342,15 +342,15 @@ MODULE mod_freq
          d0c_inv(i,:) = d0c_inv(i,:) / sqrt(d0eh(i))
        END DO
 
-       !write(out_unitp,*) 'rota_denerated on d0c and d0c_inv'
+       !write(out_unit,*) 'rota_denerated on d0c and d0c_inv'
 
        CALL rota_degenerate_opt1(d0eh,d0c,nb_var,degenerate_freq)
-       !write(out_unitp,*) 'd0c'
-       !CALL Write_Mat(d0c,out_unitp,5)
+       !write(out_unit,*) 'd0c'
+       !CALL Write_Mat(d0c,out_unit,5)
 
        d0c_inv = inv_OF_Mat_TO(d0c)
-       !write(out_unitp,*) 'transpose(d0c_inv)'
-       !CALL Write_Mat(transpose(d0c_inv),out_unitp,5)
+       !write(out_unit,*) 'transpose(d0c_inv)'
+       !CALL Write_Mat(transpose(d0c_inv),out_unit,5)
 
 !     on reordonne d0c, d0c_inv et d0eh
       !CALL order_ini4(d0c,d0c_inv,d0eh,d0c_ini,nb_var,diab_freq)
@@ -373,15 +373,15 @@ MODULE mod_freq
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unitp,5)
-         write(out_unitp,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unitp,5)
+         write(out_unit,*) 'matrice de passage de b2 a b0'
+         CALL Write_Mat(d0c,out_unit,5)
+         write(out_unit,*) 'matrice de passage de b0 a b2'
+         CALL Write_Mat(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
-         write(out_unitp,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unitp,5)
+         write(out_unit,*) 'test inversion de d0c'
+         CALL Write_Mat(mat1,out_unit,5)
          max_err = ZERO
          DO i=1,nb_var
          DO j=1,nb_var
@@ -389,8 +389,8 @@ MODULE mod_freq
             IF (i == j) max_err = max(max_err,abs(mat1(i,j)-ONE))
          END DO
          END DO
-         write(out_unitp,*) ' max_err: ',max_err
-         flush(out_unitp)
+         write(out_unit,*) ' max_err: ',max_err
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -414,7 +414,7 @@ MODULE mod_freq
 !      DO i=1,nb_var
 !       d = d * d0ch(i,i)
 !      END DO
-!      write(out_unitp,*) 'det d0c',d
+!      write(out_unit,*) 'det d0c',d
 !      ----------------------------------------
 
 
@@ -424,7 +424,7 @@ MODULE mod_freq
        DO i=1,nb_var
         d = d * sqrt(d0eh(i)) / d0ek(i)
        END DO
-!      write(out_unitp,*) 'det d0c',d
+!      write(out_unit,*) 'det d0c',d
 !      ----------------------------------------
 !
 !      - cas 3 --------------------------------
@@ -440,9 +440,9 @@ MODULE mod_freq
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'determinants :',norme
-         write(out_unitp,*) 'END calc_freq_new'
-         flush(out_unitp)
+         write(out_unit,*) 'determinants :',norme
+         write(out_unit,*) 'END calc_freq_new'
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 !stop
@@ -491,14 +491,14 @@ end subroutine calc_freq_new
       !logical, parameter :: debug = .TRUE.
       !-----------------------------------------------------------
       IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING calc_freq'
-         write(out_unitp,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unitp,5)
-         write(out_unitp,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unitp,5)
-         write(out_unitp,*) 'd0c_ini',nb_var
-         CALL Write_Mat(d0c_ini,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*) 'BEGINNING calc_freq'
+         write(out_unit,*) 'd0h',nb_var
+         CALL Write_Mat(d0h,out_unit,5)
+         write(out_unit,*) 'd0k',nb_var
+         CALL Write_Mat(d0k,out_unit,5)
+         write(out_unit,*) 'd0c_ini',nb_var
+         CALL Write_Mat(d0c_ini,out_unit,5)
+         flush(out_unit)
       END IF
       !-----------------------------------------------------------
 
@@ -513,7 +513,7 @@ end subroutine calc_freq_new
 !      DO i=1,nb_var
 !       d = d * d0ch(i,i)/d0ck(i,i)
 !      END DO
-!      write(out_unitp,*) 'det d0c',sqrt(sqrt(d))
+!      write(out_unit,*) 'det d0c',sqrt(sqrt(d))
 !      ----------------------------------------
 
 
@@ -529,9 +529,9 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'vp de d0k'
-         write(out_unitp,*) (d0ek(i),i=1,nb_var)
-         flush(out_unitp)
+         write(out_unit,*) 'vp de d0k'
+         write(out_unit,*) (d0ek(i),i=1,nb_var)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
        DO i=1,nb_var
@@ -539,7 +539,7 @@ end subroutine calc_freq_new
            d0ek(i) =  sqrt(d0ek(i))
          ELSE
            d0ek(i) = -sqrt(-d0ek(i))
-           write(out_unitp,*) 'ERROR: d0k has one negative eigenvalue !'
+           write(out_unit,*) 'ERROR: d0k has one negative eigenvalue !'
            !STOP
          END IF
        END DO
@@ -551,10 +551,10 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*)
-         write(out_unitp,*) 'd0ck(:,i)*sqrt(d0ek(i))'
-         CALL Write_Mat(d0ck,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*)
+         write(out_unit,*) 'd0ck(:,i)*sqrt(d0ek(i))'
+         CALL Write_Mat(d0ck,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -573,10 +573,10 @@ end subroutine calc_freq_new
 !      -- problem with gfortran ---
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*)
-         write(out_unitp,*) 'd0h dans la nouvelle base'
-         CALL Write_Mat(d0k,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*)
+         write(out_unit,*) 'd0h dans la nouvelle base'
+         CALL Write_Mat(d0k,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -590,7 +590,7 @@ end subroutine calc_freq_new
            d0eh(i) =  sqrt(d0eh(i))
          ELSE
            d0eh(i) =  sqrt(-d0eh(i))
-           write(out_unitp,*) ' ERROR : one imaginary frequency',               &
+           write(out_unit,*) ' ERROR : one imaginary frequency',               &
                                     d0eh(i)*get_Conv_au_TO_unit('E','cm-1')
 !          STOP
          END IF
@@ -602,15 +602,15 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
-         !write(out_unitp,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','eV')
-         write(out_unitp,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
+         write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
+         !write(out_unit,*) 'ZPE   (eV): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','eV')
+         write(out_unit,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
 
-         write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
-         write(out_unitp,*)
-         write(out_unitp,*) 'modes normaux: d0ch'
-         CALL Write_Mat(d0ch,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
+         write(out_unit,*)
+         write(out_unit,*) 'modes normaux: d0ch'
+         CALL Write_Mat(d0ch,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -660,15 +660,15 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unitp,5)
-         write(out_unitp,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unitp,5)
+         write(out_unit,*) 'matrice de passage de b2 a b0'
+         CALL Write_Mat(d0c,out_unit,5)
+         write(out_unit,*) 'matrice de passage de b0 a b2'
+         CALL Write_Mat(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
-         write(out_unitp,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unitp,5)
+         write(out_unit,*) 'test inversion de d0c'
+         CALL Write_Mat(mat1,out_unit,5)
          max_err = ZERO
          DO i=1,nb_var
          DO j=1,nb_var
@@ -676,8 +676,8 @@ end subroutine calc_freq_new
             IF (i == j) max_err = max(max_err,abs(mat1(i,j)-ONE))
          END DO
          END DO
-         write(out_unitp,*) ' max_err: ',max_err
-         flush(out_unitp)
+         write(out_unit,*) ' max_err: ',max_err
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -701,7 +701,7 @@ end subroutine calc_freq_new
 !      DO i=1,nb_var
 !       d = d * d0ch(i,i)
 !      END DO
-!      write(out_unitp,*) 'det d0c',d
+!      write(out_unit,*) 'det d0c',d
 !      ----------------------------------------
 
 
@@ -711,7 +711,7 @@ end subroutine calc_freq_new
        DO i=1,nb_var
         d = d * sqrt(d0eh(i)) / d0ek(i)
        END DO
-!      write(out_unitp,*) 'det d0c',d
+!      write(out_unit,*) 'det d0c',d
 !      ----------------------------------------
 !
 !      - cas 3 --------------------------------
@@ -727,9 +727,9 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'determinants :',norme
-         write(out_unitp,*) 'END calc_freq'
-         flush(out_unitp)
+         write(out_unit,*) 'determinants :',norme
+         write(out_unit,*) 'END calc_freq'
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 !stop
@@ -769,13 +769,13 @@ end subroutine calc_freq_new
       character (len=*), parameter :: name_sub = 'calc_freq_block'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*)
-         write(out_unitp,*) '========================================='
-         write(out_unitp,*) '========== calc_freq_block =============='
-         write(out_unitp,*) '========================================='
-         write(out_unitp,*)
-         write(out_unitp,*) '=========, sym: ',sym(:)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*)
+         write(out_unit,*) '========================================='
+         write(out_unit,*) '========== calc_freq_block =============='
+         write(out_unit,*) '========================================='
+         write(out_unit,*)
+         write(out_unit,*) '=========, sym: ',sym(:)
        END IF
 
       !-----------------------------------------------------------------
@@ -820,10 +820,10 @@ end subroutine calc_freq_new
       nb_NM = sum(nb_PerBlock)
 
       IF (debug) THEN
-        write(out_unitp,*) '  nb_Block            ',nb_Block
-        write(out_unitp,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
-        write(out_unitp,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
-        write(out_unitp,*) '  nb_NM tot',nb_NM
+        write(out_unit,*) '  nb_Block            ',nb_Block
+        write(out_unit,*) '  nb_PerBlock(:)      ',nb_PerBlock(:)
+        write(out_unit,*) '  Ind_Coord_AtBlock(:)',Ind_Coord_AtBlock(:)
+        write(out_unit,*) '  nb_NM tot',nb_NM
       END IF
 
       !-----------------------------------------------------------------
@@ -840,12 +840,12 @@ end subroutine calc_freq_new
 
         nb_NM = nb_PerBlock(i_Block)
         IF (debug) THEN
-          write(out_unitp,*) '========================================='
-          write(out_unitp,*) '=========             Block: ',i_Block
-          write(out_unitp,*) '=========       nb_PerBlock: ',nb_PerBlock(i_Block)
-          write(out_unitp,*) '========= Ind_Coord_AtBlock: ',Ind_Coord_AtBlock(i_Block)
-          write(out_unitp,*) '========================================='
-          write(out_unitp,*)
+          write(out_unit,*) '========================================='
+          write(out_unit,*) '=========             Block: ',i_Block
+          write(out_unit,*) '=========       nb_PerBlock: ',nb_PerBlock(i_Block)
+          write(out_unit,*) '========= Ind_Coord_AtBlock: ',Ind_Coord_AtBlock(i_Block)
+          write(out_unit,*) '========================================='
+          write(out_unit,*)
         END IF
 
         !d0k_PerBlock, d0h_PerBlock
@@ -913,10 +913,10 @@ end subroutine calc_freq_new
         CALL dealloc_NParray(d0eh_PerBlock,     "d0eh_PerBlock",     name_sub)
 
         IF (debug) THEN
-          write(out_unitp,*) '========================================='
-          write(out_unitp,*) '===== END Block: ',i_Block
-          write(out_unitp,*) '========================================='
-          flush(out_unitp)
+          write(out_unit,*) '========================================='
+          write(out_unit,*) '===== END Block: ',i_Block
+          write(out_unit,*) '========================================='
+          flush(out_unit)
         END IF
 
 
@@ -930,18 +930,18 @@ end subroutine calc_freq_new
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'determinants :',norme
+        write(out_unit,*) 'determinants :',norme
 
         DO i=1,nb_var,3
           i2 = min(i+2,nb_var)
-          write(out_unitp,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
+          write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                             i,i2,d0eh(i:i2)*get_Conv_au_TO_unit('E','cm-1')
         END DO
 
-        write(out_unitp,*)
-        write(out_unitp,*)
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*)
+        write(out_unit,*)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
       END IF
 
 !     -----------------------------------------------------------------
@@ -986,14 +986,14 @@ end subroutine calc_freq_new
        !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING calc_freq_WITH_d0c'
-         write(out_unitp,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unitp,5)
-         write(out_unitp,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unitp,5)
-         write(out_unitp,*) 'd0c',nb_var
-         CALL Write_Mat(d0c,out_unitp,5)
-         flush(out_unitp)
+         write(out_unit,*) 'BEGINNING calc_freq_WITH_d0c'
+         write(out_unit,*) 'd0h',nb_var
+         CALL Write_Mat(d0h,out_unit,5)
+         write(out_unit,*) 'd0k',nb_var
+         CALL Write_Mat(d0k,out_unit,5)
+         write(out_unit,*) 'd0c',nb_var
+         CALL Write_Mat(d0c,out_unit,5)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -1012,7 +1012,7 @@ end subroutine calc_freq_new
 !      - cas 1 --------------------------------
        !CALL Det_OF_m1(d0c,d,nb_var)
        d = Det_OF(d0c)
-       write(out_unitp,*) 'det d0c',d
+       write(out_unit,*) 'det d0c',d
        norme = sqrt(abs(d))
 !      ----------------------------------------
 !-----------------------------------------------------------
@@ -1028,33 +1028,33 @@ end subroutine calc_freq_new
 
 
       mat1 = matmul(d0c_inv,matmul(d0h,transpose(d0c_inv)))
-      !write(out_unitp,*) 'diago hess ?'
-      !CALL Write_Mat(mat1,out_unitp,5)
+      !write(out_unit,*) 'diago hess ?'
+      !CALL Write_Mat(mat1,out_unit,5)
 
        DO i=1,nb_var
          d0eh(i) = mat1(i,i)
          IF (d0eh(i) < ZERO) THEN
-           write(out_unitp,*) ' ERROR : one imaginary frequency',               &
+           write(out_unit,*) ' ERROR : one imaginary frequency',               &
                                     d0eh(i)*get_Conv_au_TO_unit('E','cm-1')
          END IF
        END DO
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
-         write(out_unitp,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
+         write(out_unit,*) 'ZPE (cm-1): ',HALF*sum(d0eh(:))*get_Conv_au_TO_unit('E','cm-1')
+         write(out_unit,*) 'ZPE   (au): ',HALF*sum(d0eh(:))
 
-         write(out_unitp,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
-         flush(out_unitp)
+         write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'determinants :',norme
-         write(out_unitp,*) 'END calc_freq_WITH_d0c'
-         flush(out_unitp)
+         write(out_unit,*) 'determinants :',norme
+         write(out_unit,*) 'END calc_freq_WITH_d0c'
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -1079,14 +1079,14 @@ end subroutine calc_freq_new
        !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING H0_symmetrization'
-         write(out_unitp,*) 'h: ',n
-         CALL Write_Mat(h,out_unitp,5)
-         write(out_unitp,*)
-         write(out_unitp,*) 'sym',sym
-         write(out_unitp,*) 'eq'
+         write(out_unit,*) 'BEGINNING H0_symmetrization'
+         write(out_unit,*) 'h: ',n
+         CALL Write_Mat(h,out_unit,5)
+         write(out_unit,*)
+         write(out_unit,*) 'sym',sym
+         write(out_unit,*) 'eq'
          DO i=1,n
-          write(out_unitp,*) 'tab_equi:',i,dim_equi(i),':',                     &
+          write(out_unit,*) 'tab_equi:',i,dim_equi(i),':',                     &
                        (tab_equi(i,k),k=1,dim_equi(i))
         END DO
        END IF
@@ -1152,9 +1152,9 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'h: ',n
-         CALL Write_Mat(h,out_unitp,5)
-         write(out_unitp,*) 'END H0_symmetrization'
+         write(out_unit,*) 'h: ',n
+         CALL Write_Mat(h,out_unit,5)
+         write(out_unit,*) 'END H0_symmetrization'
        END IF
 !-----------------------------------------------------------
 
@@ -1200,10 +1200,10 @@ end subroutine calc_freq_new
 !     logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING calc_freqNM'
-         write(out_unitp,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unitp,5)
-         write(out_unitp,*) 'sqrt(masses)',d0sm
+         write(out_unit,*) 'BEGINNING calc_freqNM'
+         write(out_unit,*) 'd0h',nb_var
+         CALL Write_Mat(d0h,out_unit,5)
+         write(out_unit,*) 'sqrt(masses)',d0sm
        END IF
 !-----------------------------------------------------------
 
@@ -1217,9 +1217,9 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*)
-         write(out_unitp,*) 'mass-weighted hessian:'
-         CALL Write_Mat(d0k,out_unitp,5)
+         write(out_unit,*)
+         write(out_unit,*) 'mass-weighted hessian:'
+         CALL Write_Mat(d0k,out_unit,5)
        END IF
 !-----------------------------------------------------------
 
@@ -1231,7 +1231,7 @@ end subroutine calc_freq_new
          ELSE
            d0eh(i) = -sqrt(-d0eh(i))
 !          d0eh(i) =  sqrt(-d0eh(i))
-!          write(out_unitp,*) ' ERROR : one imaginary frequency',d0eh(i),'au'
+!          write(out_unit,*) ' ERROR : one imaginary frequency',d0eh(i),'au'
          END IF
 
        END DO
@@ -1239,16 +1239,16 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug .OR. print) THEN
-         write(out_unitp,*) 'frequencies : ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
-         write(out_unitp,*)
-         write(out_unitp,*) 'modes normaux'
-         CALL Write_Mat(d0ch,out_unitp,5)
+         write(out_unit,*) 'frequencies : ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
+         write(out_unit,*)
+         write(out_unit,*) 'modes normaux'
+         CALL Write_Mat(d0ch,out_unit,5)
        END IF
 !-----------------------------------------------------------
 !      mat1 = transpose(d0ch)
 !      mat2 = matmul(mat1,d0ch)
-!      write(out_unitp,*) 'test inversion de d0ch'
-!      CALL Write_Mat(mat2,out_unitp,5)
+!      write(out_unit,*) 'test inversion de d0ch'
+!      CALL Write_Mat(mat2,out_unit,5)
 
 
 
@@ -1271,21 +1271,21 @@ end subroutine calc_freq_new
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unitp,5)
-         write(out_unitp,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unitp,5)
+         write(out_unit,*) 'matrice de passage de b2 a b0'
+         CALL Write_Mat(d0c,out_unit,5)
+         write(out_unit,*) 'matrice de passage de b0 a b2'
+         CALL Write_Mat(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
-         write(out_unitp,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unitp,5)
+         write(out_unit,*) 'test inversion de d0c'
+         CALL Write_Mat(mat1,out_unit,5)
        END IF
 !-----------------------------------------------------------
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'END calc_freqNM'
+         write(out_unit,*) 'END calc_freqNM'
        END IF
 !-----------------------------------------------------------
 
@@ -1360,9 +1360,9 @@ end subroutine calc_freq_new
 !     logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING gaussian_width'
-         write(out_unitp,*) 'd0c',nb_var
-         CALL Write_Mat(d0c,out_unitp,5)
+         write(out_unit,*) 'BEGINNING gaussian_width'
+         write(out_unit,*) 'd0c',nb_var
+         CALL Write_Mat(d0c,out_unit,5)
        END IF
 
        DO i=1,nb_var
@@ -1376,9 +1376,9 @@ end subroutine calc_freq_new
 
 
        IF (debug) THEN
-         write(out_unitp,*) 'A',nb_var
-         CALL Write_Mat(A,out_unitp,5)
-         write(out_unitp,*) 'END gaussian_width'
+         write(out_unit,*) 'A',nb_var
+         CALL Write_Mat(A,out_unit,5)
+         write(out_unit,*) 'END gaussian_width'
        END IF
        end subroutine gaussian_width
 
@@ -1408,10 +1408,10 @@ end subroutine calc_freq_new
       !logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING rota_denerated'
-      write(out_unitp,*) 'v',v
-      write(out_unitp,*) 'c'
-      CALL Write_Mat(c,out_unitp,5)
+      write(out_unit,*) 'BEGINNING rota_denerated'
+      write(out_unit,*) 'v',v
+      write(out_unit,*) 'c'
+      CALL Write_Mat(c,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1432,9 +1432,9 @@ end subroutine calc_freq_new
         IF ( abs(v(i)-v(i+1)) < epsi) THEN
 
           j = i+1
-          IF (debug) write(out_unitp,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
-          IF (debug) write(out_unitp,*) 'old c(:,i)  ',c(:,i)
-          IF (debug) write(out_unitp,*) 'old c(:,i+1)',c(:,i+1)
+          IF (debug) write(out_unit,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
+          IF (debug) write(out_unit,*) 'old c(:,i)  ',c(:,i)
+          IF (debug) write(out_unit,*) 'old c(:,i+1)',c(:,i+1)
           ! determination of max_ci and max_cj
           max_ci = ZERO
           DO k=1,n
@@ -1464,8 +1464,8 @@ end subroutine calc_freq_new
            c(k,j) = -ss * ai + cc * aj
 
           END DO
-          IF (debug) write(out_unitp,*) 'new c(:,i)  ',c(:,i)
-          IF (debug) write(out_unitp,*) 'new c(:,i+1)',c(:,i+1)
+          IF (debug) write(out_unit,*) 'new c(:,i)  ',c(:,i)
+          IF (debug) write(out_unit,*) 'new c(:,i+1)',c(:,i+1)
         END IF
       END DO
 
@@ -1488,12 +1488,12 @@ end subroutine calc_freq_new
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'i et i+1 dege',j-1
-      write(out_unitp,*) 'ind_maxi ind_maxj',ind_maxi,ind_maxj
-      write(out_unitp,*) 'cos et sin',cc,ss,norme
-      write(out_unitp,*) 'new c'
-      CALL Write_Mat(c,out_unitp,5)
-      write(out_unitp,*) 'END rota_denerated'
+      write(out_unit,*) 'i et i+1 dege',j-1
+      write(out_unit,*) 'ind_maxi ind_maxj',ind_maxi,ind_maxj
+      write(out_unit,*) 'cos et sin',cc,ss,norme
+      write(out_unit,*) 'new c'
+      CALL Write_Mat(c,out_unit,5)
+      write(out_unit,*) 'END rota_denerated'
       END IF
 !---------------------------------------------------------------------
 
@@ -1516,10 +1516,10 @@ end subroutine calc_freq_new
       !logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING rota_degenerate_opt1'
-      write(out_unitp,*) 'v',v
-      write(out_unitp,*) 'c'
-      CALL Write_Mat(c,out_unitp,5)
+      write(out_unit,*) 'BEGINNING rota_degenerate_opt1'
+      write(out_unit,*) 'v',v
+      write(out_unit,*) 'c'
+      CALL Write_Mat(c,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1538,7 +1538,7 @@ end subroutine calc_freq_new
       DO i=1,n-1
 
         IF ( abs(v(i)-v(i+1)) < degenerate_freq%epsi) THEN
-          IF (debug) write(out_unitp,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
+          IF (debug) write(out_unit,*) 'i et i+1 dege',i,i+1,v(i),v(i+1)
 
           j = i+1
           !determination of max_ci and max_cj
@@ -1567,9 +1567,9 @@ end subroutine calc_freq_new
             cc =  max_ci/norme
             ss = -c(ind_maxj,i)/norme
             IF (debug) then
-              write(out_unitp,*) 'i et i+1 dege',i,i+1
-              write(out_unitp,*) 'ind_maxi ind_maxj',ind_maxi,ind_maxj
-              write(out_unitp,*) 'cos et sin',cc,ss,norme
+              write(out_unit,*) 'i et i+1 dege',i,i+1
+              write(out_unit,*) 'ind_maxi ind_maxj',ind_maxi,ind_maxj
+              write(out_unit,*) 'cos et sin',cc,ss,norme
             END IF
 
             DO k=1,n
@@ -1604,9 +1604,9 @@ end subroutine calc_freq_new
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'new c'
-      CALL Write_Mat(c,out_unitp,5)
-      write(out_unitp,*) 'END rota_degenerate_opt1'
+      write(out_unit,*) 'new c'
+      CALL Write_Mat(c,out_unit,5)
+      write(out_unit,*) 'END rota_degenerate_opt1'
       END IF
 !---------------------------------------------------------------------
 
@@ -1635,15 +1635,15 @@ end subroutine calc_freq_new
       !logical, parameter :: debug = .TRUE.
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) '  dia_freq',dia_freq
-        write(out_unitp,*) '  e',e
-       write(out_unitp,*) '  c'
-       CALL Write_Mat(c,out_unitp,5)
-       write(out_unitp,*) '  c_inv'
-       CALL Write_Mat(c_inv,out_unitp,5)
-        write(out_unitp,*) '  c_ini'
-        CALL Write_Mat(c_ini,out_unitp,5)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) '  dia_freq',dia_freq
+        write(out_unit,*) '  e',e
+       write(out_unit,*) '  c'
+       CALL Write_Mat(c,out_unit,5)
+       write(out_unit,*) '  c_inv'
+       CALL Write_Mat(c_inv,out_unit,5)
+        write(out_unit,*) '  c_ini'
+        CALL Write_Mat(c_ini,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1667,11 +1667,11 @@ end subroutine calc_freq_new
                 de = abs(  sqrt(abs(e(i))) -sqrt(abs(e(j))) )
               END IF
             END DO
-            !write(out_unitp,*) 'max_Si',i,ind_maxi,max_Si
+            !write(out_unit,*) 'max_Si',i,ind_maxi,max_Si
 
             !IF (ind_maxi /= i .AND. de < TWO*ONETENTH**4) THEN
             IF (ind_maxi /= i) THEN
-              IF (debug) write(out_unitp,*) 'permutation: max_Si',i,ind_maxi,max_Si
+              IF (debug) write(out_unit,*) 'permutation: max_Si',i,ind_maxi,max_Si
 
               ! permutation of the vectors c(.,i)     and c(.,ind_maxi)
               ! permutation of the vectors c_inv(i,.) and c_inv(ind_maxi,.)
@@ -1696,7 +1696,7 @@ end subroutine calc_freq_new
         DO i=1,n
           ! calculation of Sii
           Sii = dot_product(c_ini(:,i) , c(:,i))
-          IF (debug) write(out_unitp,*) 'Sii',i,Sii
+          IF (debug) write(out_unit,*) 'Sii',i,Sii
 
           ! if Sii<0 => c(.,i)=-c(.,i) and c_inv(i,.) = -c_inv(i,.)
           IF (Sii < ZERO ) THEN
@@ -1708,7 +1708,7 @@ end subroutine calc_freq_new
         ! check the overlap with c_ini
         IF (dia_freq) THEN
 
-          IF (debug) write(out_unitp,*) ' Overlapp between c(:,i) and c_ini(:,i)'
+          IF (debug) write(out_unit,*) ' Overlapp between c(:,i) and c_ini(:,i)'
           DO i=1,n
 
 
@@ -1722,32 +1722,29 @@ end subroutine calc_freq_new
               tab_Sji(j) = Sij/sqrt(Sii*Sjj)
 
             END DO
-            !write(out_unitp,'(a,i0,50(xf5.2))') 'Error on Sji: ',i,tab_Sji
+            !write(out_unit,'(a,i0,50(xf5.2))') 'Error on Sji: ',i,tab_Sji
             tab_Sji(i) = tab_Sji(i) - ONE
 
             IF (debug) &
-              write(out_unitp,'(a,i0,50(1x,f5.2))') 'Sji and Error on Sji: ',i,tab_Sji(i)+ONE,maxval(abs(tab_Sji))
+              write(out_unit,'(a,i0,50(1x,f5.2))') 'Sji and Error on Sji: ',i,tab_Sji(i)+ONE,maxval(abs(tab_Sji))
 
           END DO
         END IF
 
-
-
-        !IF (Grid_maxth == 1) c_ini(:,:) = c(:,:)   ! omp_get_max_threads
         c_ini(:,:) = c(:,:)
       ELSE
-        IF (debug) write(out_unitp,*) 'Initialization of C_ini in ',name_sub
+        IF (debug) write(out_unit,*) 'Initialization of C_ini in ',name_sub
         c_ini(:,:) = c(:,:)
       END IF
 
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) '  e',e
-        write(out_unitp,*) '  new c'
-        CALL Write_Mat(c,out_unitp,5)
-        write(out_unitp,*) '  new c_inv'
-        CALL Write_Mat(c_inv,out_unitp,5)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) '  e',e
+        write(out_unit,*) '  new c'
+        CALL Write_Mat(c,out_unit,5)
+        write(out_unit,*) '  new c_inv'
+        CALL Write_Mat(c_inv,out_unit,5)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !---------------------------------------------------------------------
 
@@ -1769,15 +1766,15 @@ end subroutine calc_freq_new
       !logical, parameter :: debug = .TRUE.
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) '  dia_freq',dia_freq
-        write(out_unitp,*) '  e',e
-       write(out_unitp,*) '  c'
-       CALL Write_Mat(c,out_unitp,5)
-       write(out_unitp,*) '  c_inv'
-       CALL Write_Mat(c_inv,out_unitp,5)
-        write(out_unitp,*) '  c_ini'
-        CALL Write_Mat(c_ini,out_unitp,5)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) '  dia_freq',dia_freq
+        write(out_unit,*) '  e',e
+       write(out_unit,*) '  c'
+       CALL Write_Mat(c,out_unit,5)
+       write(out_unit,*) '  c_inv'
+       CALL Write_Mat(c_inv,out_unit,5)
+        write(out_unit,*) '  c_ini'
+        CALL Write_Mat(c_ini,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1801,11 +1798,11 @@ end subroutine calc_freq_new
                 de = abs(  sqrt(abs(e(i))) -sqrt(abs(e(j))) )
               END IF
             END DO
-            !write(out_unitp,*) 'max_Si',i,ind_maxi,max_Si
+            !write(out_unit,*) 'max_Si',i,ind_maxi,max_Si
 
             !IF (ind_maxi /= i .AND. de < TWO*ONETENTH**4) THEN
             IF (ind_maxi /= i) THEN
-              IF (debug) write(out_unitp,*) 'permutation: max_Si',i,ind_maxi,max_Si
+              IF (debug) write(out_unit,*) 'permutation: max_Si',i,ind_maxi,max_Si
 
               ! permutation of the vectors c(.,i)     and c(.,ind_maxi)
               ! permutation of the vectors c_inv(i,.) and c_inv(ind_maxi,.)
@@ -1832,7 +1829,7 @@ end subroutine calc_freq_new
           Nini = sqrt(dot_product(c_ini(:,i) , c_ini(:,i)))
           Ni = sqrt(dot_product(c(:,i) , c(:,i)))
           Sii = dot_product(c_ini(:,i) , c(:,i))/(Nini*Ni)
-          IF (debug) write(out_unitp,*) 'Sii',i,Sii
+          IF (debug) write(out_unit,*) 'Sii',i,Sii
 
           ! if Sii<0 => c(.,i)=-c(.,i) and c_inv(i,.) = -c_inv(i,.)
           IF (Sii < ZERO ) THEN
@@ -1844,7 +1841,7 @@ end subroutine calc_freq_new
         ! check the overlap with c_ini
         IF (dia_freq) THEN
 
-          IF (debug) write(out_unitp,*) ' Overlapp between c(:,i) and c_ini(:,i)'
+          IF (debug) write(out_unit,*) ' Overlapp between c(:,i) and c_ini(:,i)'
           DO i=1,n
             DO j=1,n
               !  calculation of Sij
@@ -1855,35 +1852,32 @@ end subroutine calc_freq_new
               tab_Sji(j) = Sij/sqrt(Sii*Sjj)
 
             END DO
-            !write(out_unitp,'(a,i0,50(xf5.2))') 'Error on Sji: ',i,tab_Sji
+            !write(out_unit,'(a,i0,50(xf5.2))') 'Error on Sji: ',i,tab_Sji
             tab_Sji(i) = tab_Sji(i) - ONE
-            IF (debug) write(out_unitp,'(3a,i0,2(1x,f5.2))') 'In ',name_sub,               &
+            IF (debug) write(out_unit,'(3a,i0,2(1x,f5.2))') 'In ',name_sub,               &
                'Sji(i) and Error on Sji: ',i,tab_Sji(i)+ONE,maxval(abs(tab_Sji))
 
             IF (debug) THEN
               tab_Sji(i) = tab_Sji(i) + ONE
-              write(out_unitp,'(a,i0,50(1x,f5.2))') 'Sji(:): ',i,tab_Sji(:)
+              write(out_unit,'(a,i0,50(1x,f5.2))') 'Sji(:): ',i,tab_Sji(:)
             END IF
           END DO
         END IF
 
-
-
-        !IF (Grid_maxth == 1) c_ini(:,:) = c(:,:)   ! omp_get_max_threads
         c_ini(:,:) = c(:,:)
       ELSE
-        IF (debug) write(out_unitp,*) 'Initialization of C_ini in ',name_sub
+        IF (debug) write(out_unit,*) 'Initialization of C_ini in ',name_sub
         c_ini(:,:) = c(:,:)
       END IF
 
       !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) '  e',e
-        write(out_unitp,*) '  new c'
-        CALL Write_Mat(c,out_unitp,5)
-        write(out_unitp,*) '  new c_inv'
-        CALL Write_Mat(c_inv,out_unitp,5)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) '  e',e
+        write(out_unit,*) '  new c'
+        CALL Write_Mat(c,out_unit,5)
+        write(out_unit,*) '  new c_inv'
+        CALL Write_Mat(c_inv,out_unit,5)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !---------------------------------------------------------------------
 
@@ -1914,11 +1908,11 @@ end subroutine calc_freq_new
 !     logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING sort_with_Tab'
-      write(out_unitp,*) 'e',e
-      write(out_unitp,*) 'c, c_inv'
-      CALL Write_Mat(c,out_unitp,5)
-      CALL Write_Mat(c_inv,out_unitp,5)
+      write(out_unit,*) 'BEGINNING sort_with_Tab'
+      write(out_unit,*) 'e',e
+      write(out_unit,*) 'c, c_inv'
+      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat(c_inv,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1961,11 +1955,11 @@ end subroutine calc_freq_new
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'e',e
-      write(out_unitp,*) 'new c and c_inv'
-      CALL Write_Mat(c,out_unitp,5)
-      CALL Write_Mat(c_inv,out_unitp,5)
-      write(out_unitp,*) 'END sort_with_Tab'
+      write(out_unit,*) 'e',e
+      write(out_unit,*) 'new c and c_inv'
+      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat(c_inv,out_unit,5)
+      write(out_unit,*) 'END sort_with_Tab'
       END IF
 !---------------------------------------------------------------------
 

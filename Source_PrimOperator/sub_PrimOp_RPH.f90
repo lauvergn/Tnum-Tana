@@ -47,7 +47,7 @@
    CONTAINS
 
   SUBROUTINE CoordQact_TO_RPHQact1(Qact,RPHpara_AT_Qact1,mole)
-    USE mod_system
+    USE TnumTana_system_m
     USE mod_Coord_KEO
     IMPLICIT NONE
 
@@ -68,22 +68,22 @@
     logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) ' Qact',Qact(:)
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) ' Qact',Qact(:)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
     IF (.NOT. associated(mole%RPHTransfo) .OR. mole%itRPH == -1) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' RPHTransfo is not associated or itRPH=-1'
-      write(out_unitp,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
-      write(out_unitp,*) ' itRPH',mole%itRPH
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' RPHTransfo is not associated or itRPH=-1'
+      write(out_unit,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
+      write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in CoordQact_TO_RPHQact1: RPHTransfo is not associated'
     END IF
 
     CALL sub_QactTOQit(Qact,Qit,mole%itRPH,mole,print_Qtransfo=.FALSE.)
-    IF (debug) write(out_unitp,*) ' Qit',Qit(:)
+    IF (debug) write(out_unit,*) ' Qit',Qit(:)
 
     i_Qact = 0
     DO i=1,mole%nb_var
@@ -96,14 +96,14 @@
     CALL dealloc_NParray(Qit,'Qit',name_sub)
 
     IF (debug) THEN
-      write(out_unitp,*) ' RPHQact1',RPHpara_AT_Qact1%RPHQact1(:)
-      write(out_unitp,*) 'END ',name_sub
-     flush(out_unitp)
+      write(out_unit,*) ' RPHQact1',RPHpara_AT_Qact1%RPHQact1(:)
+      write(out_unit,*) 'END ',name_sub
+     flush(out_unit)
     END IF
 
   END SUBROUTINE CoordQact_TO_RPHQact1
   SUBROUTINE RPHQact1_TO_CoordQact(Qact,RPHpara_AT_Qact1,mole)
-    USE mod_system
+    USE TnumTana_system_m
     USE mod_Coord_KEO
     IMPLICIT NONE
 
@@ -124,17 +124,17 @@
     !logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) ' RPHQact1',RPHpara_AT_Qact1%RPHQact1(:)
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) ' RPHQact1',RPHpara_AT_Qact1%RPHQact1(:)
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
 
     IF (.NOT. associated(mole%RPHTransfo) .OR. mole%itRPH == -1) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' RPHTransfo is not associated or itRPH=-1'
-      write(out_unitp,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
-      write(out_unitp,*) ' itRPH',mole%itRPH
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' RPHTransfo is not associated or itRPH=-1'
+      write(out_unit,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
+      write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in RPHQact1_TO_CoordQact: RPHTransfo is not associated'
     END IF
 
@@ -148,22 +148,22 @@
         Qit(i) = RPHpara_AT_Qact1%RPHQact1(i_Qact)
       END IF
     END DO
-    IF (debug) write(out_unitp,*) ' Qit',Qit(:)
+    IF (debug) write(out_unit,*) ' Qit',Qit(:)
 
     CALL sub_QinRead_TO_Qact(Qit,Qact,mole,mole%itRPH)
 
     CALL dealloc_NParray(Qit,'Qit',name_sub)
 
     IF (debug) THEN
-      write(out_unitp,*) ' Qact',Qact(:)
-      write(out_unitp,*) 'END ',name_sub
-     flush(out_unitp)
+      write(out_unit,*) ' Qact',Qact(:)
+      write(out_unit,*) 'END ',name_sub
+     flush(out_unit)
     END IF
 
   END SUBROUTINE RPHQact1_TO_CoordQact
 
   SUBROUTINE Set_RPHpara_AT_Qact1(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
-    USE mod_system
+    USE TnumTana_system_m
     USE mod_Coord_KEO
     IMPLICIT NONE
 
@@ -182,17 +182,17 @@
     !logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'RPHTransfo%option',mole%RPHTransfo%option
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'RPHTransfo%option',mole%RPHTransfo%option
+      flush(out_unit)
     END IF
 
     !-----------------------------------------------------------
     IF (.NOT. associated(mole%RPHTransfo) .OR. mole%itRPH == -1) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' RPHTransfo is not associated or itRPH=-1'
-      write(out_unitp,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
-      write(out_unitp,*) ' itRPH',mole%itRPH
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' RPHTransfo is not associated or itRPH=-1'
+      write(out_unit,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
+      write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in Set_RPHpara_AT_Qact1: RPHTransfo is not associated'
     END IF
 
@@ -204,14 +204,14 @@
 
     IF (debug) THEN
       CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
 
   END SUBROUTINE Set_RPHpara_AT_Qact1
 
   SUBROUTINE Set_RPHpara_AT_Qact1_opt2(RPHpara_AT_Qact1,Qact_in,para_Tnum,mole)
-    USE mod_system
+    USE TnumTana_system_m
     USE mod_dnSVM
     USE mod_Constant, only : get_Conv_au_TO_unit
     USE mod_Coord_KEO
@@ -250,8 +250,8 @@
     !logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      flush(out_unit)
     END IF
     !-----------------------------------------------------------
     auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
@@ -288,7 +288,7 @@
     CALL alloc_array(dnSwitch,[nb_ref],"dnSwitch",name_sub)
     CALL alloc_VecOFdnS(dnSwitch,nb_act1,nderiv)
     CALL Switch_RPH(dnSwitch,dnQact,QrefQact,sc,nderiv)
-    !write(out_unitp,*) 'dnSwitch(:)',dnSwitch(:)%d0
+    !write(out_unit,*) 'dnSwitch(:)',dnSwitch(:)%d0
 
     CALL alloc_dnSVM(dnW1,  nb_act1,           nderiv)
 
@@ -351,14 +351,14 @@
 
     IF (debug) THEN
        CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
-       write(out_unitp,*) 'END ',name_sub
-       flush(out_unitp)
+       write(out_unit,*) 'END ',name_sub
+       flush(out_unit)
     END IF
 
   END SUBROUTINE Set_RPHpara_AT_Qact1_opt2
 
   SUBROUTINE Set_RPHpara_AT_Qact1_opt01(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
-     USE mod_system
+     USE TnumTana_system_m
      USE mod_dnSVM
      USE mod_Constant, only : get_Conv_au_TO_unit
      USE mod_Coord_KEO
@@ -383,18 +383,18 @@
      !logical, parameter :: debug = .TRUE.
      !-----------------------------------------------------------
      IF (debug) THEN
-       write(out_unitp,*) 'BEGINNING ',name_sub
-       write(out_unitp,*) 'Qact: ',Qact
-       flush(out_unitp)
+       write(out_unit,*) 'BEGINNING ',name_sub
+       write(out_unit,*) 'Qact: ',Qact
+       flush(out_unit)
      END IF
      !-----------------------------------------------------------
      auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
     IF (.NOT. associated(mole%RPHTransfo) .OR. mole%itRPH == -1) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' RPHTransfo is not associated or itRPH=-1'
-      write(out_unitp,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
-      write(out_unitp,*) ' itRPH',mole%itRPH
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' RPHTransfo is not associated or itRPH=-1'
+      write(out_unit,*) ' asso mole%RPHTransfo',associated(mole%RPHTransfo)
+      write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in Set_RPHpara_AT_Qact1_opt01: RPHTransfo is not associated'
     END IF
 
@@ -411,7 +411,7 @@
                     para_Tnum,mole,mole%RPHTransfo,nderiv,      &
                     test=.FALSE.,cHAC=.FALSE.)
 
-    write(out_unitp,11) RPHpara_AT_Qact1%RPHQact1(:),                  &
+    write(out_unit,11) RPHpara_AT_Qact1%RPHQact1(:),                  &
                        RPHpara_AT_Qact1%dnEHess%d0(:)*auTOcm_inv
  11 format(' frequencies : ',30f10.4)
 
@@ -419,8 +419,8 @@
 
     IF (debug) THEN
       CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
     END IF
 
   END SUBROUTINE Set_RPHpara_AT_Qact1_opt01
@@ -432,7 +432,7 @@
 !=============================================================
       SUBROUTINE sub_dnfreq(RPHpara_AT_Qact1,pot0_corgrad,                      &
                             para_Tnum,mole,RPHTransfo,nderiv,test,cHAC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_FiniteDiff
       USE mod_Constant, only : get_Conv_au_TO_unit
@@ -470,8 +470,8 @@
       !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        flush(out_unit)
       END IF
 
 !-----------------------------------------------------------
@@ -482,7 +482,7 @@
       Qact1(:) = RPHpara_AT_Qact1%RPHQact1
 
       IF (RPHTransfo%step <= ZERO) THEN
-        write(out_unitp,*) ' ERROR : RPHTransfo%step is < zero'
+        write(out_unit,*) ' ERROR : RPHTransfo%step is < zero'
         STOP
       END IF
 
@@ -683,26 +683,26 @@
 
 !-----------------------------------------------------------
     IF (debug .OR. test) THEN
-      write(out_unitp,11) RPHpara_AT_Qact1%RPHQact1(:),                 &
+      write(out_unit,11) RPHpara_AT_Qact1%RPHQact1(:),                 &
                           RPHpara_AT_Qact1%dnEHess%d0(:)*auTOcm_inv
  11   format(' frequencies : ',30f10.4)
-      write(out_unitp,*) 'dnQopt'
+      write(out_unit,*) 'dnQopt'
       CALL Write_dnVec(RPHpara_AT_Qact1%dnQopt)
-      write(out_unitp,*) 'dnC_inv'
+      write(out_unit,*) 'dnC_inv'
       CALL Write_dnMat(RPHpara_AT_Qact1%dnC_inv)
       IF (cHAC) THEN
-        write(out_unitp,*) 'dnC'
+        write(out_unit,*) 'dnC'
         CALL Write_dnMat(RPHpara_AT_Qact1%dnC)
-        write(out_unitp,*) 'dnLnN'
+        write(out_unit,*) 'dnLnN'
         CALL Write_dnS(RPHpara_AT_Qact1%dnLnN)
       END IF
 
     END IF
 
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
     END IF
-    flush(out_unitp)
+    flush(out_unit)
 !-----------------------------------------------------------
 
    END SUBROUTINE sub_dnfreq
@@ -715,7 +715,7 @@
 
       SUBROUTINE sub_freq_RPH(RPHpara_AT_Qact1,pot0_corgrad,            &
                               para_Tnum,mole,RPHTransfo,cHAC)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant,     ONLY : get_Conv_au_TO_unit
       USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_gene,calc_Tab_dnGradHess_gene
@@ -770,9 +770,9 @@
        !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
          CALL Write_RPHTransfo(RPHTransfo)
-         flush(out_unitp)
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -780,7 +780,7 @@
 
       nb_act1    = RPHTransfo%nb_act1
       nb_inact21 = RPHTransfo%nb_inact21
-      IF (debug) write(out_unitp,*) 'nb_act1,nb_inact21',nb_act1,nb_inact21
+      IF (debug) write(out_unit,*) 'nb_act1,nb_inact21',nb_act1,nb_inact21
 
       IF (.NOT. associated(RPHTransfo%C_ini)) THEN
         CALL alloc_array(RPHTransfo%C_ini,[nb_inact21,nb_inact21],    &
@@ -788,9 +788,9 @@
         RPHTransfo%C_ini(:,:) = ZERO
       END IF
       IF (debug) THEN
-        write(out_unitp,*) 'RPHTransfo%C_ini'
-        CALL Write_Mat(RPHTransfo%C_ini,out_unitp,4)
-        flush(out_unitp)
+        write(out_unit,*) 'RPHTransfo%C_ini'
+        CALL Write_Mat(RPHTransfo%C_ini,out_unit,4)
+        flush(out_unit)
       END IF
 
 
@@ -804,7 +804,7 @@
         i_Q1 = i_Q1 + 1
         Qact(i_Qact) = RPHpara_AT_Qact1%RPHQact1(i_Q1)
       END DO
-      IF (debug) write(out_unitp,*) 'Qact',Qact
+      IF (debug) write(out_unit,*) 'Qact',Qact
 
 !-----------------------------------------------------------------
 
@@ -813,7 +813,7 @@
 ! we need Qdyn because, we calculate, the hessian, gradient with Qdyn coord
 !-----------------------------------------------------------------
        CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
-       IF (debug) write(out_unitp,*) 'Qdyn',Qdyn
+       IF (debug) write(out_unit,*) 'Qdyn',Qdyn
 
 !-----------------------------------------------------------------
 
@@ -885,7 +885,7 @@
         CALL alloc_NParray(d1g,[nb_inact21,nb_act1],"d1g",name_sub)
         CALL alloc_NParray(d2g,[nb_inact21,nb_act1,nb_act1],"d2g",name_sub)
         CALL d0d1d2_g(d0g,d1g,d2g,Qdyn,mole_loc,.FALSE.,.FALSE.,RPHTransfo%step)
-        IF (debug) CALL Write_Vec(d0g,out_unitp,4,info='d0grad')
+        IF (debug) CALL Write_Vec(d0g,out_unit,4,info='d0grad')
         RPHpara_AT_Qact1%dnGrad%d0(:) = d0g
 
         CALL dealloc_NParray(d1g,"d1g",name_sub)
@@ -898,7 +898,7 @@
                         "d2hess",name_sub)
 
         CALL d0d1d2_h(d0hess,d1hess,d2hess,Qdyn,mole_loc,.FALSE.,.FALSE.,RPHTransfo%step)
-        IF (debug) CALL Write_Mat(d0hess,out_unitp,4,info='d0hess')
+        IF (debug) CALL Write_Mat(d0hess,out_unit,4,info='d0hess')
 
         RPHpara_AT_Qact1%dnHess%d0(:,:) = d0hess
 
@@ -938,13 +938,13 @@
 
       !-----------------------------------------------------------------
       !------ The kinetic part -------------------------------
-       IF (debug) write(out_unitp,*) 'Qact',Qact
+       IF (debug) write(out_unit,*) 'Qact',Qact
       CALL alloc_NParray(d0k,[nb_inact21,nb_inact21],"d0k",name_sub)
 
       CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
 
       CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
-      IF (debug) CALL Write_Mat(dnGG%d0,out_unitp,4)
+      IF (debug) CALL Write_Mat(dnGG%d0,out_unit,4)
 
       i_Q21 = 0
       DO i=1,RPHTransfo%nb_var
@@ -958,15 +958,15 @@
               dnGG%d0(mole%liste_QdynTOQact(i),mole%liste_QdynTOQact(j))
         END DO
       END DO
-      IF (debug) CALL Write_Mat(d0k,out_unitp,4,info='d0k')
+      IF (debug) CALL Write_Mat(d0k,out_unit,4,info='d0k')
 
       CALL dealloc_dnSVM(dnGG)
 
 !-----------------------------------------------------------------
 !     --- frequencies and normal modes calculation ....
       IF (debug) THEN
-        CALL Write_Mat(d0hess,out_unitp,4,info='d0hess')
-        CALL Write_Mat(d0k,out_unitp,4,info='d0k')
+        CALL Write_Mat(d0hess,out_unit,4,info='d0hess')
+        CALL Write_Mat(d0k,out_unit,4,info='d0k')
       END IF
 
       d0h(:,:) = d0hess(:,:)
@@ -979,8 +979,8 @@
                                RPHTransfo%Qinact2n_sym,               &
                                RPHTransfo%dim_equi,RPHTransfo%tab_equi)
         IF (debug) THEN
-          CALL Write_Mat(d0h,out_unitp,4,info='d0hess symmetrized')
-          CALL Write_Mat(d0k,out_unitp,4,info='d0k symmetrized')
+          CALL Write_Mat(d0h,out_unit,4,info='d0hess symmetrized')
+          CALL Write_Mat(d0k,out_unit,4,info='d0k symmetrized')
         END IF
         CALL calc_freq_block(nb_inact21,d0h,d0k,                        &
                              RPHpara_AT_Qact1%dneHess%d0,               &
@@ -1008,12 +1008,12 @@
 
 !-----------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnLnN%d0 : ',RPHpara_AT_Qact1%dnLnN%d0
-        write(out_unitp,*) 'freq :     ',RPHpara_AT_Qact1%dneHess%d0(:)*auTOcm_inv
-        write(out_unitp,*) 'dnC%d0 :'
-        CALL Write_Mat(RPHpara_AT_Qact1%dnC%d0,out_unitp,4)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'dnLnN%d0 : ',RPHpara_AT_Qact1%dnLnN%d0
+        write(out_unit,*) 'freq :     ',RPHpara_AT_Qact1%dneHess%d0(:)*auTOcm_inv
+        write(out_unit,*) 'dnC%d0 :'
+        CALL Write_Mat(RPHpara_AT_Qact1%dnC%d0,out_unit,4)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !-----------------------------------------------------------
       END SUBROUTINE sub_freq_RPH

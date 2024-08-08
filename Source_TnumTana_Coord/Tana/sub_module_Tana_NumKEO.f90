@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
  module mod_Tana_NumKEO
- use mod_system
+ use TnumTana_system_m
  USE mod_Tnum,     only : CoordType,Tnum
  USE mod_dnRho ! all
 
@@ -73,16 +73,16 @@
    character (len=*), parameter :: routine_name='get_NumG_WITH_AnaKEO'
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'BEGINNING ',routine_name
      CALL write_op(TWOxKEO)
-     flush(out_unitp)
+     flush(out_unit)
    END IF
 
 
    IF( .NOT. allocated(TWOxKEO%sum_prod_op1d) ) THEN
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) ' TWOxKEO%sum_prod_op1d is not allocated'
-     write(out_unitp,*) ' CHECK the fortran!!'
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) ' TWOxKEO%sum_prod_op1d is not allocated'
+     write(out_unit,*) ' CHECK the fortran!!'
      STOP
    END IF
 
@@ -93,61 +93,61 @@
    vep       = ZERO
 
    DO i = 1, size(TWOxKEO%sum_prod_op1d)
-     IF (debug) write(out_unitp,*)
-     IF (debug) write(out_unitp,*) "==========================================="
-     IF (debug) write(out_unitp,*) "============== term",i,"========================"
+     IF (debug) write(out_unit,*)
+     IF (debug) write(out_unit,*) "==========================================="
+     IF (debug) write(out_unit,*) "============== term",i,"========================"
 
      CALL get_NumVal_OpnD(opval,Qval,TWOxKEO%sum_prod_op1d(i))
      opval = opval * TWOxKEO%Cn(i)
 
-     IF (debug) write(out_unitp,*) 'term:',i,' TWOxKEO%Cn(i):',TWOxKEO%Cn(i)
-     IF (debug) write(out_unitp,*) 'term:',i,' opval:',opval
+     IF (debug) write(out_unit,*) 'term:',i,' TWOxKEO%Cn(i):',TWOxKEO%Cn(i)
+     IF (debug) write(out_unit,*) 'term:',i,' opval:',opval
 
 
      CALL get_pqJL_OF_OpnD(pq,JJ,LL,TWOxKEO%sum_prod_op1d(i))
 
      iG = 0
      jG = 0
-     !write(out_unitp,*) 'term:',i
+     !write(out_unit,*) 'term:',i
      IF (pq(1) > 0 .AND. pq(2) > 0) THEN ! def
-       !write(out_unitp,*) 'def'
+       !write(out_unit,*) 'def'
        iG = pq(1)
        jG = pq(2)
      ELSE IF (pq(1) > 0 .AND. JJ(1) > 0) THEN ! cor
-       !write(out_unitp,*) 'cor'
+       !write(out_unit,*) 'cor'
        iG = pq(1)
        jG = JJ(1) -(nb_var-nb_act)
      ELSE IF (JJ(1) > 0 .AND. JJ(2) > 0) THEN ! rot
-       !write(out_unitp,*) 'rot'
+       !write(out_unit,*) 'rot'
        iG = JJ(1) -(nb_var-nb_act)
        jG = JJ(2) -(nb_var-nb_act)
      ELSE IF (JJ(1) == 0 .AND. pq(1) > 0) THEN ! rot
-       !write(out_unitp,*) 'pq^1'
+       !write(out_unit,*) 'pq^1'
        !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
        iG = pq(1)
        jG = 0
      ELSE IF(JJ(1) > 0 .AND. pq(1) == 0) THEN ! rot
-       !write(out_unitp,*) 'J^1'
+       !write(out_unit,*) 'J^1'
        !CALL write_op(TWOxKEO%sum_prod_op1d(i),header=.TRUE.)
        iG = JJ(1) -(nb_var-nb_act)
        jG = 0
      END IF
 
-     !write(out_unitp,*) 'pq,JJ',pq,JJ
-     !write(out_unitp,*) 'iG,jG',iG,jG
+     !write(out_unit,*) 'pq,JJ',pq,JJ
+     !write(out_unit,*) 'iG,jG',iG,jG
 
      IF (iG > nb_act+3 .OR. jG > nb_act+3 .OR. iG < 0 .OR. jG < 0) THEN
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' iG or jG have a wrong range'
-       write(out_unitp,*) ' iG, jG',iG,jG
-       write(out_unitp,*) 'range: [1:',nb_act+3,'] or '
-       write(out_unitp,*) 'iG = 0 and iG = 0 for the vep'
-       write(out_unitp,*) 'CHECK the FORTRAN'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' iG or jG have a wrong range'
+       write(out_unit,*) ' iG, jG',iG,jG
+       write(out_unit,*) 'range: [1:',nb_act+3,'] or '
+       write(out_unit,*) 'iG = 0 and iG = 0 for the vep'
+       write(out_unit,*) 'CHECK the FORTRAN'
        STOP
      END IF
 
      IF (iG == 0 .AND. jG == 0) THEN ! vep
-       !write(out_unitp,*) 'i,iG,jG (vep)',i,iG,jG
+       !write(out_unit,*) 'i,iG,jG (vep)',i,iG,jG
        !CALL write_op(TWOxKEO%sum_prod_op1d(i))
        vep = vep + HALF * real(opval,kind=Rkind)
      ELSE IF (iG > 0 .AND. jG > 0) THEN ! Gdef
@@ -155,22 +155,22 @@
        Gana(iG,jG) = Gana(iG,jG) + real(opval,kind=Rkind)
        Gana(jG,iG) = Gana(iG,jG)
 
-       IF (debug) write(out_unitp,*) 'i,iG, jG',i,iG,jG,Gana(iG,jG)
+       IF (debug) write(out_unit,*) 'i,iG, jG',i,iG,jG,Gana(iG,jG)
 
        !IF (iG /= jG .AND. iG <=nb_act .AND. jG <= nb_act) THEN
-       !  write(out_unitp,*) ' G(iG,jG)',iG,jG,TWOxKEO%Cn(i)
+       !  write(out_unit,*) ' G(iG,jG)',iG,jG,TWOxKEO%Cn(i)
        !  CALL write_op(TWOxKEO%sum_prod_op1d(i))
        !END IF
 
      END IF
-     !write(out_unitp,*) 'i,iG, jG',i,iG,jG
+     !write(out_unit,*) 'i,iG, jG',i,iG,jG
    END DO
 
    IF (debug) THEN
-     write(out_unitp,*) 'vep',vep
-     write(out_unitp,*) 'G of Tana  '
-     CALL write_mat(Gana,out_unitp,4)
-     write(out_unitp,*) 'END ',routine_name
+     write(out_unit,*) 'vep',vep
+     write(out_unit,*) 'G of Tana  '
+     CALL write_mat(Gana,out_unit,4)
+     write(out_unit,*) 'END ',routine_name
    END IF
 
  end subroutine get_NumG_WITH_AnaKEO
@@ -198,14 +198,14 @@
    character (len=*), parameter :: routine_name='get_Numf2f1vep_WITH_AnaKEO'
 
    IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',routine_name
+     write(out_unit,*) 'BEGINNING ',routine_name
      CALL write_op(TWOxKEO)
    END IF
 
    IF( .NOT. allocated(TWOxKEO%sum_prod_op1d) ) THEN
-     write(out_unitp,*) ' ERROR in ',routine_name
-     write(out_unitp,*) ' TWOxKEO%sum_prod_op1d is not allocated'
-     write(out_unitp,*) ' CHECK the fortran!!'
+     write(out_unit,*) ' ERROR in ',routine_name
+     write(out_unit,*) ' TWOxKEO%sum_prod_op1d is not allocated'
+     write(out_unit,*) ' CHECK the fortran!!'
      STOP
    END IF
 
@@ -234,69 +234,69 @@
      nb_J = count(JJ>0)
      iG = 0
      jG = 0
-     IF (debug) write(out_unitp,*) 'term:',i,'pq',pq,'JJ',JJ,'LL',LL
+     IF (debug) write(out_unit,*) 'term:',i,'pq',pq,'JJ',JJ,'LL',LL
      IF (pq(1) > 0 .AND. pq(2) > 0) THEN ! def
-       IF (debug) write(out_unitp,*) 'def'
+       IF (debug) write(out_unit,*) 'def'
        iG = pq(1)
        jG = pq(2)
      ELSE IF (pq(1) > 0 .AND. JJ(1) > 0) THEN ! cor
-       IF (debug) write(out_unitp,*) 'cor'
+       IF (debug) write(out_unit,*) 'cor'
        iG = pq(1)
        jG = JJ(1) -(nb_var-nb_act)
      ELSE IF (JJ(1) > 0 .AND. JJ(2) > 0) THEN ! rot
-       IF (debug) write(out_unitp,*) 'rot'
+       IF (debug) write(out_unit,*) 'rot'
        iG = JJ(1) -(nb_var-nb_act)
        jG = JJ(2) -(nb_var-nb_act)
      ELSE IF (JJ(1) == 0 .AND. pq(1) > 0) THEN ! f1
-       IF (debug) write(out_unitp,*) 'pq^1'
+       IF (debug) write(out_unit,*) 'pq^1'
        iG = pq(1)
        jG = 0
      ELSE IF (JJ(2) == 0 .AND. pq(2) > 0) THEN ! f1
-       IF (debug) write(out_unitp,*) 'pq^1'
+       IF (debug) write(out_unit,*) 'pq^1'
        iG = pq(2)
        jG = 0
      ELSE IF(JJ(1) > 0 .AND. pq(1) == 0) THEN ! rot/cor
-       IF (debug) write(out_unitp,*) 'J^1'
+       IF (debug) write(out_unit,*) 'J^1'
        iG = JJ(1) -(nb_var-nb_act)
        jG = 0
      END IF
 
-     !IF (nb_J == 0) write(out_unitp,*) 'i (sum)',i,' Pq',pq
-     !write(out_unitp,*) 'pq,JJ',pq,JJ
-     !write(out_unitp,*) 'iG,jG',iG,jG
+     !IF (nb_J == 0) write(out_unit,*) 'i (sum)',i,' Pq',pq
+     !write(out_unit,*) 'pq,JJ',pq,JJ
+     !write(out_unit,*) 'iG,jG',iG,jG
 
      IF (iG > nb_act+3 .OR. jG > nb_act+3 .OR. iG < 0 .OR. jG < 0) THEN
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) ' iG or jG have a wrong range'
-       write(out_unitp,*) ' iG, jG',iG,jG
-       write(out_unitp,*) 'range: [1:',nb_act+3,'] or '
-       write(out_unitp,*) 'iG = 0 and iG = 0 for the vep'
-       write(out_unitp,*) 'CHECK the FORTRAN'
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) ' iG or jG have a wrong range'
+       write(out_unit,*) ' iG, jG',iG,jG
+       write(out_unit,*) 'range: [1:',nb_act+3,'] or '
+       write(out_unit,*) 'iG = 0 and iG = 0 for the vep'
+       write(out_unit,*) 'CHECK the FORTRAN'
        STOP
      END IF
 
      IF (iG == 0 .AND. jG == 0) THEN ! vep
-       IF (debug)  write(out_unitp,*) 'add vep',iG
+       IF (debug)  write(out_unit,*) 'add vep',iG
        vep = vep + HALF * real(opval,kind=Rkind)
      ELSE IF (iG > 0 .AND. jG > 0 .AND. nb_J == 0) THEN ! f2
-       IF (debug)  write(out_unitp,*) 'add f2',iG
+       IF (debug)  write(out_unit,*) 'add f2',iG
        ! the (-) is comming from Pq^2 = (-EYE d/dq)^2 = - d/dq ^2
        f2(iG,jG) = f2(iG,jG) -HALF * real(opval,kind=Rkind)
        f2(jG,iG) = f2(iG,jG)
      ELSE IF (iG > 0 .AND. jG == 0 .AND. nb_J == 0) THEN ! f1
-       IF (debug) write(out_unitp,*) 'add f1',iG
+       IF (debug) write(out_unit,*) 'add f1',iG
        ! the (-EYE) is comming from Pq = -EYE d/dq
        f1(iG) = f1(iG) + HALF * real(-EYE*opval,kind=Rkind)
      END IF
    END DO
 
    IF (debug) THEN
-     write(out_unitp,*) 'vep',vep
-     write(out_unitp,*) 'f1 of Tana  '
-     CALL write_vec(f1,out_unitp,4)
-     write(out_unitp,*) 'f2 of Tana  '
-     CALL write_mat(f2,out_unitp,4)
-     write(out_unitp,*) 'END ',routine_name
+     write(out_unit,*) 'vep',vep
+     write(out_unit,*) 'f1 of Tana  '
+     CALL write_vec(f1,out_unit,4)
+     write(out_unit,*) 'f2 of Tana  '
+     CALL write_mat(f2,out_unit,4)
+     write(out_unit,*) 'END ',routine_name
    END IF
 
  end subroutine get_Numf2f1vep_WITH_AnaKEO

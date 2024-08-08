@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE QtransfoBase_m
-  use mod_system
+  use TnumTana_system_m
   IMPLICIT NONE
 
   PRIVATE
@@ -92,49 +92,49 @@ CONTAINS
 
     IF(MPI_id==0) THEN
       IF (allocated(this%name_transfo)) THEN
-        write(out_unitp,*) 'name_transfo: ',this%name_transfo
+        write(out_unit,*) 'name_transfo: ',this%name_transfo
       ELSE
-        write(out_unitp,*) 'name_transfo: not_allocated'
+        write(out_unit,*) 'name_transfo: not_allocated'
       END IF
-      write(out_unitp,*) 'Primitive_Coord: ',this%Primitive_Coord
+      write(out_unit,*) 'Primitive_Coord: ',this%Primitive_Coord
   
-      write(out_unitp,*) ' Option of the transfo: ',this%opt_transfo
-      write(out_unitp,*) ' Skip the transfo: ',this%skip_transfo
+      write(out_unit,*) ' Option of the transfo: ',this%opt_transfo
+      write(out_unit,*) ' Skip the transfo: ',this%skip_transfo
   
-      write(out_unitp,*) ' Parameter(s) to be optimized?: ',this%opt_param
+      write(out_unit,*) ' Parameter(s) to be optimized?: ',this%opt_param
   
-      write(out_unitp,*) 'inTOout',this%inTOout
-      write(out_unitp,*) 'nb_Qin,nb_Qout',this%nb_Qin,this%nb_Qout
+      write(out_unit,*) 'inTOout',this%inTOout
+      write(out_unit,*) 'nb_Qin,nb_Qout',this%nb_Qin,this%nb_Qout
   
-      flush(out_unitp)
-      write(out_unitp,*) '---------------------------------------'
+      flush(out_unit)
+      write(out_unit,*) '---------------------------------------'
       IF (allocated(this%name_Qout) .AND. allocated(this%type_Qout)) THEN
         DO i_Q=1,min(size(this%name_Qout),size(this%type_Qout))
-          write(out_unitp,*) 'i_Q,name_Qout,type_Qout',i_Q," ",       &
+          write(out_unit,*) 'i_Q,name_Qout,type_Qout',i_Q," ",       &
                  trim(this%name_Qout(i_Q)),this%type_Qout(i_Q)
-          flush(out_unitp)
+          flush(out_unit)
         END DO
       ELSE
-        write(out_unitp,*) 'alloc name_Qout and type_Qout',            &
+        write(out_unit,*) 'alloc name_Qout and type_Qout',            &
               allocated(this%name_Qout),allocated(this%type_Qout)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       IF (allocated(this%name_Qin) .AND. allocated(this%type_Qin)) THEN
-        write(out_unitp,*) '---------------------------------------'
+        write(out_unit,*) '---------------------------------------'
         DO i_Q=1,min(size(this%name_Qin),size(this%type_Qin))
-          write(out_unitp,*) 'i_Q,name_Qin,type_Qin',i_Q," ",         &
+          write(out_unit,*) 'i_Q,name_Qin,type_Qin',i_Q," ",         &
                  trim(this%name_Qin(i_Q)),this%type_Qin(i_Q)
-          flush(out_unitp)
+          flush(out_unit)
         END DO
       ELSE
-        write(out_unitp,*) 'asso name_Qin and type_Qin',              &
+        write(out_unit,*) 'asso name_Qin and type_Qin',              &
         allocated(this%name_Qin),allocated(this%type_Qin)
       END IF
-      write(out_unitp,*) '---------------------------------------'
+      write(out_unit,*) '---------------------------------------'
     ENDIF ! for MPI_id==0
   
-    flush(out_unitp)
+    flush(out_unit)
 
   END SUBROUTINE Write_QtransfoBase_Tnum
   FUNCTION get_TransfoType_QtransfoBase_Tnum(this) RESULT(TransfoType)
@@ -171,14 +171,14 @@ CONTAINS
 
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*)
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'nb_var',nb_var
-      write(out_unitp,*) 'type_Qin',this%type_Qin
-      write(out_unitp,*) 'nb_Qin,nb_Qout',this%nb_Qin,this%nb_Qout
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nb_var',nb_var
+      write(out_unit,*) 'type_Qin',this%type_Qin
+      write(out_unit,*) 'nb_Qin,nb_Qout',this%nb_Qin,this%nb_Qout
 
-      write(out_unitp,*) 'unit: ',unit
-      write(out_unitp,*) 'xyz,xyz_with_dummy',xyz,xyz_with_dummy
+      write(out_unit,*) 'unit: ',unit
+      write(out_unit,*) 'xyz,xyz_with_dummy',xyz,xyz_with_dummy
     END IF
     !-----------------------------------------------------------------
 
@@ -186,7 +186,7 @@ CONTAINS
 
     DO i=1,size(Q)
       ! read the first word: it can be the variable name or its value
-      CALL read_name_advNo(in_unitp,Read_name,err_io)
+      CALL read_name_advNo(in_unit,Read_name,err_io)
       !write(6,*) i,'Read_name: ',Read_name
       ! try to read its value
       read(Read_name,*,IOSTAT=err_ioQ) Q(i)
@@ -198,17 +198,17 @@ CONTAINS
         !write(6,*) i,'this%name_Qin(i): ',this%name_Qin(i)
 
         !now we read the value
-        CALL read_name_advNo(in_unitp,Read_name,err_io)
+        CALL read_name_advNo(in_unit,Read_name,err_io)
         !write(6,*) i,'Read_name: ',Read_name
         read(Read_name,*,IOSTAT=err_ioQ) Q(i)
         !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
         IF (err_ioQ /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the curvilinear reference geometry '
-          write(out_unitp,*) '   ... just after the namelist "minimum"'
-          write(out_unitp,*) ' error with the value name: ',trim(adjustl(Read_name))
-          write(out_unitp,*) ' the variable name:         ',trim(adjustl(this%name_Qin(i)))
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the curvilinear reference geometry '
+          write(out_unit,*) '   ... just after the namelist "minimum"'
+          write(out_unit,*) ' error with the value name: ',trim(adjustl(Read_name))
+          write(out_unit,*) ' the variable name:         ',trim(adjustl(this%name_Qin(i)))
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in Read_Q_QtransfoBase_Tnum: while reading the curvilinear reference geometry (value or coord. name)'
         END IF
       END IF
@@ -216,26 +216,26 @@ CONTAINS
       IF (err_io < 0) THEN ! end-of-line ?
         Read_name = ''
       ELSE
-        CALL read_name_advNo(in_unitp,Read_name,err_io)
+        CALL read_name_advNo(in_unit,Read_name,err_io)
       END IF
 
       IF(MPI_id==0) THEN
-        write(out_unitp,*) i,this%name_Qin(i),':',Q(i),':',trim(adjustl(Read_name))
-        write(out_unitp,*) i,'type_Qin(i) :',this%type_Qin(i)
+        write(out_unit,*) i,this%name_Qin(i),':',Q(i),':',trim(adjustl(Read_name))
+        write(out_unit,*) i,'type_Qin(i) :',this%type_Qin(i)
       ENDIF
 
       IF (len_trim(Read_name) > 0) THEN
         IF (trim(adjustl(Read_name)) == '°' .OR. trim(adjustl(Read_name)) == 'rad') THEN
           QWU = REAL_WU(Q(i),trim(adjustl(Read_name)),'angle')
           IF (this%type_Qin(i) /= 3 .AND. this%type_Qin(i) /= 4 .AND. this%type_Qin(i) /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  The unit and this%type_Qin(i) are incompatible.'
-            write(out_unitp,*) '    unit     ',trim(adjustl(Read_name))
-            write(out_unitp,*) '    this%type_Qin(i)',this%type_Qin(i)
-            write(out_unitp,*) ' The compatible values are:'
-            write(out_unitp,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
-            write(out_unitp,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  The unit and this%type_Qin(i) are incompatible.'
+            write(out_unit,*) '    unit     ',trim(adjustl(Read_name))
+            write(out_unit,*) '    this%type_Qin(i)',this%type_Qin(i)
+            write(out_unit,*) ' The compatible values are:'
+            write(out_unit,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
+            write(out_unit,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
+            write(out_unit,*) ' Check your data !!'
             STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
           END IF
         ELSE IF (trim(adjustl(Read_name)) == 'Angs' .OR.                   &
@@ -243,23 +243,23 @@ CONTAINS
                  trim(adjustl(Read_name)) == 'bohr') THEN
           QWU = REAL_WU(Q(i),trim(adjustl(Read_name)),'L')
           IF (this%type_Qin(i) /= 1 .AND. this%type_Qin(i) /= 2 .AND. this%type_Qin(i) /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  The unit and this%type_Qin(i) are incompatible.'
-            write(out_unitp,*) '    unit     ',trim(adjustl(Read_name))
-            write(out_unitp,*) '    this%type_Qin(i)',this%type_Qin(i)
-            write(out_unitp,*) ' The compatible values are:'
-            write(out_unitp,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
-            write(out_unitp,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  The unit and this%type_Qin(i) are incompatible.'
+            write(out_unit,*) '    unit     ',trim(adjustl(Read_name))
+            write(out_unit,*) '    this%type_Qin(i)',this%type_Qin(i)
+            write(out_unit,*) ' The compatible values are:'
+            write(out_unit,*) '  angs or bohr => this%type_Qin(i)=1,2 or 0'
+            write(out_unit,*) '  ° or rad     => this%type_Qin(i)=3,4 or 0'
+            write(out_unit,*) ' Check your data !!'
             STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
           END IF
         ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  The unit is wrong: ',trim(adjustl(Read_name))
-          write(out_unitp,*) ' The possible values are:'
-          write(out_unitp,*) '  angs or bohr'
-          write(out_unitp,*) '  ° or rad'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  The unit is wrong: ',trim(adjustl(Read_name))
+          write(out_unit,*) ' The possible values are:'
+          write(out_unit,*) '  angs or bohr'
+          write(out_unit,*) '  ° or rad'
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in Read_Q_QtransfoBase_Tnum: Wrong unit'
         END IF
 
@@ -286,22 +286,22 @@ CONTAINS
     END IF
 
     Q(i) = convRWU_TO_R_WITH_WorkingUnit(QWU)
-    IF(MPI_id==0) write(out_unitp,*) i,QWU,'working value Q(i)',Q(i)
+    IF(MPI_id==0) write(out_unit,*) i,QWU,'working value Q(i)',Q(i)
 
   END DO
 
   !-----------------------------------------------------------------
    IF (debug) THEN
     CALL Write_Q_WU(Q,this%name_Qin,this%type_Qin,info)
-    write(out_unitp,*) 'END ',name_sub
-    write(out_unitp,*)
+    write(out_unit,*) 'END ',name_sub
+    write(out_unit,*)
   END IF
   !-----------------------------------------------------------------
 
 END SUBROUTINE Read_Q_QtransfoBase_Tnum
 
 SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_Constant,         ONLY: REAL_WU,RWU_Write,convRWU_TO_R_WITH_WorkingUnit
   IMPLICIT NONE
 
@@ -321,17 +321,17 @@ SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
     character (len=*), parameter :: name_sub='Write_Q_WU_QtransfoBase_Tnum'
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*)
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'i,name_Q(i),type_Q(i),Q(i)'
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'i,name_Q(i),type_Q(i),Q(i)'
       DO i=1,size(Q)
-        write(out_unitp,*) i,name_Q(i),type_Q(i),Q(i)
+        write(out_unit,*) i,name_Q(i),type_Q(i),Q(i)
       END DO
     END IF
     !-----------------------------------------------------------------
 
-    write(out_unitp,*) '-----------------------------------------'
-    IF (present(info) .AND. MPI_id==0) write(out_unitp,*) info
+    write(out_unit,*) '-----------------------------------------'
+    IF (present(info) .AND. MPI_id==0) write(out_unit,*) info
 
     DO i=1,size(Q)
 
@@ -346,17 +346,17 @@ SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
         QWU = REAL_WU(Q(i),'','no_dim')
       END SELECT
 
-      write(out_unitp,'(a,i0,5x,a,5x,a)') name_Q(i),i,             &
+      write(out_unit,'(a,i0,5x,a,5x,a)') name_Q(i),i,             &
                 RWU_Write(QWU,WithUnit=.TRUE.,WorkingUnit=.TRUE.),&
                 RWU_Write(QWU,WithUnit=.TRUE.,WorkingUnit=.FALSE.)
     END DO
-    write(out_unitp,*) '-----------------------------------------'
-    flush(out_unitp)
+    write(out_unit,*) '-----------------------------------------'
+    flush(out_unit)
 
     !-----------------------------------------------------------------
     IF (debug) THEN
-      write(out_unitp,*) 'END ',name_sub
-      write(out_unitp,*)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
     END IF
     !-----------------------------------------------------------------
 
@@ -478,9 +478,9 @@ SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
 
     Qact0 = [ZERO]
 
-    write(out_unitp,*) "ERROR in get_Qact0_QtransfoBase_Tnum"
-    write(out_unitp,*) " Wrong dynamical type."
-    write(out_unitp,*) " It should be 'ActiveTransfo_t'"
+    write(out_unit,*) "ERROR in get_Qact0_QtransfoBase_Tnum"
+    write(out_unit,*) " Wrong dynamical type."
+    write(out_unit,*) " It should be 'ActiveTransfo_t'"
     STOP 'ERROR in get_Qact0_QtransfoBase_Tnum: Wrong dynamical type'
 
   END FUNCTION get_Qact0_QtransfoBase_Tnum

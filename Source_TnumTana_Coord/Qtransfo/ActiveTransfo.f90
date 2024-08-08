@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_ActiveTransfo
-      use mod_system
+      use TnumTana_system_m
       use mod_dnSVM, only: alloc_array, dealloc_array, type_dnvec,   &
                            type_dns, write_dnsvm, alloc_dnsvm,       &
                            set_zero_to_dnsvm, sub_dns_to_dnvec,      &
@@ -258,14 +258,14 @@ MODULE mod_ActiveTransfo
 
       CALL alloc_ActiveTransfo(ActiveTransfo,nb_Qin)
 
-      read(in_unitp,*,IOSTAT=err) ActiveTransfo%list_act_OF_Qdyn(:)
-      IF(MPI_id==0) write(out_unitp,*) 'list_act_OF_Qdyn or type_var',                 &
+      read(in_unit,*,IOSTAT=err) ActiveTransfo%list_act_OF_Qdyn(:)
+      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',                 &
                                         ActiveTransfo%list_act_OF_Qdyn(:)
       IF (err /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading "list_act_OF_Qdyn"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading "list_act_OF_Qdyn"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
@@ -278,31 +278,31 @@ MODULE mod_ActiveTransfo
 
       !write(6,*) 'ActiveTransfo%QMLib,flex',ActiveTransfo%QMLib,flex
       IF (ActiveTransfo%QMLib .AND. flex) THEN
-        read(in_unitp,*,IOSTAT=err) ActiveTransfo%list_QMLMapping(:)
+        read(in_unit,*,IOSTAT=err) ActiveTransfo%list_QMLMapping(:)
         IF (err /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading "list_QMLMapping"'
-          write(out_unitp,*) '  end of file or end of record'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading "list_QMLMapping"'
+          write(out_unit,*) '  end of file or end of record'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        IF(MPI_id==0) write(out_unitp,*) '  list_QMLMapping(:)',ActiveTransfo%list_QMLMapping
+        IF(MPI_id==0) write(out_unit,*) '  list_QMLMapping(:)',ActiveTransfo%list_QMLMapping
         DO i=1,nb_Qin
           flex = ActiveTransfo%list_act_OF_Qdyn(i) == 20  .OR.                  &
                  ActiveTransfo%list_act_OF_Qdyn(i) == 200 .OR.                  &
                  ActiveTransfo%list_act_OF_Qdyn(i) == 21
           IF (flex .AND. ActiveTransfo%list_QMLMapping(i) == 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
-            write(out_unitp,*) '  list_QMLMapping(i) MUST be greater than 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
+            write(out_unit,*) '  list_QMLMapping(i) MUST be greater than 0'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
         END DO
 
       END IF
 
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Read_ActiveTransfo
 
@@ -321,21 +321,21 @@ MODULE mod_ActiveTransfo
 
       CALL alloc_ActiveTransfo(ActiveTransfo,nb_Qin)
 
-      read(in_unitp,*,IOSTAT=err_io) ActiveTransfo%list_act_OF_Qdyn(:)
-      IF(MPI_id==0) write(out_unitp,*) 'list_act_OF_Qdyn or type_var',                 &
+      read(in_unit,*,IOSTAT=err_io) ActiveTransfo%list_act_OF_Qdyn(:)
+      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',                 &
                                         ActiveTransfo%list_act_OF_Qdyn(:)
       IF (err_io /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading "list_act_OF_Qdyn"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading "list_act_OF_Qdyn"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
       IF (count(ActiveTransfo%list_act_OF_Qdyn(:) == 1) /=0) THEN
-        write(out_unitp,*) ' WARNNING in ',name_sub
-        write(out_unitp,*) ' You have already defined active coordinates in'
-        write(out_unitp,*) 'list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
+        write(out_unit,*) ' WARNNING in ',name_sub
+        write(out_unit,*) ' You have already defined active coordinates in'
+        write(out_unit,*) 'list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
       END IF
 
       nullify(list_Qact)
@@ -343,30 +343,30 @@ MODULE mod_ActiveTransfo
       list_Qact(:) = 0
 
       DO i=1,nb_Qin
-        CALL read_name_advNo(in_unitp,name_int,err_io)
+        CALL read_name_advNo(in_unit,name_int,err_io)
 
         IF (len_trim(name_int) == 0) EXIT
-        !write(out_unitp,*) 'i,err_io',i,err_io
-        !write(out_unitp,*) 'i,name_int',i,name_int
+        !write(out_unit,*) 'i,err_io',i,err_io
+        !write(out_unit,*) 'i,name_int',i,name_int
         read(name_int,*) list_Qact(i)
         IF (err_io /= 0) EXIT ! end of the liste
 
       END DO
-      write(out_unitp,*) 'list_Qact_order',list_Qact(:)
-      flush(out_unitp)
+      write(out_unit,*) 'list_Qact_order',list_Qact(:)
+      flush(out_unit)
 
       ! modify ActiveTransfo%list_act_OF_Qdyn with list_Qact
       DO i=1,count(list_Qact(:) > 0)
         ActiveTransfo%list_act_OF_Qdyn(list_Qact(i)) = 1
       END DO
-      write(out_unitp,*) 'New list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
+      write(out_unit,*) 'New list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
 
 
       IF (count(ActiveTransfo%list_act_OF_Qdyn(:) == 1) == 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' There is no active coordinates!'
-        write(out_unitp,*) 'list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
-        write(out_unitp,*) 'Check your data!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' There is no active coordinates!'
+        write(out_unit,*) 'list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
+        write(out_unit,*) 'Check your data!'
         STOP
       END IF
 
@@ -374,13 +374,13 @@ MODULE mod_ActiveTransfo
       CALL dealloc_array(list_Qact,'list_Qact',name_sub)
 
       IF (ActiveTransfo%QMLib) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  Do not use Read2_ActiveTransfo with QMLib=t '
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  Do not use Read2_ActiveTransfo with QMLib=t '
+          write(out_unit,*) ' Check your data !!'
           STOP
       END IF
 
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Read2_ActiveTransfo
 
@@ -392,65 +392,65 @@ MODULE mod_ActiveTransfo
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub='Write_ActiveTransfo'
 
-      IF(MPI_id==0) write(out_unitp,*) 'BEGINNING ',name_sub
-      IF(MPI_id==0) write(out_unitp,*) 'asso ActiveTransfo:',associated(ActiveTransfo)
+      IF(MPI_id==0) write(out_unit,*) 'BEGINNING ',name_sub
+      IF(MPI_id==0) write(out_unit,*) 'asso ActiveTransfo:',associated(ActiveTransfo)
       IF (associated(ActiveTransfo) .AND. MPI_id==0) THEN
-        write(out_unitp,*) 'nb_var:           ',ActiveTransfo%nb_var
-        write(out_unitp,*) 'nb_act:           ',ActiveTransfo%nb_act
-        write(out_unitp,*) 'nb_act1:          ',ActiveTransfo%nb_act1
-        write(out_unitp,*) 'nb_inact2n:       ',ActiveTransfo%nb_inact2n
-        write(out_unitp,*) 'nb_inact21:       ',ActiveTransfo%nb_inact21
-        write(out_unitp,*) 'nb_inact22:       ',ActiveTransfo%nb_inact22
-        write(out_unitp,*) 'nb_inact20:       ',ActiveTransfo%nb_inact20
-        write(out_unitp,*) 'nb_inact:         ',ActiveTransfo%nb_inact
-        write(out_unitp,*) 'nb_inact31:       ',ActiveTransfo%nb_inact31
-        write(out_unitp,*) 'nb_rigid0:        ',ActiveTransfo%nb_rigid0
-        write(out_unitp,*) 'nb_rigid100:      ',ActiveTransfo%nb_rigid100
-        write(out_unitp,*) 'nb_rigid:         ',ActiveTransfo%nb_rigid
-        write(out_unitp,*) 'With_Tab_dnQflex: ',ActiveTransfo%With_Tab_dnQflex
-        write(out_unitp,*) 'QMLib:            ',ActiveTransfo%QMLib
+        write(out_unit,*) 'nb_var:           ',ActiveTransfo%nb_var
+        write(out_unit,*) 'nb_act:           ',ActiveTransfo%nb_act
+        write(out_unit,*) 'nb_act1:          ',ActiveTransfo%nb_act1
+        write(out_unit,*) 'nb_inact2n:       ',ActiveTransfo%nb_inact2n
+        write(out_unit,*) 'nb_inact21:       ',ActiveTransfo%nb_inact21
+        write(out_unit,*) 'nb_inact22:       ',ActiveTransfo%nb_inact22
+        write(out_unit,*) 'nb_inact20:       ',ActiveTransfo%nb_inact20
+        write(out_unit,*) 'nb_inact:         ',ActiveTransfo%nb_inact
+        write(out_unit,*) 'nb_inact31:       ',ActiveTransfo%nb_inact31
+        write(out_unit,*) 'nb_rigid0:        ',ActiveTransfo%nb_rigid0
+        write(out_unit,*) 'nb_rigid100:      ',ActiveTransfo%nb_rigid100
+        write(out_unit,*) 'nb_rigid:         ',ActiveTransfo%nb_rigid
+        write(out_unit,*) 'With_Tab_dnQflex: ',ActiveTransfo%With_Tab_dnQflex
+        write(out_unit,*) 'QMLib:            ',ActiveTransfo%QMLib
 
 
         IF (associated(ActiveTransfo%list_act_OF_Qdyn)) THEN
-          write(out_unitp,*) 'list_act_OF_Qdyn or type_var: ',ActiveTransfo%list_act_OF_Qdyn(:)
+          write(out_unit,*) 'list_act_OF_Qdyn or type_var: ',ActiveTransfo%list_act_OF_Qdyn(:)
         ELSE
-          write(out_unitp,*) 'asso list_act_OF_Qdyn?   F'
+          write(out_unit,*) 'asso list_act_OF_Qdyn?   F'
         END IF
 
         IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
-          write(out_unitp,*) 'list_QactTOQdyn: ',ActiveTransfo%list_QactTOQdyn(:)
+          write(out_unit,*) 'list_QactTOQdyn: ',ActiveTransfo%list_QactTOQdyn(:)
         ELSE
-          write(out_unitp,*) 'asso list_QactTOQdyn?   F'
+          write(out_unit,*) 'asso list_QactTOQdyn?   F'
         END IF
 
         IF (associated(ActiveTransfo%list_QdynTOQact)) THEN
-          write(out_unitp,*) 'list_QdynTOQact: ',ActiveTransfo%list_QdynTOQact(:)
+          write(out_unit,*) 'list_QdynTOQact: ',ActiveTransfo%list_QdynTOQact(:)
         ELSE
-          write(out_unitp,*) 'asso list_QdynTOQact?   F'
+          write(out_unit,*) 'asso list_QdynTOQact?   F'
         END IF
 
         IF (associated(ActiveTransfo%Qdyn0)) THEN
-          write(out_unitp,*) ' Rigid coordinate values (Qdyn order):',  &
+          write(out_unit,*) ' Rigid coordinate values (Qdyn order):',  &
                                                  ActiveTransfo%Qdyn0(:)
         ELSE
-          write(out_unitp,*) 'asso Qdyn0?   F'
+          write(out_unit,*) 'asso Qdyn0?   F'
         END IF
 
         IF (associated(ActiveTransfo%Qact0)) THEN
-          write(out_unitp,*) 'Qact0: ',ActiveTransfo%Qact0(:)
+          write(out_unit,*) 'Qact0: ',ActiveTransfo%Qact0(:)
         ELSE
-          write(out_unitp,*) 'asso Qact0?   F'
+          write(out_unit,*) 'asso Qact0?   F'
         END IF
 
         IF (allocated(ActiveTransfo%list_QMLMapping)) THEN
-          write(out_unitp,*) 'list_QMLMapping: ',ActiveTransfo%list_QMLMapping(:)
+          write(out_unit,*) 'list_QMLMapping: ',ActiveTransfo%list_QMLMapping(:)
         ELSE
-          write(out_unitp,*) 'allocated list_QMLMapping?   F'
+          write(out_unit,*) 'allocated list_QMLMapping?   F'
         END IF
 
 
       END IF
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_ActiveTransfo
 
@@ -475,19 +475,19 @@ MODULE mod_ActiveTransfo
        character (len=*), parameter :: name_sub='calc_ActiveTransfo'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'nderiv',nderiv
-         write(out_unitp,*) 'nb_var_deriv',dnQact%nb_var_deriv
-         write(out_unitp,*) 'nb_act',ActiveTransfo%nb_act
-         write(out_unitp,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'nderiv',nderiv
+         write(out_unit,*) 'nb_var_deriv',dnQact%nb_var_deriv
+         write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
+         write(out_unit,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
          IF (inTOOut) THEN
-           write(out_unitp,*) 'dnQact'
+           write(out_unit,*) 'dnQact'
            CALL Write_dnSVM(dnQact)
          ELSE
-           write(out_unitp,*) 'dnQdyn'
+           write(out_unit,*) 'dnQdyn'
            CALL Write_dnSVM(dnQdyn)
          END IF
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
 
@@ -536,9 +536,9 @@ MODULE mod_ActiveTransfo
              ! inactive coordinate : rigid0 and rigid100
              dnQ%d0 = ActiveTransfo%Qact0(i_Qact)
            CASE default
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) ' Unknown variable type:',typ_var_act
-             write(out_unitp,*) ' Check your data!!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) ' Unknown variable type:',typ_var_act
+             write(out_unit,*) ' Check your data!!'
              STOP
            END SELECT
 
@@ -558,10 +558,10 @@ MODULE mod_ActiveTransfo
 
        ELSE ! Qdyn => Qact (without the derivatives)
          IF (nderiv > 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) ' you cannot use this subroutine with inTOout=f and nderiv>0'
-           write(out_unitp,*) '    Qdyn => Qact  '
-           write(out_unitp,*) ' Check the fortran!!'
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) ' you cannot use this subroutine with inTOout=f and nderiv>0'
+           write(out_unit,*) '    Qdyn => Qact  '
+           write(out_unit,*) ' Check the fortran!!'
            STOP
          END IF
 
@@ -572,11 +572,11 @@ MODULE mod_ActiveTransfo
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQdyn'
+        write(out_unit,*) 'dnQdyn'
         CALL Write_dnSVM(dnQdyn)
-        write(out_unitp,*) 'dnQact'
+        write(out_unit,*) 'dnQact'
         CALL Write_dnSVM(dnQact)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -615,13 +615,13 @@ IMPLICIT NONE
   END IF
 
   IF (debug) THEN
-     write(out_unitp,*) 'BEGINNING ',name_sub
-     write(out_unitp,*) 'nb_act',ActiveTransfo%nb_act
-     write(out_unitp,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
-     write(out_unitp,*) 'size Qact',size(Qact)
-     IF (.NOT. With_act_loc) write(out_unitp,*) 'Qact (only act)',Qact(1:ActiveTransfo%nb_act)
-     write(out_unitp,*)
-     flush(out_unitp)
+     write(out_unit,*) 'BEGINNING ',name_sub
+     write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
+     write(out_unit,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
+     write(out_unit,*) 'size Qact',size(Qact)
+     IF (.NOT. With_act_loc) write(out_unit,*) 'Qact (only act)',Qact(1:ActiveTransfo%nb_act)
+     write(out_unit,*)
+     flush(out_unit)
   END IF
   !-----------------------------------------------------------------
 
@@ -634,8 +634,8 @@ IMPLICIT NONE
      IF (typ_var_act == 20 .OR. typ_var_act == 200) nb_flex = nb_flex + 1
 
      IF (debug) THEN
-       write(out_unitp,*) 'i_Qact,i_Qdyn,typ_var_act',i_Qact,i_Qdyn,typ_var_act
-       flush(out_unitp)
+       write(out_unit,*) 'i_Qact,i_Qdyn,typ_var_act',i_Qact,i_Qdyn,typ_var_act
+       flush(out_unit)
      END IF
   END DO
 
@@ -657,9 +657,9 @@ IMPLICIT NONE
       ! inactive coordinate : rigid0 and rigid100
       Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
     CASE default
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' I do not know this variable type:',typ_var_act
-      write(out_unitp,*) ' Check your data!!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' I do not know this variable type:',typ_var_act
+      write(out_unit,*) ' Check your data!!'
       STOP
     END SELECT
 
@@ -687,9 +687,9 @@ IMPLICIT NONE
         ! inactive coordinate : flexible constraints
         Qact(i_Qact) = tab_dnQflex(i_Qdyn)%d0
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' I do not know this variable type:',typ_var_act
-        write(out_unitp,*) ' Check your data!!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' I do not know this variable type:',typ_var_act
+        write(out_unit,*) ' Check your data!!'
         STOP
       END SELECT
 
@@ -703,9 +703,9 @@ IMPLICIT NONE
 
   !-----------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'Qact (all)',Qact(:)
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'Qact (all)',Qact(:)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
   !-----------------------------------------------------------------
 
@@ -737,11 +737,11 @@ IMPLICIT NONE
   character (len=*), parameter :: name_sub='get_Qact0'
   !-----------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'nb_act',ActiveTransfo%nb_act
-    write(out_unitp,*) 'Qact0',Qact0(:)
-    write(out_unitp,*)
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
+    write(out_unit,*) 'Qact0',Qact0(:)
+    write(out_unit,*)
+    flush(out_unit)
   END IF
   !-----------------------------------------------------------------
 
@@ -749,8 +749,8 @@ IMPLICIT NONE
 
   !-----------------------------------------------------------------
   IF (debug) THEN
-     write(out_unitp,*) 'Qact0',Qact0(:)
-    write(out_unitp,*) 'END ',name_sub
+     write(out_unit,*) 'Qact0',Qact0(:)
+    write(out_unit,*) 'END ',name_sub
   END IF
   !-----------------------------------------------------------------
 
@@ -772,10 +772,10 @@ END SUBROUTINE get_Qact0
        character (len=*), parameter :: name_sub='Set_AllActive'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'dnQact'
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'dnQact'
          CALL Write_dnSVM(dnQact)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
 
@@ -792,10 +792,10 @@ END SUBROUTINE get_Qact0
 
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'dnQact'
+        write(out_unit,*)
+        write(out_unit,*) 'dnQact'
         CALL Write_dnSVM(dnQact)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !     -----------------------------------------------------------------
 
@@ -851,7 +851,7 @@ END SUBROUTINE get_Qact0
       ActiveTransfo2%list_QMLMapping  = ActiveTransfo1%list_QMLMapping
 
 
-!     write(out_unitp,*) 'END ActiveTransfo1TOActiveTransfo2'
+!     write(out_unit,*) 'END ActiveTransfo1TOActiveTransfo2'
 
       END SUBROUTINE ActiveTransfo1TOActiveTransfo2
 
@@ -879,12 +879,12 @@ END SUBROUTINE get_Qact0
       !logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING Qact_TO_Qdyn_FROM_ActiveTransfo'
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'size Qact',size(Qact)
-        write(out_unitp,*) 'size Qdyn',size(Qdyn)
-        write(out_unitp,*) 'size list_QdynTOQact',size(ActiveTransfo%list_QdynTOQact)
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING Qact_TO_Qdyn_FROM_ActiveTransfo'
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'size Qact',size(Qact)
+        write(out_unit,*) 'size Qdyn',size(Qdyn)
+        write(out_unit,*) 'size list_QdynTOQact',size(ActiveTransfo%list_QdynTOQact)
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
       Qdyn(:) = ZERO
@@ -897,9 +897,9 @@ END SUBROUTINE get_Qact0
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qdyn',Qdyn
-        write(out_unitp,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
-        flush(out_unitp)
+        write(out_unit,*) 'Qdyn',Qdyn
+        write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -917,8 +917,8 @@ END SUBROUTINE get_Qact0
 !     logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING Qdyn_TO_Qact_FROM_ActiveTransfo'
-        write(out_unitp,*) 'Qdyn',Qdyn
+        write(out_unit,*) 'BEGINNING Qdyn_TO_Qact_FROM_ActiveTransfo'
+        write(out_unit,*) 'Qdyn',Qdyn
       END IF
 !---------------------------------------------------------------------
 
@@ -926,8 +926,8 @@ END SUBROUTINE get_Qact0
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
       END IF
 !---------------------------------------------------------------------
 
@@ -947,9 +947,9 @@ END SUBROUTINE get_Qact0
 !     logical, parameter :: debug = .TRUE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING Qinact2n_TO_Qact_FROM_ActiveTransfo'
-        write(out_unitp,*) 'Qinact2n',Qinact2n
-        write(out_unitp,*) 'Qact',Qact
+        write(out_unit,*) 'BEGINNING Qinact2n_TO_Qact_FROM_ActiveTransfo'
+        write(out_unit,*) 'Qinact2n',Qinact2n
+        write(out_unit,*) 'Qact',Qact
       END IF
 !---------------------------------------------------------------------
 
@@ -964,8 +964,8 @@ END SUBROUTINE get_Qact0
           i_Qact = ActiveTransfo%list_QdynTOQact(i_Qdyn)
 
           IF (i_Q2n > size(Qinact2n)) THEN
-            write(out_unitp,*) ' ERROR Qinact2n_TO_Qact_FROM_ActiveTransfo'
-            write(out_unitp,*) ' i_Q2n > size(Qinact2n)',i_Q2n,size(Qinact2n)
+            write(out_unit,*) ' ERROR Qinact2n_TO_Qact_FROM_ActiveTransfo'
+            write(out_unit,*) ' i_Q2n > size(Qinact2n)',i_Q2n,size(Qinact2n)
             STOP
           END IF
           Qact(i_Qact) = Qinact2n(i_Q2n)
@@ -975,8 +975,8 @@ END SUBROUTINE get_Qact0
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact',Qact
-        write(out_unitp,*) 'END Qinact2n_TO_Qact_FROM_ActiveTransfo'
+        write(out_unit,*) 'Qact',Qact
+        write(out_unit,*) 'END Qinact2n_TO_Qact_FROM_ActiveTransfo'
       END IF
 !---------------------------------------------------------------------
 

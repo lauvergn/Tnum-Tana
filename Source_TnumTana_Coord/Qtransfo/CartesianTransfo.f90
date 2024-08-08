@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_CartesianTransfo
-      use mod_system
+      use TnumTana_system_m
       use mod_dnSVM
       use mod_Lib_QTransfo, only: write_dnx, calc_cross_product
       IMPLICIT NONE
@@ -353,7 +353,7 @@ MODULE mod_CartesianTransfo
                            MultiRefEckart,MultiRef_type,nb_Qact,sc,     &
                            type_diago,type_cs,check_dnT
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       New_Orient       = .FALSE. ! (F) T => Can use different orientation for the z-matrix
       vAt1(:)          = ZERO
@@ -376,24 +376,24 @@ MODULE mod_CartesianTransfo
       type_cs          = 0
       check_dnT        = .FALSE.
 
-      read(in_unitp,Cartesian,IOSTAT=err_io)
+      read(in_unit,Cartesian,IOSTAT=err_io)
       IF (err_io < 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "Cartesian"'
-        write(out_unitp,*) ' end of file or end of record'
-        write(out_unitp,*) ' Probably you have forgotten the "Cartesian transfo"'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "Cartesian"'
+        write(out_unit,*) ' end of file or end of record'
+        write(out_unit,*) ' Probably you have forgotten the "Cartesian transfo"'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
       IF (err_io > 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading the namelist "Cartesian"'
-        write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading the namelist "Cartesian"'
+        write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
-      write(out_unitp,Cartesian)
-      flush(out_unitp)
+      write(out_unit,Cartesian)
+      flush(out_unit)
 
       CartesianTransfo%New_Orient      = New_Orient
       CartesianTransfo%vAt1            = vAt1
@@ -419,17 +419,17 @@ MODULE mod_CartesianTransfo
 
 
       IF (ReadRefGeometry .AND. nat < 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' ReadRefGeometry=t and nat < 1'
-        write(out_unitp,*) ' Parameters incompatible, check the Fortran!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' ReadRefGeometry=t and nat < 1'
+        write(out_unit,*) ' Parameters incompatible, check the Fortran!'
         STOP
       END IF
 
       IF (CartesianTransfo%P_Axis_Ref .AND. ReadRefGeometry) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  P_Axis_Ref=t and ReadRefGeometry=t'
-        write(out_unitp,*) '    it is not possible.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  P_Axis_Ref=t and ReadRefGeometry=t'
+        write(out_unit,*) '    it is not possible.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
@@ -437,10 +437,10 @@ MODULE mod_CartesianTransfo
 
       IF (CartesianTransfo%New_Orient) THEN
         IF (.NOT. vAti_EQ_ZERO .AND. ReadRefGeometry) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  the vAti (i=1,2,3) are not zero and ReadRefGeometry=t'
-          write(out_unitp,*) '    it is not possible.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  the vAti (i=1,2,3) are not zero and ReadRefGeometry=t'
+          write(out_unit,*) '    it is not possible.'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
       END IF
@@ -478,27 +478,27 @@ MODULE mod_CartesianTransfo
 
         DO j=1,CartesianTransfo%nb_RefGeometry
           DO i=1,CartesianTransfo%nat_act
-            read(in_unitp,*,IOSTAT=err_io) QnameRead,CartesianTransfo%Qxyz(:,i,j)
+            read(in_unit,*,IOSTAT=err_io) QnameRead,CartesianTransfo%Qxyz(:,i,j)
             IF (err_io /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  while reading a Cartessian reference geometry ...'
-              write(out_unitp,*) '   ... just after the namelist "Cartesian".'
-              write(out_unitp,'(a,i0,a,i0,a,i0,a)') '  Trying to read the atom:',i, &
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  while reading a Cartessian reference geometry ...'
+              write(out_unit,*) '   ... just after the namelist "Cartesian".'
+              write(out_unit,'(a,i0,a,i0,a,i0,a)') '  Trying to read the atom:',i, &
                                       ' among ',CartesianTransfo%nat_act,&
                                       ' of the reference geometry:',j,'.'
-              write(out_unitp,*) ' Check your data !!'
+              write(out_unit,*) ' Check your data !!'
               STOP
             END IF
           END DO
 
-          read(in_unitp,*,IOSTAT=err_io)
+          read(in_unit,*,IOSTAT=err_io)
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading an empty line ...'
-            write(out_unitp,*) '   ... just after Cartessian reference ',&
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading an empty line ...'
+            write(out_unit,*) '   ... just after Cartessian reference ',&
                              'geometry of the namelist "Cartesian".'
-            write(out_unitp,*) ' Probably, end-of-file.'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' Probably, end-of-file.'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -520,7 +520,7 @@ MODULE mod_CartesianTransfo
       END IF
 
       !CALL Write_CartesianTransfo(CartesianTransfo)
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
       !STOP
       END SUBROUTINE Read_CartesianTransfo
 
@@ -538,32 +538,32 @@ MODULE mod_CartesianTransfo
       integer :: err_io
       character (len=*), parameter :: name_sub='Read_MultiRef_type0_OF_CartesianTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       nullify(list_Qact)
       CALL alloc_array(list_Qact,[CartesianTransfo%ncart_act],'list_Qact',name_sub)
       list_Qact(:) = 0
 
       DO i=1,CartesianTransfo%ncart_act
-        CALL read_name_advNo(in_unitp,name_int,err_io)
+        CALL read_name_advNo(in_unit,name_int,err_io)
 
         IF (len_trim(name_int) == 0) EXIT
-        !write(out_unitp,*) 'i,err_io',i,err_io
-        !write(out_unitp,*) 'i,name_int',i,name_int
+        !write(out_unit,*) 'i,err_io',i,err_io
+        !write(out_unit,*) 'i,name_int',i,name_int
         read(name_int,*) list_Qact(i)
         IF (err_io /= 0) EXIT ! end of the liste
 
       END DO
       nb_Qact = count(list_Qact(:) > 0)
       CartesianTransfo%nb_Qact = nb_Qact
-      !write(out_unitp,*) 'nb_Qact',nb_Qact
-      !write(out_unitp,*) 'list_Qact',list_Qact(:)
+      !write(out_unit,*) 'nb_Qact',nb_Qact
+      !write(out_unit,*) 'list_Qact',list_Qact(:)
 
       IF (nb_Qact == 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_Qact=0 and MultiRefEckart=t'
-        write(out_unitp,*) ' list_Qact',list_Qact(:)
-        write(out_unitp,*) ' Check your data!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_Qact=0 and MultiRefEckart=t'
+        write(out_unit,*) ' list_Qact',list_Qact(:)
+        write(out_unit,*) ' Check your data!'
         STOP
       END IF
 
@@ -575,18 +575,18 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%tab_switch_type(:) = 0
       CartesianTransfo%tab_nb_Ref(:)      = 2
 
-      write(out_unitp,*) 'list_Qact',CartesianTransfo%list_Qact(:)
+      write(out_unit,*) 'list_Qact',CartesianTransfo%list_Qact(:)
 
       IF (product(CartesianTransfo%tab_nb_Ref) /= CartesianTransfo%nb_RefGeometry) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The product of nb_Ref should be equal to nb_RefGeometry'
-        write(out_unitp,*) ' tab_nb_Ref(:)',CartesianTransfo%tab_nb_Ref(:)
-        write(out_unitp,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
-        write(out_unitp,*) ' Check your data!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The product of nb_Ref should be equal to nb_RefGeometry'
+        write(out_unit,*) ' tab_nb_Ref(:)',CartesianTransfo%tab_nb_Ref(:)
+        write(out_unit,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
+        write(out_unit,*) ' Check your data!'
         STOP
       END IF
       CALL dealloc_array(list_Qact,'list_Qact',name_sub)
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_MultiRef_type0_OF_CartesianTransfo
 
       SUBROUTINE Read_MultiRef_type1_OF_CartesianTransfo(CartesianTransfo)
@@ -602,14 +602,14 @@ MODULE mod_CartesianTransfo
       integer :: err_io
       character (len=*), parameter :: name_sub='Read_MultiRef_type1_OF_CartesianTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       nb_Qact = CartesianTransfo%nb_Qact
 
       IF (nb_Qact == 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nb_Qact=0 and MultiRefEckart=t'
-        write(out_unitp,*) ' Check your data!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nb_Qact=0 and MultiRefEckart=t'
+        write(out_unit,*) ' Check your data!'
         STOP
       END IF
 
@@ -631,28 +631,28 @@ MODULE mod_CartesianTransfo
         nb_Ref       = 2
         Switch_type  = 0
         expo         = 0
-        read(in_unitp,MultiRef_type1,IOSTAT=err_io)
+        read(in_unit,MultiRef_type1,IOSTAT=err_io)
         IF (err_io < 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "MultiRef_type1" ...'
-          write(out_unitp,*) ' end of file or end of record just after the namelist "Coord_transfo".'
-          write(out_unitp,*) ' Probably, you have forgotten the namelist'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "MultiRef_type1" ...'
+          write(out_unit,*) ' end of file or end of record just after the namelist "Coord_transfo".'
+          write(out_unit,*) ' Probably, you have forgotten the namelist'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
         IF (err_io > 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "MultiRef_type1"'
-          write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "MultiRef_type1"'
+          write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        write(out_unitp,MultiRef_type1)
+        write(out_unit,MultiRef_type1)
 
         IF (iQact == 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' You have to specify iQact (iQact=0)'
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' You have to specify iQact (iQact=0)'
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
 
@@ -665,27 +665,27 @@ MODULE mod_CartesianTransfo
         END IF
 
         IF (Switch_type /= 1 .AND. Switch_type /= 2) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Wrong value of Switch_type',Switch_type
-          write(out_unitp,*) '   The possible values are 1 or 2'
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Wrong value of Switch_type',Switch_type
+          write(out_unit,*) '   The possible values are 1 or 2'
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
 
         IF (Switch_type == 2 .AND. (expo /= 2 .AND. expo /= 4 .AND. expo /= 6)) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The exponent has to be 2 or 4 or 6 for Switch_type=2'
-          write(out_unitp,*) ' Your value, expo:',expo
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The exponent has to be 2 or 4 or 6 for Switch_type=2'
+          write(out_unit,*) ' Your value, expo:',expo
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
 
         IF (Switch_type == 2 .AND. CartesianTransfo%tab_nb_Ref(i) < expo) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The exponent has to be larger than or equal to the number of references'
-          write(out_unitp,*) ' Your value, expo:  ',expo
-          write(out_unitp,*) ' Your value, nb_ref:',CartesianTransfo%tab_nb_Ref(i)
-          write(out_unitp,*) ' Check your data!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The exponent has to be larger than or equal to the number of references'
+          write(out_unit,*) ' Your value, expo:  ',expo
+          write(out_unit,*) ' Your value, nb_ref:',CartesianTransfo%tab_nb_Ref(i)
+          write(out_unit,*) ' Check your data!'
           STOP
         END IF
 
@@ -701,15 +701,15 @@ MODULE mod_CartesianTransfo
       END DO
 
       IF (product(CartesianTransfo%tab_nb_Ref) /= CartesianTransfo%nb_RefGeometry) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The product of nb_Ref should be equal to nb_RefGeometry'
-        write(out_unitp,*) ' tab_nb_Ref(:)',CartesianTransfo%tab_nb_Ref(:)
-        write(out_unitp,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
-        write(out_unitp,*) ' Check your data!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The product of nb_Ref should be equal to nb_RefGeometry'
+        write(out_unit,*) ' tab_nb_Ref(:)',CartesianTransfo%tab_nb_Ref(:)
+        write(out_unit,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
+        write(out_unit,*) ' Check your data!'
         STOP
       END IF
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_MultiRef_type1_OF_CartesianTransfo
 
       SUBROUTINE Write_CartesianTransfo(CartesianTransfo)
@@ -721,37 +721,37 @@ MODULE mod_CartesianTransfo
 
       character (len=*), parameter :: name_sub='Write_CartesianTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'New_Orient',CartesianTransfo%New_Orient
-      write(out_unitp,*) 'vAt1',CartesianTransfo%vAt1
-      write(out_unitp,*) 'vAt2',CartesianTransfo%vAt2
-      write(out_unitp,*) 'vAt3',CartesianTransfo%vAt3
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'New_Orient',CartesianTransfo%New_Orient
+      write(out_unit,*) 'vAt1',CartesianTransfo%vAt1
+      write(out_unit,*) 'vAt2',CartesianTransfo%vAt2
+      write(out_unit,*) 'vAt3',CartesianTransfo%vAt3
 
-      write(out_unitp,*) 'P_Axis_Ref',CartesianTransfo%P_Axis_Ref
-      write(out_unitp,*) 'Inertia Tensor'
-      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unitp,nbcol=3)
-      write(out_unitp,*) 'Rotational constants'
-      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unitp,nbcol=3)
+      write(out_unit,*) 'P_Axis_Ref',CartesianTransfo%P_Axis_Ref
+      write(out_unit,*) 'Inertia Tensor'
+      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
+      write(out_unit,*) 'Rotational constants'
+      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
 
-      write(out_unitp,*) 'Initial Rotational matrix :'
-      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unitp,nbcol=3)
+      write(out_unit,*) 'Initial Rotational matrix :'
+      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
 
-      write(out_unitp,*) 'Eckart',CartesianTransfo%Eckart
-      write(out_unitp,*) 'P_Axis_Always',CartesianTransfo%P_Axis_Always
+      write(out_unit,*) 'Eckart',CartesianTransfo%Eckart
+      write(out_unit,*) 'P_Axis_Always',CartesianTransfo%P_Axis_Always
 
 
-      write(out_unitp,*) 'ReadRefGeometry',CartesianTransfo%ReadRefGeometry
-      write(out_unitp,*) 'ncart_act',CartesianTransfo%ncart_act
+      write(out_unit,*) 'ReadRefGeometry',CartesianTransfo%ReadRefGeometry
+      write(out_unit,*) 'ncart_act',CartesianTransfo%ncart_act
 
-      write(out_unitp,*) 'MultiRefEckart',CartesianTransfo%MultiRefEckart
+      write(out_unit,*) 'MultiRefEckart',CartesianTransfo%MultiRefEckart
 
       IF (CartesianTransfo%MultiRefEckart) THEN
-        write(out_unitp,*) ' MultiRef_type',CartesianTransfo%MultiRef_type
-        write(out_unitp,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
+        write(out_unit,*) ' MultiRef_type',CartesianTransfo%MultiRef_type
+        write(out_unit,*) ' nb_RefGeometry',CartesianTransfo%nb_RefGeometry
 
-        write(out_unitp,*) ' nb_Qact',CartesianTransfo%nb_Qact
+        write(out_unit,*) ' nb_Qact',CartesianTransfo%nb_Qact
         DO i=1,CartesianTransfo%nb_Qact
-        write(out_unitp,*) ' i,Qact,sc,expo,phi0,switch_type,nb_Ref',i,' :', &
+        write(out_unit,*) ' i,Qact,sc,expo,phi0,switch_type,nb_Ref',i,' :', &
                                    CartesianTransfo%list_Qact(i),       &
                                    CartesianTransfo%tab_sc(i),          &
                                    CartesianTransfo%tab_expo(i),        &
@@ -761,64 +761,64 @@ MODULE mod_CartesianTransfo
         END DO
       END IF
 
-      write(out_unitp,*) 'type_diago',CartesianTransfo%type_diago
-      write(out_unitp,*) 'type_cs',CartesianTransfo%type_cs
-      write(out_unitp,*) 'check_dnT',CartesianTransfo%check_dnT
-      write(out_unitp,*) 'dnTErr(:)',CartesianTransfo%dnTErr(:)
+      write(out_unit,*) 'type_diago',CartesianTransfo%type_diago
+      write(out_unit,*) 'type_cs',CartesianTransfo%type_cs
+      write(out_unit,*) 'check_dnT',CartesianTransfo%check_dnT
+      write(out_unit,*) 'dnTErr(:)',CartesianTransfo%dnTErr(:)
 
 
       IF (associated(CartesianTransfo%TransVect)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
-          write(out_unitp,*) 'TransVect (not mass-weigthed, bohr)',j
-          write(out_unitp,*) CartesianTransfo%TransVect(:,j)
+          write(out_unit,*) 'TransVect (not mass-weigthed, bohr)',j
+          write(out_unit,*) CartesianTransfo%TransVect(:,j)
         END DO
       END IF
 
       IF (associated(CartesianTransfo%Qxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
-          write(out_unitp,*) 'Qxyz (not mass-weigthed, bohr)',j
+          write(out_unit,*) 'Qxyz (not mass-weigthed, bohr)',j
           DO i=1,CartesianTransfo%nat_act
-            write(out_unitp,*) CartesianTransfo%Qxyz(:,i,j)
+            write(out_unit,*) CartesianTransfo%Qxyz(:,i,j)
           END DO
         END DO
       END IF
 
       IF (associated(CartesianTransfo%MWQxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
-          write(out_unitp,*) 'Qxyz (mass-weigthed)',j
+          write(out_unit,*) 'Qxyz (mass-weigthed)',j
           DO i=1,CartesianTransfo%nat_act
-            write(out_unitp,*) CartesianTransfo%MWQxyz(:,i,j)
+            write(out_unit,*) CartesianTransfo%MWQxyz(:,i,j)
           END DO
         END DO
       END IF
 
       IF (associated(CartesianTransfo%d0sm)) THEN
-        write(out_unitp,*) 'd0sm'
+        write(out_unit,*) 'd0sm'
         DO i=1,size(CartesianTransfo%d0sm),3
-          write(out_unitp,*) CartesianTransfo%d0sm(i:i+2)
+          write(out_unit,*) CartesianTransfo%d0sm(i:i+2)
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%masses_at)) write(out_unitp,*) 'masses_at',CartesianTransfo%masses_at(:)
+      IF (associated(CartesianTransfo%masses_at)) write(out_unit,*) 'masses_at',CartesianTransfo%masses_at(:)
 
       IF (associated(CartesianTransfo%TransVect)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
-          write(out_unitp,*) 'TransVect (not mass-weigthed, Angs)',j
-          write(out_unitp,*) CartesianTransfo%TransVect(:,j) * get_Conv_au_TO_unit("L","Angs")
+          write(out_unit,*) 'TransVect (not mass-weigthed, Angs)',j
+          write(out_unit,*) CartesianTransfo%TransVect(:,j) * get_Conv_au_TO_unit("L","Angs")
 
         END DO
       END IF
 
       IF (associated(CartesianTransfo%Qxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
-          write(out_unitp,*) 'Qxyz (not mass-weigthed, Angs)',j
+          write(out_unit,*) 'Qxyz (not mass-weigthed, Angs)',j
           DO i=1,CartesianTransfo%nat_act
-            write(out_unitp,*) CartesianTransfo%Qxyz(:,i,j) * get_Conv_au_TO_unit("L","Angs")
+            write(out_unit,*) CartesianTransfo%Qxyz(:,i,j) * get_Conv_au_TO_unit("L","Angs")
           END DO
         END DO
       END IF
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_CartesianTransfo
 
@@ -909,20 +909,20 @@ MODULE mod_CartesianTransfo
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'Eckart:     ',CartesianTransfo%Eckart
-          write(out_unitp,*) 'P_Axis:     ',CartesianTransfo%P_Axis_ref
-          write(out_unitp,*) 'New_Orient: ',CartesianTransfo%New_Orient
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'Eckart:     ',CartesianTransfo%Eckart
+          write(out_unit,*) 'P_Axis:     ',CartesianTransfo%P_Axis_ref
+          write(out_unit,*) 'New_Orient: ',CartesianTransfo%New_Orient
 
-          write(out_unitp,*) 'ncart_act ',CartesianTransfo%ncart_act
-          write(out_unitp,*) 'nat_act ',CartesianTransfo%nat_act
-          write(out_unitp,*) 'Qxyz (ref) ',CartesianTransfo%Qxyz
-          write(out_unitp,*) 'MWQxyz (ref) ',CartesianTransfo%MWQxyz
-          write(out_unitp,*) 'dnQin%d0 '
+          write(out_unit,*) 'ncart_act ',CartesianTransfo%ncart_act
+          write(out_unit,*) 'nat_act ',CartesianTransfo%nat_act
+          write(out_unit,*) 'Qxyz (ref) ',CartesianTransfo%Qxyz
+          write(out_unit,*) 'MWQxyz (ref) ',CartesianTransfo%MWQxyz
+          write(out_unit,*) 'dnQin%d0 '
           CALL write_dnx(1,CartesianTransfo%ncart_act,dnQin,nderiv_debug)
-          write(out_unitp,*) 'Qact ',Qact
+          write(out_unit,*) 'Qact ',Qact
           CALL Write_CartesianTransfo(CartesianTransfo)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
         RMatIO_format_save = RMatIO_format
@@ -994,11 +994,11 @@ MODULE mod_CartesianTransfo
         END IF
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnQout%d0 '
+          write(out_unit,*) 'dnQout%d0 '
           CALL write_dnx(1,CartesianTransfo%ncart_act,dnQout,nderiv_debug)
 
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
         RMatIO_format = RMatIO_format_save
 
@@ -1013,14 +1013,14 @@ MODULE mod_CartesianTransfo
 
       character (len=*), parameter :: name_sub='Set_COM_Qyz'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       DO iref=1,CartesianTransfo%nb_RefGeometry
         CALL Qxyz_MINUS_COM(CartesianTransfo%Qxyz(:,:,iref),            &
                CartesianTransfo%masses_at,VG=CartesianTransfo%TransVect)
       END DO
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Set_COM_Qyz
 
@@ -1033,7 +1033,7 @@ MODULE mod_CartesianTransfo
 
       character (len=*), parameter :: name_sub='Set_P_Axis_CartesianTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       CALL Set_COM_Qyz(CartesianTransfo)
 
@@ -1045,7 +1045,7 @@ MODULE mod_CartesianTransfo
 
         CALL P_Axis_CartesianTransfo(CartesianTransfo,iref)
       END DO
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Set_P_Axis_CartesianTransfo
 
@@ -1058,7 +1058,7 @@ MODULE mod_CartesianTransfo
 
       character (len=*), parameter :: name_sub='Set_Eckart_CartesianTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       CALL Set_COM_Qyz(CartesianTransfo)
 
@@ -1070,7 +1070,7 @@ MODULE mod_CartesianTransfo
 
       END DO
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Set_Eckart_CartesianTransfo
 
@@ -1088,10 +1088,10 @@ MODULE mod_CartesianTransfo
       i_ref_loc = 1
       IF (present(i_ref)) i_ref_loc = i_ref
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'Reference geometry (in Bohr), iref:',i_ref_loc
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'Reference geometry (in Bohr), iref:',i_ref_loc
       DO i=1,CartesianTransfo%nat_act
-        write(out_unitp,*) CartesianTransfo%Qxyz(:,i,i_ref_loc)
+        write(out_unit,*) CartesianTransfo%Qxyz(:,i,i_ref_loc)
       END DO
 
 
@@ -1123,8 +1123,8 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%InertiaT(3,1) = -Ixz
       CartesianTransfo%InertiaT(3,2) = -Iyz
 
-      write(out_unitp,*) 'Inertia Tensor, i_ref',i_ref_loc
-      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unitp,nbcol=3)
+      write(out_unit,*) 'Inertia Tensor, i_ref',i_ref_loc
+      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
       CALL diagonalization(CartesianTransfo%InertiaT,CartesianTransfo%ABC,Rot_PA, &
                            diago_type=1,sort=1,phase=.FALSE.)
 
@@ -1144,10 +1144,10 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%ABC(:) = HALF / CartesianTransfo%ABC(:)
       CartesianTransfo%ABC(:) = CartesianTransfo%ABC(:) * get_Conv_au_TO_unit("E","cm-1")
 
-      write(out_unitp,*) 'Rotational Matrix (for principal axis)'
-      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unitp,nbcol=3)
-      write(out_unitp,*) 'Rotational constants'
-      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unitp,nbcol=3)
+      write(out_unit,*) 'Rotational Matrix (for principal axis)'
+      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
+      write(out_unit,*) 'Rotational constants'
+      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
 
       DO i=1,CartesianTransfo%nat_act
         CartesianTransfo%MWQxyz(:,i,i_ref_loc) =                        &
@@ -1156,12 +1156,12 @@ MODULE mod_CartesianTransfo
         CartesianTransfo%Qxyz(:,i,i_ref_loc) = CartesianTransfo%MWQxyz(:,i,i_ref_loc) / CartesianTransfo%d0sm(3*i-2)
       END DO
 
-      write(out_unitp,*) 'Reference geometry in the PA frame (in Bohr), iref:',i_ref_loc
+      write(out_unit,*) 'Reference geometry in the PA frame (in Bohr), iref:',i_ref_loc
       DO i=1,CartesianTransfo%nat_act
-        write(out_unitp,*) CartesianTransfo%Qxyz(:,i,i_ref_loc)
+        write(out_unit,*) CartesianTransfo%Qxyz(:,i,i_ref_loc)
       END DO
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE P_Axis_CartesianTransfo
 
@@ -1185,8 +1185,8 @@ MODULE mod_CartesianTransfo
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'BEGINNING ',name_sub
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
         CALL check_alloc_dnVec(dnXin,'dnXin',name_sub)
@@ -1224,8 +1224,8 @@ MODULE mod_CartesianTransfo
         IF (debug) THEN
           CALL write_dnx(1,CartesianTransfo%ncart_act,dnXout,nderiv_debug)
 
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE calc_dnTxdnXin_TO_dnXout
@@ -1253,8 +1253,8 @@ MODULE mod_CartesianTransfo
 !-----------------------------------------------------------
 
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        flush(out_unit)
       END IF
 
       RMS_min  = huge(ONE)
@@ -1275,14 +1275,14 @@ MODULE mod_CartesianTransfo
         END DO
 
         IF (debug) THEN
-          write(out_unitp,*) 'T'
-          CALL Write_Mat(T,out_unitp,3)
+          write(out_unit,*) 'T'
+          CALL Write_Mat(T,out_unit,3)
           !CALL Det_OF_m1(T,det,3)
           det = Det_OF(T)
-          write(out_unitp,*) 'det T',irot,det
-          write(out_unitp,*) 'MWXin',MWXin
-          write(out_unitp,*) 'MWXref',MWXref
-          write(out_unitp,*) 'MWXout',MWXout
+          write(out_unit,*) 'det T',irot,det
+          write(out_unit,*) 'MWXin',MWXin
+          write(out_unit,*) 'MWXref',MWXref
+          write(out_unit,*) 'MWXout',MWXout
         END IF
 
 
@@ -1295,7 +1295,7 @@ MODULE mod_CartesianTransfo
           sign_Vec(:) = sig(:,irot)
         END IF
 
-        IF (debug) write(out_unitp,*) 'RMS',irot,RMS(irot)
+        IF (debug) write(out_unit,*) 'RMS',irot,RMS(irot)
 
         Rot_Eckart(:) = ZERO
         DO iat=1,nat
@@ -1311,17 +1311,17 @@ MODULE mod_CartesianTransfo
 
         END DO
         normEC = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
-        IF (debug) write(out_unitp,*) 'normEC',irot,normEC
+        IF (debug) write(out_unit,*) 'normEC',irot,normEC
 
 
       END DO
 
-      !write(out_unitp,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
+      !write(out_unit,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
 
       IF (debug) THEN
-        write(out_unitp,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
       END SUBROUTINE calc_RMS_d0MWXout
@@ -1347,19 +1347,19 @@ MODULE mod_CartesianTransfo
 !-----------------------------------------------------------
 !$OMP  CRITICAL (calc_Analysis_dnMWXout_CRIT)
 
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        flush(out_unit)
 !-----------------------------------------------------------
         CALL check_alloc_dnVec(dnMWXout,'dnMWXout',name_sub)
         CALL check_alloc_MatOFdnS(dnT,'dnT',name_sub)
 
-        write(out_unitp,*) 'Eckart rotational matrix, T'
+        write(out_unit,*) 'Eckart rotational matrix, T'
         CALL Write_MatOFdnS(dnT,nderiv=0)
 
         !Check the rotational Eckart condition
         RMS2 = sum((dnMWXout%d0(:)-reshape(dnMWXref(:,:)%d0, [CartesianTransfo%ncart_act]) )**2)
         RMS2 = RMS2/real(3*CartesianTransfo%nat_act,kind=Rkind)
-        write(out_unitp,*) 'RMS^2',Qact,RMS2
+        write(out_unit,*) 'RMS^2',Qact,RMS2
 
         !Check the rotational Eckart condition
         DO iref=1,CartesianTransfo%nb_RefGeometry
@@ -1385,9 +1385,9 @@ MODULE mod_CartesianTransfo
           END DO
           norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
           IF (CartesianTransfo%MultiRefEckart) THEN
-             write(out_unitp,*) 'Norm Rot_Eckart',iref,Qact(:),norm
+             write(out_unit,*) 'Norm Rot_Eckart',iref,Qact(:),norm
           ELSE
-             write(out_unitp,*) 'Norm Rot_Eckart',norm
+             write(out_unit,*) 'Norm Rot_Eckart',norm
           END IF
         END DO
 
@@ -1413,29 +1413,29 @@ MODULE mod_CartesianTransfo
           END DO
 
           norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
-          write(out_unitp,*) 'Norm Rot_Eckart (av ref)',norm
+          write(out_unit,*) 'Norm Rot_Eckart (av ref)',norm
         END IF
 
-        write(out_unitp,*) 'Actual geometry (mass weighted): '
+        write(out_unit,*) 'Actual geometry (mass weighted): '
         DO ic=1,CartesianTransfo%ncart_act,3
-          write(out_unitp,*) (ic+2)/3,dnMWXout%d0(ic+0:ic+2)
+          write(out_unit,*) (ic+2)/3,dnMWXout%d0(ic+0:ic+2)
         END DO
-        write(out_unitp,*) 'Reference geometry (mass weighted): '
+        write(out_unit,*) 'Reference geometry (mass weighted): '
         DO ic=1,CartesianTransfo%nat_act
-          write(out_unitp,*) ic,dnMWXref(:,ic)%d0
+          write(out_unit,*) ic,dnMWXref(:,ic)%d0
         END DO
 
-        write(out_unitp,*) 'Actual geometry (not mass weighted): '
+        write(out_unit,*) 'Actual geometry (not mass weighted): '
         DO ic=1,CartesianTransfo%ncart_act,3
-          write(out_unitp,*) (ic+2)/3,dnMWXout%d0(ic+0:ic+2) / CartesianTransfo%d0sm(ic)
+          write(out_unit,*) (ic+2)/3,dnMWXout%d0(ic+0:ic+2) / CartesianTransfo%d0sm(ic)
         END DO
-        write(out_unitp,*) 'Reference geometry (not mass weighted): '
+        write(out_unit,*) 'Reference geometry (not mass weighted): '
         DO ic=1,CartesianTransfo%nat_act
-          write(out_unitp,*) ic,dnMWXref(:,ic)%d0 / CartesianTransfo%d0sm(3*ic-2)
+          write(out_unit,*) ic,dnMWXref(:,ic)%d0 / CartesianTransfo%d0sm(3*ic-2)
         END DO
 
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
 !$OMP  END CRITICAL (calc_Analysis_dnMWXout_CRIT)
 
 
@@ -1466,10 +1466,10 @@ MODULE mod_CartesianTransfo
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'ncart_act ',CartesianTransfo%ncart_act
-          write(out_unitp,*) 'Qxyz (ref) ',CartesianTransfo%Qxyz
-          write(out_unitp,*) 'dnx%d0 ',dnx%d0(1:CartesianTransfo%ncart_act)
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'ncart_act ',CartesianTransfo%ncart_act
+          write(out_unit,*) 'Qxyz (ref) ',CartesianTransfo%Qxyz
+          write(out_unit,*) 'dnx%d0 ',dnx%d0(1:CartesianTransfo%ncart_act)
         END IF
 !-----------------------------------------------------------
 
@@ -1504,12 +1504,12 @@ MODULE mod_CartesianTransfo
         A2 = matmul(A,transpose(A))
 
         IF (debug) THEN
-          write(out_unitp,*) 'A'
-          CALL Write_Mat(A,out_unitp,3)
-          write(out_unitp,*) 'A1'
-          CALL Write_Mat(A1,out_unitp,3)
-          write(out_unitp,*) 'A2'
-          CALL Write_Mat(A2,out_unitp,3)
+          write(out_unit,*) 'A'
+          CALL Write_Mat(A,out_unit,3)
+          write(out_unit,*) 'A1'
+          CALL Write_Mat(A1,out_unit,3)
+          write(out_unit,*) 'A2'
+          CALL Write_Mat(A2,out_unit,3)
         END IF
 
         CALL diagonalization(A1,eig1,Vec1,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
@@ -1523,10 +1523,10 @@ MODULE mod_CartesianTransfo
         CALL calc_cross_product(Vec2(:,1),normx,Vec2(:,2),normy,Vec2(:,3),normz)
 
         IF (debug) THEN
-          write(out_unitp,*) 'Vec1'
-          CALL Write_Mat(Vec1,out_unitp,3)
-          write(out_unitp,*) 'Vec2'
-          CALL Write_Mat(Vec2,out_unitp,3)
+          write(out_unit,*) 'Vec1'
+          CALL Write_Mat(Vec1,out_unit,3)
+          write(out_unit,*) 'Vec2'
+          CALL Write_Mat(Vec2,out_unit,3)
         END IF
 
         T(1,1) = sum(Vec1(1,:)*Vec2(1,:))
@@ -1560,18 +1560,18 @@ MODULE mod_CartesianTransfo
                              d0x(2,i)*CartesianTransfo%MWQxyz(1,i,iref)
             END DO
             norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
-            write(out_unitp,*) 'Norm Rot_Eckart',iref,Qact(1),norm
+            write(out_unit,*) 'Norm Rot_Eckart',iref,Qact(1),norm
           END DO
         END IF
 
-        IF (debug) write(out_unitp,*) 'Rot EC diff ID?',sum(abs(T(:,1)))+sum(abs(T(:,2)))+sum(abs(T(:,3)))-THREE
+        IF (debug) write(out_unit,*) 'Rot EC diff ID?',sum(abs(T(:,1)))+sum(abs(T(:,2)))+sum(abs(T(:,3)))-THREE
 
         IF (debug) THEN
-          write(out_unitp,*) 'eig1 ',eig1
-          write(out_unitp,*) 'eig2 ',eig2
-          write(out_unitp,*) 'Eckart rotational matrix, T'
-          CALL Write_Mat(T,out_unitp,3)
-          write(out_unitp,*) 'END ',name_sub
+          write(out_unit,*) 'eig1 ',eig1
+          write(out_unit,*) 'eig2 ',eig2
+          write(out_unit,*) 'Eckart rotational matrix, T'
+          CALL Write_Mat(T,out_unit,3)
+          write(out_unit,*) 'END ',name_sub
         END IF
 
       END SUBROUTINE calc_EckartRot
@@ -1609,11 +1609,11 @@ MODULE mod_CartesianTransfo
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'dnXin'
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'dnXin'
           CALL write_dnx(1,CartesianTransfo%ncart_act,dnXin,nderiv_debug)
           CALL Write_CartesianTransfo(CartesianTransfo)
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
         CALL check_alloc_dnVec(dnXin,'dnXin',name_sub)
@@ -1638,7 +1638,7 @@ MODULE mod_CartesianTransfo
 
         !==============================================================
         ! from Dymarsky and Kudin, JCP v122, p124103, 2005
-        !write(out_unitp,*) 'Eckart',CartesianTransfo%Eckart
+        !write(out_unit,*) 'Eckart',CartesianTransfo%Eckart
 
         CALL sub_ZERO_TO_MatOFdnS(dnA)
         DO ic=1,CartesianTransfo%ncart_act,3 ! loop on atoms
@@ -1653,7 +1653,7 @@ MODULE mod_CartesianTransfo
         END DO
         END DO
         IF (debug) THEN
-          write(out_unitp,*) 'dnA'
+          write(out_unit,*) 'dnA'
           CALL Write_MatOFdnS(dnA,nderiv=0)
         END IF
 
@@ -1663,10 +1663,10 @@ MODULE mod_CartesianTransfo
         CALL Mat1OFdnS_MUL_Mat2OFdnS_TO_Mat3OFdnS(dnA,dntA,dnA2,nderiv)
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnA1'
+          write(out_unit,*) 'dnA1'
           CALL Write_MatOFdnS(dnA1,nderiv=0)
 
-          write(out_unitp,*) 'dnA2'
+          write(out_unit,*) 'dnA2'
           CALL Write_MatOFdnS(dnA2,nderiv=0)
         END IF
 
@@ -1678,19 +1678,19 @@ MODULE mod_CartesianTransfo
                                 type_cs=CartesianTransfo%type_cs)
 
         IF (debug) THEN
-          write(out_unitp,*) 'eig1 ',(dnA1(i,i)%d0,i=1,3)
-          write(out_unitp,*) 'eig2 ',(dnA2(i,i)%d0,i=1,3)
-          flush(out_unitp)
-          write(out_unitp,*) 'dnVec1 before change sign (in column)'
+          write(out_unit,*) 'eig1 ',(dnA1(i,i)%d0,i=1,3)
+          write(out_unit,*) 'eig2 ',(dnA2(i,i)%d0,i=1,3)
+          flush(out_unit)
+          write(out_unit,*) 'dnVec1 before change sign (in column)'
           CALL Write_MatOFdnS(dnVec1,nderiv=0)
-          write(out_unitp,*) 'dnVec2 before change sign (in column)'
+          write(out_unit,*) 'dnVec2 before change sign (in column)'
           CALL Write_MatOFdnS(dnVec2,nderiv=0)
         END IF
 
         DO i=1,2
           dp(i) = dot_product(dnVec1(:,i)%d0,dnVec2(:,i)%d0)
           IF (dp(i) < ZERO) THEN ! change sign of dnVec2
-            !write(out_unitp,*) 'change sign of vec: ',isort_dp(i)
+            !write(out_unit,*) 'change sign of vec: ',isort_dp(i)
             DO j=1,3
               CALL sub_Weight_dnS(dnVec2(j,i),-ONE,nderiv)
             END DO
@@ -1707,7 +1707,7 @@ MODULE mod_CartesianTransfo
           sign_Vec(:) = ONE
           CALL calc_RMS_d0MWXout(sign_Vec,Xin,dnVec1(:,:)%d0,dnVec2(:,:)%d0,&
                                   dnMWXref(:,:)%d0,CartesianTransfo%nat_act)
-          !write(out_unitp,*) 'sign_Vec',sign_Vec(:)
+          !write(out_unit,*) 'sign_Vec',sign_Vec(:)
 
           DO i=1,3
             IF (sign_Vec(i) == -ONE) THEN
@@ -1720,9 +1720,9 @@ MODULE mod_CartesianTransfo
 
 
         IF (debug) THEN
-          write(out_unitp,*) 'dnVec1 (in column)'
+          write(out_unit,*) 'dnVec1 (in column)'
           CALL Write_MatOFdnS(dnVec1,nderiv=0)
-          write(out_unitp,*) 'dnVec2 (in column)'
+          write(out_unit,*) 'dnVec2 (in column)'
           CALL Write_MatOFdnS(dnVec2,nderiv=0)
         END IF
         !==============================================================
@@ -1733,19 +1733,19 @@ MODULE mod_CartesianTransfo
                                         dnVec2(j,:),dnT(i,j),nderiv)
         END DO
         END DO
-        !write(out_unitp,*) 'T',dnT(:,:)%d0
+        !write(out_unit,*) 'T',dnT(:,:)%d0
 
         IF (debug .OR. CartesianTransfo%check_dnT) THEN
           CALL DET_Mat3x3OFdnS_TO_dnS(dnT,dnWork,nderiv)
           IF (debug) THEN
-            write(out_unitp,*) 'det(dnT)'
+            write(out_unit,*) 'det(dnT)'
             CALL Write_dnS(dnWork)
 
             IF (abs(dnWork%d0-ONE) > ONETENTH**6) THEN
-              write(out_unitp,*) 'ERROR in ',name_sub
-              write(out_unitp,*) ' The determinant of T is different from ONE'
-              write(out_unitp,*) ' It should never append!!'
-              write(out_unitp,*) ' Check the fortran'
+              write(out_unit,*) 'ERROR in ',name_sub
+              write(out_unit,*) ' The determinant of T is different from ONE'
+              write(out_unit,*) ' It should never append!!'
+              write(out_unit,*) ' Check the fortran'
               STOP
             END IF
           END IF
@@ -1769,11 +1769,11 @@ MODULE mod_CartesianTransfo
 
 
           IF (debug) THEN
-            write(out_unitp,*) 'Eckart rotational matrix, T + det(T)',dnWork%d0
+            write(out_unit,*) 'Eckart rotational matrix, T + det(T)',dnWork%d0
             CALL Write_MatOFdnS(dnT,nderiv=nderiv_debug)
 
-            write(out_unitp,*) 'END ',name_sub
-            flush(out_unitp)
+            write(out_unit,*) 'END ',name_sub
+            flush(out_unit)
           END IF
         END IF
 
@@ -1819,11 +1819,11 @@ MODULE mod_CartesianTransfo
 !        logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'BEGINNING ',name_sub
           DO iref_loc=1,CartesianTransfo%nb_RefGeometry
-            write(out_unitp,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref_loc)
+            write(out_unit,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref_loc)
           END DO
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
         iref_loc = 1
@@ -1835,11 +1835,11 @@ MODULE mod_CartesianTransfo
         IF (CartesianTransfo%nb_RefGeometry == 1 .OR. present(iref) ) THEN
 
           IF (iref_loc > CartesianTransfo%nb_RefGeometry) THEN
-            write(out_unitp,*) 'ERROR in ',name_sub
-            write(out_unitp,*) ' iref is larger than nb_RefGeometry',   &
+            write(out_unit,*) 'ERROR in ',name_sub
+            write(out_unit,*) ' iref is larger than nb_RefGeometry',   &
                                iref_loc,CartesianTransfo%nb_RefGeometry
-            write(out_unitp,*) ' It should never append!!'
-            write(out_unitp,*) ' Check the fortran'
+            write(out_unit,*) ' It should never append!!'
+            write(out_unit,*) ' Check the fortran'
             STOP
           END IF
 
@@ -1889,10 +1889,10 @@ MODULE mod_CartesianTransfo
 
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnMWXref'
+          write(out_unit,*) 'dnMWXref'
           CALL Write_MatOFdnS(dnMWXref)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE dnMWX_MultiRef
@@ -1919,9 +1919,9 @@ MODULE mod_CartesianTransfo
 !        logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'iQact ',iQact
-          flush(out_unitp)
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'iQact ',iQact
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
 
@@ -1958,10 +1958,10 @@ MODULE mod_CartesianTransfo
 
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnSwitch'
+          write(out_unit,*) 'dnSwitch'
           CALL Write_VecOFdnS(dnSwitch)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE Switch_type0
@@ -1989,9 +1989,9 @@ MODULE mod_CartesianTransfo
 !        logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
-          write(out_unitp,*) 'iQact ',iQact
-          flush(out_unitp)
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'iQact ',iQact
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
 
@@ -2012,7 +2012,7 @@ MODULE mod_CartesianTransfo
           !   => a*(cos(x)-b)=0 if x=phase/2 (in the middle of two reference geometries, x=0 and x=phase)
           b  = cos(phase*HALF)
           a  = ONE/(ONE-b)
-          !write(out_unitp,*) 'a,b',a,b
+          !write(out_unit,*) 'a,b',a,b
 
           DO iref=1,CartesianTransfo%nb_RefGeometry
             cte(:) =  ZERO
@@ -2073,10 +2073,10 @@ MODULE mod_CartesianTransfo
           CALL dealloc_dnS(dnW2)
 
         CASE DEFAULT
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Wrong value of CartesianTransfo%tab_switch_type',&
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Wrong value of CartesianTransfo%tab_switch_type',&
                                    CartesianTransfo%tab_switch_type(:)
-          write(out_unitp,*) ' check the Fortran!'
+          write(out_unit,*) ' check the Fortran!'
           STOP
         END SELECT
 
@@ -2085,10 +2085,10 @@ MODULE mod_CartesianTransfo
 
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnSwitch'
+          write(out_unit,*) 'dnSwitch'
           CALL Write_VecOFdnS(dnSwitch)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE Switch_type1
@@ -2115,12 +2115,12 @@ MODULE mod_CartesianTransfo
 !        logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'BEGINNING ',name_sub
           DO iref=1,CartesianTransfo%nb_RefGeometry
-            write(out_unitp,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref)
+            write(out_unit,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref)
           END DO
-          write(out_unitp,*) 'dnx%d0 ',dnx%d0(:)
-          flush(out_unitp)
+          write(out_unit,*) 'dnx%d0 ',dnx%d0(:)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
 
@@ -2160,7 +2160,7 @@ MODULE mod_CartesianTransfo
                           ONE/real(CartesianTransfo%nat_act,kind=Rkind))  ! divide by nat_act
 
         END DO
-        IF (debug) write(out_unitp,*) 'dnDist2',dnDist2(:)%d0
+        IF (debug) write(out_unit,*) 'dnDist2',dnDist2(:)%d0
         !write(98,*) dnDist2(:)%d0
 
         DO iref=1,CartesianTransfo%nb_RefGeometry
@@ -2172,17 +2172,17 @@ MODULE mod_CartesianTransfo
             IF (iref == kref) CYCLE
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS3(dnDist2(iref), sc,         &
                                              dnDist2(kref),-sc,dnW1)
-            IF (debug) write(out_unitp,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
+            IF (debug) write(out_unit,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
 
             cte(:) = ZERO ; cte(1) = ONE
             CALL sub_dnS1_TO_dntR2(dnW1,dnW2,80,cte=cte) ! exp(sc*(dist2_i-dist2_k))
-            IF (debug) write(out_unitp,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
+            IF (debug) write(out_unit,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnW2,ONE,dnSumExp,ONE) ! sum of the exp
           END DO
           CALL sub_dnS1_TO_dntR2(dnSumExp,dnSwitch(iref),90) ! 1/sum(exp ....)
 
         END DO
-        IF (debug) write(out_unitp,*) 'dnSwitch',dnSwitch(:)%d0
+        IF (debug) write(out_unit,*) 'dnSwitch',dnSwitch(:)%d0
 
         !---------------------------------------------------------------
         ! deallocation
@@ -2196,10 +2196,10 @@ MODULE mod_CartesianTransfo
 !stop
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnSwitch'
+          write(out_unit,*) 'dnSwitch'
           CALL Write_VecOFdnS(dnSwitch)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE Switch_type3
@@ -2229,12 +2229,12 @@ MODULE mod_CartesianTransfo
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'BEGINNING ',name_sub
           DO iref=1,CartesianTransfo%nb_RefGeometry
-            write(out_unitp,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref)
+            write(out_unit,*) 'MWQxyz ',CartesianTransfo%MWQxyz(:,:,iref)
           END DO
-          write(out_unitp,*) 'dnx%d0 ',dnx%d0(:)
-          flush(out_unitp)
+          write(out_unit,*) 'dnx%d0 ',dnx%d0(:)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
 
@@ -2283,7 +2283,7 @@ MODULE mod_CartesianTransfo
           CALL sub_Weight_dnS(dnDist2(iref),                            &
                            ONE/real(CartesianTransfo%nat_act,kind=Rkind))  ! divide by nat_act
         END DO
-        IF (debug) write(out_unitp,*) 'dnDist2',dnDist2(:)%d0
+        IF (debug) write(out_unit,*) 'dnDist2',dnDist2(:)%d0
         !write(98,*) dnDist2(:)%d0
 
         DO iref=1,CartesianTransfo%nb_RefGeometry
@@ -2295,17 +2295,17 @@ MODULE mod_CartesianTransfo
             IF (iref == kref) CYCLE
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS3(dnDist2(iref), sc,         &
                                              dnDist2(kref),-sc,dnW1)
-            IF (debug) write(out_unitp,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
+            IF (debug) write(out_unit,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
 
             cte(:) = ZERO ; cte(1) = ONE
             CALL sub_dnS1_TO_dntR2(dnW1,dnW2,80,cte=cte) ! exp(sc*(dist2_i-dist2_k))
-            IF (debug) write(out_unitp,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
+            IF (debug) write(out_unit,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnW2,ONE,dnSumExp,ONE)  ! sum of the exp
           END DO
           CALL sub_dnS1_TO_dntR2(dnSumExp,dnSwitch(iref),90) ! 1/sum(exp ....)
 
         END DO
-        IF (debug) write(out_unitp,*) 'dnSwitch',dnSwitch(:)%d0
+        IF (debug) write(out_unit,*) 'dnSwitch',dnSwitch(:)%d0
 
         !---------------------------------------------------------------
         ! deallocation
@@ -2323,15 +2323,15 @@ MODULE mod_CartesianTransfo
 
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnSwitch'
+          write(out_unit,*) 'dnSwitch'
           CALL Write_VecOFdnS(dnSwitch)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE Switch_type4
       SUBROUTINE Qxyz_MINUS_COM(Qxyz,masses,VG)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
         real (kind=Rkind), intent(inout)           :: Qxyz(:,:)
@@ -2356,7 +2356,7 @@ MODULE mod_CartesianTransfo
 !================================================================
       SUBROUTINE sub3_dncentre_masse(ncart_act,nb_act,ncart,dnx,        &
                                      masses,Mtot_inv,icG,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -2418,7 +2418,7 @@ MODULE mod_CartesianTransfo
 !================================================================
       SUBROUTINE centre_masse(ncart_act,ncart,d0x,                      &
                               masses,Mtot_inv,icG,VG)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
         integer,           intent(in)              :: ncart_act,ncart
@@ -2430,10 +2430,10 @@ MODULE mod_CartesianTransfo
         integer :: i,ic
         real (kind=Rkind) ::  xG(3)
 
-        !write(out_unitp,*) 'ncart_act,ncart',ncart_act,ncart
-        !write(out_unitp,*) 'Mtot_inv',Mtot_inv
-        !write(out_unitp,*) 'masses',masses(:)
-        !write(out_unitp,*) 'd0x',d0x
+        !write(out_unit,*) 'ncart_act,ncart',ncart_act,ncart
+        !write(out_unit,*) 'Mtot_inv',Mtot_inv
+        !write(out_unit,*) 'masses',masses(:)
+        !write(out_unit,*) 'd0x',d0x
 
         DO i=1,3
           xG(i) = ZERO
@@ -2449,13 +2449,13 @@ MODULE mod_CartesianTransfo
         IF (present(icG)) d0x(icG+0:icG+2) = xG(:)
         IF (present(VG))  VG(:) = xG(:)
 
-        !write(out_unitp,*) 'G =',xG(:)
-        !write(out_unitp,*) 'd0x',d0x
+        !write(out_unit,*) 'G =',xG(:)
+        !write(out_unit,*) 'd0x',d0x
 
       END SUBROUTINE centre_masse
 
       SUBROUTINE sub3_NOdncentre_masse(ncart_act,nb_act,ncart,dnx,icG,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -2512,7 +2512,7 @@ MODULE mod_CartesianTransfo
 !       can be use for d1G d2G ...
 !================================================================
       SUBROUTINE NOcentre_masse(ncart_act,ncart,d0x,icG)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
         integer :: ncart_act,ncart
@@ -2522,8 +2522,8 @@ MODULE mod_CartesianTransfo
         integer :: i,ic
         real (kind=Rkind) ::  xG(3)
 
-        !write(out_unitp,*) 'ncart_act,ncart',ncart_act,ncart
-        !write(out_unitp,*) 'd0x',d0x
+        !write(out_unit,*) 'ncart_act,ncart',ncart_act,ncart
+        !write(out_unit,*) 'd0x',d0x
 
         xG(:) = d0x(icG+0:icG+2)
 
@@ -2534,15 +2534,15 @@ MODULE mod_CartesianTransfo
           END DO
         END DO
 
-        !write(out_unitp,*) 'G =',xG(:)
-        !write(out_unitp,*) 'd0x',d0x
+        !write(out_unit,*) 'G =',xG(:)
+        !write(out_unit,*) 'd0x',d0x
 
       END SUBROUTINE NOcentre_masse
 !================================================================
 !       Calcul le centre de masse G
 !================================================================
       SUBROUTINE sub_dnxMassWeight(dnx,d0sm,ncart,ncart_act,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -2585,7 +2585,7 @@ MODULE mod_CartesianTransfo
 
       END SUBROUTINE sub_dnxMassWeight
       SUBROUTINE sub_dnxNOMassWeight(dnx,d0sm,ncart,ncart_act,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 

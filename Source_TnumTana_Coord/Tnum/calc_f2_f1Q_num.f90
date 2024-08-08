@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_f2f2Vep
-  USE mod_system
+  USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Tnum
   USE mod_paramQ
@@ -66,7 +66,7 @@ MODULE mod_f2f2Vep
 !======================================================================
       SUBROUTINE calc3_f2_f1Q_num_CoordType(Qact,Tdef2,Tdef1,vep,rho,   &
                                         Tcor2,Tcor1,Trot,para_Tnum,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       use mod_ActiveTransfo,    only: qact_to_qdyn_from_activetransfo
       USE mod_Tnum
@@ -141,20 +141,20 @@ MODULE mod_f2f2Vep
       character (len=*), parameter :: name_sub = 'calc3_f2_f1Q_num'
 !-----------------------------------------------------------
        IF (debug .OR. para_Tnum%WriteT) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'ndimG',mole%ndimG
-         write(out_unitp,*) 'WriteCC',mole%WriteCC
-         write(out_unitp,*) 'Qact',Qact
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'ndimG',mole%ndimG
+         write(out_unit,*) 'WriteCC',mole%WriteCC
+         write(out_unit,*) 'Qact',Qact
          !IF (debug) THEN
-         !  write(out_unitp,*)
+         !  write(out_unit,*)
          !  CALL Write_CoordType(mole)
-         !  write(out_unitp,*)
+         !  write(out_unit,*)
          !END IF
-         write(out_unitp,*)
-         write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-         write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-         write(out_unitp,*) 'JJ',para_Tnum%JJ
-         write(out_unitp,*)
+         write(out_unit,*)
+         write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+         write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+         write(out_unit,*) 'JJ',para_Tnum%JJ
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
       IF (para_Tnum%Tana) THEN
@@ -162,12 +162,12 @@ MODULE mod_f2f2Vep
         CALL get_Numf2f1vep_WITH_AnaKEO(para_Tnum%ExpandTWOxKEO,Qact,           &
                                         mole,para_Tnum,Tdef2,Tdef1,vep,rho)
         IF (debug .OR. para_Tnum%WriteT) THEN
-          write(out_unitp,*) ' f2,f1,vep with Tana'
+          write(out_unit,*) ' f2,f1,vep with Tana'
           CALL Write_f2f1vep(Tdef2,Tdef1,vep,rho,mole%nb_act)
           !IF (para_Tnum%JJ > 0 .AND. .NOT. mole%Without_Rot)              &
           !      CALL Write_TcorTrot(Tcor2,Tcor1,Trot,mole%nb_act)
 
-          write(out_unitp,*) 'END ',name_sub
+          write(out_unit,*) 'END ',name_sub
         END IF
         RETURN
       END IF
@@ -193,9 +193,9 @@ MODULE mod_f2f2Vep
       CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderiv)
 
       CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,vep=vep,nderiv=nderiv)
-      ! write(out_unitp,*) 'dnGG'
+      ! write(out_unit,*) 'dnGG'
       ! CALL write_dnSVM(dnGG)
-      ! write(out_unitp,*) 'vep',vep
+      ! write(out_unit,*) 'vep',vep
 
       !----- For dnrho -------------------------------------------
       nderiv = 1
@@ -207,7 +207,7 @@ MODULE mod_f2f2Vep
         ! dnJac
         CALL sub3_dndetGG(dnJac,dnGG,nderiv,                            &
                           mole%masses,mole%Mtot_inv,mole%ncart)
-        !write(out_unitp,*) 'dnJac'
+        !write(out_unit,*) 'dnJac'
         !CALL write_dnS(dnJac)
       ELSE
         CALL sub_ZERO_TO_dnS(dnJac)
@@ -215,12 +215,12 @@ MODULE mod_f2f2Vep
       CALL sub3_dnrho(dnrho,dnJac,Qact,mole,                            &
                       nderiv,para_Tnum%num_x,para_Tnum%stepT,           &
                       para_Tnum%nrho)
-      !write(out_unitp,*) 'dnrho'
+      !write(out_unit,*) 'dnrho'
       !CALL write_dnS(dnrho)
 !-----------------------------------------------------------
 
       rho = dnrho%d0
-      !write(out_unitp,*) 'rho :',rho
+      !write(out_unit,*) 'rho :',rho
 !-----------------------------------------------------------
 
 !==================================================================
@@ -266,7 +266,7 @@ MODULE mod_f2f2Vep
         IF (para_Tnum%JJ > 0 .AND. .NOT. mole%Without_Rot)              &
                 CALL Write_TcorTrot(Tcor2,Tcor1,Trot,mole%nb_act)
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
@@ -277,7 +277,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
                                               Tdef2,Tdef1,vep,rho,      &
                                               Tcor2,Tcor1,Trot,         &
                                               para_Tnum,mole)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
       USE mod_paramQ
@@ -350,25 +350,25 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
       character (len=*), parameter :: name_sub = 'calc3_f2_f1Q_numTay0Qinact2n'
 !-----------------------------------------------------------
        IF (debug .OR. para_Tnum%WriteT) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'ndimG',mole%ndimG
-         write(out_unitp,*) 'WriteCC',mole%WriteCC
-         write(out_unitp,*) 'Qact',Qact
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'ndimG',mole%ndimG
+         write(out_unit,*) 'WriteCC',mole%WriteCC
+         write(out_unit,*) 'Qact',Qact
          IF (debug) THEN
-           write(out_unitp,*)
+           write(out_unit,*)
            CALL Write_CoordType(mole)
-           write(out_unitp,*)
+           write(out_unit,*)
          END IF
-         write(out_unitp,*)
-         write(out_unitp,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
-         write(out_unitp,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
-         write(out_unitp,*) 'JJ',para_Tnum%JJ
-         write(out_unitp,*)
+         write(out_unit,*)
+         write(out_unit,*) 'num_GG,num_g',para_Tnum%num_GG,para_Tnum%num_g
+         write(out_unit,*) 'num_x,nrho',para_Tnum%num_x,para_Tnum%nrho
+         write(out_unit,*) 'JJ',para_Tnum%JJ
+         write(out_unit,*)
        END IF
 !-----------------------------------------------------------
       IF (mole%nb_Qtransfo == -1) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'You cannot use Taylor expansion and "calc_f2_f1Q_ana"'
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'You cannot use Taylor expansion and "calc_f2_f1Q_ana"'
         STOP
       END IF
 
@@ -399,10 +399,10 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
       CALL alloc_dnSVM(dnrho,dng%nb_var_deriv,nderiv)
 
       IF ( (para_Tnum%vep_type /= 0 .OR. para_Tnum%nrho == 0) .AND. .NOT. para_Tnum%num_GG) THEN
-        write(out_unitp,*) ' ERROR in name_sub'
-        write(out_unitp,*) '  You have to use nrho=10 or 20 or vep_type=0 to use the taylor expansion'
-        write(out_unitp,*) '   => without extrapotential term (vep)'
-        write(out_unitp,*) ' Check your data !'
+        write(out_unit,*) ' ERROR in name_sub'
+        write(out_unit,*) '  You have to use nrho=10 or 20 or vep_type=0 to use the taylor expansion'
+        write(out_unit,*) '   => without extrapotential term (vep)'
+        write(out_unit,*) ' Check your data !'
         STOP
 
         CALL sub3_dndetA(dnJac,dng,nderiv,                              &
@@ -412,7 +412,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
         CALL Set_ZERO_TO_dnSVM(dnJac)
         dnJac%d0 = ONE
       END IF
-      !write(out_unitp,*) 'jac0 :'
+      !write(out_unit,*) 'jac0 :'
       !CALL Write_dnS(dnJac)
 
 !-----------------------------------------------------------
@@ -425,7 +425,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
                       para_Tnum%nrho)
 !-----------------------------------------------------------
       rho = dnrho%d0
-      !write(out_unitp,*) 'rho :'
+      !write(out_unit,*) 'rho :'
       !CALL Write_dnS(dnrho)
 
 !==================================================================
@@ -469,7 +469,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
         IF (para_Tnum%JJ > 0 .AND. .NOT. mole%Without_Rot)              &
                         CALL Write_TcorTrot(Tcor2,Tcor1,Trot,mole%nb_act)
 
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !-----------------------------------------------------------
 
@@ -477,7 +477,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
 
       SUBROUTINE sub_H2def(H2ij,d0invA,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer :: ndimA,nb_act
@@ -498,7 +498,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
       end subroutine sub_H2def
       SUBROUTINE sub_Tcor2(Tcor2,d0invA,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer ndimA,nb_act
@@ -519,7 +519,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
       end subroutine sub_Tcor2
       SUBROUTINE sub_Tcor1(Tcor1,d0invA,d1invA,fi,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer ndimA,nb_act
@@ -531,7 +531,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
        integer i
 
 !     -- Jx Jy Jz terms ------------------------------------------
-      !write(out_unitp,*) 'fi:',fi(:)
+      !write(out_unit,*) 'fi:',fi(:)
       Tcor1(:) = ZERO
       DO i=1,nb_act
         Tcor1(1) = Tcor1(1) - d1invA(i,nb_act+1,i) - fi(i)*d0invA(i,nb_act+1)
@@ -544,7 +544,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
       end subroutine sub_Tcor1
       SUBROUTINE sub_Tcor1_2(Tcor1,d0invA,d1invA,fi,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer ndimA,nb_act
@@ -570,7 +570,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
 
       SUBROUTINE sub_Trot(Trot,d0invA,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer ndimA,nb_act
@@ -588,7 +588,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
 
 
       SUBROUTINE sub_H1def_2(H1i,d0invA,d1invA,fi,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer ndimA,nb_act
@@ -607,16 +607,16 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
         END DO
         H1i(i) = -HALF*H1i(i)
 
-!       write(out_unitp,*) ' H1i',i,H1i(i)
-!       write(out_unitp,*) 'fi',fi
-!       write(out_unitp,*) 'd1invA(.,i)',(d1invA(j,i),j=1,nb_act)
-!       write(out_unitp,*) 'd0invA(.,i)',(d0invA(j,i),j=1,nb_act)
+!       write(out_unit,*) ' H1i',i,H1i(i)
+!       write(out_unit,*) 'fi',fi
+!       write(out_unit,*) 'd1invA(.,i)',(d1invA(j,i),j=1,nb_act)
+!       write(out_unit,*) 'd0invA(.,i)',(d0invA(j,i),j=1,nb_act)
       END DO
 !     ------------------------------------------------------------
 
       end subroutine sub_H1def_2
       SUBROUTINE sub_H1def(H1i,d0invA,d1invA,fi,ndimA,nb_act)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: ndimA,nb_act
@@ -628,7 +628,7 @@ SUBROUTINE calc3_f2_f1Q_numTay0Qinact2n(Qact,dnQinact2n,          &
        integer :: i,j
 
 !     -- 1st derivative terms -------------------------------------
-        !write(out_unitp,*) 'fi:',fi(:)
+        !write(out_unit,*) 'fi:',fi(:)
         DO i=1,nb_act
           H1i(i) = ZERO
           DO j=1,nb_act

@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
    MODULE mod_PrimOp_def
-   USE mod_system
+   USE TnumTana_system_m
    USE mod_OTF_def, only: param_OTF, dealloc_OTF
    use mod_nDFit,   only: param_nDFit, dealloc_nDFit
    use mod_CAP
@@ -121,82 +121,82 @@
 
       integer :: i
 
-      write(out_unitp,*) ' BEGINNING write_PrimOp (write_param_PES)'
+      write(out_unit,*) ' BEGINNING write_PrimOp (write_param_PES)'
 
 
-      write(out_unitp,*) 'PrimOp%stepOp',PrimOp%stepOp
+      write(out_unit,*) 'PrimOp%stepOp',PrimOp%stepOp
 
-      write(out_unitp,*) 'PrimOp%opt',PrimOp%opt
+      write(out_unit,*) 'PrimOp%opt',PrimOp%opt
 
-      write(out_unitp,*) 'PrimOp%pot0',PrimOp%pot0
-      write(out_unitp,*) 'PrimOp%pot_Qref',PrimOp%pot_Qref
-      write(out_unitp,*) 'PrimOp%min_pot',PrimOp%min_pot
-      write(out_unitp,*) 'PrimOp%max_pot',PrimOp%max_pot
-      write(out_unitp,*) 'PrimOp%HarD',PrimOp%HarD
-      write(out_unitp,*) 'PrimOp%nb_elec',PrimOp%nb_elec
-      write(out_unitp,*) 'PrimOp%pot_cplx',PrimOp%pot_cplx
-      write(out_unitp,*) 'PrimOp%OnTheFly',PrimOp%OnTheFly
-      write(out_unitp,*) 'PrimOp%pot_itQtransfo',PrimOp%pot_itQtransfo
+      write(out_unit,*) 'PrimOp%pot0',PrimOp%pot0
+      write(out_unit,*) 'PrimOp%pot_Qref',PrimOp%pot_Qref
+      write(out_unit,*) 'PrimOp%min_pot',PrimOp%min_pot
+      write(out_unit,*) 'PrimOp%max_pot',PrimOp%max_pot
+      write(out_unit,*) 'PrimOp%HarD',PrimOp%HarD
+      write(out_unit,*) 'PrimOp%nb_elec',PrimOp%nb_elec
+      write(out_unit,*) 'PrimOp%pot_cplx',PrimOp%pot_cplx
+      write(out_unit,*) 'PrimOp%OnTheFly',PrimOp%OnTheFly
+      write(out_unit,*) 'PrimOp%pot_itQtransfo',PrimOp%pot_itQtransfo
 
-      write(out_unitp,*) 'PrimOp%calc_scalar_Op',PrimOp%calc_scalar_Op
-      write(out_unitp,*) 'PrimOp%nb_scalar_Op',PrimOp%nb_scalar_Op
+      write(out_unit,*) 'PrimOp%calc_scalar_Op',PrimOp%calc_scalar_Op
+      write(out_unit,*) 'PrimOp%nb_scalar_Op',PrimOp%nb_scalar_Op
 
-      write(out_unitp,*) 'PrimOp%nb_CAP',PrimOp%nb_CAP
+      write(out_unit,*) 'PrimOp%nb_CAP',PrimOp%nb_CAP
       IF (allocated(PrimOp%tab_CAP)) then
         DO i=1,size(PrimOp%tab_CAP)
           CALL Write_CAP(PrimOp%tab_CAP(i))
         END DO
       END IF
 
-      write(out_unitp,*) 'PrimOp%nb_FluxOp',PrimOp%nb_FluxOp
+      write(out_unit,*) 'PrimOp%nb_FluxOp',PrimOp%nb_FluxOp
       IF (allocated(PrimOp%tab_HStep)) then
         DO i=1,size(PrimOp%tab_HStep)
           CALL Write_HStep(PrimOp%tab_HStep(i))
         END DO
       END IF
 
-      write(out_unitp,*) 'PrimOp%deriv_WITH_FiniteDiff',PrimOp%deriv_WITH_FiniteDiff
-      write(out_unitp,*) 'PrimOp%nDfit_Op',PrimOp%nDfit_Op
+      write(out_unit,*) 'PrimOp%deriv_WITH_FiniteDiff',PrimOp%deriv_WITH_FiniteDiff
+      write(out_unit,*) 'PrimOp%nDfit_Op',PrimOp%nDfit_Op
 
       ! parameters for the Quantum Model Lib (ECAM), KEO+PES
-      write(out_unitp,*) 'PrimOp%QMLib',PrimOp%QMLib
+      write(out_unit,*) 'PrimOp%QMLib',PrimOp%QMLib
       IF (allocated(PrimOp%Qit_TO_QQMLib)) THEN
-        write(out_unitp,*) 'PrimOp%Qit_TO_QQMLib',PrimOp%Qit_TO_QQMLib
+        write(out_unit,*) 'PrimOp%Qit_TO_QQMLib',PrimOp%Qit_TO_QQMLib
       END IF
       IF (allocated(PrimOp%QQMLib_TO_Qit)) THEN
-        write(out_unitp,*) 'PrimOp%QQMLib_TO_Qit',PrimOp%QQMLib_TO_Qit
+        write(out_unit,*) 'PrimOp%QQMLib_TO_Qit',PrimOp%QQMLib_TO_Qit
       END IF
 
-      write(out_unitp,*) 'PrimOp%Type_HamilOp',PrimOp%Type_HamilOp
-      write(out_unitp,*) 'PrimOp%direct_KEO',PrimOp%direct_KEO
-      write(out_unitp,*) 'PrimOp%direct_ScalOp',PrimOp%direct_ScalOp
+      write(out_unit,*) 'PrimOp%Type_HamilOp',PrimOp%Type_HamilOp
+      write(out_unit,*) 'PrimOp%direct_KEO',PrimOp%direct_KEO
+      write(out_unit,*) 'PrimOp%direct_ScalOp',PrimOp%direct_ScalOp
 
-      write(out_unitp,*)
+      write(out_unit,*)
       IF (PrimOp%OnTheFly) THEN
-        write(out_unitp,*) 'PrimOp%levelEne_EQ_levelDip',PrimOp%levelEne_EQ_levelDip
+        write(out_unit,*) 'PrimOp%levelEne_EQ_levelDip',PrimOp%levelEne_EQ_levelDip
 
-        write(out_unitp,*) 'for PES'
+        write(out_unit,*) 'for PES'
         CALL write_OTF(PrimOp%para_OTF)
 
-        write(out_unitp,*) 'for saclar operators (dipole ...)'
+        write(out_unit,*) 'for saclar operators (dipole ...)'
         CALL write_OTF(PrimOp%para_OTF_Dip)
 
       END IF
 
       IF (PrimOp%nDfit_Op) THEN
-        write(out_unitp,*) 'Write para_nDFit_V'
+        write(out_unit,*) 'Write para_nDFit_V'
         CALL Write_nDFit(PrimOp%para_nDFit_V)
         IF (allocated(PrimOp%para_nDFit_Scalar_Op)) THEN
           DO i=1,size(PrimOp%para_nDFit_Scalar_Op)
-            write(out_unitp,*) 'Write para_nDFit_Scalar_Op',i
+            write(out_unit,*) 'Write para_nDFit_Scalar_Op',i
             CALL Write_nDFit(PrimOp%para_nDFit_Scalar_Op(i))
           END DO
         END IF
       END IF
 
 
-    write(out_unitp,*) ' END write_PrimOp'
-    flush(out_unitp)
+    write(out_unit,*) ' END write_PrimOp'
+    flush(out_unit)
   END SUBROUTINE write_PrimOp
   SUBROUTINE PrimOp2_TO_PrimOp1(PrimOp1,PrimOp2)
   IMPLICIT NONE
@@ -205,7 +205,7 @@
 
       integer :: i
 
-      !write(out_unitp,*) ' BEGINNING PrimOp2_TO_PrimOp1'
+      !write(out_unit,*) ' BEGINNING PrimOp2_TO_PrimOp1'
 
       PrimOp1%pot0                  = PrimOp2%pot0
       PrimOp1%pot_Qref              = PrimOp2%pot_Qref
@@ -265,8 +265,8 @@
         END DO
       END IF
 
-     !write(out_unitp,*) ' END PrimOp2_TO_PrimOp1'
-     !flush(out_unitp)
+     !write(out_unit,*) ' END PrimOp2_TO_PrimOp1'
+     !flush(out_unit)
   END SUBROUTINE PrimOp2_TO_PrimOp1
   SUBROUTINE dealloc_PrimOp(PrimOp)
   IMPLICIT NONE
@@ -274,7 +274,7 @@
 
       integer :: i
 
-      !write(out_unitp,*) ' BEGINNING dealloc_PrimOp'
+      !write(out_unit,*) ' BEGINNING dealloc_PrimOp'
 
       PrimOp%pot0                  = ZERO
       PrimOp%pot_Qref              = ZERO
@@ -330,8 +330,8 @@
         deallocate(PrimOp%para_nDFit_Scalar_Op)
       END IF
 
-     !write(out_unitp,*) ' END dealloc_PrimOp'
-     !flush(out_unitp)
+     !write(out_unit,*) ' END dealloc_PrimOp'
+     !flush(out_unit)
   END SUBROUTINE dealloc_PrimOp
   SUBROUTINE Sub_PES_FromTnum_TO_PrimOp(PrimOp,para_PES_FromTnum)
       USE mod_OTF_def,   only: init_OTF
@@ -349,8 +349,8 @@
       !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         flush(out_unitp)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         flush(out_unit)
        END IF
 !-----------------------------------------------------------
 
@@ -434,18 +434,18 @@
             PrimOp%para_OTF%file_FChk%name = para_PES_FromTnum%file_name_fchk
           END IF
         CASE default ! ERROR: wrong program !
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The ab initio program is UNKNOWN ',para_PES_FromTnum%ab_initio_prog
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The ab initio program is UNKNOWN ',para_PES_FromTnum%ab_initio_prog
           STOP
         END SELECT
         IF (print_level > 1) THEN
-          write(out_unitp,*) ' Files for the OTF'
-          write(out_unitp,*) trim(PrimOp%para_OTF%file_data%name)
-          write(out_unitp,*) trim(PrimOp%para_OTF%file_log%name)
-          write(out_unitp,*) trim(PrimOp%para_OTF%file_Fchk%name)
-          write(out_unitp,*) trim(PrimOp%para_OTF%file_pun%name)
-          write(out_unitp,*) ' Program for the OTF ',para_PES_FromTnum%ab_initio_prog
-          write(out_unitp,*) ' Unix script for the OTF ',para_PES_FromTnum%commande_unix
+          write(out_unit,*) ' Files for the OTF'
+          write(out_unit,*) trim(PrimOp%para_OTF%file_data%name)
+          write(out_unit,*) trim(PrimOp%para_OTF%file_log%name)
+          write(out_unit,*) trim(PrimOp%para_OTF%file_Fchk%name)
+          write(out_unit,*) trim(PrimOp%para_OTF%file_pun%name)
+          write(out_unit,*) ' Program for the OTF ',para_PES_FromTnum%ab_initio_prog
+          write(out_unit,*) ' Unix script for the OTF ',para_PES_FromTnum%commande_unix
         END IF
 
         PrimOp%para_OTF%header          = para_PES_FromTnum%header
@@ -489,8 +489,8 @@
 
       IF (debug) THEN
         CALL write_PrimOp(PrimOp)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 
   END SUBROUTINE Sub_PES_FromTnum_TO_PrimOp

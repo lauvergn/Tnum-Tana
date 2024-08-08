@@ -39,7 +39,7 @@
 !    read the parameters of the fits
 !================================================================
       SUBROUTINE read_para0d(F,nn,max_points,nom1,exist)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: nn
@@ -50,32 +50,32 @@
 
        integer :: no,ios,kl
 
-       write(out_unitp,*) nom1
+       write(out_unit,*) nom1
        CALL file_open2(name_file=nom1,iunit=no,lformatted=.TRUE.,       &
                        old=.TRUE.,err_file=ios)
 
        IF (ios .EQ. 0) THEN
          read(no,*) nn
          IF (nn .GT. max_points) THEN
-           write(out_unitp,*) ' ERROR : nb de points du fit (',nn,') >'
-           write(out_unitp,*) '         a max_points (',max_points,')'
-           write(out_unitp,*) '         STOP in read_para0d'
+           write(out_unit,*) ' ERROR : nb de points du fit (',nn,') >'
+           write(out_unit,*) '         a max_points (',max_points,')'
+           write(out_unit,*) '         STOP in read_para0d'
            STOP
          END IF
          DO kl=1,nn
            read(no,*) F(kl)
-!          write(out_unitp,*) F(kl)
+!          write(out_unit,*) F(kl)
          END DO
          CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
-         write(out_unitp,*) 'The file (',nom1,') does not exist !!'
+         write(out_unit,*) 'The file (',nom1,') does not exist !!'
          exist = .FALSE.
        END IF
 
 
-!      write(out_unitp,*) 'nom1,exist ',nom1,exist
-!      write(out_unitp,*) 'nn,max_points',nn,max_points
+!      write(out_unit,*) 'nom1,exist ',nom1,exist
+!      write(out_unit,*) 'nn,max_points',nn,max_points
 
        RETURN
        end subroutine read_para0d
@@ -84,7 +84,7 @@
 !    read the parameters of the fits
 !================================================================
       SUBROUTINE read_para1d(F,nn,max_points,nb_fit,nom1,exist)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: nn,nb_fit
@@ -95,7 +95,7 @@
 
        integer :: no,ios,kl,i
 
-!      write(out_unitp,*) nom1
+!      write(out_unit,*) nom1
        CALL file_open2(name_file=nom1,iunit=no,lformatted=.TRUE.,       &
                        old=.TRUE.,err_file=ios)
 
@@ -103,26 +103,26 @@
          DO i=1,nb_fit
            read(no,*) nn
            IF (nn .GT. max_points) THEN
-             write(out_unitp,*) ' ERROR : nb de points du fit (',nn,') >'
-             write(out_unitp,*) '         a max_points (',max_points,')'
-             write(out_unitp,*) '         STOP in read_para0d'
+             write(out_unit,*) ' ERROR : nb de points du fit (',nn,') >'
+             write(out_unit,*) '         a max_points (',max_points,')'
+             write(out_unit,*) '         STOP in read_para0d'
              STOP
            END IF
            DO kl=1,nn
             read(no,*) F(kl)
-!           write(out_unitp,*) F(kl)
+!           write(out_unit,*) F(kl)
            END DO
          END DO
          CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
-         write(out_unitp,*) 'The file (',nom1,') does not exist !!'
+         write(out_unit,*) 'The file (',nom1,') does not exist !!'
          exist = .FALSE.
        END IF
 
 
-!      write(out_unitp,*) 'nom1,exist ',nom1,exist
-!      write(out_unitp,*) 'nn,max_points',nn,max_points
+!      write(out_unit,*) 'nom1,exist ',nom1,exist
+!      write(out_unit,*) 'nn,max_points',nn,max_points
 
        RETURN
        end subroutine read_para1d
@@ -132,7 +132,7 @@
 !    (several fits)
 !================================================================
       SUBROUTINE read_para2d(F,nn,nb_fit,max_fit,max_points,nom1,exist)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: max_points,max_fit,nb_fit
@@ -143,7 +143,7 @@
 
        integer :: no,ios,kl,i
 
-       write(out_unitp,*) nom1,nb_fit,max_fit,max_points
+       write(out_unit,*) nom1,nb_fit,max_fit,max_points
        CALL file_open2(name_file=nom1,iunit=no,lformatted=.TRUE.,       &
                        old=.TRUE.,err_file=ios)
        IF (ios .EQ. 0) THEN
@@ -151,41 +151,41 @@
          IF (nb_fit == 0) read(no,*) nb_fit
 
          IF (nb_fit > max_fit) THEN
-           write(out_unitp,*) ' ERROR in read_para2d'
-           write(out_unitp,*) ' The index nfit (',nb_fit,                &
+           write(out_unit,*) ' ERROR in read_para2d'
+           write(out_unit,*) ' The index nfit (',nb_fit,                &
                      ') is greater than max_fit',max_fit
            STOP
          END IF
-         write(out_unitp,*) nom1,nb_fit
+         write(out_unit,*) nom1,nb_fit
          IF (nb_fit <= 0) THEN
-           write(out_unitp,*) ' ERROR in read_para2d'
-           write(out_unitp,*) ' nb_fit is < 1 !!',nb_fit,' in the file :',nom1
+           write(out_unit,*) ' ERROR in read_para2d'
+           write(out_unit,*) ' nb_fit is < 1 !!',nb_fit,' in the file :',nom1
            STOP
          END IF
          DO i=1,nb_fit
            read(no,*) nn(i)
-           write(out_unitp,*) 'nom1,nb_fit,i,nn ',nom1,nb_fit,i,nn(i)
+           write(out_unit,*) 'nom1,nb_fit,i,nn ',nom1,nb_fit,i,nn(i)
            IF (nn(i) .GT. max_points) THEN
-             write(out_unitp,*) ' ERROR : nb de points du fit (',nn(i),') >'
-             write(out_unitp,*) '         a max_points (',max_points,')'
-             write(out_unitp,*) '         STOP in read_para2d'
+             write(out_unit,*) ' ERROR : nb de points du fit (',nn(i),') >'
+             write(out_unit,*) '         a max_points (',max_points,')'
+             write(out_unit,*) '         STOP in read_para2d'
              STOP
            END IF
            DO kl=1,nn(i)
             read(no,*) F(kl,i)
-!           write(out_unitp,*) F(kl,i)
+!           write(out_unit,*) F(kl,i)
            END DO
          END DO
          CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
-         write(out_unitp,*) 'The file (',nom1,') does not exist !!'
+         write(out_unit,*) 'The file (',nom1,') does not exist !!'
          exist = .FALSE.
        END IF
 
 
-!      write(out_unitp,*) 'nom1,exist ',nom1,exist
-!      write(out_unitp,*) 'nn,max_points',nn,max_points
+!      write(out_unit,*) 'nom1,exist ',nom1,exist
+!      write(out_unit,*) 'nn,max_points',nn,max_points
 
        end subroutine read_para2d
 !
@@ -194,7 +194,7 @@
 !================================================================
       SUBROUTINE read_para3d(F,n,ndim,nb_fit,max_fit,max_points,        &
                               nom1,exist)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: max_points,max_fit,ndim
@@ -205,7 +205,7 @@
 
        integer :: no,ios,kl,i
 
-       write(out_unitp,*) 'read_para3d: nom1,nb_fit,max_fit,max_points: ',&
+       write(out_unit,*) 'read_para3d: nom1,nb_fit,max_fit,max_points: ',&
                                       nom1,nb_fit,max_fit,max_points
        CALL file_open2(name_file=nom1,iunit=no,lformatted=.TRUE.,       &
                        old=.TRUE.,err_file=ios)
@@ -215,35 +215,35 @@
          IF (nb_fit == 0) read(no,*) nb_fit
 
          IF (nb_fit > max_fit) THEN
-           write(out_unitp,*) ' ERROR in read_para3d'
-           write(out_unitp,*) ' The index nfit (',nb_fit,               &
+           write(out_unit,*) ' ERROR in read_para3d'
+           write(out_unit,*) ' The index nfit (',nb_fit,               &
                      ') is greater than max_fit',max_fit
            STOP
          END IF
-         write(out_unitp,*) 'nom1,nb_fit,ndim: ',nom1,nb_fit,ndim
+         write(out_unit,*) 'nom1,nb_fit,ndim: ',nom1,nb_fit,ndim
          IF (nb_fit <= 0) THEN
-           write(out_unitp,*) ' ERROR in read_para3d'
-           write(out_unitp,*) ' nb_fit is < 1 !!',nb_fit,' in the file :',nom1
+           write(out_unit,*) ' ERROR in read_para3d'
+           write(out_unit,*) ' nb_fit is < 1 !!',nb_fit,' in the file :',nom1
            STOP
          END IF
          DO i=1,nb_fit
            read(no,*) n(0:ndim,i)
-           write(out_unitp,*) 'nom1,nb_fit,i,n ',nom1,nb_fit,i,n(0:ndim,i)
+           write(out_unit,*) 'nom1,nb_fit,i,n ',nom1,nb_fit,i,n(0:ndim,i)
            IF (n(0,i) > max_points) THEN
-             write(out_unitp,*) ' ERROR : nb de points du fit (',n(0,i),') >'
-             write(out_unitp,*) '         a max_points (',max_points,')'
-             write(out_unitp,*) '         STOP in read_para3d'
+             write(out_unit,*) ' ERROR : nb de points du fit (',n(0,i),') >'
+             write(out_unit,*) '         a max_points (',max_points,')'
+             write(out_unit,*) '         STOP in read_para3d'
              STOP
            END IF
            DO kl=1,n(0,i)
             read(no,*) F(kl,i)
-!           write(out_unitp,*) F(kl,i)
+!           write(out_unit,*) F(kl,i)
            END DO
          END DO
          CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
-         write(out_unitp,*) 'The file (',nom1,') does not exist !!'
+         write(out_unit,*) 'The file (',nom1,') does not exist !!'
          exist = .FALSE.
        END IF
 
@@ -253,7 +253,7 @@
 !    + the type of the functions
 !================================================================
       SUBROUTINE read_para4d(F,n,ndim,nt,max_points,nom1,exist)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer :: max_points,ndim,nt
@@ -264,7 +264,7 @@
 
        integer :: no,ios,kl,i
 
-       write(out_unitp,*) 'read_para4d: nom1,max_points: ',nom1,max_points
+       write(out_unit,*) 'read_para4d: nom1,max_points: ',nom1,max_points
 
        CALL file_open2(name_file=nom1,iunit=no,lformatted=.TRUE.,       &
                        old=.TRUE.,err_file=ios)
@@ -273,23 +273,23 @@
          read(no,*) nt
          read(no,*) i ! for nb_fit (not used)
 
-         write(out_unitp,*) 'nom1,nt,ndim: ',nom1,nt,ndim
+         write(out_unit,*) 'nom1,nt,ndim: ',nom1,nt,ndim
          read(no,*) n(0:ndim)
-         write(out_unitp,*) 'nom1,n ',nom1,n(0:ndim)
+         write(out_unit,*) 'nom1,n ',nom1,n(0:ndim)
          IF (n(0) > max_points) THEN
-             write(out_unitp,*) ' ERROR : nb de points du fit (',n(0),') >'
-             write(out_unitp,*) '         a max_points (',max_points,')'
-             write(out_unitp,*) '         STOP in read_para4d'
+             write(out_unit,*) ' ERROR : nb de points du fit (',n(0),') >'
+             write(out_unit,*) '         a max_points (',max_points,')'
+             write(out_unit,*) '         STOP in read_para4d'
              STOP
            END IF
            DO kl=1,n(0)
             read(no,*) F(kl)
-!           write(out_unitp,*) F(kl)
+!           write(out_unit,*) F(kl)
            END DO
          CLOSE(no) ! CALL file_close cannot be used
          exist = .TRUE.
        ELSE
-         write(out_unitp,*) 'The file (',nom1,') does not exist !!'
+         write(out_unit,*) 'The file (',nom1,') does not exist !!'
          exist = .FALSE.
        END IF
 

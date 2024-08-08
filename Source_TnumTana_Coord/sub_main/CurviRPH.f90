@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 PROGRAM CurviRPH
-use mod_system
+use TnumTana_system_m
 use mod_dnSVM
 use mod_Constant
 ! in the use mod_Coord_KEO, we have to use "only", because "calc_freq" is
@@ -110,8 +110,8 @@ implicit NONE
   !CALL sub_Init_Qmodel_Cart(ndim,nsurf,'H3_LSTH',.FALSE.,0) ! initialization
   CALL sub_Init_Qmodel(ndim,nsurf,'H3_LSTH',.FALSE.,0) ! initialization
   CALL get_Qmodel_nb_Func_ndimFunc(nb_Func,ndimFunc)
-  write(out_unitp,*) 'ndimFunc,nb_Func',ndimFunc,nb_Func
-  flush(out_unitp)
+  write(out_unit,*) 'ndimFunc,nb_Func',ndimFunc,nb_Func
+  flush(out_unit)
 
   allocate(d0Func(nb_Func))
   allocate(d1Func(ndimFunc,nb_Func))
@@ -158,25 +158,25 @@ implicit NONE
   d1Qop(1:2) = [d1Func(1,2:3)]
   d2Qop(1:2) = [d2Func(1,1,2:3)]
 
-  IF (debug) write(out_unitp,*) 's,d0Qop,d1Qop',s,d0Qop,d1Qop
-  flush(out_unitp)
+  IF (debug) write(out_unit,*) 's,d0Qop,d1Qop',s,d0Qop,d1Qop
+  flush(out_unit)
 
 
   Q_QML(:) = [d0Qop(1:2),sum(d0Qop(1:2))]
   CALL sub_Qmodel_VGH(V,G,H,Q_QML)
 
-  IF (debug)  CALL Write_Vec(G(1,1,:),out_unitp,5,name_info='grad')
-  IF (debug)  CALL Write_Mat(H(1,1,:,:),out_unitp,5,name_info='hess')
+  IF (debug)  CALL Write_Vec(G(1,1,:),out_unit,5,name_info='grad')
+  IF (debug)  CALL Write_Mat(H(1,1,:,:),out_unit,5,name_info='hess')
 
   Qact(:) = [d0Qop(1:2),-0.999999_Rkind] ! in 3D Valence coordinates (to be changed)
-  IF (debug)  write(out_unitp,*) 's,Qact',s,Qact(:)
+  IF (debug)  write(out_unit,*) 's,Qact',s,Qact(:)
   !===========================================================================
 
   !===========================================================================
   ! get the metric tensors
   CALL get_d0g_d0GG(Qact,para_Tnum,mole,d0g=d0g,d0GG=d0GG,def=.FALSE.)
-  IF (debug) CALL Write_Mat(d0g,out_unitp,5,name_info='d0g')
-  IF (debug) CALL Write_Mat(d0GG,out_unitp,5,name_info='d0GG')
+  IF (debug) CALL Write_Mat(d0g,out_unit,5,name_info='d0g')
+  IF (debug) CALL Write_Mat(d0GG,out_unit,5,name_info='d0GG')
   !===========================================================================
 
   !===========================================================================
@@ -195,7 +195,7 @@ implicit NONE
       alphaON(:,i) = -alphaON(:,i)
     END IF
     alphaON0(:,i) = alphaON(:,i)
-    !write(out_unitp,*) 's,alphaON(:,i)',s,i,alphaON(:,i)
+    !write(out_unit,*) 's,alphaON(:,i)',s,i,alphaON(:,i)
   END DO
 
 
@@ -209,17 +209,17 @@ implicit NONE
   !===========================================================================
   ! get the metric tensors
   d0gNew = matmul(transpose(JacON),matmul(d0g,JacON))
-  IF (debug) CALL Write_Mat(d0gNew,out_unitp,5,name_info='d0g new')
+  IF (debug) CALL Write_Mat(d0gNew,out_unit,5,name_info='d0g new')
 
   CALL inv_OF_Mat_TO_Mat_inv(d0gNew,d0GGNew,0,ZERO)
-  IF (debug) CALL Write_Mat(d0GGNew(1:2,1:2),out_unitp,5,name_info='d0GG new')
+  IF (debug) CALL Write_Mat(d0GGNew(1:2,1:2),out_unit,5,name_info='d0GG new')
 
   ! get the new hessian (without the gradient contribution)
-  IF (debug) write(out_unitp,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
+  IF (debug) write(out_unit,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
   hessNew = matmul(transpose(JacON(1:2,1:2)),matmul(H(1,1,1:2,1:2),JacON(1:2,1:2)))
-  IF (debug) CALL Write_Mat(hessNew,out_unitp,5,name_info='hessNew')
+  IF (debug) CALL Write_Mat(hessNew,out_unit,5,name_info='hessNew')
 
-  write(out_unitp,*) 's,d0Qop,G,V,freq',s,d0Qop,d0GGNew(1,1),d0GGNew(2,2),V,    &
+  write(out_unit,*) 's,d0Qop,G,V,freq',s,d0Qop,d0GGNew(1,1),d0GGNew(2,2),V,    &
                       hessNew(2,2),sqrt(hessNew(2,2)*d0GGNew(2,2))*219475._Rkind
 
 
@@ -229,33 +229,33 @@ implicit NONE
     norm2 = dot_product(alphaON(:,i),alphaON(:,i))
     IF (sqrt(abs(norm2)) < ONETENTH**10) CYCLE
     alphaON(:,i) = alphaON(:,i) / sqrt(sqrt(hessNew(2,2)/d0GGNew(2,2)))
-    write(out_unitp,*) 's,alphaON(:,i)',s,i,alphaON(:,i)
+    write(out_unit,*) 's,alphaON(:,i)',s,i,alphaON(:,i)
   END DO
 
   IF (debug)  CALL check_gnew(d0g,alphaON,betaO)
   CALL make_JacON(JacON,alphaON,d1Qop)
-  CALL Write_Mat(JacON,out_unitp,5,name_info='JacON')
+  CALL Write_Mat(JacON,out_unit,5,name_info='JacON')
 
   !===========================================================================
   ! get the metric tensors
   d0gNew = matmul(transpose(JacON),matmul(d0g,JacON))
-  CALL Write_Mat(d0gNew,out_unitp,5,name_info='d0g new')
+  CALL Write_Mat(d0gNew,out_unit,5,name_info='d0g new')
 
   CALL inv_OF_Mat_TO_Mat_inv(d0gNew,d0GGNew,0,ZERO)
-  CALL Write_Mat(d0GGNew(1:2,1:2),out_unitp,5,name_info='d0GG new')
+  CALL Write_Mat(d0GGNew(1:2,1:2),out_unit,5,name_info='d0GG new')
 
   ! get the new hessian (without the gradient contribution)
-  IF (debug) write(out_unitp,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
+  IF (debug) write(out_unit,*) 'gradNew',matmul(transpose(JacON(1:2,1:2)),G(1,1,1:2))
   hessNew = matmul(transpose(JacON(1:2,1:2)),matmul(H(1,1,1:2,1:2),JacON(1:2,1:2)))
-  IF (debug) CALL Write_Mat(hessNew,out_unitp,5,name_info='hessNew')
+  IF (debug) CALL Write_Mat(hessNew,out_unit,5,name_info='hessNew')
 
-  write(out_unitp,*) 's,G(2,2),hess(2,2),freq',s,d0GGNew(2,2),hessNew(2,2),     &
+  write(out_unit,*) 's,G(2,2),hess(2,2),freq',s,d0GGNew(2,2),hessNew(2,2),     &
                       sqrt(hessNew(2,2)*d0GGNew(2,2))
 
   END DO
 CONTAINS
   SUBROUTINE make_JacON(JacON,alphaON,d1Qop)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: JacON(:,:)
@@ -279,12 +279,12 @@ CONTAINS
       JacON(1:n,j) = alphaON(:,i)
       j = j + 1
     END DO
-    IF (debug) CALL Write_Mat(JacON,out_unitp,5,name_info='JacON')
+    IF (debug) CALL Write_Mat(JacON,out_unit,5,name_info='JacON')
 
   END SUBROUTINE make_JacON
 
   SUBROUTINE check_gnew(d0g,alphaON,betaO)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(in) :: d0g(:,:)
@@ -304,7 +304,7 @@ CONTAINS
   END SUBROUTINE check_gnew
 
   SUBROUTINE make_alphaON(alphaON,betaO)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: alphaON(:,:)
@@ -321,14 +321,14 @@ CONTAINS
     ! Schmidt ortho
     alphaON = Identity_Mat(n=n)
 
-    !CALL Write_Mat(alphaON,out_unitp,5,name_info='alphaON')
+    !CALL Write_Mat(alphaON,out_unit,5,name_info='alphaON')
     DO i=1,n ! new coord
       ! first ortho against betaO
       x = dot_product(alphaON(:,i),betaO)
-      IF (debug) write(out_unitp,*) i,x
+      IF (debug) write(out_unit,*) i,x
       alphaON(:,i) = alphaON(:,i) - x*betaO
       x = dot_product(alphaON(:,i),betaO)
-      IF (debug) write(out_unitp,*) i,x
+      IF (debug) write(out_unit,*) i,x
 
       ! then ortho against the previous vectors
       DO j=1,i-1
@@ -336,10 +336,10 @@ CONTAINS
         IF (sqrt(abs(norm2)) < ONETENTH**10) CYCLE
 
         x = dot_product(alphaON(:,i),alphaON(:,j))/norm2
-        IF (debug) write(out_unitp,*) i,j,x
+        IF (debug) write(out_unit,*) i,j,x
         alphaON(:,i) = alphaON(:,i) - x*alphaON(:,j)
         x = dot_product(alphaON(:,i),alphaON(:,j))/norm2
-        IF (debug) write(out_unitp,*) i,j,x
+        IF (debug) write(out_unit,*) i,j,x
       END DO
 
       norm2 = dot_product(alphaON(:,i),alphaON(:,i))
@@ -350,19 +350,19 @@ CONTAINS
         alphaON(:,i) = alphaON(:,i)/sqrt(norm2)
       END IF
 
-      IF (debug) write(out_unitp,*) i,alphaON(:,i)
+      IF (debug) write(out_unit,*) i,alphaON(:,i)
     END DO
 
     IF (debug) THEN
       DO i=1,n
-        write(out_unitp,*) 'alphaON(:,i)',i,alphaON(:,i)
+        write(out_unit,*) 'alphaON(:,i)',i,alphaON(:,i)
       END DO
     END IF
 
   END SUBROUTINE make_alphaON
 
   SUBROUTINE make_alphaON_fit(s,alphaON)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(inout) :: alphaON(:,:)
@@ -402,7 +402,7 @@ CONTAINS
   END SUBROUTINE make_alphaON_fit
 
   SUBROUTINE make_betaO(betaO,d0g,d1Qop)
-    use mod_system
+    use TnumTana_system_m
     implicit NONE
 
     real(kind=Rkind), intent(in)    :: d0g(:,:),d1Qop(:)
@@ -420,9 +420,9 @@ CONTAINS
       betaO(i) = dot_product(d0g(1:n,i),d1Qop)
     END DO
 
-    IF (debug) write(out_unitp,*) 'betaO',betaO(:)
+    IF (debug) write(out_unit,*) 'betaO',betaO(:)
     betaO = betaO / sqrt(dot_product(betaO,betaO))
-    IF (debug) write(out_unitp,*) 'Normalized betaO',betaO(:)
+    IF (debug) write(out_unit,*) 'Normalized betaO',betaO(:)
 
 
   END SUBROUTINE make_betaO

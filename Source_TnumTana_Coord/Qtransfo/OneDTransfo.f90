@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_OneDTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -223,37 +223,37 @@
 !-----------------------------------------------------------
 
     IF (.NOT. associated(oneDTransfo)) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  oneDTransfo(:) is not associated !!'
-      write(out_unitp,*) ' Check the the FORTRAN !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  oneDTransfo(:) is not associated !!'
+      write(out_unit,*) ' Check the the FORTRAN !!'
       STOP
     END IF
     IF (associated(oneDTransfo) .AND. size(oneDTransfo) < 1) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  the size of oneDTransfo(:) is < 1 !!'
-      write(out_unitp,*) '    size of oneDTransfo(:)',size(oneDTransfo)
-      write(out_unitp,*) ' Check the the FORTRAN !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  the size of oneDTransfo(:) is < 1 !!'
+      write(out_unit,*) '    size of oneDTransfo(:)',size(oneDTransfo)
+      write(out_unit,*) ' Check the the FORTRAN !!'
       STOP
     END IF
 
     oneDTransfo(:)%skip_transfo = .TRUE.
 
     IF (not_all) THEN
-      read(in_unitp,*,IOSTAT=err_io) oneDTransfo(:)%skip_transfo
+      read(in_unit,*,IOSTAT=err_io) oneDTransfo(:)%skip_transfo
       IF (err_io /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) '  while reading "oneDTransfo(:)%skip_transfo"'
-        write(out_unitp,*) '  end of file or end of record'
-        write(out_unitp,*) '  for "InfRange" or "InfiniteRange" transformation'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) '  while reading "oneDTransfo(:)%skip_transfo"'
+        write(out_unit,*) '  end of file or end of record'
+        write(out_unit,*) '  for "InfRange" or "InfiniteRange" transformation'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
       oneDTransfo(:)%skip_transfo = .NOT. oneDTransfo(:)%skip_transfo
     ELSE
       oneDTransfo(:)%skip_transfo = .FALSE.
     END IF
-    IF (debug) write(out_unitp,*) 'type_Qout',type_Qout(:)
-    IF (debug) write(out_unitp,*) 'skip_transfo',oneDTransfo(:)%skip_transfo
+    IF (debug) write(out_unit,*) 'type_Qout',type_Qout(:)
+    IF (debug) write(out_unit,*) 'skip_transfo',oneDTransfo(:)%skip_transfo
 
 
     DO i=1,size(oneDTransfo)
@@ -284,7 +284,7 @@
       CASE Default
         oneDTransfo(i)%skip_transfo = .TRUE.
       END SELECT
-      IF (debug)  write(out_unitp,*) i,'Transfo: "',trim(oneDTransfo(i)%name_oneD),'"'
+      IF (debug)  write(out_unit,*) i,'Transfo: "',trim(oneDTransfo(i)%name_oneD),'"'
     END DO
 
   END SUBROUTINE Read_InfiniteRange
@@ -319,22 +319,22 @@
         skip_transfo = .FALSE.
         opt_cte      = 0
 
-        read(in_unitp,oneD,IOSTAT=err)
+        read(in_unit,oneD,IOSTAT=err)
         IF (err /= 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) '  while reading the "oneD" namelist'
-           write(out_unitp,*) ' end of file or end of record'
-           write(out_unitp,*) ' Check your data !!'
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) '  while reading the "oneD" namelist'
+           write(out_unit,*) ' end of file or end of record'
+           write(out_unit,*) ' Check your data !!'
            STOP
         END IF
 
-        write(out_unitp,oneD)
+        write(out_unit,oneD)
 
         IF (iQin < 1 .OR. iQin > nb_Qin) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  iQin is out of range',iQin
-          write(out_unitp,*) '  range: [1:',nb_Qin,']'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  iQin is out of range',iQin
+          write(out_unit,*) '  range: [1:',nb_Qin,']'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
         oneDTransfo(i)%iQin         = iQin
@@ -347,8 +347,8 @@
         !special test when the name is not defined (just the number):
         read(name_oneD,*,IOSTAT=err) type_oneD
         IF (err == 0) THEN
-          write(out_unitp,*) ' name_oneD is a number: ',name_oneD
-          write(out_unitp,*) ' type_oneD ',type_oneD
+          write(out_unit,*) ' name_oneD is a number: ',name_oneD
+          write(out_unit,*) ' type_oneD ',type_oneD
 
           oneDTransfo(i)%type_oneD = type_oneD
         ELSE
@@ -359,13 +359,13 @@
           oneDTransfo(i)%type_oneD = 0
         CASE ('affine')
           IF ( abs(cte(1)) < ONETENTH**4 .OR. abs(cte(1)) > TEN**4) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  cte(1) is too small or too large:',cte(1)
-            write(out_unitp,*) ' for an affine transformation:'
-            write(out_unitp,*) ' Qout = cte(1) * Qin + cte(2) or'
-            write(out_unitp,*) ' Qin  = ( Qold - cte(2) ) / cte(1)'
-            write(out_unitp,*) ' 10**-4 < abs(cte(1)) < 10**4'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  cte(1) is too small or too large:',cte(1)
+            write(out_unit,*) ' for an affine transformation:'
+            write(out_unit,*) ' Qout = cte(1) * Qin + cte(2) or'
+            write(out_unit,*) ' Qin  = ( Qold - cte(2) ) / cte(1)'
+            write(out_unit,*) ' 10**-4 < abs(cte(1)) < 10**4'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
           IF (inTOout) THEN
@@ -399,11 +399,11 @@
           END IF
         CASE ('thetatox')
           IF ( cte(1) > ONE .OR. cte(1) < ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(1):',cte(1)
-            write(out_unitp,*) '    It has to be:   0 < cte(1) <= 1'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(1):',cte(1)
+            write(out_unit,*) '    It has to be:   0 < cte(1) <= 1'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -416,11 +416,11 @@
           END IF
         CASE ('xtotheta')
           IF ( cte(1) > ONE .OR. cte(1) < ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(1):',cte(1)
-            write(out_unitp,*) '    It has to be:   0 < cte(1) <= 1'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(1):',cte(1)
+            write(out_unit,*) '    It has to be:   0 < cte(1) <= 1'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -431,11 +431,11 @@
           END IF
         CASE ('xtoab')
           IF ( cte(1) == cte(2)) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(1) and/or cte(2):',cte(1:2)
-            write(out_unitp,*) '    They MUST be different'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(1) and/or cte(2):',cte(1:2)
+            write(out_unit,*) '    They MUST be different'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -451,20 +451,20 @@
           !         a    = cte(1)**2
           !         Rmin = cte(2)
           IF ( cte(1) == ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(1):',cte(1)
-            write(out_unitp,*) '    It has to be:  cte(1) /= 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(1):',cte(1)
+            write(out_unit,*) '    It has to be:  cte(1) /= 0'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
           IF ( cte(2) < ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(2):',cte(2)
-            write(out_unitp,*) '    It has to be:  cte(2) >= 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(2):',cte(2)
+            write(out_unit,*) '    It has to be:  cte(2) >= 0'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -478,11 +478,11 @@
          ! invers of R0.tanh(x/R0) x E ]-inf,inf[  (invers)
          ! t(x) = R0 atanh(x/R0) R0=cte(1)
           IF ( cte(1) == ZERO) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  For this transformation: ',trim(name_oneD)
-            write(out_unitp,*) '    wrong value of cte(1):',cte(1)
-            write(out_unitp,*) '    It has to be:  cte(1) /= 0'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  For this transformation: ',trim(name_oneD)
+            write(out_unit,*) '    wrong value of cte(1):',cte(1)
+            write(out_unit,*) '    It has to be:  cte(1) /= 0'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -511,10 +511,10 @@
             oneDTransfo(i)%type_oneD = -90  ! R => x
           END IF
         CASE default ! ERROR: wrong transformation !
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The oneD transformation is UNKNOWN: ',     &
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The oneD transformation is UNKNOWN: ',     &
                                                     trim(name_oneD)
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in Read_oneDTransfo: The oneD transformation is UNKNOWN.'
         END SELECT
         END IF
@@ -531,17 +531,17 @@
 
       IF (.NOT. associated(oneDTransfo)) RETURN
 
-      write(out_unitp,*) 'BEGINNING Write_oneDTransfo ',size(oneDTransfo)
+      write(out_unit,*) 'BEGINNING Write_oneDTransfo ',size(oneDTransfo)
       DO it=1,size(oneDTransfo)
-        write(out_unitp,*) 'it,iQin         ',it,oneDTransfo(it)%iQin
-        write(out_unitp,*) 'it,type_oneD    ',it,oneDTransfo(it)%type_oneD
-        write(out_unitp,*) 'it,skip_transfo ',it,oneDTransfo(it)%skip_transfo
-        write(out_unitp,*) 'it,inTOout      ',it,oneDTransfo(it)%inTOout
-        write(out_unitp,*) 'it,name_oneD    ',it,trim(adjustl(oneDTransfo(it)%name_oneD))
-        write(out_unitp,*) 'it,cte(:)       ',it,oneDTransfo(it)%cte(:)
-        write(out_unitp,*) 'it,opt_cte(:)   ',it,oneDTransfo(it)%opt_cte(:)
+        write(out_unit,*) 'it,iQin         ',it,oneDTransfo(it)%iQin
+        write(out_unit,*) 'it,type_oneD    ',it,oneDTransfo(it)%type_oneD
+        write(out_unit,*) 'it,skip_transfo ',it,oneDTransfo(it)%skip_transfo
+        write(out_unit,*) 'it,inTOout      ',it,oneDTransfo(it)%inTOout
+        write(out_unit,*) 'it,name_oneD    ',it,trim(adjustl(oneDTransfo(it)%name_oneD))
+        write(out_unit,*) 'it,cte(:)       ',it,oneDTransfo(it)%cte(:)
+        write(out_unit,*) 'it,opt_cte(:)   ',it,oneDTransfo(it)%opt_cte(:)
       END DO
-      write(out_unitp,*) 'END Write_oneDTransfo '
+      write(out_unit,*) 'END Write_oneDTransfo '
 
       END SUBROUTINE Write_oneDTransfo
 
@@ -577,7 +577,7 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
       END IF
 !---------------------------------------------------------------------
 
@@ -603,10 +603,10 @@
           CALL sub_dnS1_TO_dntR2(dnR,dntR,type_oneD,nderiv,             &
                                  oneDTransfo(i)%cte)
           IF (debug) THEN
-            write(out_unitp,*) 'i,iQin,type_oneD',i,iQin,type_oneD
-            write(out_unitp,*) 'dnR'
+            write(out_unit,*) 'i,iQin,type_oneD',i,iQin,type_oneD
+            write(out_unit,*) 'dnR'
             CALL Write_dnS(dnR)
-            write(out_unitp,*) 'dntR'
+            write(out_unit,*) 'dntR'
             CALL Write_dnS(dntR)
           END IF
 
@@ -627,10 +627,10 @@
           CALL sub_dnS1_TO_dntR2(dnR,dntR,type_oneD,nderiv,             &
                                  oneDTransfo(i)%cte)
           IF (debug) THEN
-            write(out_unitp,*) 'i,iQin,type_oneD',i,iQin,type_oneD
-            write(out_unitp,*) 'dnR'
+            write(out_unit,*) 'i,iQin,type_oneD',i,iQin,type_oneD
+            write(out_unit,*) 'dnR'
             CALL Write_dnS(dnR)
-            write(out_unitp,*) 'dntR'
+            write(out_unit,*) 'dntR'
             CALL Write_dnS(dntR)
           END IF
 
@@ -642,7 +642,7 @@
       CALL dealloc_dnSVM(dntR)
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 !---------------------------------------------------------------------
       END SUBROUTINE calc_oneDTransfo

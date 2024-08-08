@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
    MODULE mod_HStep
-   USE mod_system
+   USE TnumTana_system_m
    IMPLICIT NONE
    PRIVATE
 
@@ -61,49 +61,49 @@
 
       TYPE (HStep_t) :: HStep
 
-      write(out_unitp,*) ' BEGINNING write_HStep'
+      write(out_unit,*) ' BEGINNING write_HStep'
 
       IF (HStep%Type_HStep > 0) THEN
-        write(out_unitp,*) 'Type_HStep > 0'
-        write(out_unitp,*) 'HStep(Q)'
-        write(out_unitp,*) ' ^'
-        write(out_unitp,*) ' 1                ------------------'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |----------------|..................> Q'
-        write(out_unitp,*) '                 Q0'
-        write(out_unitp,*) ' HStep(Q)=0 when Q<= Q0'
-        write(out_unitp,*) ' HStep(Q)=1 when Q> Q0'
+        write(out_unit,*) 'Type_HStep > 0'
+        write(out_unit,*) 'HStep(Q)'
+        write(out_unit,*) ' ^'
+        write(out_unit,*) ' 1                ------------------'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |----------------|..................> Q'
+        write(out_unit,*) '                 Q0'
+        write(out_unit,*) ' HStep(Q)=0 when Q<= Q0'
+        write(out_unit,*) ' HStep(Q)=1 when Q> Q0'
 
       ELSE
-        write(out_unitp,*) 'Type_HStep < 0'
-        write(out_unitp,*) 'HStep(Q)'
-        write(out_unitp,*) ' ^'
-        write(out_unitp,*) ' 1-----------------'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |                |'
-        write(out_unitp,*) ' |................|-----------------> Q'
-        write(out_unitp,*) '                  Q0'
-        write(out_unitp,*) ' HStep(Q)=0 when Q>= Q0'
-        write(out_unitp,*) ' HStep(Q)=1 when Q< Q0'
+        write(out_unit,*) 'Type_HStep < 0'
+        write(out_unit,*) 'HStep(Q)'
+        write(out_unit,*) ' ^'
+        write(out_unit,*) ' 1-----------------'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |                |'
+        write(out_unit,*) ' |................|-----------------> Q'
+        write(out_unit,*) '                  Q0'
+        write(out_unit,*) ' HStep(Q)=0 when Q>= Q0'
+        write(out_unit,*) ' HStep(Q)=1 when Q< Q0'
       END IF
 
-      write(out_unitp,*) 'Type_HStep',HStep%Type_HStep
-      write(out_unitp,*) 'ind_Q   ',HStep%ind_Q
-      write(out_unitp,*) 'Q0      ',HStep%Q0
+      write(out_unit,*) 'Type_HStep',HStep%Type_HStep
+      write(out_unit,*) 'ind_Q   ',HStep%ind_Q
+      write(out_unit,*) 'Q0      ',HStep%Q0
 
-      write(out_unitp,*) 'iOp     ',HStep%iOp
-      write(out_unitp,*) ' END write_HStep'
-      flush(out_unitp)
+      write(out_unit,*) 'iOp     ',HStep%iOp
+      write(out_unit,*) ' END write_HStep'
+      flush(out_unit)
   END SUBROUTINE write_HStep
   SUBROUTINE HStep2_TO_HStep1(HStep1,HStep2)
   IMPLICIT NONE
       CLASS (HStep_t), intent(inout) :: HStep1
       TYPE (HStep_t),  intent(in)    :: HStep2
 
-      !write(out_unitp,*) ' BEGINNING HStep2_TO_HStep1'
+      !write(out_unit,*) ' BEGINNING HStep2_TO_HStep1'
 
       HStep1%Type_HStep         = HStep2%Type_HStep
 
@@ -112,8 +112,8 @@
 
       HStep1%iOp                 = HStep2%iOp
 
-     !write(out_unitp,*) ' END HStep2_TO_HStep1'
-     !flush(out_unitp)
+     !write(out_unit,*) ' END HStep2_TO_HStep1'
+     !flush(out_unit)
   END SUBROUTINE HStep2_TO_HStep1
   SUBROUTINE Read_HStep(HStep_in)
   IMPLICIT NONE
@@ -129,23 +129,23 @@
       Type_HStep          = 1       ! 1:  A*B*x**n_exp
       Q0                   = ZERO
       ind_Q                = -1
-      read(in_unitp,HStep,IOSTAT=err_read)
+      read(in_unit,HStep,IOSTAT=err_read)
       IF (err_read < 0) THEN
-        write(out_unitp,*) ' ERROR in Read_HStep'
-        write(out_unitp,*) ' End-of-file or End-of-record'
-        write(out_unitp,*) ' The namelist "HStep" is probably absent'
-        write(out_unitp,*) ' check your data!'
-        write(out_unitp,*) ' ERROR in Read_HStep'
+        write(out_unit,*) ' ERROR in Read_HStep'
+        write(out_unit,*) ' End-of-file or End-of-record'
+        write(out_unit,*) ' The namelist "HStep" is probably absent'
+        write(out_unit,*) ' check your data!'
+        write(out_unit,*) ' ERROR in Read_HStep'
         STOP ' ERROR in Read_HStep'
       ELSE IF (err_read > 0) THEN
-        write(out_unitp,*) ' ERROR in Read_HStep'
-        write(out_unitp,*) ' Some parameter name of the namelist "HStep" are probaly wrong'
-        write(out_unitp,*) ' check your data!'
-        write(out_unitp,HStep)
-        write(out_unitp,*) ' ERROR in Read_HStep'
+        write(out_unit,*) ' ERROR in Read_HStep'
+        write(out_unit,*) ' Some parameter name of the namelist "HStep" are probaly wrong'
+        write(out_unit,*) ' check your data!'
+        write(out_unit,HStep)
+        write(out_unit,*) ' ERROR in Read_HStep'
         STOP ' ERROR in Read_HStep'
       END IF
-      IF (print_level > 1) write(out_unitp,HStep)
+      IF (print_level > 1) write(out_unit,HStep)
 
       CALL Init_HStep(HStep_in,Type_HStep,Q0,ind_Q)
 
@@ -168,7 +168,7 @@
   IMPLICIT NONE
       CLASS (HStep_t), intent(inout) :: HStep
 
-      !write(out_unitp,*) ' BEGINNING dealloc_HStep'
+      !write(out_unit,*) ' BEGINNING dealloc_HStep'
 
         HStep%Type_HStep          = 1       ! 1:  A*(B*x)**n_exp
 
@@ -176,8 +176,8 @@
         HStep%ind_Q                = 1
 
         HStep%iOp                  = 0
-     !write(out_unitp,*) ' END dealloc_HStep'
-     !flush(out_unitp)
+     !write(out_unit,*) ' END dealloc_HStep'
+     !flush(out_unit)
   END SUBROUTINE dealloc_HStep
 
   FUNCTION calc_HStep(HStep,Q)
@@ -210,8 +210,8 @@
 
 
 
-     !write(out_unitp,*) ' END calc_HStep'
-     !flush(out_unitp)
+     !write(out_unit,*) ' END calc_HStep'
+     !flush(out_unit)
   END FUNCTION calc_HStep
 
   END MODULE mod_HStep

@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Coord_KEO
       IMPLICIT NONE
 
@@ -100,23 +100,23 @@
 !     - Cartesian coordinates --------------------
 !     --------------------------------------------
 
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
        nderiv = 0
        CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
        CALL time_perso('dnx')
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
        CALL sub3_QTOdnx(dnx,para_Q,mole,nderiv,.FALSE.)
-       write(out_unitp,*) 'dnx: ',mole%ncart
+       write(out_unit,*) 'dnx: ',mole%ncart
        CALL write_dnx(1,mole%ncart,dnx,nderiv)
        CALL dealloc_dnSVM(dnx)
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
-       write(out_unitp,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
+       write(out_unit,*) "======================================"
 
 
 !===========================================================
@@ -129,7 +129,7 @@
         PrimOp%nb_elec = 1
         PrimOp%OnTheFly = .TRUE.
         PrimOp%Read_OnTheFly_only = .TRUE.
-        write(out_unitp,*) 'on the fly calculation'
+        write(out_unit,*) 'on the fly calculation'
         CALL alloc_dnSVM(dnE,mole%nb_act,nderiv)
         CALL alloc_dnSVM(dnMu(1),mole%nb_act,nderiv-1)
         CALL alloc_dnSVM(dnMu(2),mole%nb_act,nderiv-1)
@@ -169,17 +169,17 @@
         dnE%d2(:,:) = (dnE%d2+transpose(dnE%d2)) * HALF ! symetrization
 
 
-        write(out_unitp,*) 'dnE%d0',mole%ActiveTransfo%Qdyn0,dnE%d0
-        write(out_unitp,*) 'Dipole Moment',dnMu%d0
+        write(out_unit,*) 'dnE%d0',mole%ActiveTransfo%Qdyn0,dnE%d0
+        write(out_unit,*) 'Dipole Moment',dnMu%d0
 
         IF (nderiv > 0) THEN
           DO i=1,mole%nb_act
-            write(out_unitp,*) 'dnE%d1',mole%ActiveTransfo%Qact0(i),dnE%d1(i)
+            write(out_unit,*) 'dnE%d1',mole%ActiveTransfo%Qact0(i),dnE%d1(i)
           END DO
         END IF
-        !write(out_unitp,*) 'Grad',dnE%d1(mole%nb_act1+1:mole%nb_act)
+        !write(out_unit,*) 'Grad',dnE%d1(mole%nb_act1+1:mole%nb_act)
 
-!        IF (nderiv == 2) CALL Write_Mat(dnE%d2,out_unitp,5)
+!        IF (nderiv == 2) CALL Write_Mat(dnE%d2,out_unit,5)
 
 
         hess(:,:) = dnE%d2(mole%nb_act1+1:mole%nb_act,mole%nb_act1+1:mole%nb_act)
@@ -190,14 +190,14 @@
         dQinact2n(:) = - matmul(hess_inv,grad)
 
 !        DO i=1,mole%nb_inact2n
-!          write(out_unitp,*) 'dQinact2n',i,dQinact2n(i)
+!          write(out_unit,*) 'dQinact2n',i,dQinact2n(i)
 !        END DO
 
 !        DV1opt = dot_product(dQinact2n,grad) +                          &
 !          HALF * dot_product(dQinact2n,matmul(hess,dQinact2n))
 !        grad = grad + matmul(hess,dQinact2n)
 !        DO i=1,mole%nb_inact2n
-!          write(out_unitp,*) 'new grad',i,para_Q%Qact(mole%nb_act1+i),grad(i)
+!          write(out_unit,*) 'new grad',i,para_Q%Qact(mole%nb_act1+i),grad(i)
 !        END DO
 
         DV1opt = HALF* dot_product(grad,dQinact2n) ! it's equivalent
@@ -215,22 +215,22 @@
          DO i1=i1i,i1f
          DO i2=i2i,i2f
            i12 = i12 +1
-           write(out_unitp,*) 'dat_fit_v5G36_HessG ',i12,' 0,1,',       &
+           write(out_unit,*) 'dat_fit_v5G36_HessG ',i12,' 0,1,',       &
                          TO_string(symhessG36(i2,i1)), hessG36(i2,i1)
          END DO
          END DO
 
-        write(out_unitp,*) 'Vopt',dnE%d0,DV1opt*mole%const_phys%auTOcm_inv,dnE%d0+DV1opt
-        write(out_unitp,*) 'Qopt',para_Q%Qact(mole%nb_act1+1:mole%nb_act)
-        !write(out_unitp,*) 'hessG36 ',hessG36(i2i:i2f,i1i:i1f)
-!       CALL Write_Mat(hessG36,out_unitp,5)
+        write(out_unit,*) 'Vopt',dnE%d0,DV1opt*mole%const_phys%auTOcm_inv,dnE%d0+DV1opt
+        write(out_unit,*) 'Qopt',para_Q%Qact(mole%nb_act1+1:mole%nb_act)
+        !write(out_unit,*) 'hessG36 ',hessG36(i2i:i2f,i1i:i1f)
+!       CALL Write_Mat(hessG36,out_unit,5)
 
 
       CALL dealloc_CoordType(mole)
       CALL dealloc_param_Q(para_Q)
 
 
-      write(out_unitp,*) 'END Tnum'
+      write(out_unit,*) 'END Tnum'
 
       end program Tnum_f90
 !=======================================================================
@@ -243,7 +243,7 @@
 !     #sym:  1  2  3  4   5   6    7   8    9  10   11  12   13 14 15 16
 !=======================================================================
       SUBROUTINE symetrization_G36(hess,hessG36,symhessG36,nb_coord)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer :: nb_coord
@@ -262,33 +262,33 @@
       integer :: err_mem,memory
 
 !     read the symetry of each coordinate
-      read(in_unitp,*) sym_coord(:)
+      read(in_unit,*) sym_coord(:)
 
 !     check that coordinates are correctly sorted
       DO i=1,nb_coord
 
         IF (sym_coord(i) < 0 .OR. sym_coord(i) > 16) THEN
-          write(out_unitp,*) ' ERROR in symetrization_G36'
-          write(out_unitp,*) ' sym_coord(i) is out of range',i,sym_coord(i)
-          write(out_unitp,*) ' sym_coord(i) sould be in the range [1...16]'
+          write(out_unit,*) ' ERROR in symetrization_G36'
+          write(out_unit,*) ' sym_coord(i) is out of range',i,sym_coord(i)
+          write(out_unit,*) ' sym_coord(i) sould be in the range [1...16]'
           STOP
         END IF
 
         IF (sym_coord(i) == 5 .OR. sym_coord(i) == 7 .OR.          &
                  sym_coord(i) == 9 .OR. sym_coord(i) == 11 ) THEN   ! E1,E2,E3,E4
           IF (sym_coord(i+1) /= sym_coord(i)+1 ) THEN
-            write(out_unitp,*) ' ERROR in symetrization_G36'
-            write(out_unitp,*) ' sym_coord(:) are not sorted (E symetry)'
-            write(out_unitp,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
+            write(out_unit,*) ' ERROR in symetrization_G36'
+            write(out_unit,*) ' sym_coord(:) are not sorted (E symetry)'
+            write(out_unit,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
             STOP
           END IF
         ELSE IF (sym_coord(i) == 13) THEN  !G
           IF (sym_coord(i+1) /= sym_coord(i)+1 .AND.                    &
               sym_coord(i+2) /= sym_coord(i)+2 .AND.                    &
               sym_coord(i+3) /= sym_coord(i)+3            ) THEN
-            write(out_unitp,*) ' ERROR in symetrization_G36'
-            write(out_unitp,*) ' sym_coord(:) are not sorted (G symetry)'
-            write(out_unitp,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
+            write(out_unit,*) ' ERROR in symetrization_G36'
+            write(out_unit,*) ' sym_coord(:) are not sorted (G symetry)'
+            write(out_unit,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
             STOP
           END IF
         ELSE ! the other symetries (6,8,10,12 and 14,15,16) have been already tested
@@ -310,7 +310,7 @@
           sym2 = sym_coord(i2)
           n2 = degen_FROM_symG36(sym2)
           IF (n2 == 0) CYCLE
-          !write(out_unitp,*) i1,i2,sym1,sym2,n1,n2
+          !write(out_unit,*) i1,i2,sym1,sym2,n1,n2
           memory = product( [n1*n2] )
           allocate(symblocG36_FROM_blocS1xS2(n1*n2),stat=err_mem) ! change alloc done
           CALL error_memo_allo(err_mem,memory,                          &
@@ -333,7 +333,7 @@
 
           hessG36(i1:i1-1+n1,i2:i2-1+n2)    = reshape(blocG36,[n1,n2] )
           symhessG36(i1:i1-1+n1,i2:i2-1+n2) = reshape(symblocG36_FROM_blocS1xS2,[n1,n2] )
-          !write(out_unitp,*) 'blocG36',blocG36(:)
+          !write(out_unit,*) 'blocG36',blocG36(:)
           memory = size(symblocG36_FROM_blocS1xS2)
           deallocate(symblocG36_FROM_blocS1xS2,stat=err_mem) ! change dealloc done
           CALL error_memo_allo(err_mem,-memory,                         &
@@ -353,7 +353,7 @@
       SUBROUTINE init_blocG36_FROM_blocS1xS2(blocG36_FROM_blocS1xS2,    &
                                              symblocG36_FROM_blocS1xS2, &
                                              sym1,sym2,n1,n2)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer, intent(in) :: sym1,sym2,n1,n2
@@ -368,11 +368,11 @@
            (sym1 >= 13 .AND. sym1 <= 16 .AND. n1 == 4) ) THEN
         CONTINUE
       ELSE
-        write(out_unitp,*) ' ERROR in init_blocG36_FROM_blocS1xS2'
-        write(out_unitp,*) ' sym1 or n1 are out of range! ',sym1,n1
-        write(out_unitp,*) ' sym1 E [1... 4] (sym Ai)  => n1 = 1 '
-        write(out_unitp,*) ' sym1 E [5... 12] (sym Ei) => n1 = 2 '
-        write(out_unitp,*) ' sym1 E [13...16] (sym Gi) => n1 = 4 '
+        write(out_unit,*) ' ERROR in init_blocG36_FROM_blocS1xS2'
+        write(out_unit,*) ' sym1 or n1 are out of range! ',sym1,n1
+        write(out_unit,*) ' sym1 E [1... 4] (sym Ai)  => n1 = 1 '
+        write(out_unit,*) ' sym1 E [5... 12] (sym Ei) => n1 = 2 '
+        write(out_unit,*) ' sym1 E [13...16] (sym Gi) => n1 = 4 '
         STOP
       END IF
 
@@ -381,11 +381,11 @@
            (sym2 >= 13 .AND. sym2 <= 16 .AND. n2 == 4) ) THEN
         CONTINUE
       ELSE
-        write(out_unitp,*) ' ERROR in init_blocG36_FROM_blocS1xS2'
-        write(out_unitp,*) ' sym2 or n2 are out of range! ',sym2,n2
-        write(out_unitp,*) ' sym2 E [1... 4] (sym Ai)  => n2 = 1 '
-        write(out_unitp,*) ' sym2 E [5... 12] (sym Ei) => n2 = 2 '
-        write(out_unitp,*) ' sym2 E [13...16] (sym Gi) => n2 = 4 '
+        write(out_unit,*) ' ERROR in init_blocG36_FROM_blocS1xS2'
+        write(out_unit,*) ' sym2 or n2 are out of range! ',sym2,n2
+        write(out_unit,*) ' sym2 E [1... 4] (sym Ai)  => n2 = 1 '
+        write(out_unit,*) ' sym2 E [5... 12] (sym Ei) => n2 = 2 '
+        write(out_unit,*) ' sym2 E [13...16] (sym Gi) => n2 = 4 '
         STOP
       END IF
 
@@ -566,14 +566,14 @@
       END IF
 
 !      DO is=1,n1*n2
-!        write(out_unitp,*) 'sym:',symblocG36_FROM_blocS1xS2(is)
-!        CALL Write_Mat(blocG36_FROM_blocS1xS2(is,:,:),out_unitp,5)
+!        write(out_unit,*) 'sym:',symblocG36_FROM_blocS1xS2(is)
+!        CALL Write_Mat(blocG36_FROM_blocS1xS2(is,:,:),out_unit,5)
 !      END DO
 
 
       end subroutine init_blocG36_FROM_blocS1xS2
       SUBROUTINE symetrization_G36_old(hess,hessG36,mat_symG36,nb_coord)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
       integer :: nb_coord
@@ -608,7 +608,7 @@
       integer :: i,is,ia,ib,ic,id
 
 !     read the symetry of each coordinate
-      read(in_unitp,*) sym_coord(:)
+      read(in_unit,*) sym_coord(:)
       degen_coord(:) = 0
 
 !     check that coordinates are correctly sorted
@@ -616,9 +616,9 @@
       DO i=1,nb_coord
 
         IF (sym_coord(i) < 1 .OR. sym_coord(i) > 16) THEN
-          write(out_unitp,*) ' ERROR in symetrization_G36'
-          write(out_unitp,*) ' sym_coord(i) is out of range',i,sym_coord(i)
-          write(out_unitp,*) ' sym_coord(i) sould be in the range [1...16]'
+          write(out_unit,*) ' ERROR in symetrization_G36'
+          write(out_unit,*) ' sym_coord(i) is out of range',i,sym_coord(i)
+          write(out_unit,*) ' sym_coord(i) sould be in the range [1...16]'
           STOP
         END IF
 
@@ -628,9 +628,9 @@
                  sym_coord(i) >= 9 .OR. sym_coord(i) >= 11 ) THEN   ! E1,E2,E3,E4
           degen_coord(i) = 2
           IF (sym_coord(i+1) /= sym_coord(i)+1 ) THEN
-            write(out_unitp,*) ' ERROR in symetrization_G36'
-            write(out_unitp,*) ' sym_coord(:) are not sorted (E symetry)'
-            write(out_unitp,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
+            write(out_unit,*) ' ERROR in symetrization_G36'
+            write(out_unit,*) ' sym_coord(:) are not sorted (E symetry)'
+            write(out_unit,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
             STOP
           END IF
         ELSE IF (sym_coord(i) >= 13) THEN  !G
@@ -638,9 +638,9 @@
           IF (sym_coord(i+1) /= sym_coord(i)+1 .AND.                    &
               sym_coord(i+2) /= sym_coord(i)+2 .AND.                    &
               sym_coord(i+3) /= sym_coord(i)+3            ) THEN
-            write(out_unitp,*) ' ERROR in symetrization_G36'
-            write(out_unitp,*) ' sym_coord(:) are not sorted (G symetry)'
-            write(out_unitp,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
+            write(out_unit,*) ' ERROR in symetrization_G36'
+            write(out_unit,*) ' sym_coord(:) are not sorted (G symetry)'
+            write(out_unit,*) ' i',i,'sym_coord(i:i+1)',sym_coord(i:i+1)
             STOP
           END IF
         ELSE ! the other symetries (6,8,10,12 and 14,15,16) have been already tested
@@ -698,118 +698,118 @@
       ic=3
       id=4
 
-      write(out_unitp,*) ' GxG => sym A1'
+      write(out_unit,*) ' GxG => sym A1'
       is=1
       blocG36_FROM_blocGxG(is,ia,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ib) = HALF
       blocG36_FROM_blocGxG(is,ic,ic) = HALF
       blocG36_FROM_blocGxG(is,id,id) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym A2'
+      write(out_unit,*) ' GxG => sym A2'
       is=2
       blocG36_FROM_blocGxG(is,ia,ib) = HALF
       blocG36_FROM_blocGxG(is,ib,ia) =-HALF
       blocG36_FROM_blocGxG(is,ic,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ic) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym A3'
+      write(out_unit,*) ' GxG => sym A3'
       is=3
       blocG36_FROM_blocGxG(is,ia,ib) = HALF
       blocG36_FROM_blocGxG(is,ib,ia) =-HALF
       blocG36_FROM_blocGxG(is,ic,id) = HALF
       blocG36_FROM_blocGxG(is,id,ic) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym A4'
+      write(out_unit,*) ' GxG => sym A4'
       is=4
       blocG36_FROM_blocGxG(is,ia,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ib) = HALF
       blocG36_FROM_blocGxG(is,ic,ic) =-HALF
       blocG36_FROM_blocGxG(is,id,id) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym E1a'
+      write(out_unit,*) ' GxG => sym E1a'
       is=5
       blocG36_FROM_blocGxG(is,ia,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,id) = HALF
       blocG36_FROM_blocGxG(is,id,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym E1b'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym E1b'
       is=6
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ic) =-HALF
       blocG36_FROM_blocGxG(is,ic,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym E2a'
+      write(out_unit,*) ' GxG => sym E2a'
       is=7
       blocG36_FROM_blocGxG(is,ia,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,id) = HALF
       blocG36_FROM_blocGxG(is,id,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym E2b'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym E2b'
       is=8
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,ic) =-HALF
       blocG36_FROM_blocGxG(is,ic,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym E3a'
+      write(out_unit,*) ' GxG => sym E3a'
       is=9
       blocG36_FROM_blocGxG(is,ia,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym E3b'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym E3b'
       is=10
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym E4a'
+      write(out_unit,*) ' GxG => sym E4a'
       is=11
       blocG36_FROM_blocGxG(is,ia,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym E4b'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym E4b'
       is=12
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
-      write(out_unitp,*) ' GxG => sym Ga'
+      write(out_unit,*) ' GxG => sym Ga'
       is=13
       blocG36_FROM_blocGxG(is,ib,ib) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ia,ia) =-ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym Gb'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym Gb'
       is=14
       blocG36_FROM_blocGxG(is,ia,ib) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ib,ia) = ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym Gc'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym Gc'
       is=15
       blocG36_FROM_blocGxG(is,id,id) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ic,ic) =-ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
-      write(out_unitp,*) ' GxG => sym Gd'
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      write(out_unit,*) ' GxG => sym Gd'
       is=16
       blocG36_FROM_blocGxG(is,ic,id) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,id,ic) = ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unitp,5)
+      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
 
 stop

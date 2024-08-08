@@ -14,7 +14,7 @@
 !=======================================================================
       SUBROUTINE calcN_op(mat_V,mat_imV,mat_ScalOp,nb_be,nb_ScalOp,     &
                           Qpot,nb_Qpot,mole,calc_ScalOp,pot_cplx)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -47,7 +47,7 @@
 !    fonction pot_rest(x)
 !=======================================================================
       FUNCTION pot_rest(Qact,Delta_Qact,nb_inact2n)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: pot_rest
 
@@ -72,7 +72,7 @@
 !    sub hessian
 !=======================================================================
       SUBROUTINE sub_hessian(h)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        real (kind=Rkind) :: h
@@ -91,7 +91,7 @@
 !     analytical gradient along the path
 !=======================================================================
       SUBROUTINE d0d1d2_g(d0g,d1g,d2g,Qdyn,mole,deriv,num,step)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -114,13 +114,13 @@
       character (len=*), parameter :: name_sub='d0d1d2_g'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nb_var',mole%nb_var
-        write(out_unitp,*) 'nb_act1',mole%nb_act1
-        write(out_unitp,*) 'nb_inact22,nb_inact21',mole%nb_inact22,mole%nb_inact21
-        write(out_unitp,*) 'nb_inact2n',mole%nb_inact2n
-        write(out_unitp,*) 'deriv',deriv
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nb_var',mole%nb_var
+        write(out_unit,*) 'nb_act1',mole%nb_act1
+        write(out_unit,*) 'nb_inact22,nb_inact21',mole%nb_inact22,mole%nb_inact21
+        write(out_unit,*) 'nb_inact2n',mole%nb_inact2n
+        write(out_unit,*) 'deriv',deriv
       END IF
       !-----------------------------------------------------------------
 
@@ -141,9 +141,9 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'd0g at Qact:',Qact1
-        write(out_unitp,*) d0g(:)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'd0g at Qact:',Qact1
+        write(out_unit,*) d0g(:)
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
 
@@ -152,7 +152,7 @@
 !     analytical hessian along the path (only d0h is used!!)
 !=======================================================================
       SUBROUTINE d0d1d2_h(d0h,d1h,d2h,Qdyn,mole,deriv,num,step)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -178,12 +178,12 @@
       character (len=*), parameter :: name_sub='d0d1d2_h'
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nb_var',mole%nb_var
-        write(out_unitp,*) 'nb_act1',mole%nb_act1
-        write(out_unitp,*) 'nb_inact22,nb_inact21',mole%nb_inact22,mole%nb_inact21
-        write(out_unitp,*) 'nb_inact2n',mole%nb_inact2n
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nb_var',mole%nb_var
+        write(out_unit,*) 'nb_act1',mole%nb_act1
+        write(out_unit,*) 'nb_inact22,nb_inact21',mole%nb_inact22,mole%nb_inact21
+        write(out_unit,*) 'nb_inact2n',mole%nb_inact2n
       END IF
       !-----------------------------------------------------------------
 
@@ -201,10 +201,10 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact1',Qact1
-        write(out_unitp,*) 'd0h at Qact1'
+        write(out_unit,*) 'Qact1',Qact1
+        write(out_unit,*) 'd0h at Qact1'
         CALL Write_Mat(d0h,6,4)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
 
@@ -214,7 +214,7 @@
 !     for the variable iq
 !=======================================================================
       SUBROUTINE calc_dnQflex(iq,dnQflex,Qact,nb_act,nderiv,it)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -233,9 +233,9 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nb_act',nb_act
-        write(out_unitp,*) 'iq',iq
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nb_act',nb_act
+        write(out_unit,*) 'iq',iq
       END IF
       !-----------------------------------------------------------------
 
@@ -259,9 +259,9 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQflex : ',Qact
+        write(out_unit,*) 'dnQflex : ',Qact
         CALL write_dnS(dnQflex,nderiv)
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
 
@@ -272,7 +272,7 @@
 !     derivative with respect to Qact1(:) coordinates
 !================================================================
       SUBROUTINE d0d1d2d3_Qeq(i_Qdyn,d0Qopt,d1Qopt,d2Qopt,d3Qopt,Qdyn,mole,nderiv)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -303,10 +303,10 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nb_inact20,nb_act',mole%nb_inact20,mole%nb_act
-        write(out_unitp,*) 'nb_var',mole%nb_var
-        write(out_unitp,*) 'i_Qdyn',i_Qdyn
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nb_inact20,nb_act',mole%nb_inact20,mole%nb_act
+        write(out_unit,*) 'nb_var',mole%nb_var
+        write(out_unit,*) 'i_Qdyn',i_Qdyn
       END IF
       !-----------------------------------------------------------------
 
@@ -326,12 +326,12 @@
 
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Qact1 : ',Qact1
-        write(out_unitp,*) 'd0Qopt : ',d0Qopt
-        write(out_unitp,*) 'd1Qopt : ',d1Qopt
-        write(out_unitp,*) 'd2Qopt : ',d2Qopt
-        write(out_unitp,*) 'd3Qopt : ',d3Qopt
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'Qact1 : ',Qact1
+        write(out_unit,*) 'd0Qopt : ',d0Qopt
+        write(out_unit,*) 'd1Qopt : ',d1Qopt
+        write(out_unit,*) 'd2Qopt : ',d2Qopt
+        write(out_unit,*) 'd3Qopt : ',d3Qopt
+        write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
 

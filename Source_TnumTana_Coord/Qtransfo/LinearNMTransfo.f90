@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
   MODULE mod_LinearNMTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -236,64 +236,64 @@
       CALL alloc_LinearTransfo(LinearTransfo,nb_Qin)
 
 
-      read(in_unitp,*,IOSTAT=err)
+      read(in_unit,*,IOSTAT=err)
       IF (err /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' "End of file", while reading an empty line.'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' "End of file", while reading an empty line.'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
-      read(in_unitp,*,IOSTAT=err) nbcol
+      read(in_unit,*,IOSTAT=err) nbcol
       IF (err /= 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' "End of file", while reading nbcol'
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' "End of file", while reading nbcol'
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
-      IF (print_level > 1) write(out_unitp,*)'nbcol=',nbcol
+      IF (print_level > 1) write(out_unit,*)'nbcol=',nbcol
 
       IF (LinearTransfo%inv) THEN
 
-        CALL Read_Mat(LinearTransfo%mat_inv,in_unitp,nbcol,err)
+        CALL Read_Mat(LinearTransfo%mat_inv,in_unit,nbcol,err)
         IF (LinearTransfo%transp) THEN
            LinearTransfo%mat_inv = transpose(LinearTransfo%mat_inv)
         END IF
         IF (err /= 0) THEN
-          write(out_unitp,*) 'ERROR ',name_sub
-          write(out_unitp,*) ' while reading the matrix "LinearTransfo%mat_inv"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) 'ERROR ',name_sub
+          write(out_unit,*) ' while reading the matrix "LinearTransfo%mat_inv"'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        write(out_unitp,*) 'mat_inv of LinearTransfo has been read'
+        write(out_unit,*) 'mat_inv of LinearTransfo has been read'
 
         LinearTransfo%mat = inv_OF_Mat_TO(LinearTransfo%mat_inv,1,ONETENTH**10) ! SVD
 
       ELSE
 
-        CALL Read_Mat(LinearTransfo%mat,in_unitp,nbcol,err)
+        CALL Read_Mat(LinearTransfo%mat,in_unit,nbcol,err)
         IF (LinearTransfo%transp) THEN
            LinearTransfo%mat = transpose(LinearTransfo%mat)
         END IF
         IF (err /= 0) THEN
-          write(out_unitp,*) 'ERROR ',name_sub
-          write(out_unitp,*) ' while reading the matrix "LinearTransfo%mat"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) 'ERROR ',name_sub
+          write(out_unit,*) ' while reading the matrix "LinearTransfo%mat"'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        write(out_unitp,*) 'mat of LinearTransfo has been read'
+        write(out_unit,*) 'mat of LinearTransfo has been read'
 
         LinearTransfo%mat_inv = inv_OF_Mat_TO(LinearTransfo%mat,1,ONETENTH**10) ! SVD
 
       END IF
 
       IF (print_level > 1) THEN
-        write(out_unitp,*)  'mat of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat,out_unitp,4)
-        write(out_unitp,*)  'mat_inv of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat_inv,out_unitp,4)
+        write(out_unit,*)  'mat of LinearTransfo: '
+        CALL Write_Mat(LinearTransfo%mat,out_unit,4)
+        write(out_unit,*)  'mat_inv of LinearTransfo: '
+        CALL Write_Mat(LinearTransfo%mat_inv,out_unit,4)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Read_LinearTransfo
 !-----------------------------------------------------------------------
@@ -330,29 +330,29 @@
       LC_read(:,:) = ZERO
       IF (not_all) THEN
         DO iLC=1,nb_transfo
-          read(in_unitp,*,IOSTAT=err) nb_coef
+          read(in_unit,*,IOSTAT=err) nb_coef
           DO i=1,nb_coef
-            read(in_unitp,*,IOSTAT=err) ic,coef
+            read(in_unit,*,IOSTAT=err) ic,coef
             LC_read(iLC,ic) = coef
           END DO
           IF (err /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file" or "end of record", while reading the linear combination'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file" or "end of record", while reading the linear combination'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          write(out_unitp,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
+          write(out_unit,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
         END DO
       ELSE
         DO iLC=1,nb_transfo
-          read(in_unitp,*,IOSTAT=err) i,LC_read(iLC,:)
+          read(in_unit,*,IOSTAT=err) i,LC_read(iLC,:)
           IF (err /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file" or "end of record", while reading the linear combination'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file" or "end of record", while reading the linear combination'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          write(out_unitp,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
+          write(out_unit,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
         END DO
       END IF
       LC(:,:) = LC_read(:,:)
@@ -366,12 +366,12 @@
           LC(i,:) = LC(i,:)*norm_jj - LC(j,:)*norm_ij
         END DO
         norm_ii = dot_product(LC(i,:),LC(i,:))
-        IF (debug) write(out_unitp,*) "iLC,norm",i,norm_ii,'vect:',LC(i,:)
+        IF (debug) write(out_unit,*) "iLC,norm",i,norm_ii,'vect:',LC(i,:)
 
         IF (norm_ii < ONETENTH**5) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Your linear combinations are not independent!!'
-          write(out_unitp,*) ' CHECK your data'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Your linear combinations are not independent!!'
+          write(out_unit,*) ' CHECK your data'
           STOP
         END IF
         LC(i,:) = LC(i,:) / sqrt(norm_ii)
@@ -383,10 +383,10 @@
 
       DO i=1,nb_transfo
         norm_ii = dot_product(LC(i,:),LC(i,:))
-        !write(out_unitp,*) 'LC i norm:',i,norm_ii
+        !write(out_unit,*) 'LC i norm:',i,norm_ii
         DO j=1,nb_Qin
           norm_ij = dot_product(LC(i,:),mat_inv(j,:))
-          !write(out_unitp,*) 'over i,j:',i,j,norm_ij
+          !write(out_unit,*) 'over i,j:',i,j,norm_ij
           mat_inv(j,:) = mat_inv(j,:)*norm_ii - LC(i,:)*norm_ij
         END DO
       END DO
@@ -415,10 +415,10 @@
         Sinv_LC = inv_OF_Mat_TO(S_LC,inv_type=1,epsi=ONETENTH**10) ! SVD
 
         IF (debug) THEN
-          write(out_unitp,*) 'S_LC'
-          CALL Write_Mat(S_LC,out_unitp,4)
-          write(out_unitp,*) 'Sinv_LC'
-          CALL Write_Mat(Sinv_LC,out_unitp,4)
+          write(out_unit,*) 'S_LC'
+          CALL Write_Mat(S_LC,out_unit,4)
+          write(out_unit,*) 'Sinv_LC'
+          CALL Write_Mat(Sinv_LC,out_unit,4)
         END IF
 
         ! the contribution of mat_inv
@@ -436,11 +436,11 @@
         Sinv_LC = inv_OF_Mat_TO(S_LC,1,ONETENTH**10) ! SVD
 
         IF (debug) THEN
-          write(out_unitp,*) 'S_LC'
-          CALL Write_Mat(S_LC,out_unitp,4)
+          write(out_unit,*) 'S_LC'
+          CALL Write_Mat(S_LC,out_unit,4)
 
-          write(out_unitp,*) 'Sinv_LC'
-          CALL Write_Mat(Sinv_LC,out_unitp,4)
+          write(out_unit,*) 'Sinv_LC'
+          CALL Write_Mat(Sinv_LC,out_unit,4)
         END IF
 
         ! the contribution of mat_inv
@@ -450,8 +450,8 @@
 
       IF (debug) THEN
         DO i=1,nb_transfo
-          write(out_unitp,*) 'LC_read',i,LC_read(i,:)
-          write(out_unitp,*) 'LC',i,LC(i,:)
+          write(out_unit,*) 'LC_read',i,LC_read(i,:)
+          write(out_unit,*) 'LC',i,LC(i,:)
         END DO
       END IF
 
@@ -461,7 +461,7 @@
       Tab_Qi_in_Mat(:) = .FALSE.
       DO i=1,nb_transfo
         k = kNoneZero(LC(i,:),Tab_Qi_in_Mat,opt_transfo)
-        IF (debug) write(out_unitp,*) 'LC',i,k,LC(i,:)
+        IF (debug) write(out_unit,*) 'LC',i,k,LC(i,:)
         LinearTransfo%mat_inv(k,:) = LC(i,:)
       END DO
       DO i=1,nb_Qin
@@ -469,7 +469,7 @@
         norm_ii = dot_product(mat_inv(i,:),mat_inv(i,:))
         IF (norm_ii < ONETENTH**5) CYCLE
         k = kNoneZero(mat_inv(i,:),Tab_Qi_in_Mat,opt_transfo)
-        IF (debug) write(out_unitp,*) 'mat_inv',i,k,mat_inv(i,:)
+        IF (debug) write(out_unit,*) 'mat_inv',i,k,mat_inv(i,:)
         LinearTransfo%mat_inv(k,:) = mat_inv(i,:)
       END DO
 
@@ -478,41 +478,41 @@
 !          S(i,j) = dot_product(LinearTransfo%mat_inv(i,:),LinearTransfo%mat_inv(j,:))
 !          SS = dot_product(LinearTransfo%mat_inv(i,:),LinearTransfo%mat_inv(j,:))
 !          IF (i == j .AND. abs(SS-ONE) > ONETENTH**5) THEN
-!            write(out_unitp,*) 'Overlap of mat_inv,i,j',i,j,SS
+!            write(out_unit,*) 'Overlap of mat_inv,i,j',i,j,SS
 !          END IF
 !          IF (i /= j .AND. abs(SS) > ONETENTH**5) THEN
-!            write(out_unitp,*) 'Overlap of mat_inv,i,j',i,j,SS
+!            write(out_unit,*) 'Overlap of mat_inv,i,j',i,j,SS
 !          END IF
 !      END DO
 !      END DO
-      !write(out_unitp,*)  'Overlap of mat_inv: '
-      !CALL Write_Mat(S,out_unitp,4)
-      write(out_unitp,*) 'mat_inv is set-up'
+      !write(out_unit,*)  'Overlap of mat_inv: '
+      !CALL Write_Mat(S,out_unit,4)
+      write(out_unit,*) 'mat_inv is set-up'
 
 
       LinearTransfo%mat = inv_OF_Mat_TO(LinearTransfo%mat_inv,1,ONETENTH**10) ! SVD
 
       DO i=1,nb_transfo
          V(:) = matmul(LinearTransfo%mat_inv,LC_read(i,:))
-         !write(out_unitp,*) 'mat_inv*LC_read,',i,V
+         !write(out_unit,*) 'mat_inv*LC_read,',i,V
          V(i) = V(i)-ONE
-         write(out_unitp,*) 'Norm of mat_inv*LC_read-LC_read,',i,dot_product(V,V)
+         write(out_unit,*) 'Norm of mat_inv*LC_read-LC_read,',i,dot_product(V,V)
       END DO
 
       IF (.NOT. LinearTransfo%inv) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' inv=.TRUE. should not be possible'
-        write(out_unitp,*) ' CHECK the fortran!!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' inv=.TRUE. should not be possible'
+        write(out_unit,*) ' CHECK the fortran!!'
         STOP
       END IF
 
       IF (print_level > -1) THEN
-        write(out_unitp,*)  'mat of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat,out_unitp,4)
-        write(out_unitp,*)  'mat_inv of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat_inv,out_unitp,4)
+        write(out_unit,*)  'mat of LinearTransfo: '
+        CALL Write_Mat(LinearTransfo%mat,out_unit,4)
+        write(out_unit,*)  'mat_inv of LinearTransfo: '
+        CALL Write_Mat(LinearTransfo%mat_inv,out_unit,4)
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Read_LC_projectionTransfo
 
@@ -538,11 +538,11 @@
             EXIT
           END IF
         END DO
-        !write(out_unitp,*) 'Vec',kNoneZero,V(:)
+        !write(out_unit,*) 'Vec',kNoneZero,V(:)
         IF (kNoneZero == 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' Problem with the projection !!!!!'
-          write(out_unitp,*) ' CHECK the fortran'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Problem with the projection !!!!!'
+          write(out_unit,*) ' CHECK the fortran'
         END IF
       ELSE
         k = count(Tab_Qi_in_Mat) + 1
@@ -607,9 +607,9 @@
             END DO
             END DO
           ELSE
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' nderiv > 4 is NOT possible',nderiv
-            write(out_unitp,*) 'It should never append! Check the source'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' nderiv > 4 is NOT possible',nderiv
+            write(out_unit,*) 'It should never append! Check the source'
             STOP
           END IF
         ELSE
@@ -648,9 +648,9 @@
             END DO
             END DO
           ELSE
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' nderiv > 4 is NOT possible',nderiv
-            write(out_unitp,*) 'It should never append! Check the source'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' nderiv > 4 is NOT possible',nderiv
+            write(out_unit,*) 'It should never append! Check the source'
             STOP
           END IF
         END IF
@@ -759,21 +759,21 @@
 
       IF (NMTransfo%d0c_read) THEN
 
-        read(in_unitp,*,IOSTAT=err_read)     ! for read a title (like d0c)
+        read(in_unit,*,IOSTAT=err_read)     ! for read a title (like d0c)
         IF (err_read /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' "End of file", while reading an empty ', &
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' "End of file", while reading an empty ', &
              ' line or title of d0c matrix.'
-          write(out_unitp,*) ' NMTransfo%d0c_read: ',NMTransfo%d0c_read
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' NMTransfo%d0c_read: ',NMTransfo%d0c_read
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        read(in_unitp,*,IOSTAT=err_read) nb_NM,nb_col
+        read(in_unit,*,IOSTAT=err_read) nb_NM,nb_col
         IF (err_read /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' "End of file", while reading nb_NM,nb_col',&
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' "End of file", while reading nb_NM,nb_col',&
                           ' d0c matrix.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
@@ -783,66 +783,66 @@
           NMTransfo%d0c(:,:) = ZERO
         END IF
 
-        CALL Read_Mat(NMTransfo%d0c(:,:),in_unitp,nb_col,err_read)
+        CALL Read_Mat(NMTransfo%d0c(:,:),in_unit,nb_col,err_read)
         IF (err_read /= 0) THEN
-          write(out_unitp,*) 'ERROR ',name_sub
-          write(out_unitp,*) ' while reading the matrix "NMTransfo%d0c"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) 'ERROR ',name_sub
+          write(out_unit,*) ' while reading the matrix "NMTransfo%d0c"'
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        IF (debug) CALL Write_Mat(NMTransfo%d0c(:,:),out_unitp,nb_col,Rformat='f10.6')
+        IF (debug) CALL Write_Mat(NMTransfo%d0c(:,:),out_unit,nb_col,Rformat='f10.6')
 
         IF (debug) THEN
           IF (allocated(mat)) CALL dealloc_NParray(mat,"mat",name_sub)
           CALL alloc_NParray(mat,[nb_NM,nb_NM],"mat",name_sub)
           mat = matmul(transpose(NMTransfo%d0c),NMTransfo%d0c)
-          write(out_unitp,*) ' td0c.d0c'
-          CALL Write_Mat(mat,out_unitp,nb_col,Rformat='f10.6')
+          write(out_unit,*) ' td0c.d0c'
+          CALL Write_Mat(mat,out_unit,nb_col,Rformat='f10.6')
           CALL dealloc_NParray(mat,"mat",name_sub)
         END IF
 
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
 
       IF (NMTransfo%hessian_read .NEQV. NMTransfo%k_read) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' You MUST read both hessian and k matrix'
-        write(out_unitp,*) ' hessian_read: ',NMTransfo%hessian_read
-        write(out_unitp,*) ' k_read:       ',NMTransfo%k_read
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' You MUST read both hessian and k matrix'
+        write(out_unit,*) ' hessian_read: ',NMTransfo%hessian_read
+        write(out_unit,*) ' k_read:       ',NMTransfo%k_read
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
 
       IF (NMTransfo%hessian_read .AND. NMTransfo%nb_read < 1) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' You WANT to read both hessian and k matrix'
-        write(out_unitp,*) ' but nb_read is < 1: ',NMTransfo%nb_read
-        write(out_unitp,*) ' Check your data !!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' You WANT to read both hessian and k matrix'
+        write(out_unit,*) ' but nb_read is < 1: ',NMTransfo%nb_read
+        write(out_unit,*) ' Check your data !!'
         STOP
       END IF
       IF (NMTransfo%hessian_read) THEN
 
         DO i=1,NMTransfo%nb_read
 
-          read(in_unitp,*,IOSTAT=err_read)     ! for read a title (like d0h)
+          read(in_unit,*,IOSTAT=err_read)     ! for read a title (like d0h)
           IF (err_read /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file", while reading an empty ', &
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file", while reading an empty ', &
                ' line or title of d0h matrices.'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          read(in_unitp,*,IOSTAT=err_read) nb_NM,nb_col
+          read(in_unit,*,IOSTAT=err_read) nb_NM,nb_col
           IF (err_read /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file", while reading nb_NM,nb_col ',&
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file", while reading nb_NM,nb_col ',&
                             ' of d0h matrices.'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -854,16 +854,16 @@
           END IF
 
 
-          CALL Read_Mat(mat,in_unitp,nb_col,err_read)
+          CALL Read_Mat(mat,in_unit,nb_col,err_read)
           IF (err_read /= 0) THEN
-            write(out_unitp,*) 'ERROR ',name_sub
-            write(out_unitp,*) ' reading the matrix "NMTransfo%d0h"'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) 'ERROR ',name_sub
+            write(out_unit,*) ' reading the matrix "NMTransfo%d0h"'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%hessian_read: ',NMTransfo%hessian_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) CALL Write_Mat(mat,out_unitp,nb_col)
+          IF (debug) CALL Write_Mat(mat,out_unit,nb_col)
 
           NMTransfo%d0h(:,:) = NMTransfo%d0h(:,:) + mat(:,:)
 
@@ -873,30 +873,30 @@
         IF (allocated(mat)) CALL dealloc_NParray(mat,"mat",name_sub)
 
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       IF (NMTransfo%k_read) THEN
 
         DO i=1,NMTransfo%nb_read
 
-          read(in_unitp,*,IOSTAT=err_read)     ! for read a title (like d0h)
+          read(in_unit,*,IOSTAT=err_read)     ! for read a title (like d0h)
           IF (err_read /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file", while reading an empty ', &
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file", while reading an empty ', &
                ' line or title of d0k matrices.'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%k_read: ',NMTransfo%k_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%k_read: ',NMTransfo%k_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          read(in_unitp,*,IOSTAT=err_read) nb_NM,nb_col
+          read(in_unit,*,IOSTAT=err_read) nb_NM,nb_col
           IF (err_read /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' "End of file", while reading nb_NM,nb_col',&
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' "End of file", while reading nb_NM,nb_col',&
                             ' of d0k matrices.'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%k_read: ',NMTransfo%k_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%k_read: ',NMTransfo%k_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
 
@@ -907,16 +907,16 @@
           END IF
 
 
-          CALL Read_Mat(mat,in_unitp,nb_col,err_read)
+          CALL Read_Mat(mat,in_unit,nb_col,err_read)
           IF (err_read /= 0) THEN
-            write(out_unitp,*) 'ERROR ',name_sub
-            write(out_unitp,*) ' reading the matrix "NMTransfo%d0k"'
-            write(out_unitp,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
-            write(out_unitp,*) ' NMTransfo%k_read: ',NMTransfo%k_read
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) 'ERROR ',name_sub
+            write(out_unit,*) ' reading the matrix "NMTransfo%d0k"'
+            write(out_unit,*) ' i_read,NMTransfo%nb_read: ',i,NMTransfo%nb_read
+            write(out_unit,*) ' NMTransfo%k_read: ',NMTransfo%k_read
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) CALL Write_Mat(mat,out_unitp,nb_col)
+          IF (debug) CALL Write_Mat(mat,out_unit,nb_col)
 
           NMTransfo%d0k(:,:) = NMTransfo%d0k(:,:) + mat(:,:)
 
@@ -926,7 +926,7 @@
         IF (allocated(mat)) CALL dealloc_NParray(mat,"mat",name_sub)
 
       END IF
-      flush(out_unitp)
+      flush(out_unit)
 
       IF (NMTransfo%purify_hess) THEN
 
@@ -947,34 +947,34 @@
                           "NMTransfo%tab_equi",name_sub)
         END IF
 
-        write(out_unitp,*)
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*) 'Hessian purification',NMTransfo%purify_hess
+        write(out_unit,*)
+        write(out_unit,*) "========================================"
+        write(out_unit,*) 'Hessian purification',NMTransfo%purify_hess
 
-        write(out_unitp,*) 'nb_Qin',nb_Qin
+        write(out_unit,*) 'nb_Qin',nb_Qin
         NMTransfo%Qact1_sym(:)  = 0
         NMTransfo%Qact1_eq(:,:) = 0
 
-        read(in_unitp,*,IOSTAT=err_read) name0,NMTransfo%Qact1_sym(:)
+        read(in_unit,*,IOSTAT=err_read) name0,NMTransfo%Qact1_sym(:)
         IF (err_read /= 0) THEN
-          write(out_unitp,*) 'ERROR ',name_sub
-          write(out_unitp,*) ' while reading Qact1_sym',name0,NMTransfo%Qact1_sym(:)
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) 'ERROR ',name_sub
+          write(out_unit,*) ' while reading Qact1_sym',name0,NMTransfo%Qact1_sym(:)
+          write(out_unit,*) ' Check your data !!'
           STOP
         END IF
 
         IF (NMTransfo%eq_hess) THEN
           DO i=1,nb_Qin
-            read(in_unitp,*,IOSTAT=err_read) name0,NMTransfo%Qact1_eq(i,:)
+            read(in_unit,*,IOSTAT=err_read) name0,NMTransfo%Qact1_eq(i,:)
             IF (err_read /=0) THEN
-              write(out_unitp,*) ' while reading Qact1_eq',name0,NMTransfo%Qact1_eq(i,:)
+              write(out_unit,*) ' while reading Qact1_eq',name0,NMTransfo%Qact1_eq(i,:)
               EXIT
             END IF
           END DO
           IF (err_read /= 0) THEN
-            write(out_unitp,*) 'WARNING ',name_sub
-            write(out_unitp,*) ' while reading Qact1_eq'
-            write(out_unitp,*) ' The matrix, Qact1_eq, is assumed to be zero'
+            write(out_unit,*) 'WARNING ',name_sub
+            write(out_unit,*) ' while reading Qact1_eq'
+            write(out_unit,*) ' The matrix, Qact1_eq, is assumed to be zero'
             NMTransfo%Qact1_eq(:,:) = 0
           END IF
         END IF
@@ -992,20 +992,20 @@
         END DO
 
 
-        write(out_unitp,*) 'Hessian purification parameters'
-        write(out_unitp,*) 'Qact1_sym',NMTransfo%Qact1_sym(:)
+        write(out_unit,*) 'Hessian purification parameters'
+        write(out_unit,*) 'Qact1_sym',NMTransfo%Qact1_sym(:)
         DO i=1,nb_Qin
-          write(out_unitp,*) 'Qact1_eq',i,NMTransfo%Qact1_eq(i,:)
+          write(out_unit,*) 'Qact1_eq',i,NMTransfo%Qact1_eq(i,:)
         END DO
-        write(out_unitp,*) 'dim_equi',NMTransfo%dim_equi(:)
+        write(out_unit,*) 'dim_equi',NMTransfo%dim_equi(:)
 
         DO i=1,nb_Qin
-          write(out_unitp,*) 'tab_equi:',i,NMTransfo%dim_equi(i),':',     &
+          write(out_unit,*) 'tab_equi:',i,NMTransfo%dim_equi(i),':',     &
                        NMTransfo%tab_equi(i,NMTransfo%dim_equi(i))
         END DO
-        write(out_unitp,*) 'END Hessian purification'
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*)
+        write(out_unit,*) 'END Hessian purification'
+        write(out_unit,*) "========================================"
+        write(out_unit,*)
       END IF
       END SUBROUTINE Read_NMTransfo
 
@@ -1020,97 +1020,97 @@
 
       character (len=*), parameter :: name_sub='Write_NMTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
-      write(out_unitp,*) 'NM_TO_sym_ver',NMTransfo%NM_TO_sym_ver
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'NM_TO_sym_ver',NMTransfo%NM_TO_sym_ver
 
-      write(out_unitp,*) 'hessian_old,hessian_cart,hessian_onthefly',   &
+      write(out_unit,*) 'hessian_old,hessian_cart,hessian_onthefly',   &
                           NMTransfo%hessian_old,NMTransfo%hessian_cart, &
                           NMTransfo%hessian_onthefly
-      IF (NMTransfo%hessian_old) write(out_unitp,*) 'file_hessian',     &
+      IF (NMTransfo%hessian_old) write(out_unit,*) 'file_hessian',     &
                                             NMTransfo%file_hessian%name
-      write(out_unitp,*) 'k_Half',NMTransfo%k_Half
+      write(out_unit,*) 'k_Half',NMTransfo%k_Half
 
 
 
       IF (associated(NMTransfo%Q0_HObasis)) THEN
-        write(out_unitp,*) 'Q0_HObasis'
-        CALL Write_VecMat(NMTransfo%Q0_HObasis,out_unitp,5)
+        write(out_unit,*) 'Q0_HObasis'
+        CALL Write_VecMat(NMTransfo%Q0_HObasis,out_unit,5)
       END IF
       IF (associated(NMTransfo%scaleQ_HObasis)) THEN
-        write(out_unitp,*) 'scaleQ_HObasis'
-        CALL Write_VecMat(NMTransfo%scaleQ_HObasis,out_unitp,5)
+        write(out_unit,*) 'scaleQ_HObasis'
+        CALL Write_VecMat(NMTransfo%scaleQ_HObasis,out_unit,5)
       END IF
 
 
-      write(out_unitp,*) 'hessian_read,k_read',NMTransfo%hessian_read,NMTransfo%k_read
-      write(out_unitp,*) 'nb_read',NMTransfo%nb_read
+      write(out_unit,*) 'hessian_read,k_read',NMTransfo%hessian_read,NMTransfo%k_read
+      write(out_unit,*) 'nb_read',NMTransfo%nb_read
 
-      write(out_unitp,*) 'd0c_read',NMTransfo%d0c_read
+      write(out_unit,*) 'd0c_read',NMTransfo%d0c_read
 
 
       IF (associated(NMTransfo%d0h)) THEN
-        write(out_unitp,*) 'd0h'
-        CALL Write_Mat(NMTransfo%d0h,out_unitp,5)
+        write(out_unit,*) 'd0h'
+        CALL Write_Mat(NMTransfo%d0h,out_unit,5)
       END IF
       IF (associated(NMTransfo%d0k)) THEN
-        write(out_unitp,*) 'd0k'
-        CALL Write_Mat(NMTransfo%d0k,out_unitp,5)
+        write(out_unit,*) 'd0k'
+        CALL Write_Mat(NMTransfo%d0k,out_unit,5)
       END IF
 
 
       nb_NM = NMTransfo%nb_NM
-      write(out_unitp,*) 'nb_NM',nb_NM
-      flush(out_unitp)
+      write(out_unit,*) 'nb_NM',nb_NM
+      flush(out_unit)
 
       IF (nb_NM > 0) THEN
         IF (associated(NMTransfo%d0c_inv)) THEN
-          write(out_unitp,*)  'd0c_inv: '
-          CALL Write_Mat(NMTransfo%d0c_inv,out_unitp,4)
+          write(out_unit,*)  'd0c_inv: '
+          CALL Write_Mat(NMTransfo%d0c_inv,out_unit,4)
         END IF
-        flush(out_unitp)
+        flush(out_unit)
 
         IF (associated(NMTransfo%d0c)) THEN
-          write(out_unitp,*)  'd0c: '
-          CALL Write_Mat(NMTransfo%d0c,out_unitp,4)
+          write(out_unit,*)  'd0c: '
+          CALL Write_Mat(NMTransfo%d0c,out_unit,4)
         END IF
-        flush(out_unitp)
+        flush(out_unit)
 
         IF (associated(NMTransfo%d0eh)) THEN
-          write(out_unitp,*)  'd0eh: ',NMTransfo%d0eh(:)
+          write(out_unit,*)  'd0eh: ',NMTransfo%d0eh(:)
         END IF
-        flush(out_unitp)
+        flush(out_unit)
 
       END IF
 
       IF (NMTransfo%purify_hess) THEN
 
-        write(out_unitp,*)
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*) 'Hessian purification',NMTransfo%purify_hess
+        write(out_unit,*)
+        write(out_unit,*) "========================================"
+        write(out_unit,*) 'Hessian purification',NMTransfo%purify_hess
         nb_Qin = size(NMTransfo%Qact1_sym(:))
-        write(out_unitp,*)  'Qact1_sym: ',NMTransfo%Qact1_sym(:)
+        write(out_unit,*)  'Qact1_sym: ',NMTransfo%Qact1_sym(:)
 
         IF (NMTransfo%eq_hess) THEN
           DO i=1,nb_Qin
-            write(out_unitp,*) 'Qact1_eq',i,NMTransfo%Qact1_eq(i,:)
+            write(out_unit,*) 'Qact1_eq',i,NMTransfo%Qact1_eq(i,:)
           END DO
         END IF
 
-        write(out_unitp,*) 'dim_equi',NMTransfo%dim_equi(:)
-        write(out_unitp,*)  'tab_equi: '
+        write(out_unit,*) 'dim_equi',NMTransfo%dim_equi(:)
+        write(out_unit,*)  'tab_equi: '
         DO i=1,nb_Qin
-          write(out_unitp,*) 'tab_equi(i,:)',i,':',                     &
+          write(out_unit,*) 'tab_equi(i,:)',i,':',                     &
                            NMTransfo%tab_equi(i,1:NMTransfo%dim_equi(i))
         END DO
 
-        write(out_unitp,*) 'END Hessian purification'
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*)
+        write(out_unit,*) 'END Hessian purification'
+        write(out_unit,*) "========================================"
+        write(out_unit,*)
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END IF
-      flush(out_unitp)
+      flush(out_unit)
       END SUBROUTINE Write_NMTransfo
 
       !!@description: TODO

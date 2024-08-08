@@ -43,7 +43,7 @@ MODULE mod_Tana_Tnum
    CONTAINS
 
    SUBROUTINE comparison_G_FROM_Tnum_Tana(TWOxKEO,mole,para_Tnum,Qact)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       USE mod_paramQ
       USE mod_Tana_PiEulerRot
@@ -83,33 +83,33 @@ MODULE mod_Tana_Tnum
 !===========================================================
 !===========================================================
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' BEGINNING ',routine_name
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' BEGINNING ',routine_name
+      flush(out_unit)
       nullify(Gana)
       CALL alloc_array(Gana,[mole%ndimG,mole%ndimG],'Gana',routine_name)
       CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,2)
       CALL alloc_dnSVM(dng,mole%ndimG,mole%ndimG,mole%nb_act,2)
 
       CALL get_NumG_WITH_AnaKEO(TWOxKEO,Qact,mole,Gana,vep_ana)
-      write(out_unitp,*) '   end calc G with Tana'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc G with Tana'
+      flush(out_unit)
       CALL get_dnGG_vep(Qact,para_Tnum,mole,dnGG,vep,rho,2)
-      write(out_unitp,*) '   end calc G with Tnum'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc G with Tnum'
+      flush(out_unit)
 
       IF (maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0)) > ONETENTH**10) THEN
-        write(out_unitp,*) 'G of Tana  '
-        CALL write_mat(Gana,out_unitp,4)
-        write(out_unitp,*) 'G of Tnum  '
-        CALL write_mat(dnGG%d0,out_unitp,4)
-        write(out_unitp,*) 'Difference of G'
-        CALL write_mat(Gana-dnGG%d0,out_unitp,4)
+        write(out_unit,*) 'G of Tana  '
+        CALL write_mat(Gana,out_unit,4)
+        write(out_unit,*) 'G of Tnum  '
+        CALL write_mat(dnGG%d0,out_unit,4)
+        write(out_unit,*) 'Difference of G'
+        CALL write_mat(Gana-dnGG%d0,out_unit,4)
       END IF
-      write(out_unitp,*) '         max diff G: ',maxval(abs(Gana-dnGG%d0))
-      write(out_unitp,*) 'Relative max diff G: ',maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0))
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) '         max diff G: ',maxval(abs(Gana-dnGG%d0))
+      write(out_unit,*) 'Relative max diff G: ',maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0))
+      write(out_unit,*)
+      flush(out_unit)
 
       max_error = maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0))
 
@@ -136,13 +136,13 @@ MODULE mod_Tana_Tnum
       para_Tnum%Tana = .FALSE.
       CALL   calc3_f2_f1Q_num(Qact,Tdef2,Tdef1,vep,rho,Tcor2,Tcor1,Trot,&
                               para_Tnum,mole)
-      write(out_unitp,*) '   end calc f2, f1 with Tnum'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc f2, f1 with Tnum'
+      flush(out_unit)
       para_Tnum%Tana = .TRUE.
       CALL get_Numf2f1vep_WITH_AnaKEO(TWOxKEO,Qact,mole,para_Tnum,              &
                                       f2_ana,f1_ana,vep_ana,rho_ana)
-      write(out_unitp,*) '   end calc f2, f1 with Tana'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc f2, f1 with Tana'
+      flush(out_unit)
 
       IF (vep < ONETENTH**6) THEN
         vep_error = abs(vep-vep_ana)
@@ -154,42 +154,42 @@ MODULE mod_Tana_Tnum
       maxval_f1 = maxval(abs(Tdef1))
       IF (maxval_f1 < ONETENTH**6) maxval_f1 = ONE
 
-      write(out_unitp,*) '         max diff f2: ',maxval(abs(f2_ana-Tdef2))
-      write(out_unitp,*) 'Relative max diff f2: ',maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2))
-      write(out_unitp,*) '         max diff f1: ',maxval(abs(f1_ana-Tdef1))
-      write(out_unitp,*) 'Relative max diff f1: ',maxval(abs(f1_ana-Tdef1))/maxval_f1
-      write(out_unitp,*) '        max diff vep: ',abs(vep-vep_ana)
-      write(out_unitp,*) '       vep from Tana: ',vep_ana
-      write(out_unitp,*) '       vep from Tnum: ',vep
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) '         max diff f2: ',maxval(abs(f2_ana-Tdef2))
+      write(out_unit,*) 'Relative max diff f2: ',maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2))
+      write(out_unit,*) '         max diff f1: ',maxval(abs(f1_ana-Tdef1))
+      write(out_unit,*) 'Relative max diff f1: ',maxval(abs(f1_ana-Tdef1))/maxval_f1
+      write(out_unit,*) '        max diff vep: ',abs(vep-vep_ana)
+      write(out_unit,*) '       vep from Tana: ',vep_ana
+      write(out_unit,*) '       vep from Tnum: ',vep
+      write(out_unit,*)
+      flush(out_unit)
 
       IF (mole%nb_act == mole%nb_var) max_error = max( max_error, vep_error )
       max_error = max( max_error, maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2)) )
       max_error = max( max_error, maxval(abs(f1_ana-Tdef1))/maxval_f1 )
 
-      write(out_unitp,'(a,e9.2)') '         max error: ',max_error
+      write(out_unit,'(a,e9.2)') '         max error: ',max_error
       IF (max_error > ONETENTH**10 .OR. debug .OR. print_level > 1) THEN
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'Tnum f2,f1,vep values'
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'vep',vep
-         write(out_unitp,*) 'f1 of Tnum  '
-         CALL write_vec(Tdef1,out_unitp,4)
-         write(out_unitp,*) 'f2 of Tnum  '
-         CALL write_mat(Tdef2,out_unitp,4)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'Tana f2,f1,vep values'
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'vep',vep_ana
-         write(out_unitp,*) 'f1 of Tana  '
-         CALL write_vec(f1_ana,out_unitp,4)
-         write(out_unitp,*) 'f2 of Tana  '
-         CALL write_mat(f2_ana,out_unitp,4)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'Tnum f2,f1,vep values'
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'vep',vep
+         write(out_unit,*) 'f1 of Tnum  '
+         CALL write_vec(Tdef1,out_unit,4)
+         write(out_unit,*) 'f2 of Tnum  '
+         CALL write_mat(Tdef2,out_unit,4)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'Tana f2,f1,vep values'
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'vep',vep_ana
+         write(out_unit,*) 'f1 of Tana  '
+         CALL write_vec(f1_ana,out_unit,4)
+         write(out_unit,*) 'f2 of Tana  '
+         CALL write_mat(f2_ana,out_unit,4)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*)
       END IF
 
 
@@ -202,14 +202,14 @@ MODULE mod_Tana_Tnum
       CALL dealloc_array(f1_ana,'f1_ana',routine_name)
 
 
-      write(out_unitp,*) ' END ',routine_name
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) ' END ',routine_name
+      write(out_unit,*) '================================================='
 
 
    END SUBROUTINE comparison_G_FROM_Tnum_Tana
 
    SUBROUTINE comparison_G_FROM_Tnum_ReadKEO(mole,para_Tnum,Qact)
-      USE mod_system
+      USE TnumTana_system_m
       USE mod_Tnum
       USE mod_paramQ
       USE mod_Tana_PiEulerRot
@@ -252,18 +252,18 @@ MODULE mod_Tana_Tnum
 !===========================================================
       def_only = .TRUE.
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' BEGINNING ',routine_name
-      IF (def_only) write(out_unitp,*) ' WARNING: just the deformation part.'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' BEGINNING ',routine_name
+      IF (def_only) write(out_unit,*) ' WARNING: just the deformation part.'
+      flush(out_unit)
 
       CALL file_open2(name_file='keo.op',iunit=io_mctdh)
       CALL read_keo_mctdh_form(mole%nb_act,keo=TWOxKEO,io=io_mctdh) ! here we read KEO
       TWOxKEO%Cn(:) = TWOxKEO%Cn(:) * CTWO ! now we have 2*KEO
       IF (debug) CALL write_op(TWOxKEO,header=.TRUE.)
       close(io_mctdh) ! CALL file_close cannot be used
-      write(out_unitp,*) '   end read analytical KEO'
-      flush(out_unitp)
+      write(out_unit,*) '   end read analytical KEO'
+      flush(out_unit)
 
       nullify(Gana)
       CALL alloc_array(Gana,[mole%ndimG,mole%ndimG],'Gana',routine_name)
@@ -271,11 +271,11 @@ MODULE mod_Tana_Tnum
       CALL alloc_dnSVM(dng,mole%ndimG,mole%ndimG,mole%nb_act,2)
 
       CALL get_NumG_WITH_AnaKEO(TWOxKEO,Qact,mole,Gana,vep_ana)
-      write(out_unitp,*) '   end calc G with Tana'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc G with Tana'
+      flush(out_unit)
       CALL get_dnGG_vep(Qact,para_Tnum,mole,dnGG,vep,rho,2)
-      write(out_unitp,*) '   end calc G with Tnum'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc G with Tnum'
+      flush(out_unit)
 
       IF (def_only) THEN
         error_G = maxval(abs(Gana(1:mole%nb_act,1:mole%nb_act)-dnGG%d0(1:mole%nb_act,1:mole%nb_act)))
@@ -284,17 +284,17 @@ MODULE mod_Tana_Tnum
       END IF
 
       IF (error_G/maxval(abs(dnGG%d0)) > ONETENTH**10) THEN
-        write(out_unitp,*) 'G of Tana  '
-        CALL write_mat(Gana,out_unitp,4)
-        write(out_unitp,*) 'G of Tnum  '
-        CALL write_mat(dnGG%d0,out_unitp,4)
-        write(out_unitp,*) 'Difference of G'
-        CALL write_mat(Gana-dnGG%d0,out_unitp,4)
+        write(out_unit,*) 'G of Tana  '
+        CALL write_mat(Gana,out_unit,4)
+        write(out_unit,*) 'G of Tnum  '
+        CALL write_mat(dnGG%d0,out_unit,4)
+        write(out_unit,*) 'Difference of G'
+        CALL write_mat(Gana-dnGG%d0,out_unit,4)
       END IF
-      write(out_unitp,*) '         max diff G: ',error_G
-      write(out_unitp,*) 'Relative max diff G: ',error_G/maxval(abs(dnGG%d0))
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) '         max diff G: ',error_G
+      write(out_unit,*) 'Relative max diff G: ',error_G/maxval(abs(dnGG%d0))
+      write(out_unit,*)
+      flush(out_unit)
 
       max_error = error_G/maxval(abs(dnGG%d0))
 
@@ -322,17 +322,17 @@ MODULE mod_Tana_Tnum
       CALL   calc3_f2_f1Q_num(Qact,Tdef2,Tdef1,vep,rho,Tcor2,Tcor1,Trot,&
                               para_Tnum,mole)
       para_Tnum%Tana = .TRUE.
-      write(out_unitp,*) '   end calc f2, f1 with Tnum'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc f2, f1 with Tnum'
+      flush(out_unit)
 
       ! it is important to make the expantion, otherwise f1 might be zero
       CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,ExpandTWOxKEO)
-      write(out_unitp,*) '   end expand anlytical KEO in the f2, f1, vep form'
-      flush(out_unitp)
+      write(out_unit,*) '   end expand anlytical KEO in the f2, f1, vep form'
+      flush(out_unit)
       CALL get_Numf2f1vep_WITH_AnaKEO(ExpandTWOxKEO,Qact,mole,para_Tnum,        &
                                       f2_ana,f1_ana,vep_ana,rho_ana)
-      write(out_unitp,*) '   end calc f2, f1 with Tana'
-      flush(out_unitp)
+      write(out_unit,*) '   end calc f2, f1 with Tana'
+      flush(out_unit)
       IF (vep < ONETENTH**6) THEN
         vep_error = abs(vep-vep_ana)
       ELSE
@@ -343,42 +343,42 @@ MODULE mod_Tana_Tnum
       maxval_f1 = maxval(abs(Tdef1))
       IF (maxval_f1 < ONETENTH**6) maxval_f1 = ONE
 
-      write(out_unitp,*) '         max diff f2: ',maxval(abs(f2_ana-Tdef2))
-      write(out_unitp,*) 'Relative max diff f2: ',maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2))
-      write(out_unitp,*) '         max diff f1: ',maxval(abs(f1_ana-Tdef1))
-      write(out_unitp,*) 'Relative max diff f1: ',maxval(abs(f1_ana-Tdef1))/maxval_f1
-      write(out_unitp,*) '        max diff vep: ',abs(vep-vep_ana)
-      write(out_unitp,*) '       vep from Tana: ',vep_ana
-      write(out_unitp,*) '       vep from Tnum: ',vep
-      write(out_unitp,*)
-      flush(out_unitp)
+      write(out_unit,*) '         max diff f2: ',maxval(abs(f2_ana-Tdef2))
+      write(out_unit,*) 'Relative max diff f2: ',maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2))
+      write(out_unit,*) '         max diff f1: ',maxval(abs(f1_ana-Tdef1))
+      write(out_unit,*) 'Relative max diff f1: ',maxval(abs(f1_ana-Tdef1))/maxval_f1
+      write(out_unit,*) '        max diff vep: ',abs(vep-vep_ana)
+      write(out_unit,*) '       vep from Tana: ',vep_ana
+      write(out_unit,*) '       vep from Tnum: ',vep
+      write(out_unit,*)
+      flush(out_unit)
 
       IF (mole%nb_act == mole%nb_var) max_error = max( max_error, vep_error )
       max_error = max( max_error, maxval(abs(f2_ana-Tdef2))/maxval(abs(Tdef2)) )
       max_error = max( max_error, maxval(abs(f1_ana-Tdef1))/maxval_f1 )
 
-      write(out_unitp,'(a,e9.2)') '         max error: ',max_error
+      write(out_unit,'(a,e9.2)') '         max error: ',max_error
       IF (max_error > ONETENTH**10 .OR. debug .OR. print_level > 1) THEN
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'Tnum f2,f1,vep values'
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'vep',vep
-         write(out_unitp,*) 'f1 of Tnum  '
-         CALL write_vec(Tdef1,out_unitp,4)
-         write(out_unitp,*) 'f2 of Tnum  '
-         CALL write_mat(Tdef2,out_unitp,4)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'Tana f2,f1,vep values'
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*) 'vep',vep_ana
-         write(out_unitp,*) 'f1 of Tana  '
-         CALL write_vec(f1_ana,out_unitp,4)
-         write(out_unitp,*) 'f2 of Tana  '
-         CALL write_mat(f2_ana,out_unitp,4)
-         write(out_unitp,*) '-----------------------------------'
-         write(out_unitp,*)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'Tnum f2,f1,vep values'
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'vep',vep
+         write(out_unit,*) 'f1 of Tnum  '
+         CALL write_vec(Tdef1,out_unit,4)
+         write(out_unit,*) 'f2 of Tnum  '
+         CALL write_mat(Tdef2,out_unit,4)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'Tana f2,f1,vep values'
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*) 'vep',vep_ana
+         write(out_unit,*) 'f1 of Tana  '
+         CALL write_vec(f1_ana,out_unit,4)
+         write(out_unit,*) 'f2 of Tana  '
+         CALL write_mat(f2_ana,out_unit,4)
+         write(out_unit,*) '-----------------------------------'
+         write(out_unit,*)
       END IF
 
 
@@ -393,8 +393,8 @@ MODULE mod_Tana_Tnum
       CALL delete_op(ExpandTWOxKEO)
       CALL delete_op(TWOxKEO)
 
-      write(out_unitp,*) ' END ',routine_name
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) ' END ',routine_name
+      write(out_unit,*) '================================================='
 
    END SUBROUTINE comparison_G_FROM_Tnum_ReadKEO
 

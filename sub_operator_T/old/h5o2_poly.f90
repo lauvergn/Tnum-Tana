@@ -1,5 +1,5 @@
 SUBROUTINE Q_TO_X_ana(Q,nb_Q,X,nb_X,inTOout)
-  USE mod_system
+  USE TnumTana_system_m
   IMPLICIT NONE
   integer, intent(in)              :: nb_Q,nb_X
   real (kind=Rkind), intent(in)    :: Q(nb_Q)
@@ -7,19 +7,19 @@ SUBROUTINE Q_TO_X_ana(Q,nb_Q,X,nb_X,inTOout)
   logical, intent(in)              :: inTOout
 
   IF (nb_Q /= 15 .OR. nb_X < 21) THEN
-    write(out_unitp,*) ' ERROR in Q_TO_X_ana'
-    write(out_unitp,*) ' For protonated water dimer subroutine "q2x_RisOO".'
-    write(out_unitp,*) ' nb_Q /= 15',nb_Q
-    write(out_unitp,*) ' nb_X < 21',nb_X
+    write(out_unit,*) ' ERROR in Q_TO_X_ana'
+    write(out_unit,*) ' For protonated water dimer subroutine "q2x_RisOO".'
+    write(out_unit,*) ' nb_Q /= 15',nb_Q
+    write(out_unit,*) ' nb_X < 21',nb_X
     STOP
   END IF
 
   IF (inTOout) THEN
     CALL q2x_RisOO(Q,X(1:21))
   ELSE
-    write(out_unitp,*) ' ERROR in Q_TO_X_ana'
-    write(out_unitp,*) ' For protonated water dimer subroutine "q2x_RisOO".'
-    write(out_unitp,*) ' inTOout=f is not possible'
+    write(out_unit,*) ' ERROR in Q_TO_X_ana'
+    write(out_unit,*) ' For protonated water dimer subroutine "q2x_RisOO".'
+    write(out_unit,*) ' inTOout=f is not possible'
     STOP
   END IF
 
@@ -30,15 +30,15 @@ END SUBROUTINE Q_TO_X_ana
 !      character (len=10) :: name_v
 !
 !      DO i=0,14
-!        read(in_unitp,*) name_v,q(i)
+!        read(in_unit,*) name_v,q(i)
 !      END DO
 !      CALL q2x_RisOO(q,x)
 !      DO i=0,20,3
-!        write(out_unitp,*) x(i+0),x(i+1),x(i+2)
+!        write(out_unit,*) x(i+0),x(i+1),x(i+2)
 !      END DO
 !      END
       SUBROUTINE q2x_RisOO(qq,x)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: qq(0:14)
       real (kind=Rkind) :: x(0:20)
@@ -47,15 +47,15 @@ END SUBROUTINE Q_TO_X_ana
       CALL q2x_RisOO_Oriol_OK(qq,x)
 !     CALL q2x_RisOO_Oriol(qq,x)
 
-      !write(out_unitp,*) ' Oriol subroutine: W2H+'
+      !write(out_unit,*) ' Oriol subroutine: W2H+'
       !DO i=0,20,3
-      !  write(out_unitp,*) x(i+0),x(i+1),x(i+2)
+      !  write(out_unit,*) x(i+0),x(i+1),x(i+2)
       !END DO
 
       end subroutine q2x_RisOO
 
       SUBROUTINE q2x_RisOO_Oriol_OK(qq,x)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: q(0:14),qq(0:14)
       real (kind=Rkind) :: dum,q_OriolOrder(0:14)
@@ -70,7 +70,7 @@ END SUBROUTINE Q_TO_X_ana
       q_OriolOrder(:) = qq(:)
       q_OriolOrder(4) = qq(2) !a
       q_OriolOrder(2) = qq(4) !z
-!     write(out_unitp,*) 'a,z',q_OriolOrder(4),q_OriolOrder(2)
+!     write(out_unit,*) 'a,z',q_OriolOrder(4),q_OriolOrder(2)
 
 
 
@@ -205,7 +205,7 @@ END SUBROUTINE Q_TO_X_ana
       end subroutine q2x_RisOO_Oriol_OK
 
       SUBROUTINE q2x_RisOO_Oriol(qq,x)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: q(0:14),qq(0:14)
       real (kind=Rkind) :: dum,q_OriolOrder(0:14)
@@ -218,7 +218,7 @@ END SUBROUTINE Q_TO_X_ana
       q_OriolOrder(:) = qq(:)
       q_OriolOrder(4) = qq(2) !a
       q_OriolOrder(2) = qq(4) !z
-!     write(out_unitp,*) 'a,z',q_OriolOrder(4),q_OriolOrder(2)
+!     write(out_unit,*) 'a,z',q_OriolOrder(4),q_OriolOrder(2)
 
 
 
@@ -350,7 +350,7 @@ END SUBROUTINE Q_TO_X_ana
       end subroutine q2x_RisOO_Oriol
 
       SUBROUTINE qcos2q(q,qout)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: q(0:14),qout(0:14)
 !     For the angles defined as cosines transform them to radians
@@ -363,7 +363,7 @@ END SUBROUTINE Q_TO_X_ana
 
 
       SUBROUTINE eulerMatrix(a,b,c,r,inv)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
       real (kind=Rkind) :: a,b,c
       logical :: inv

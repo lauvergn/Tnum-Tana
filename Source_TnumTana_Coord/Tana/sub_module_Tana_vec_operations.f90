@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Tana_vec_operations
-   use mod_system
+   use TnumTana_system_m
    USE mod_Tana_OpEl     ! all
    USE mod_Tana_OpnD     ! all
    USE mod_Tana_sum_opnd ! all
@@ -152,17 +152,17 @@ MODULE mod_Tana_vec_operations
      nullify(M_opnd)
 
      if(fbeta%idf /= 1 .or. (fbeta%idq /= 7 .and. fbeta%idq /= -7)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', fbeta%idf
-       write(out_unitp,*) 'idq=', fbeta%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 7 or -7"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', fbeta%idf
+       write(out_unit,*) 'idq=', fbeta%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 7 or -7"
        STOP
      end if
      if(fgamma%idf /= 1 .or. fgamma%idq /= 8 ) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', fgamma%idf
-       write(out_unitp,*) 'idq=', fgamma%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 8"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', fgamma%idf
+       write(out_unit,*) 'idq=', fgamma%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 8"
        STOP
      end if
      CALL alloc_array(M_opnd,[3,3],'M_opnd',routine_name)
@@ -250,24 +250,24 @@ MODULE mod_Tana_vec_operations
      nullify(M_opnd)
 
      if(falpha%idf /= 1 .or. falpha%idq /= 6 ) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', falpha%idf
-       write(out_unitp,*) 'idq=', falpha%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 6"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', falpha%idf
+       write(out_unit,*) 'idq=', falpha%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 6"
        STOP
      end if
      if(fbeta%idf /= 1 .or. (fbeta%idq /= 7 .and. fbeta%idq /= -7)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', fbeta%idf
-       write(out_unitp,*) 'idq=', fbeta%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 7 or -7"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', fbeta%idf
+       write(out_unit,*) 'idq=', fbeta%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 7 or -7"
        STOP
      end if
      if(fgamma%idf /= 1 .or. fgamma%idq /= 8 ) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', fgamma%idf
-       write(out_unitp,*) 'idq=', fgamma%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 8"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', fgamma%idf
+       write(out_unit,*) 'idq=', fgamma%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 8"
        STOP
      end if
      CALL alloc_array(M_opnd,[3,3],'M_opnd',routine_name)
@@ -348,17 +348,17 @@ MODULE mod_Tana_vec_operations
 
      if(theta%idf /= 1 .or. (theta%idq /= 3 .and. theta%idq /= -3 .and. &
        theta%idq /= 7 .and. theta%idq /= -7)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', theta%idf
-       write(out_unitp,*) 'idq=', theta%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 3, -3, 7 or -7"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', theta%idf
+       write(out_unit,*) 'idq=', theta%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 3, -3, 7 or -7"
        STOP
      end if
      if(phi%idf /= 1 .or. (phi%idq /= 4 .and. phi%idq /= 6)) then
-       write(out_unitp,*) ' ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', phi%idf
-       write(out_unitp,*) 'idq=', phi%idq
-       write(out_unitp,*) "  The elementary operators should be the Id and idq = 4"
+       write(out_unit,*) ' ERROR in ',routine_name
+       write(out_unit,*) 'idf=', phi%idf
+       write(out_unit,*) 'idq=', phi%idq
+       write(out_unit,*) "  The elementary operators should be the Id and idq = 4"
        STOP
      end if
      call allocate_op(Ptf, 2)
@@ -397,7 +397,7 @@ MODULE mod_Tana_vec_operations
      call delete_op(Ptf)
      call delete_op(Ptf_dag)
 
-     !write(out_unitp,*) 'LiLi from ',routine_name
+     !write(out_unit,*) 'LiLi from ',routine_name
      !CALL write_op(LiLi)
 
    END SUBROUTINE Li_scalar_Li_from_Eq75

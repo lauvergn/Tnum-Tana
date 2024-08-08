@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_RPHTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       USE mod_freq
       IMPLICIT NONE
@@ -214,34 +214,34 @@
        nb_Ref               = 0
        Switch_Type          = 0
 
-       read(in_unitp,RPH,IOSTAT=err_read)
+       read(in_unit,RPH,IOSTAT=err_read)
        IF (err_read /= 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the "RPH" namelist'
-          write(out_unitp,*) ' end of file or end of record'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the "RPH" namelist'
+          write(out_unit,*) ' end of file or end of record'
+          write(out_unit,*) ' Check your data !!'
           STOP
        END IF
-       write(out_unitp,RPH)
+       write(out_unit,RPH)
 
        IF (option == 2 .AND. nb_Ref < 2) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  RPH option == 2 and the number of references is < 2'
-          write(out_unitp,*) '  option,nb_Ref',option,nb_Ref
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  RPH option == 2 and the number of references is < 2'
+          write(out_unit,*) '  option,nb_Ref',option,nb_Ref
+          write(out_unit,*) ' Check your data !!'
           STOP
        END IF
 
-       read(in_unitp,*,IOSTAT=err_read) list_act_OF_Qdyn(:)
-       !write(out_unitp,*) 'list_act_OF_Qdyn for RPH',list_act_OF_Qdyn(:)
+       read(in_unit,*,IOSTAT=err_read) list_act_OF_Qdyn(:)
+       !write(out_unit,*) 'list_act_OF_Qdyn for RPH',list_act_OF_Qdyn(:)
        IF (err_read /= 0) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) '  while reading "list_act_OF_Qdyn"'
-         write(out_unitp,*) ' end of file or end of record'
-         write(out_unitp,*) ' Check your data !!'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) '  while reading "list_act_OF_Qdyn"'
+         write(out_unit,*) ' end of file or end of record'
+         write(out_unit,*) ' Check your data !!'
          STOP
        END IF
-       flush(out_unitp)
+       flush(out_unit)
 
        nb_inact21 = count(list_act_OF_Qdyn(:) == 21)
 
@@ -249,21 +249,21 @@
        CALL alloc_NParray(list_QMLMapping,[nb_Qin],"list_QMLMapping",name_sub)
        list_QMLMapping(:) = 0
        IF (QMLib) THEN
-         read(in_unitp,*,IOSTAT=err_read) list_QMLMapping(:)
+         read(in_unit,*,IOSTAT=err_read) list_QMLMapping(:)
          IF (err_read /= 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) '  while reading "list_QMLMapping"'
-           write(out_unitp,*) '  end of file or end of record'
-           write(out_unitp,*) ' Check your data !!'
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) '  while reading "list_QMLMapping"'
+           write(out_unit,*) '  end of file or end of record'
+           write(out_unit,*) ' Check your data !!'
            STOP
          END IF
          DO i=1,nb_Qin
            IF (list_act_OF_Qdyn(i) == 21 .AND.                       &
                list_QMLMapping(i) == 0) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
-             write(out_unitp,*) '  list_QMLMapping(i) MUST be greater than 0'
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
+             write(out_unit,*) '  list_QMLMapping(i) MUST be greater than 0'
+             write(out_unit,*) ' Check your data !!'
              STOP
            END IF
          END DO
@@ -274,26 +274,26 @@
          CALL alloc_NParray(Qinact2n_sym,[nb_inact21],'Qinact2n_sym',name_sub)
          CALL alloc_NParray(Qinact2n_eq,[nb_inact21,nb_inact21],'Qinact2n_eq',name_sub)
 
-         read(in_unitp,*,IOSTAT=err_read) name0,Qinact2n_sym(:)
+         read(in_unit,*,IOSTAT=err_read) name0,Qinact2n_sym(:)
          IF (err_read /= 0) THEN
-           write(out_unitp,*) 'ERROR ',name_sub
-           write(out_unitp,*) ' while reading Qinact2n_sym: ',name0,Qinact2n_sym(:)
-           write(out_unitp,*) ' Check your data !!'
+           write(out_unit,*) 'ERROR ',name_sub
+           write(out_unit,*) ' while reading Qinact2n_sym: ',name0,Qinact2n_sym(:)
+           write(out_unit,*) ' Check your data !!'
            STOP
          END IF
 
          IF (eq_hess) THEN
            DO i=1,nb_inact21
-             read(in_unitp,*,IOSTAT=err_read) name0,Qinact2n_eq(i,:)
+             read(in_unit,*,IOSTAT=err_read) name0,Qinact2n_eq(i,:)
              IF (err_read /=0) THEN
-               write(out_unitp,*) ' while reading Qinact2n_eq: ',name0,Qinact2n_eq(i,:)
+               write(out_unit,*) ' while reading Qinact2n_eq: ',name0,Qinact2n_eq(i,:)
                EXIT
              END IF
            END DO
            IF (err_read /= 0) THEN
-             write(out_unitp,*) 'WARNING in ',name_sub
-             write(out_unitp,*) ' Problem, while reading Qinact2n_eq'
-             write(out_unitp,*) ' The matrix, Qinact2n_eq, is assumed to be zero'
+             write(out_unit,*) 'WARNING in ',name_sub
+             write(out_unit,*) ' Problem, while reading Qinact2n_eq'
+             write(out_unit,*) ' The matrix, Qinact2n_eq, is assumed to be zero'
              Qinact2n_eq(:,:) = 0
            END IF
          ELSE
@@ -358,19 +358,19 @@
       !logical, parameter :: debug=.FALSE.
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) ' BEGINNING ',name_sub
-        write(out_unitp,*) ' present:  list_act_OF_Qdyn',present(list_act_OF_Qdyn)
+        write(out_unit,*) ' BEGINNING ',name_sub
+        write(out_unit,*) ' present:  list_act_OF_Qdyn',present(list_act_OF_Qdyn)
 
-        write(out_unitp,*) ' present:  gradTOpot0',present(gradTOpot0)
-        write(out_unitp,*) ' present:  diabatic_freq',present(diabatic_freq)
-        write(out_unitp,*) ' present:  step',present(step)
+        write(out_unit,*) ' present:  gradTOpot0',present(gradTOpot0)
+        write(out_unit,*) ' present:  diabatic_freq',present(diabatic_freq)
+        write(out_unit,*) ' present:  step',present(step)
 
-        write(out_unitp,*) ' present:  purify_hess',present(purify_hess)
-        write(out_unitp,*) ' present:  eq_hess',present(eq_hess)
-        write(out_unitp,*) ' present:  Qinact2n_sym',present(Qinact2n_sym)
-        write(out_unitp,*) ' present:  Qinact2n_eq',present(Qinact2n_eq)
-        write(out_unitp,*) ' present:  QMLib',present(QMLib)
-        write(out_unitp,*) ' present:  list_QMLMapping',present(list_QMLMapping)
+        write(out_unit,*) ' present:  purify_hess',present(purify_hess)
+        write(out_unit,*) ' present:  eq_hess',present(eq_hess)
+        write(out_unit,*) ' present:  Qinact2n_sym',present(Qinact2n_sym)
+        write(out_unit,*) ' present:  Qinact2n_eq',present(Qinact2n_eq)
+        write(out_unit,*) ' present:  QMLib',present(QMLib)
+        write(out_unit,*) ' present:  list_QMLMapping',present(list_QMLMapping)
       END IF
 !---------------------------------------------------------------------
 
@@ -382,15 +382,15 @@
 
 
         IF (nb_act1 < 1 .OR. nb_inact21 < 1 .OR. nb_var < nb_act1+nb_inact21) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' nb_act1 < 1 or nb_inact21 < 1'
-          write(out_unitp,*) ' or nb_var < nb_act1+nb_inact21'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nb_act1 < 1 or nb_inact21 < 1'
+          write(out_unit,*) ' or nb_var < nb_act1+nb_inact21'
 
-          write(out_unitp,*) ' nb_var:       ',nb_var
-          write(out_unitp,*) ' nb_act1:      ',nb_act1
-          write(out_unitp,*) ' nb_inact21:   ',nb_inact21
+          write(out_unit,*) ' nb_var:       ',nb_var
+          write(out_unit,*) ' nb_act1:      ',nb_act1
+          write(out_unit,*) ' nb_inact21:   ',nb_inact21
 
-          write(out_unitp,*) ' Check the fortran source !!'
+          write(out_unit,*) ' Check the fortran source !!'
           STOP
         END IF
         RPHTransfo%nb_var        = nb_var
@@ -452,10 +452,10 @@
 
       IF (present(step)) THEN
         IF (step < epsilon(ONE)*TEN**3) THEN
-          write(out_unitp,*) 'ERROR in ',name_sub
-          write(out_unitp,*) 'step is too small',step
-          write(out_unitp,*) 'It should be larger than',epsilon(ONE)*TEN**3
-          write(out_unitp,*) ' Check your data (the RPH or inactive namelist) !!'
+          write(out_unit,*) 'ERROR in ',name_sub
+          write(out_unit,*) 'step is too small',step
+          write(out_unit,*) 'It should be larger than',epsilon(ONE)*TEN**3
+          write(out_unit,*) ' Check your data (the RPH or inactive namelist) !!'
           STOP
         END IF
         RPHTransfo%step          = step
@@ -572,9 +572,9 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'Set_RPHTransfo'
+        write(out_unit,*) 'Set_RPHTransfo'
         CALL Write_RPHTransfo(RPHTransfo)
-        write(out_unitp,*) ' END ',name_sub
+        write(out_unit,*) ' END ',name_sub
       END IF
 !---------------------------------------------------------------------
 
@@ -595,8 +595,8 @@
 !----- for debuging ----------------------------------
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -666,7 +666,7 @@
       CALL dealloc_RPHpara2(RPHTransfo%RPHpara2)
 
       IF (debug) THEN
-        write(out_unitp,*) 'END ',name_sub
+        write(out_unit,*) 'END ',name_sub
       END IF
 
       END SUBROUTINE dealloc_RPHTransfo
@@ -740,9 +740,9 @@
       !logical,parameter :: debug=.TRUE.
 !----- for debuging --------------------------------------------------
 
-       !write(out_unitp,*) 'BEGINNING ',name_sub_alloc
-       !IF (present(tab_lb)) write(out_unitp,*) 'tab_lb',tab_lb
-       !write(out_unitp,*) 'tab_ub',tab_ub
+       !write(out_unit,*) 'BEGINNING ',name_sub_alloc
+       !IF (present(tab_lb)) write(out_unit,*) 'tab_lb',tab_lb
+       !write(out_unit,*) 'tab_ub',tab_ub
 
 
        IF (associated(tab))                                             &
@@ -848,75 +848,75 @@
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub='Write_RPHTransfo'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unitp,*) 'init     ',RPHTransfo%init
-      write(out_unitp,*) 'init_Qref',RPHTransfo%init_Qref
+      write(out_unit,*) 'init     ',RPHTransfo%init
+      write(out_unit,*) 'init_Qref',RPHTransfo%init_Qref
 
-      write(out_unitp,*) 'option',RPHTransfo%option
-      write(out_unitp,*) 'QMLib',RPHTransfo%QMLib
+      write(out_unit,*) 'option',RPHTransfo%option
+      write(out_unit,*) 'QMLib',RPHTransfo%QMLib
       IF (allocated(RPHTransfo%list_QMLMapping)) THEN
-        write(out_unitp,*) 'list_QMLMapping',RPHTransfo%list_QMLMapping(:)
+        write(out_unit,*) 'list_QMLMapping',RPHTransfo%list_QMLMapping(:)
       END IF
-      write(out_unitp,*) 'nb_var',RPHTransfo%nb_var
+      write(out_unit,*) 'nb_var',RPHTransfo%nb_var
 
-      write(out_unitp,*) 'nb_act1,nb_inact21',RPHTransfo%nb_act1,RPHTransfo%nb_inact21
+      write(out_unit,*) 'nb_act1,nb_inact21',RPHTransfo%nb_act1,RPHTransfo%nb_inact21
 
       IF (associated(RPHTransfo%list_act_OF_Qdyn)) THEN
-        write(out_unitp,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
       END IF
 
       IF (associated(RPHTransfo%list_QactTOQdyn)) THEN
-        write(out_unitp,*) 'list_QactTOQdyn',RPHTransfo%list_QactTOQdyn(:)
+        write(out_unit,*) 'list_QactTOQdyn',RPHTransfo%list_QactTOQdyn(:)
       END IF
       IF (associated(RPHTransfo%list_QdynTOQact)) THEN
-        write(out_unitp,*) 'list_QdynTOQact',RPHTransfo%list_QdynTOQact(:)
+        write(out_unit,*) 'list_QdynTOQact',RPHTransfo%list_QdynTOQact(:)
       END IF
 
-      write(out_unitp,*) 'C_ini',associated(RPHTransfo%C_ini)
-      IF (associated(RPHTransfo%C_ini)) CALL Write_Mat(RPHTransfo%C_ini,out_unitp,5)
+      write(out_unit,*) 'C_ini',associated(RPHTransfo%C_ini)
+      IF (associated(RPHTransfo%C_ini)) CALL Write_Mat(RPHTransfo%C_ini,out_unit,5)
 
 
-      write(out_unitp,*) 'nb_Qa',RPHTransfo%nb_Qa
+      write(out_unit,*) 'nb_Qa',RPHTransfo%nb_Qa
 
       IF (associated(RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
-        write(out_unitp,*) 'tab_RPHpara_AT_Qact1'
+        write(out_unit,*) 'tab_RPHpara_AT_Qact1'
         DO iQa=lbound(RPHTransfo%tab_RPHpara_AT_Qact1,dim=1),           &
                ubound(RPHTransfo%tab_RPHpara_AT_Qact1,dim=1)
           CALL Write_RPHpara_AT_Qact1(RPHTransfo%tab_RPHpara_AT_Qact1(iQa),nderiv=1)
         END DO
       END IF
 
-      write(out_unitp,*) 'step:           ',RPHTransfo%step
-      write(out_unitp,*) 'purify_hess:    ',RPHTransfo%purify_hess
-      write(out_unitp,*) 'eq_hess:        ',RPHTransfo%eq_hess
-      write(out_unitp,*) 'diabatic_freq:  ',RPHTransfo%diabatic_freq
+      write(out_unit,*) 'step:           ',RPHTransfo%step
+      write(out_unit,*) 'purify_hess:    ',RPHTransfo%purify_hess
+      write(out_unit,*) 'eq_hess:        ',RPHTransfo%eq_hess
+      write(out_unit,*) 'diabatic_freq:  ',RPHTransfo%diabatic_freq
 
 
 
       IF (RPHTransfo%purify_hess) THEN
 
-        write(out_unitp,*)
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*) 'Hessian purification',RPHTransfo%purify_hess
+        write(out_unit,*)
+        write(out_unit,*) "========================================"
+        write(out_unit,*) 'Hessian purification',RPHTransfo%purify_hess
 
-        write(out_unitp,*) 'Hessian purification parameters'
-        write(out_unitp,*) 'Qinact2n_sym',RPHTransfo%Qinact2n_sym(:)
+        write(out_unit,*) 'Hessian purification parameters'
+        write(out_unit,*) 'Qinact2n_sym',RPHTransfo%Qinact2n_sym(:)
 
         IF (RPHTransfo%eq_hess) THEN
           DO i=1,RPHTransfo%nb_inact21
-            write(out_unitp,*) 'Qinact2n_eq',i,RPHTransfo%Qinact2n_eq(i,:)
+            write(out_unit,*) 'Qinact2n_eq',i,RPHTransfo%Qinact2n_eq(i,:)
           END DO
-          write(out_unitp,*) 'dim_equi',RPHTransfo%dim_equi(:)
+          write(out_unit,*) 'dim_equi',RPHTransfo%dim_equi(:)
 
           DO i=1,RPHTransfo%nb_inact21
-            write(out_unitp,*) 'tab_equi:',i,RPHTransfo%dim_equi(i),':',&
+            write(out_unit,*) 'tab_equi:',i,RPHTransfo%dim_equi(i),':',&
                        RPHTransfo%tab_equi(i,RPHTransfo%dim_equi(i))
           END DO
         END IF
-        write(out_unitp,*) 'END Hessian purification'
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*)
+        write(out_unit,*) 'END Hessian purification'
+        write(out_unit,*) "========================================"
+        write(out_unit,*)
       END IF
 
       CALL Write_degenerate_freq(RPHTransfo%degenerate_freq)
@@ -925,8 +925,8 @@
         CALL Write_RPHpara2(RPHTransfo%RPHpara2)
       END IF
 
-      write(out_unitp,*) 'END ',name_sub
-      flush(out_unitp)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
       END SUBROUTINE Write_RPHTransfo
 
 
@@ -948,10 +948,10 @@
 !----- for debuging ----------------------------------
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'RPHTransfo1'
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'RPHTransfo1'
         CALL Write_RPHTransfo(RPHTransfo1)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1050,10 +1050,10 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'RPHTransfo2'
+        write(out_unit,*) 'RPHTransfo2'
         CALL Write_RPHTransfo(RPHTransfo2)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1097,19 +1097,19 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
         !CALL Write_RPHTransfo(RPHTransfo)
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
-        write(out_unitp,*) 'list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
-        flush(out_unitp)
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*) 'list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
+        flush(out_unit)
 
-        write(out_unitp,*) 'Qact1',dnQin%d0(1:RPHTransfo%nb_act1)
+        write(out_unit,*) 'Qact1',dnQin%d0(1:RPHTransfo%nb_act1)
 
 
-        write(out_unitp,*) 'dnQin'
+        write(out_unit,*) 'dnQin'
         CALL Write_dnVec(dnQin,nderiv=nderiv_debug)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1124,13 +1124,13 @@
           ELSE
             CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
           END IF
-          write(out_unitp,*) 'WARNING in ',name_sub
-          write(out_unitp,*) ' the "RPHTransfo" derived type is not initialized'
+          write(out_unit,*) 'WARNING in ',name_sub
+          write(out_unit,*) ' the "RPHTransfo" derived type is not initialized'
 
-          !write(out_unitp,*) 'ERROR in ',name_sub
-          !write(out_unitp,*) ' the "RPHTransfo" derived type is not initialized'
-          !write(out_unitp,*) ' It should not append!'
-          !write(out_unitp,*) ' CHECK the fortran source!!'
+          !write(out_unit,*) 'ERROR in ',name_sub
+          !write(out_unit,*) ' the "RPHTransfo" derived type is not initialized'
+          !write(out_unit,*) ' It should not append!'
+          !write(out_unit,*) ' CHECK the fortran source!!'
           !STOP
        END IF
 
@@ -1156,7 +1156,7 @@
            END DO
          END IF
          IF (debug) THEN
-           write(out_unitp,*) 'dnQRPHout (in)'
+           write(out_unit,*) 'dnQRPHout (in)'
            CALL Write_dnVec(dnQRPHout,nderiv=nderiv_debug)
          END IF
 
@@ -1164,44 +1164,44 @@
          CALL sub_PartdnVec1_TO_PartdnVec2(dnQRPHout,RPHTransfo%nb_act1+1, &
                                            dnVec21in,1,RPHTransfo%nb_inact21,nderiv)
          IF (debug) THEN
-           write(out_unitp,*) 'dnVec21in'
+           write(out_unit,*) 'dnVec21in'
            CALL Write_dnVec(dnVec21in,nderiv=nderiv_debug)
          END IF
 
 
          ! find the iQa from tab_RPHpara_AT_Qact1
          Qact1(:)        = dnQin%d0(1:RPHTransfo%nb_act1)
-         !write(out_unitp,*) 'Qact1',Qact1(:)
+         !write(out_unit,*) 'Qact1',Qact1(:)
 
          ! find the iQa from tab_RPHpara_AT_Qact1
          iQa = 0
          Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,RPHTransfo%tab_RPHpara_AT_Qact1)
 
          IF (.NOT. Find_iQa) THEN
-           write(out_unitp,*) 'ERROR in ',name_sub
+           write(out_unit,*) 'ERROR in ',name_sub
            STOP
          ELSE
-           IF (debug) write(out_unitp,*) 'tab_RPHpara_AT_Qact1 point',iQa
+           IF (debug) write(out_unit,*) 'tab_RPHpara_AT_Qact1 point',iQa
            RPHpara_AT_Qact1 => RPHTransfo%tab_RPHpara_AT_Qact1(iQa:iQa)
          END IF
 
          ! 1c) check if the initialization has been done
          IF (RPHpara_AT_Qact1(1)%init_done == 0) THEN
            CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'ERROR in ',name_sub
-           write(out_unitp,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
+           write(out_unit,*) 'ERROR in ',name_sub
+           write(out_unit,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
            STOP
          END IF
          IF (RPHpara_AT_Qact1(1)%init_done == 1) THEN
            CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'WARNING in ',name_sub
-           write(out_unitp,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
-           write(out_unitp,*) ' => it will be used to calculate the frequencies.'
+           write(out_unit,*) 'WARNING in ',name_sub
+           write(out_unit,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
+           write(out_unit,*) ' => it will be used to calculate the frequencies.'
          END IF
 
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnC_inv at iQa',iQa
+           write(out_unit,*) 'dnC_inv at iQa',iQa
            CALL Write_dnMat(RPHpara_AT_Qact1(1)%dnC_inv,nderiv=nderiv_debug)
          END IF
 
@@ -1213,7 +1213,7 @@
                                            dnC_inv_allder,nderiv)
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnC_inv_allder'
+           write(out_unit,*) 'dnC_inv_allder'
            CALL Write_dnMat(dnC_inv_allder,nderiv=nderiv_debug)
          END IF
 
@@ -1225,7 +1225,7 @@
 
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnVec21out without Qopt'
+           write(out_unit,*) 'dnVec21out without Qopt'
            CALL Write_dnVec(dnVec21out,nderiv=nderiv_debug)
          END IF
          CALL sub_dnVec1_TO_dnVec2(dnVec21out,dnVec21in,nderiv)
@@ -1233,7 +1233,7 @@
 
          ! transfert dnQopt (RPHpara) in dnQopt_allder
          IF (debug) THEN
-           write(out_unitp,*) 'dnQopt at iQa',iQa
+           write(out_unit,*) 'dnQopt at iQa',iQa
            CALL Write_dnVec(RPHpara_AT_Qact1(1)%dnQopt,nderiv=nderiv_debug)
          END IF
 
@@ -1243,7 +1243,7 @@
                                            dnQopt_allder,nderiv)
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnQopt_allder'
+           write(out_unit,*) 'dnQopt_allder'
            CALL Write_dnVec(dnQopt_allder,nderiv=nderiv_debug)
          END IF
 
@@ -1256,7 +1256,7 @@
          CALL dealloc_dnVec(dnQopt_allder)
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnVec21out with Qopt'
+           write(out_unit,*) 'dnVec21out with Qopt'
            CALL Write_dnVec(dnVec21out,nderiv=nderiv_debug)
          END IF
 
@@ -1267,7 +1267,7 @@
                                            RPHTransfo%nb_inact21,nderiv)
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnQRPHout (out)'
+           write(out_unit,*) 'dnQRPHout (out)'
            CALL Write_dnVec(dnQRPHout,nderiv=nderiv_debug)
          END IF
 
@@ -1291,7 +1291,7 @@
 !                                            dnQin%nb_var_vec,nderiv)
 !
 !         IF (debug) THEN
-!           write(out_unitp,*) 'diff (correct)'
+!           write(out_unit,*) 'diff (correct)'
 !           CALL test_ZERO_OF_dnVec(dnQin,nderiv)
 !           !CALL Write_dnVec(dnQin,nderiv=1)
 !         END IF
@@ -1318,10 +1318,10 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*) 'dnQout'
         CALL Write_dnVec(dnQout,nderiv=nderiv_debug)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1357,15 +1357,15 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
         !CALL Write_RPHTransfo(RPHTransfo)
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
-        write(out_unitp,*) 'list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*) 'list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
 
-        write(out_unitp,*) 'dnQin'
+        write(out_unit,*) 'dnQin'
         CALL Write_dnVec(dnQin)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1381,10 +1381,10 @@
             CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
           END IF
 
-         !write(out_unitp,*) 'ERROR in ',name_sub
-         !write(out_unitp,*) ' the "RPHTransfo" derived type is not initialized'
-         !write(out_unitp,*) ' It should not append!'
-         !write(out_unitp,*) ' CHECK the fortran source!!'
+         !write(out_unit,*) 'ERROR in ',name_sub
+         !write(out_unit,*) ' the "RPHTransfo" derived type is not initialized'
+         !write(out_unit,*) ' It should not append!'
+         !write(out_unit,*) ' CHECK the fortran source!!'
          !STOP
        END IF
 
@@ -1410,15 +1410,15 @@
            IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 21) THEN
              CALL sub_dnS1_TO_dnS2_partial(dnQallder,dnQ,nderiv)
              iQinact = iQinact + 1
-             !write(out_unitp,*) 'save iQ var in dnVecQin iQinact',iQ,iQinact
+             !write(out_unit,*) 'save iQ var in dnVecQin iQinact',iQ,iQinact
              CALL sub_dnS_TO_dnVec(dnQ,dnVecQin,iQinact,nderiv)
            ELSE IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 1) THEN
              iQact = iQact + 1
-             !write(out_unitp,*) 'save act iQ var in dnQout',iQ
+             !write(out_unit,*) 'save act iQ var in dnQout',iQ
              CALL sub_dnS_TO_dnVec(dnQallder,dnQout,iQ,nderiv)
              Qact1(iQact) = dnQallder%d0
            ELSE ! rigid...
-             !write(out_unitp,*) 'save const iQ var in dnQout',iQ
+             !write(out_unit,*) 'save const iQ var in dnQout',iQ
              CALL sub_dnS_TO_dnVec(dnQallder,dnQout,iQ,nderiv)
            END IF
          END DO
@@ -1428,34 +1428,34 @@
          Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,RPHTransfo%tab_RPHpara_AT_Qact1)
 
          IF (.NOT. Find_iQa) THEN
-           write(out_unitp,*) 'ERROR in ',name_sub
+           write(out_unit,*) 'ERROR in ',name_sub
            STOP
          ELSE
-           IF (debug) write(out_unitp,*) 'tab_RPHpara_AT_Qact1 point',iQa
+           IF (debug) write(out_unit,*) 'tab_RPHpara_AT_Qact1 point',iQa
            RPHpara_AT_Qact1 => RPHTransfo%tab_RPHpara_AT_Qact1(iQa:iQa)
          END IF
 
          ! 1c) check if the initialization has been done
          IF (RPHpara_AT_Qact1(1)%init_done == 0) THEN
            CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'ERROR in ',name_sub
-           write(out_unitp,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
+           write(out_unit,*) 'ERROR in ',name_sub
+           write(out_unit,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
            STOP
          END IF
          IF (RPHpara_AT_Qact1(1)%init_done == 1) THEN
            CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'WARNING in ',name_sub
-           write(out_unitp,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
-           write(out_unitp,*) ' => it will be used to calculate the frequencies.'
+           write(out_unit,*) 'WARNING in ',name_sub
+           write(out_unit,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
+           write(out_unit,*) ' => it will be used to calculate the frequencies.'
          END IF
 
 
          IF (debug) THEN
-           write(out_unitp,*) 'dnVecQin'
+           write(out_unit,*) 'dnVecQin'
            CALL Write_dnVec(dnVecQin)
-           write(out_unitp,*) 'dnQopt at iQa',iQa
+           write(out_unit,*) 'dnQopt at iQa',iQa
            CALL Write_dnVec(RPHpara_AT_Qact1(1)%dnQopt)
-           write(out_unitp,*) 'dnC_inv at iQa',iQa
+           write(out_unit,*) 'dnC_inv at iQa',iQa
            CALL Write_dnMat(RPHpara_AT_Qact1(1)%dnC_inv)
          END IF
 
@@ -1464,7 +1464,7 @@
                                            RPHpara_AT_Qact1(1)%dnC_inv, &
                                                        dnVecQout,nderiv)
          IF (debug) THEN
-           write(out_unitp,*) 'dnVecQout'
+           write(out_unit,*) 'dnVecQout'
            CALL Write_dnVec(dnVecQout)
          END IF
          CALL sub_dnVec1_TO_dnVec2(dnVecQout,dnVecQin,nderiv)
@@ -1542,10 +1542,10 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*) 'dnQout'
         CALL Write_dnVec(dnQout)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
       END SUBROUTINE calc_RPHTransfo_BeforeActive_v1
@@ -1580,15 +1580,15 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'BEGINNING ',name_sub
         !CALL Write_RPHTransfo(RPHTransfo)
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'RPH list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
-        write(out_unitp,*) 'RPH list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'RPH list_act_OF_Qdyn',RPHTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*) 'RPH list_QactTOQdyn ',RPHTransfo%list_QactTOQdyn(:)
 
-        write(out_unitp,*) 'dnQin'
+        write(out_unit,*) 'dnQin'
         CALL Write_dnVec(dnQin)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1604,10 +1604,10 @@
             CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
           END IF
 
-         !write(out_unitp,*) 'ERROR in ',name_sub
-         !write(out_unitp,*) ' the "RPHTransfo" derived type is not initialized'
-         !write(out_unitp,*) ' It should not append!'
-         !write(out_unitp,*) ' CHECK the fortran source!!'
+         !write(out_unit,*) 'ERROR in ',name_sub
+         !write(out_unit,*) ' the "RPHTransfo" derived type is not initialized'
+         !write(out_unit,*) ' It should not append!'
+         !write(out_unit,*) ' CHECK the fortran source!!'
          !STOP
        END IF
 
@@ -1620,7 +1620,7 @@
          DO iQin=1,dnQin%nb_var_vec
            IF (RPHTransfo%list_act_OF_Qdyn(iQin) == 1) THEN
              iQact = iQact + 1
-             !write(out_unitp,*) 'save act iQ var in dnQout',iQ
+             !write(out_unit,*) 'save act iQ var in dnQout',iQ
              Qact1(iQact) = dnQin%d0(iQin)
            END IF
          END DO
@@ -1630,28 +1630,28 @@
          iQa = 0
          Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,RPHTransfo%tab_RPHpara_AT_Qact1)
 
-         IF (debug) write(out_unitp,*) 'Find_iQa,iQa',Find_iQa,iQa
+         IF (debug) write(out_unit,*) 'Find_iQa,iQa',Find_iQa,iQa
 
          IF (.NOT. Find_iQa) THEN
-           write(out_unitp,*) 'ERROR in ',name_sub
+           write(out_unit,*) 'ERROR in ',name_sub
            STOP
          ELSE
-           IF (debug) write(out_unitp,*) 'tab_RPHpara_AT_Qact1 point',iQa
+           IF (debug) write(out_unit,*) 'tab_RPHpara_AT_Qact1 point',iQa
            RPHpara_AT_Qact1 => RPHTransfo%tab_RPHpara_AT_Qact1(iQa:iQa)
          END IF
 
          ! 1c) check if the initialization has been done
          IF (RPHpara_AT_Qact1(1)%init_done == 0) THEN
            CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'ERROR in ',name_sub
-           write(out_unitp,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
+           write(out_unit,*) 'ERROR in ',name_sub
+           write(out_unit,*) ' The initialization of tab_RPHpara_AT_Qact1 is not done.'
            STOP
          END IF
          IF (debug .AND. RPHpara_AT_Qact1(1)%init_done == 1) THEN
            !CALL Write_RPHTransfo(RPHTransfo)
-           write(out_unitp,*) 'WARNING in ',name_sub
-           write(out_unitp,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
-           write(out_unitp,*) ' => it will be used to calculate the frequencies.'
+           write(out_unit,*) 'WARNING in ',name_sub
+           write(out_unit,*) ' Partial initialization of tab_RPHpara_AT_Qact1.'
+           write(out_unit,*) ' => it will be used to calculate the frequencies.'
          END IF
          !-----------------------------------------------
          !-----------------------------------------------
@@ -1683,8 +1683,8 @@
            idyn = iderQ21(ider)
            iderQ21(ider) = RPHTransfo%list_QdynTOQact(idyn)
          END DO
-         IF (debug) write(out_unitp,*) 'iderQ1 ',iderQ1
-         IF (debug) write(out_unitp,*) 'iderQ21',iderQ21
+         IF (debug) write(out_unit,*) 'iderQ1 ',iderQ1
+         IF (debug) write(out_unit,*) 'iderQ21',iderQ21
 
          ! 2b) dnVecQin and dnVecQout
          ! alloc dnVecQin and dnVecQout for the nb_inact21 coordinates
@@ -1710,11 +1710,11 @@
              END IF
            END DO
            IF (debug) THEN
-             write(out_unitp,*) 'dnVecQin'
+             write(out_unit,*) 'dnVecQin'
              CALL Write_dnVec(dnVecQin)
-             write(out_unitp,*) 'dnQopt at iQa',iQa
+             write(out_unit,*) 'dnQopt at iQa',iQa
              CALL Write_dnVec(RPHpara_AT_Qact1(1)%dnQopt)
-             write(out_unitp,*) 'dnC_inv at iQa',iQa
+             write(out_unit,*) 'dnC_inv at iQa',iQa
              CALL Write_dnMat(RPHpara_AT_Qact1(1)%dnC_inv)
            END IF
 
@@ -1724,7 +1724,7 @@
                                           RPHpara_AT_Qact1(1)%dnC_inv,  &
                                                        dnVecQout,nderiv)
            IF (debug) THEN
-             write(out_unitp,*) 'dnVecQout'
+             write(out_unit,*) 'dnVecQout'
              CALL Write_dnVec(dnVecQout)
            END IF
          ELSE
@@ -1736,7 +1736,7 @@
                                                         dnVecQout,1,ONE,&
                                            RPHTransfo%nb_inact21,nderiv)
          IF (debug) THEN
-           write(out_unitp,*) 'dnVecQout with dnQopt'
+           write(out_unit,*) 'dnVecQout with dnQopt'
            CALL Write_dnVec(dnVecQout)
          END IF
 
@@ -1814,10 +1814,10 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*) 'dnQout'
+        write(out_unit,*) 'dnQout'
         CALL Write_dnVec(dnQout)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
 !---------------------------------------------------------------------
 
@@ -1834,8 +1834,8 @@
       CALL dealloc_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
 
       IF (nb_act1 < 1 .OR. nb_inact21 < 1) THEN
-        write(out_unitp,*) 'ERROR in ',name_sub
-        write(out_unitp,*) 'nb_act1 or nb_inact21 < 1',nb_act1,nb_inact21
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) 'nb_act1 or nb_inact21 < 1',nb_act1,nb_inact21
         STOP
       END IF
       RPHpara_AT_Qact1%nb_act1     = nb_act1
@@ -1914,7 +1914,7 @@
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub='Write_RPHpara_AT_Qact1'
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
       IF (present(nderiv)) THEN
         nderiv_loc = nderiv
@@ -1922,47 +1922,47 @@
         nderiv_loc = 4
       END IF
 
-      write(out_unitp,*) 'init_done',RPHpara_AT_Qact1%init_done
+      write(out_unit,*) 'init_done',RPHpara_AT_Qact1%init_done
 
-      write(out_unitp,*) 'nb_act1,nb_inact21',                        &
+      write(out_unit,*) 'nb_act1,nb_inact21',                        &
                   RPHpara_AT_Qact1%nb_act1,RPHpara_AT_Qact1%nb_inact21
-      write(out_unitp,*) 'nderiv',RPHpara_AT_Qact1%nderiv
+      write(out_unit,*) 'nderiv',RPHpara_AT_Qact1%nderiv
 
       IF (allocated(RPHpara_AT_Qact1%RPHQact1)) THEN
-        write(out_unitp,*) 'Qact1',RPHpara_AT_Qact1%RPHQact1(:)
+        write(out_unit,*) 'Qact1',RPHpara_AT_Qact1%RPHQact1(:)
       END IF
 
       IF (RPHpara_AT_Qact1%dnC%alloc) THEN
-        write(out_unitp,*) 'dnC'
+        write(out_unit,*) 'dnC'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnC,nderiv=nderiv_loc)
       END IF
 
       IF (RPHpara_AT_Qact1%dnC_inv%alloc) THEN
-        write(out_unitp,*) 'dnC_inv'
+        write(out_unit,*) 'dnC_inv'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnC_inv,nderiv=nderiv_loc)
       END IF
 
       IF (RPHpara_AT_Qact1%dnQopt%alloc) THEN
-        write(out_unitp,*) 'dnQopt'
+        write(out_unit,*) 'dnQopt'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnQopt,nderiv=nderiv_loc)
       END IF
 
       IF (RPHpara_AT_Qact1%dnehess%alloc) THEN
-        write(out_unitp,*) 'dnehess'
+        write(out_unit,*) 'dnehess'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnehess,nderiv=nderiv_loc)
       END IF
 
       IF (RPHpara_AT_Qact1%dnhess%alloc) THEN
-        write(out_unitp,*) 'dnhess'
+        write(out_unit,*) 'dnhess'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnhess,nderiv=nderiv_loc)
       END IF
 
       IF (RPHpara_AT_Qact1%dnLnN%alloc) THEN
-        write(out_unitp,*) 'dnLnN'
+        write(out_unit,*) 'dnLnN'
         CALL Write_dnSVM(RPHpara_AT_Qact1%dnLnN,nderiv=nderiv_loc)
       END IF
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_RPHpara_AT_Qact1
 
@@ -2035,25 +2035,25 @@
 
       lb = lbound(tab_RPHpara_AT_Qact1,dim=1)
       ub = ubound(tab_RPHpara_AT_Qact1,dim=1)
-      IF (debug) write(out_unitp,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 0 lb,ub',lb,ub
+      IF (debug) write(out_unit,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 0 lb,ub',lb,ub
 
       IF (iQa >= lb .AND. iQa <= ub ) THEN
         Find_iQa = all(abs(Qact1-tab_RPHpara_AT_Qact1(iQa)%RPHQact1) < epsi)
       END IF
-      IF (debug) write(out_unitp,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 1 iQa,Find_iQa',iQa,Find_iQa
+      IF (debug) write(out_unit,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 1 iQa,Find_iQa',iQa,Find_iQa
 
       IF (.NOT. Find_iQa) THEN
         iQa = iQa + 1
         IF (iQa >= lb .AND. iQa <= ub) THEN
           Find_iQa = all(abs(Qact1-tab_RPHpara_AT_Qact1(iQa)%RPHQact1) < epsi)
          END IF
-         IF (debug) write(out_unitp,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 2 iQa,Find_iQa',iQa,Find_iQa
+         IF (debug) write(out_unit,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 2 iQa,Find_iQa',iQa,Find_iQa
       END IF
 
       IF (.NOT. Find_iQa) THEN
         DO iQa_loc=lb,ub
           Find_iQa = all(abs(Qact1-tab_RPHpara_AT_Qact1(iQa_loc)%RPHQact1) < epsi)
-          IF (debug) write(out_unitp,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 3 iQa,Find_iQa',iQa_loc,Find_iQa
+          IF (debug) write(out_unit,*) 'in Find_iQa_OF_RPHpara_AT_Qact1: 3 iQa,Find_iQa',iQa_loc,Find_iQa
           IF (Find_iQa) EXIT
         END DO
         IF (Find_iQa) iQa = iQa_loc
@@ -2063,18 +2063,18 @@
 
     IF (.NOT. Find_iQa) THEN
       IF (associated(tab_RPHpara_AT_Qact1)) THEN
-        write(out_unitp,*) 'tab_RPHpara_AT_Qact1'
+        write(out_unit,*) 'tab_RPHpara_AT_Qact1'
         DO iQa_loc=lb,ub
           CALL Write_RPHpara_AT_Qact1(tab_RPHpara_AT_Qact1(iQa_loc),nderiv=1)
         END DO
       ELSE
-        write(out_unitp,*) 'tab_RPHpara_AT_Qact1 is not associated.'
+        write(out_unit,*) 'tab_RPHpara_AT_Qact1 is not associated.'
       END IF
-      write(out_unitp,*) ' Qact1',Qact1(:)
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' I cannot find Qact1(:) in tab_RPHpara_AT_Qact1'
-      write(out_unitp,*) ' or tab_RPHpara_AT_Qact1 is not associated'
-      write(out_unitp,*) ' or inconsistent Qact1 size'
+      write(out_unit,*) ' Qact1',Qact1(:)
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' I cannot find Qact1(:) in tab_RPHpara_AT_Qact1'
+      write(out_unit,*) ' or tab_RPHpara_AT_Qact1 is not associated'
+      write(out_unit,*) ' or inconsistent Qact1 size'
       !STOP 'ERROR in Find_iQa_OF_RPHpara_AT_Qact1: cannot find Qact1(:)'
     END IF
 
@@ -2152,34 +2152,34 @@
       character (len=*), parameter :: name_sub='Write_RPHpara2'
 
       IF (RPHpara2%nb_Ref > 0) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) "========================================"
-        write(out_unitp,*) "=== RPH with several references ========"
-        write(out_unitp,*)
-        write(out_unitp,*) '  nb_Ref:          ',RPHpara2%nb_Ref
-        write(out_unitp,*) '  Switch_Type:     ',RPHpara2%Switch_Type
+        write(out_unit,*)
+        write(out_unit,*) "========================================"
+        write(out_unit,*) "=== RPH with several references ========"
+        write(out_unit,*)
+        write(out_unit,*) '  nb_Ref:          ',RPHpara2%nb_Ref
+        write(out_unit,*) '  Switch_Type:     ',RPHpara2%Switch_Type
 
         IF (allocated(RPHpara2%listNM_act1)) THEN
-          write(out_unitp,*) 'listNM_act1',RPHpara2%listNM_act1
+          write(out_unit,*) 'listNM_act1',RPHpara2%listNM_act1
         END IF
 
         DO iref=1,RPHpara2%nb_Ref
           IF (allocated(RPHpara2%OrderNM_iRef)) THEN
-            write(out_unitp,*) 'OrderNM_iRef:     ',iref
-            write(out_unitp,*) RPHpara2%OrderNM_iRef(:,iref)
+            write(out_unit,*) 'OrderNM_iRef:     ',iref
+            write(out_unit,*) RPHpara2%OrderNM_iRef(:,iref)
           END IF
 
           IF (allocated(RPHpara2%QoutRef)) THEN
-            write(out_unitp,*) 'QoutRef:     ',iref
-            CALL Write_VecMat(RPHpara2%QoutRef(:,iref),out_unitp,5,info='QoutRef')
+            write(out_unit,*) 'QoutRef:     ',iref
+            CALL Write_VecMat(RPHpara2%QoutRef(:,iref),out_unit,5,info='QoutRef')
           END IF
           IF (allocated(RPHpara2%CinvRef)) THEN
-            write(out_unitp,*) 'CinvRef:     ',iref
-            CALL Write_VecMat(RPHpara2%CinvRef(:,:,iref),out_unitp,5,info='CinvRef')
+            write(out_unit,*) 'CinvRef:     ',iref
+            CALL Write_VecMat(RPHpara2%CinvRef(:,:,iref),out_unit,5,info='CinvRef')
           END IF
         END DO
-        write(out_unitp,*)
-        write(out_unitp,*) "========================================"
+        write(out_unit,*)
+        write(out_unit,*) "========================================"
       END IF
 
       END SUBROUTINE Write_RPHpara2
@@ -2208,11 +2208,11 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
   !----------------------------------------------------------------------
 
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'BEGINNING ',name_sub
   END IF
 
-  read(in_unitp,*,IOSTAT=err_read) phase(:)
-  write(out_unitp,*) 'phase',phase
+  read(in_unit,*,IOSTAT=err_read) phase(:)
+  write(out_unit,*) 'phase',phase
 
   RPHpara2%Switch_Type = Switch_Type
   RPHpara2%nb_ref      = nb_ref
@@ -2232,61 +2232,61 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
 
   DO iref=1,nb_ref
 
-    read(in_unitp,*,IOSTAT=err_read) RPHpara2%QoutRef(:,iref)
-    write(out_unitp,*) 'QoutRef',RPHpara2%QoutRef(:,iref)
+    read(in_unit,*,IOSTAT=err_read) RPHpara2%QoutRef(:,iref)
+    write(out_unit,*) 'QoutRef',RPHpara2%QoutRef(:,iref)
 
     IF (err_read /= 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the "QoutRef" for iref: ',iref
-      write(out_unitp,*) ' end of file or end of record'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the "QoutRef" for iref: ',iref
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Check your data !!'
       STOP
     END IF
 
-    read(in_unitp,*,IOSTAT=err_read) nbcol
+    read(in_unit,*,IOSTAT=err_read) nbcol
     IF (err_read /= 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the "nbcol" for iref: ',iref
-      write(out_unitp,*) ' end of file or end of record'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the "nbcol" for iref: ',iref
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Check your data !!'
       STOP
     END IF
-    CALL Read_Mat(RPHpara2%CinvRef(:,:,iref),in_unitp,nbcol,err_read)
+    CALL Read_Mat(RPHpara2%CinvRef(:,:,iref),in_unit,nbcol,err_read)
     IF (err_read /= 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  while reading the matrix "CinvRef" for iref: ',iref
-      write(out_unitp,*) ' end of file or end of record'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the matrix "CinvRef" for iref: ',iref
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Check your data !!'
       STOP
     END IF
 
     ! we need to transpose because we read mat of linear transfo (and not CinvRef)
     RPHpara2%CinvRef(:,:,iref) = transpose(RPHpara2%CinvRef(:,:,iref))
 
-    write(out_unitp,*) '==========================================='
-    write(out_unitp,*) 'Normal modes in line, C_inv at ref',iref
-    CALL Write_Mat(RPHpara2%CinvRef(:,:,iref),out_unitp,5)
-    write(out_unitp,*) '==========================================='
+    write(out_unit,*) '==========================================='
+    write(out_unit,*) 'Normal modes in line, C_inv at ref',iref
+    CALL Write_Mat(RPHpara2%CinvRef(:,:,iref),out_unit,5)
+    write(out_unit,*) '==========================================='
 
 
   END DO
 
   IF (debug) THEN
-    write(out_unitp,*) 'CinvRef'
+    write(out_unit,*) 'CinvRef'
     DO iNM=1,nb_var
       DO iref=1,nb_ref
         VecNM = RPHpara2%CinvRef(iNM,:,iref)
         VecNM = VecNM / sqrt(dot_product(VecNM,VecNM))
-        CALL Write_Vec(VecNM,out_unitp,nb_var,    &
+        CALL Write_Vec(VecNM,out_unit,nb_var,    &
                        Rformat='f6.3',info=' NM ' // TO_string(iNM))
       END DO
     END DO
   END IF
 
-  ! phase from     write(out_unitp,*) 'QoutRef',RPHpara2%QoutRef(:,iref)
+  ! phase from     write(out_unit,*) 'QoutRef',RPHpara2%QoutRef(:,iref)
   DO iref=2,nb_ref
     Rphase = RPHpara2%QoutRef(:,iref)-RPHpara2%QoutRef(:,iref-1)
-  write(out_unitp,'(a,100f6.3)') 'Rphase',Rphase
+  write(out_unit,'(a,100f6.3)') 'Rphase',Rphase
 
     WHERE ( abs(Rphase) > ONETENTH**8 )
       Rphase = -ONE
@@ -2294,7 +2294,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
       Rphase = ONE
     END WHERE
   END DO
-  write(out_unitp,'(a,100f3.0)') 'Rphase',Rphase
+  write(out_unit,'(a,100f3.0)') 'Rphase',Rphase
 
   Rphase = real(phase,kind=Rkind)
 
@@ -2317,8 +2317,8 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
       END DO
       listNM_selected(RPHpara2%listNM_act1(iact1)) = 1
     END DO
-    write(out_unitp,*) 'RPHpara2%listNM_act1',RPHpara2%listNM_act1
-    !write(out_unitp,*) 'listNM_selected',listNM_selected
+    write(out_unit,*) 'RPHpara2%listNM_act1',RPHpara2%listNM_act1
+    !write(out_unit,*) 'listNM_selected',listNM_selected
   END DO
 
   RPHpara2%OrderNM_iRef(:,1) = [(i,i=1,nb_var)] ! because we use the first set to define the other orderings
@@ -2358,9 +2358,9 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
       END DO
       END DO
       IF (i /= 0 .AND. j /= 0) THEN
-        write(out_unitp,*) 'i,j,over',i,j,MatOver(i,j)
+        write(out_unit,*) 'i,j,over',i,j,MatOver(i,j)
         IF ( i /= j) THEN
-          write(out_unitp,*) 'i,j,over',j,i,MatOver(j,i)
+          write(out_unit,*) 'i,j,over',j,i,MatOver(j,i)
         END IF
         RPHpara2%OrderNM_iRef(i,iref) = j
         RPHpara2%OrderNM_iRef(j,iref) = i
@@ -2377,7 +2377,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
       END IF
 
     END DO
-    write(out_unitp,*) 'OrderNM_iRef(:,iref)',RPHpara2%OrderNM_iRef(:,iref)
+    write(out_unit,*) 'OrderNM_iRef(:,iref)',RPHpara2%OrderNM_iRef(:,iref)
 
     !check the sign with respect to iref-1 and changes it when negative (with the phase ....)
     DO iNM1=1,nb_var
@@ -2404,7 +2404,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
 
       END IF
 
-      write(out_unitp,*) 'over',iNM1,iNM2,over
+      write(out_unit,*) 'over',iNM1,iNM2,over
 
     END DO
 
@@ -2412,22 +2412,22 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
 
 
   IF (debug) THEN
-    write(out_unitp,*) 'CinvRef'
+    write(out_unit,*) 'CinvRef'
     DO iNM=1,nb_var
       DO iref=1,nb_ref
         i = RPHpara2%OrderNM_iRef(iNM,iref)
         IF (i == 0) CYCLE
         VecNM = RPHpara2%CinvRef(i,:,iref)
         VecNM = VecNM / sqrt(dot_product(VecNM,VecNM))
-        CALL Write_Vec(VecNM,out_unitp,nb_var,    &
+        CALL Write_Vec(VecNM,out_unit,nb_var,    &
                         Rformat='f6.3',info=' NM ' // TO_string(i))
       END DO
     END DO
   END IF
 
   IF (debug) THEN
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
 
 
@@ -2459,11 +2459,11 @@ END SUBROUTINE Read_RPHpara2
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'BEGINNING ',name_sub
           DO iref=1,size(QrefQact(1,:))
-            write(out_unitp,*) 'QrefQact ',QrefQact(:,iref)
+            write(out_unit,*) 'QrefQact ',QrefQact(:,iref)
           END DO
-          flush(out_unitp)
+          flush(out_unit)
         END IF
 !-----------------------------------------------------------
         nb_ref  = size(QrefQact(1,:))
@@ -2498,7 +2498,7 @@ END SUBROUTINE Read_RPHpara2
           CALL sub_Weight_dnS(dnDist2(iref),ONE/real(nb_act1,kind=Rkind))  ! divide by nb_act1
 
         END DO
-        IF (debug) write(out_unitp,*) 'dnDist2',dnDist2(:)%d0
+        IF (debug) write(out_unit,*) 'dnDist2',dnDist2(:)%d0
         !write(98,*) 'Qact,dist2',dnQact%d0,dnDist2(:)%d0
 
         DO iref=1,nb_ref
@@ -2510,18 +2510,18 @@ END SUBROUTINE Read_RPHpara2
             IF (iref == kref) CYCLE
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS3(dnDist2(iref), sc,         &
                                              dnDist2(kref),-sc,dnW1)
-            IF (debug) write(out_unitp,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
+            IF (debug) write(out_unit,*) 'iref,kref,DeltaDist2',iref,kref,dnW1%d0
 
             cte(:) = ZERO ; cte(1) = ONE
             CALL sub_dnS1_TO_dntR2(dnW1,dnW2,80,cte=cte) ! exp(sc*(dist2_i-dist2_k))
-            IF (debug) write(out_unitp,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
+            IF (debug) write(out_unit,*) 'iref,kref,dnExp',iref,kref,dnW2%d0
             CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnW2,ONE,dnSumExp,ONE)  ! sum of the exp
           END DO
           CALL sub_dnS1_TO_dntR2(dnSumExp,dnSwitch(iref),90) ! 1/sum(exp ....)
 
         END DO
         !write(99,*) 'Qact,Switch',dnQact%d0,dnSwitch(:)%d0
-        IF (debug) write(out_unitp,*) 'dnSwitch',dnSwitch(:)%d0
+        IF (debug) write(out_unit,*) 'dnSwitch',dnSwitch(:)%d0
 
         !---------------------------------------------------------------
         ! deallocation
@@ -2535,10 +2535,10 @@ END SUBROUTINE Read_RPHpara2
 !stop
 !-----------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnSwitch'
+          write(out_unit,*) 'dnSwitch'
           CALL Write_VecOFdnS(dnSwitch)
-          write(out_unitp,*) 'END ',name_sub
-          flush(out_unitp)
+          write(out_unit,*) 'END ',name_sub
+          flush(out_unit)
         END IF
 
       END SUBROUTINE Switch_RPH
@@ -2548,7 +2548,7 @@ END SUBROUTINE Read_RPHpara2
 END MODULE mod_RPHTransfo
 
 MODULE CurviRPH_mod
-use mod_system
+use TnumTana_system_m
 !$ USE omp_lib, only : OMP_GET_THREAD_NUM
 implicit NONE
 
@@ -2661,75 +2661,75 @@ implicit NONE
   integer :: i,iq,jq
   character (len=*),parameter :: name_sub='Write_CurviRPH'
 
-    write(out_unitp,*) '-----------------------------------------------'
-    write(out_unitp,*) 'Write_CurviRPH'
-    write(out_unitp,*) 'init       : ',CurviRPH%init
-    write(out_unitp,*) 'nb_Qpath   : ',CurviRPH%nb_Qpath
-    write(out_unitp,*) 'nb_Q21     : ',CurviRPH%nb_Q21
+    write(out_unit,*) '-----------------------------------------------'
+    write(out_unit,*) 'Write_CurviRPH'
+    write(out_unit,*) 'init       : ',CurviRPH%init
+    write(out_unit,*) 'nb_Qpath   : ',CurviRPH%nb_Qpath
+    write(out_unit,*) 'nb_Q21     : ',CurviRPH%nb_Q21
 
-    write(out_unitp,*) 'nb_pts for Qref ',CurviRPH%nb_pts_ForQref
-    write(out_unitp,*) 'nb_dev for Qref ',CurviRPH%nb_dev_ForQref
+    write(out_unit,*) 'nb_pts for Qref ',CurviRPH%nb_pts_ForQref
+    write(out_unit,*) 'nb_dev for Qref ',CurviRPH%nb_dev_ForQref
     IF (CurviRPH%nb_pts_ForQref > 0) THEN
       DO i=1,CurviRPH%nb_pts_ForQref
-        write(out_unitp,*) 'Qpath_ForQref',i,CurviRPH%Qpath_ForQref(i)
-        write(out_unitp,*) 'Qref',i
-        CALL Write_VecMat(CurviRPH%Qref(:,i),out_unitp,5)
+        write(out_unit,*) 'Qpath_ForQref',i,CurviRPH%Qpath_ForQref(i)
+        write(out_unit,*) 'Qref',i
+        CALL Write_VecMat(CurviRPH%Qref(:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefQref)) THEN
-        write(out_unitp,*) 'CoefQref'
+        write(out_unit,*) 'CoefQref'
         DO iq=1,CurviRPH%nb_Q21
-          write(out_unitp,*) 'CoefQref(:)',iq,CurviRPH%CoefQref(:,iq)
+          write(out_unit,*) 'CoefQref(:)',iq,CurviRPH%CoefQref(:,iq)
         END DO
       ELSE
-        write(out_unitp,*) 'CoefQref: not allocated'
+        write(out_unit,*) 'CoefQref: not allocated'
       END IF
     END IF
-    flush(out_unitp)
+    flush(out_unit)
 
-    write(out_unitp,*) 'nb_pts for Grad ',CurviRPH%nb_pts_ForGrad
-    write(out_unitp,*) 'nb_dev for Grad ',CurviRPH%nb_dev_ForGrad
+    write(out_unit,*) 'nb_pts for Grad ',CurviRPH%nb_pts_ForGrad
+    write(out_unit,*) 'nb_dev for Grad ',CurviRPH%nb_dev_ForGrad
     IF (CurviRPH%nb_pts_ForGrad > 0) THEN
       DO i=1,CurviRPH%nb_pts_ForGrad
-        write(out_unitp,*) 'Qpath_ForGrad',i,CurviRPH%Qpath_ForGrad(i)
-        write(out_unitp,*) 'Grad',i
-        CALL Write_VecMat(CurviRPH%Grad(:,i),out_unitp,5)
+        write(out_unit,*) 'Qpath_ForGrad',i,CurviRPH%Qpath_ForGrad(i)
+        write(out_unit,*) 'Grad',i
+        CALL Write_VecMat(CurviRPH%Grad(:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefGrad)) THEN
-        write(out_unitp,*) 'CoefGraq'
+        write(out_unit,*) 'CoefGraq'
         DO iq=1,CurviRPH%nb_Q21
-          write(out_unitp,*) 'CoefGrad(:)',iq,CurviRPH%CoefGrad(:,iq)
+          write(out_unit,*) 'CoefGrad(:)',iq,CurviRPH%CoefGrad(:,iq)
         END DO
       ELSE
-        write(out_unitp,*) 'CoefGrad: not allocated'
+        write(out_unit,*) 'CoefGrad: not allocated'
       END IF
     END IF
-    flush(out_unitp)
+    flush(out_unit)
 
-    write(out_unitp,*) 'nb_pts for Hess ',CurviRPH%nb_pts_ForHess
-    write(out_unitp,*) 'nb_dev for Hess ',CurviRPH%nb_dev_ForHess
+    write(out_unit,*) 'nb_pts for Hess ',CurviRPH%nb_pts_ForHess
+    write(out_unit,*) 'nb_dev for Hess ',CurviRPH%nb_dev_ForHess
     IF (CurviRPH%nb_pts_ForHess > 0) THEN
       DO i=1,CurviRPH%nb_pts_ForHess
-        write(out_unitp,*) 'Qpath_ForHess',i,CurviRPH%Qpath_ForHess(i)
-        write(out_unitp,*) 'Hess',i
-        CALL Write_VecMat(CurviRPH%Hess(:,:,i),out_unitp,5)
+        write(out_unit,*) 'Qpath_ForHess',i,CurviRPH%Qpath_ForHess(i)
+        write(out_unit,*) 'Hess',i
+        CALL Write_VecMat(CurviRPH%Hess(:,:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefHess)) THEN
-        write(out_unitp,*) 'CoefHess'
+        write(out_unit,*) 'CoefHess'
         DO iq=1,CurviRPH%nb_Q21
         DO jq=1,CurviRPH%nb_Q21
-          write(out_unitp,*) 'CoefHess(:)',iq,jq,CurviRPH%CoefHess(:,iq,jq)
+          write(out_unit,*) 'CoefHess(:)',iq,jq,CurviRPH%CoefHess(:,iq,jq)
         END DO
         END DO
       ELSE
-        write(out_unitp,*) 'CoefHess: not allocated'
+        write(out_unit,*) 'CoefHess: not allocated'
       END IF
     END IF
-    write(out_unitp,*) 'END Write_CurviRPH'
-    write(out_unitp,*) '-----------------------------------------------'
-    flush(out_unitp)
+    write(out_unit,*) 'END Write_CurviRPH'
+    write(out_unit,*) '-----------------------------------------------'
+    flush(out_unit)
 
   END SUBROUTINE Write_CurviRPH
   SUBROUTINE CurviRPH1_TO_CurviRPH2(CurviRPH1,CurviRPH2)
@@ -2833,8 +2833,8 @@ implicit NONE
 !----- for debuging ----------------------------------
 
   !IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    flush(out_unit)
   !END IF
 
   IF (nb_Qpath /= 1) STOP 'ERROR in Init_CurviRPH: nb_Qpath /= 1'
@@ -2843,9 +2843,9 @@ implicit NONE
     nb_pts   = 0
     gradient = .FALSE.
     option   = -1
-    read(in_unitp,CurviRPH)
+    read(in_unit,CurviRPH)
     IF (option < 0) option = 0
-    write(out_unitp,CurviRPH)
+    write(out_unit,CurviRPH)
 
     IF (nb_pts < 1) STOP 'ERROR in Init_CurviRPH: nb_pts<1'
 
@@ -2860,46 +2860,46 @@ implicit NONE
     tab_Grad(:)  = gradient
     tab_Hess(:)  = .TRUE.
 
-    write(out_unitp,*) 'nb_pts,nb_dev  ',nb_pts,nb_dev
-    write(out_unitp,*) 'nb_Qpath,nb_Q21',CurviRPH2%nb_Qpath,CurviRPH2%nb_Q21
-    write(out_unitp,*) 'gradient       ',gradient
-    flush(out_unitp)
+    write(out_unit,*) 'nb_pts,nb_dev  ',nb_pts,nb_dev
+    write(out_unit,*) 'nb_Qpath,nb_Q21',CurviRPH2%nb_Qpath,CurviRPH2%nb_Q21
+    write(out_unit,*) 'gradient       ',gradient
+    flush(out_unit)
 
     ig = 0
     ih = 0
     DO i=1,nb_pts
-      read(in_unitp,*) CurviRPH2%Qpath_ForQref(i)
-      write(out_unitp,*) 'Qpath',CurviRPH2%Qpath_ForQref(i)
+      read(in_unit,*) CurviRPH2%Qpath_ForQref(i)
+      write(out_unit,*) 'Qpath',CurviRPH2%Qpath_ForQref(i)
 
       !read geometry
-      read(in_unitp,*) CurviRPH2%QRef(:,i)
-      write(out_unitp,*) 'QRef',CurviRPH2%QRef(:,i)
+      read(in_unit,*) CurviRPH2%QRef(:,i)
+      write(out_unit,*) 'QRef',CurviRPH2%QRef(:,i)
 
-      IF (option == 1) read(in_unitp,*) name_dum,tab_Grad(i)
+      IF (option == 1) read(in_unit,*) name_dum,tab_Grad(i)
 
       IF (tab_Grad(i)) THEN
         ig = ig + 1
         !read gradient
-        read(in_unitp,*) Grad(:,ig)
-        IF (debug) write(out_unitp,*) 'Grad',Grad(:,ig)
+        read(in_unit,*) Grad(:,ig)
+        IF (debug) write(out_unit,*) 'Grad',Grad(:,ig)
       END IF
 
-      IF (option == 1) read(in_unitp,*) name_dum,tab_Hess(i)
+      IF (option == 1) read(in_unit,*) name_dum,tab_Hess(i)
 
       IF (tab_Hess(i)) THEN
         ih = ih + 1
         !read hessian
-        CALL Read_Mat(hess(:,:,ih),in_unitp,5,IOerr)
-        write(out_unitp,*) 'IOerr',IOerr
+        CALL Read_Mat(hess(:,:,ih),in_unit,5,IOerr)
+        write(out_unit,*) 'IOerr',IOerr
         IF (debug) THEN
-          write(out_unitp,*) 'hess'
-          CALL Write_Mat(hess(:,:,ih),out_unitp,5)
+          write(out_unit,*) 'hess'
+          CALL Write_Mat(hess(:,:,ih),out_unit,5)
         END IF
         IF (IOerr /= 0) STOP 'ERROR while reading the hessian'
       END IF
     END DO
-    write(out_unitp,*) 'nb_pts for Qref ',CurviRPH2%nb_pts_ForQref
-    IF (debug) CALL Write_VecMat(CurviRPH2%Qpath_ForQref,out_unitp,5)
+    write(out_unit,*) 'nb_pts for Qref ',CurviRPH2%nb_pts_ForQref
+    IF (debug) CALL Write_VecMat(CurviRPH2%Qpath_ForQref,out_unit,5)
 
     !!! Transfert of grad and hess
     nb_grad = count(tab_Grad)
@@ -2941,9 +2941,9 @@ implicit NONE
     CALL dealloc_NParray(Grad,'Grad',name_sub)
     CALL dealloc_NParray(Hess,'Hess',name_sub)
 
-    write(out_unitp,*) 'nb_pts for Grad ',CurviRPH2%nb_pts_ForGrad
+    write(out_unit,*) 'nb_pts for Grad ',CurviRPH2%nb_pts_ForGrad
     CurviRPH2%nb_dev_ForGrad = CurviRPH2%nb_pts_ForGrad
-    write(out_unitp,*) 'nb_pts for Hess ',CurviRPH2%nb_pts_ForHess
+    write(out_unit,*) 'nb_pts for Hess ',CurviRPH2%nb_pts_ForHess
     CurviRPH2%nb_dev_ForHess = CurviRPH2%nb_pts_ForHess
 
     IF (debug)     CALL Write_CurviRPH(CurviRPH2)
@@ -2957,8 +2957,8 @@ implicit NONE
 
     IF (debug)     CALL Write_CurviRPH(CurviRPH2)
   !IF (debug) THEN
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   !END IF
 
   END SUBROUTINE Init_CurviRPH
@@ -2978,36 +2978,36 @@ implicit NONE
 !----- for debuging ----------------------------------
 
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    flush(out_unit)
     CALL Write_CurviRPH(CurviRPH)
   END IF
 
     !for fQpathQref
-    IF (debug) write(out_unitp,*) 'Qref coef computation:'
+    IF (debug) write(out_unit,*) 'Qref coef computation:'
     CALL alloc_NParray(fQpath_inv,[CurviRPH%nb_pts_ForQref,CurviRPH%nb_dev_ForQref],&
                       'fQpath_inv',name_sub)
     CALL alloc_NParray(fQpath,    [CurviRPH%nb_dev_ForQref,CurviRPH%nb_pts_ForQref],&
                       'fQpath',    name_sub)
     DO i=1,CurviRPH%nb_pts_ForQref
     DO j=1,CurviRPH%nb_dev_ForQref
-      write(out_unitp,*) 'i,j,CurviRPH%Qpath_ForQref(i)',i,j,CurviRPH%Qpath_ForQref(i) ; flush(out_unitp)
+      write(out_unit,*) 'i,j,CurviRPH%Qpath_ForQref(i)',i,j,CurviRPH%Qpath_ForQref(i) ; flush(out_unit)
       fQpath(j,i) = funcQpath(CurviRPH%Qpath_ForQref(i),j)
     END DO
     END DO
     IF (debug) THEN
-      write(out_unitp,*) 'fQpath for Qref:'
-      CALL Write_Mat(fQpath,out_unitp,5)
+      write(out_unit,*) 'fQpath for Qref:'
+      CALL Write_Mat(fQpath,out_unit,5)
     END IF
     CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
     IF (debug) THEN
-      write(out_unitp,*) 'fQpath_inv for Qref:'
-      CALL Write_Mat(fQpath_inv,out_unitp,5)
+      write(out_unit,*) 'fQpath_inv for Qref:'
+      CALL Write_Mat(fQpath_inv,out_unit,5)
     END IF
     !for the fit coef.
     DO iq=1,CurviRPH%nb_Q21
       CurviRPH%CoefQref(:,iq) = matmul(CurviRPH%Qref(iq,:),fQpath_inv)
-      IF (debug) write(out_unitp,*) 'CoefQref(:)',iq,CurviRPH%CoefQref(:,iq)
+      IF (debug) write(out_unit,*) 'CoefQref(:)',iq,CurviRPH%CoefQref(:,iq)
     END DO
     CALL dealloc_NParray(fQpath_inv,'fQpath_inv',name_sub)
     CALL dealloc_NParray(fQpath,    'fQpath',    name_sub)
@@ -3018,7 +3018,7 @@ implicit NONE
       CALL alloc_NParray(CurviRPH%CoefGrad,                                &
                            [CurviRPH%nb_dev_ForGrad,CurviRPH%nb_Q21], &
                         'CurviRPH%CoefGrad',name_sub)
-      IF (debug) write(out_unitp,*) 'Grad coef computation:'
+      IF (debug) write(out_unit,*) 'Grad coef computation:'
       CALL alloc_NParray(fQpath_inv, &
                            [CurviRPH%nb_pts_ForGrad,CurviRPH%nb_dev_ForGrad],&
                         'fQpath_inv',name_sub)
@@ -3032,19 +3032,19 @@ implicit NONE
       END DO
 
       IF (debug) THEN
-        write(out_unitp,*) 'fQpath for Grad:'
-        CALL Write_Mat(fQpath,out_unitp,5)
+        write(out_unit,*) 'fQpath for Grad:'
+        CALL Write_Mat(fQpath,out_unit,5)
       END IF
       CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
       IF (debug) THEN
-        write(out_unitp,*) 'fQpath_inv for Grad:'
-        CALL Write_Mat(fQpath_inv,out_unitp,5)
+        write(out_unit,*) 'fQpath_inv for Grad:'
+        CALL Write_Mat(fQpath_inv,out_unit,5)
       END IF
 
       !for the fit of g
       DO iq=1,CurviRPH%nb_Q21
        CurviRPH%CoefGrad(:,iq) = matmul(CurviRPH%Grad(iq,:),fQpath_inv)
-       IF (debug) write(out_unitp,*) 'CoefGrad(:)',iq,CurviRPH%CoefGrad(:,iq)
+       IF (debug) write(out_unit,*) 'CoefGrad(:)',iq,CurviRPH%CoefGrad(:,iq)
       END DO
 
       CALL dealloc_NParray(fQpath_inv,'fQpath_inv',name_sub)
@@ -3053,7 +3053,7 @@ implicit NONE
 
     !for fQpathHess
     IF (CurviRPH%nb_pts_ForHess > 0) THEN
-      IF (debug) write(out_unitp,*) 'Hess coef computation:'
+      IF (debug) write(out_unit,*) 'Hess coef computation:'
 
       CALL alloc_NParray(CurviRPH%CoefHess, &
                            [CurviRPH%nb_dev_ForHess,CurviRPH%nb_Q21,CurviRPH%nb_Q21], &
@@ -3073,20 +3073,20 @@ implicit NONE
       END DO
 
       IF (debug) THEN
-        write(out_unitp,*) 'fQpath for hess:'
-        CALL Write_Mat(fQpath,out_unitp,5)
+        write(out_unit,*) 'fQpath for hess:'
+        CALL Write_Mat(fQpath,out_unit,5)
       END IF
       CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
       IF (debug) THEN
-        write(out_unitp,*) 'fQpath_inv for hess:'
-        CALL Write_Mat(fQpath_inv,out_unitp,5)
+        write(out_unit,*) 'fQpath_inv for hess:'
+        CALL Write_Mat(fQpath_inv,out_unit,5)
       END IF
 
       !for the fit of hess
       DO iq=1,CurviRPH%nb_Q21
       DO jq=1,CurviRPH%nb_Q21
         CurviRPH%CoefHess(:,jq,iq) = matmul(CurviRPH%Hess(jq,iq,:),fQpath_inv)
-        IF (debug) write(out_unitp,*) 'CoefHess(:)',iq,jq,CurviRPH%CoefHess(:,jq,iq)
+        IF (debug) write(out_unit,*) 'CoefHess(:)',iq,jq,CurviRPH%CoefHess(:,jq,iq)
       END DO
       END DO
       CALL dealloc_NParray(fQpath_inv,'fQpath_inv',name_sub)
@@ -3095,8 +3095,8 @@ implicit NONE
 
   IF (debug) THEN
     CALL Write_CurviRPH(CurviRPH)
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
 
   END SUBROUTINE CalcCoef_CurviRPH
@@ -3116,16 +3116,16 @@ implicit NONE
 !----- for debuging ----------------------------------
 
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'Qpath ',Qpath
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'Qpath ',Qpath
     CALL Write_CurviRPH(CurviRPH)
-    flush(out_unitp)
+    flush(out_unit)
   END IF
 
 
   !$OMP CRITICAL (get_CurviRPH_CRIT)
   IF (.NOT. CurviRPH%init) THEN
-    !$  write(out_unitp,*) "F def thread",omp_get_thread_num()
+    !$  write(out_unit,*) "F def thread",omp_get_thread_num()
 
     IF (present(Q21)) THEN
       nb_Q21=size(Q21)
@@ -3134,8 +3134,8 @@ implicit NONE
     ELSE IF (present(Hess)) THEN
       nb_Q21=size(Hess(:,1))
     ELSE
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) ' Q21 or Grad or Hess must be present.'
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' Q21 or Grad or Hess must be present.'
       STOP ' ERROR get_CurviRPH: Q21 or Grad or Hess must be present'
     END IF
 
@@ -3148,9 +3148,9 @@ implicit NONE
     nb_dev = CurviRPH%nb_dev_ForQref
 
     IF (nb_dev == 0) THEN
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) 'nb_dev=0 ',nb_dev
-      write(out_unitp,*) ' The initialization has not been done! '
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) 'nb_dev=0 ',nb_dev
+      write(out_unit,*) ' The initialization has not been done! '
       STOP ' ERROR get_CurviRPH: nb_dev=0'
     END IF
 
@@ -3164,8 +3164,8 @@ implicit NONE
     END DO
 
     IF (debug) THEN
-      write(out_unitp,*) 'Q21 '
-      CALL Write_VecMat(Q21,out_unitp,5)
+      write(out_unit,*) 'Q21 '
+      CALL Write_VecMat(Q21,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)
@@ -3175,9 +3175,9 @@ implicit NONE
     nb_dev = CurviRPH%nb_dev_ForGrad
 
     IF (nb_dev == 0) THEN
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) 'nb_dev=0 '
-      write(out_unitp,*) ' The initialization has not been done! '
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) 'nb_dev=0 '
+      write(out_unit,*) ' The initialization has not been done! '
       STOP ' ERROR get_CurviRPH: nb_dev=0'
     END IF
 
@@ -3191,8 +3191,8 @@ implicit NONE
     END DO
 
     IF (debug) THEN
-      write(out_unitp,*) 'Grad '
-      CALL Write_VecMat(Grad,out_unitp,5)
+      write(out_unit,*) 'Grad '
+      CALL Write_VecMat(Grad,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)
@@ -3202,9 +3202,9 @@ implicit NONE
     nb_dev = CurviRPH%nb_dev_ForHess
 
     IF (nb_dev == 0) THEN
-      write(out_unitp,*) 'ERROR in ',name_sub
-      write(out_unitp,*) 'nb_dev=0 '
-      write(out_unitp,*) ' The initialization has not been done! '
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) 'nb_dev=0 '
+      write(out_unit,*) ' The initialization has not been done! '
       STOP ' ERROR get_CurviRPH: nb_dev=0'
     END IF
 
@@ -3220,16 +3220,16 @@ implicit NONE
     END DO
 
     IF (debug) THEN
-      write(out_unitp,*) 'Hess '
-      CALL Write_Mat(Hess,out_unitp,5)
+      write(out_unit,*) 'Hess '
+      CALL Write_Mat(Hess,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)
   END IF
 
   IF (debug) THEN
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
 
   END SUBROUTINE get_CurviRPH
@@ -3249,8 +3249,8 @@ implicit NONE
 !----- for debuging ----------------------------------
 
   !IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'BEGINNING ',name_sub
+    flush(out_unit)
   !END IF
 
 
@@ -3262,20 +3262,20 @@ implicit NONE
     DO j=1,CurviRPH%nb_dev_ForQref
       fQpath(j) = funcQpath(CurviRPH%Qpath_ForQref(i),j)
     END DO
-    IF (debug) write(out_unitp,*) 'points fQpath():',i,fQpath(:)
-    flush(out_unitp)
+    IF (debug) write(out_unit,*) 'points fQpath():',i,fQpath(:)
+    flush(out_unit)
 
     DO iq=1,CurviRPH%nb_Q21
       val = dot_product(fQpath,CurviRPH%CoefQref(:,iq))
-      !write(out_unitp,*) 'Err Qref',i,iq,val,CurviRPH%Qref(iq,i),val-CurviRPH%Qref(iq,i)
+      !write(out_unit,*) 'Err Qref',i,iq,val,CurviRPH%Qref(iq,i),val-CurviRPH%Qref(iq,i)
       ErrQref = max(ErrQref,abs(val-CurviRPH%Qref(iq,i)))
     END DO
 
 
   END DO
   CALL dealloc_NParray(fQpath,  'fQpath',name_sub)
-  write(out_unitp,*) 'Largest error on Qref ',ErrQref
-  flush(out_unitp)
+  write(out_unit,*) 'Largest error on Qref ',ErrQref
+  flush(out_unit)
 
 
   !for the gradient
@@ -3287,8 +3287,8 @@ implicit NONE
       DO j=1,CurviRPH%nb_dev_ForGrad ! nb_dev_Grad
         fQpath(j) = funcQpath(CurviRPH%Qpath_ForGrad(i),j)
       END DO
-      IF (debug) write(out_unitp,*) 'points fQpath(;)',i,fQpath(:)
-      flush(out_unitp)
+      IF (debug) write(out_unit,*) 'points fQpath(;)',i,fQpath(:)
+      flush(out_unit)
 
       DO iq=1,CurviRPH%nb_Q21
         val     = dot_product(fQpath,CurviRPH%CoefGrad(:,iq))
@@ -3296,8 +3296,8 @@ implicit NONE
       END DO
     END DO
     CALL dealloc_NParray(fQpath,  'fQpath',name_sub)
-    write(out_unitp,*) 'Largest error on Grad ',ErrGrad
-    flush(out_unitp)
+    write(out_unit,*) 'Largest error on Grad ',ErrGrad
+    flush(out_unit)
   END IF
 
   !for the hessian
@@ -3310,26 +3310,26 @@ implicit NONE
       DO j=1,CurviRPH%nb_dev_ForHess ! nb_dev_Hess
         fQpath(j) = funcQpath(CurviRPH%Qpath_ForHess(i),j)
       END DO
-      IF (debug) write(out_unitp,*) 'points fQpath(:)',i,fQpath(:)
-      flush(out_unitp)
+      IF (debug) write(out_unit,*) 'points fQpath(:)',i,fQpath(:)
+      flush(out_unit)
 
       DO iq=1,CurviRPH%nb_Q21
       DO jq=1,CurviRPH%nb_Q21
         val = dot_product(fQpath,CurviRPH%CoefHess(:,jq,iq))
-        !write(out_unitp,*) 'Err Hess',i,iq,jq,val,CurviRPH%Hess(jq,iq,i),val-CurviRPH%Hess(jq,iq,i)
+        !write(out_unit,*) 'Err Hess',i,iq,jq,val,CurviRPH%Hess(jq,iq,i),val-CurviRPH%Hess(jq,iq,i)
         ErrHess = max(ErrHess,abs(val-CurviRPH%Hess(jq,iq,i)))
       END DO
       END DO
 
     END DO
     CALL dealloc_NParray(fQpath,  'fQpath',name_sub)
-    write(out_unitp,*) 'Largest error on Hess ',ErrHess
-    flush(out_unitp)
+    write(out_unit,*) 'Largest error on Hess ',ErrHess
+    flush(out_unit)
   END IF
 
   !IF (debug) THEN
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   !END IF
 
   END SUBROUTINE check_CurviRPH

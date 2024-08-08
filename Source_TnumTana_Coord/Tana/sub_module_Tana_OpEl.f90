@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
  module mod_Tana_OpEl
- use mod_system
+ use TnumTana_system_m
  IMPLICIT NONE
  PRIVATE
 
@@ -199,9 +199,9 @@
              CALL Write_error_null(name_sub_alloc,name_var,name_sub)
 
        IF (size(tab) < 1) THEN
-         write(out_unitp,*) ' ERROR in ',name_sub_alloc
-         write(out_unitp,*) '   Called from ',name_sub
-         write(out_unitp,*) ' Size of ',trim(name_var),' is wrong!!'
+         write(out_unit,*) ' ERROR in ',name_sub_alloc
+         write(out_unit,*) '   Called from ',name_sub
+         write(out_unit,*) ' Size of ',trim(name_var),' is wrong!!'
          STOP
        END IF
 
@@ -243,9 +243,9 @@
      idq_TO_CoordName = trim('g')
 
    CASE DEFAULT
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idq=', idq
-     write(out_unitp,*) "This idq does not exist"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idq=', idq
+     write(out_unit,*) "This idq does not exist"
      err_el_loc = 1
    END SELECT
 
@@ -348,10 +348,10 @@
    IF ((idf == 4 .OR. idf == 9 .OR. idf == 10 .OR. idf == 11 .OR. &
                       idf ==24 .OR. idf == 25 .OR. idf == 26 ) .AND. &
         alfa_loc%den /= 1) THEN
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idf=', idf
-     write(out_unitp,*) 'alfa_loc%den=', alfa_loc%den
-     write(out_unitp,*) ' The operator contains a P or a J or L and alfa_loc%den /= 1'
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idf=', idf
+     write(out_unit,*) 'alfa_loc%den=', alfa_loc%den
+     write(out_unit,*) ' The operator contains a P or a J or L and alfa_loc%den /= 1'
      err_el_loc = 1
    END IF
 
@@ -385,11 +385,11 @@
 
      case(2)
        IF (idq /= 1 .AND. idq /= 2 .AND. idq /=  -3 .AND. idq /= -7 .AND. idq /= 0) THEN
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 2, idq should be:"
-         write(out_unitp,*) "   1 (cart.) or 2 (=r) or -3 (=ut) or -7 (=ub)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 2, idq should be:"
+         write(out_unit,*) "   1 (cart.) or 2 (=r) or -3 (=ut) or -7 (=ub)"
          err_el_loc = 1
        END IF
 
@@ -413,11 +413,11 @@
        else if(idq == 0) then
          Fel%opname = 'q'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 3, idq should be:"
-         write(out_unitp,*) "   -3 (=ut) or -7 (=ub)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 3, idq should be:"
+         write(out_unit,*) "   -3 (=ut) or -7 (=ub)"
          err_el_loc = 1
        end if
 
@@ -443,10 +443,10 @@
        else if(idq == 0) then
          Fel%opname = 'Pq'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "This idq does not exist"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "This idq does not exist"
          err_el_loc = 1
        end if
 
@@ -464,12 +464,12 @@
          else if(idq == 0) then
            Fel%opname = 'cosq'//calfa
          else
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idq=', idq
-           write(out_unitp,*) 'idf=', idf
-           write(out_unitp,*) "for idf = 5, idq should be:"
-           write(out_unitp,*) "   3 (=\theta) or 4 (=\phi) or"
-           write(out_unitp,*) "   6 (=\alpha or 7 (=\beta) or 7 (=\gamma)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idq=', idq
+           write(out_unit,*) 'idf=', idf
+           write(out_unit,*) "for idf = 5, idq should be:"
+           write(out_unit,*) "   3 (=\theta) or 4 (=\phi) or"
+           write(out_unit,*) "   6 (=\alpha or 7 (=\beta) or 7 (=\gamma)"
            err_el_loc = 1
          end if
 
@@ -487,13 +487,13 @@
          else if(idq == 0) then
            Fel%opname = 'sinq'//calfa
          else
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idq=', idq
-           write(out_unitp,*) 'idf=', idf
-           write(out_unitp,*) "for idf = 6, idq should be:"
-           write(out_unitp,*) "   3 (=\theta) or 4 (=\phi) or"
-           write(out_unitp,*) "   6 (=\alpha or 7 (=\beta) or"
-           write(out_unitp,*) "   7 (=\gamma) for idf = 6"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idq=', idq
+           write(out_unit,*) 'idf=', idf
+           write(out_unit,*) "for idf = 6, idq should be:"
+           write(out_unit,*) "   3 (=\theta) or 4 (=\phi) or"
+           write(out_unit,*) "   6 (=\alpha or 7 (=\beta) or"
+           write(out_unit,*) "   7 (=\gamma) for idf = 6"
            err_el_loc = 1
          end if
 
@@ -511,13 +511,13 @@
          else if(idq == 0) then
            Fel%opname = 'tanq'//calfa
          else
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idq=', idq
-           write(out_unitp,*) 'idf=', idf
-           write(out_unitp,*) "for idf = 7, idq should be:"
-           write(out_unitp,*) "   3 (=\theta) or 4 (=\phi) or"
-           write(out_unitp,*) "   6 (=\alpha or 7 (=\beta) or"
-           write(out_unitp,*) "   7 (=\gamma) for idf = 6"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idq=', idq
+           write(out_unit,*) 'idf=', idf
+           write(out_unit,*) "for idf = 7, idq should be:"
+           write(out_unit,*) "   3 (=\theta) or 4 (=\phi) or"
+           write(out_unit,*) "   6 (=\alpha or 7 (=\beta) or"
+           write(out_unit,*) "   7 (=\gamma) for idf = 6"
            err_el_loc = 1
          end if
 
@@ -535,13 +535,13 @@
          else if(idq == 0) then
            Fel%opname = 'cotq'//calfa
          else
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idq=', idq
-           write(out_unitp,*) 'idf=', idf
-           write(out_unitp,*) "for idf = 8, idq should be:"
-           write(out_unitp,*) "   3 (=\theta) or 4 (=\phi) or"
-           write(out_unitp,*) "   6 (=\alpha or 7 (=\beta) or"
-           write(out_unitp,*) "   7 (=\gamma) for idf = 6"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idq=', idq
+           write(out_unit,*) 'idf=', idf
+           write(out_unit,*) "for idf = 8, idq should be:"
+           write(out_unit,*) "   3 (=\theta) or 4 (=\phi) or"
+           write(out_unit,*) "   6 (=\alpha or 7 (=\beta) or"
+           write(out_unit,*) "   7 (=\gamma) for idf = 6"
            err_el_loc = 1
          end if
 
@@ -565,11 +565,11 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_q'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 12, idq should be:"
-         write(out_unitp,*) "   1 (cart.) or 2 (=r) or -3 (=u)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 12, idq should be:"
+         write(out_unit,*) "   1 (cart.) or 2 (=r) or -3 (=u)"
          err_el_loc = 1
          !STOP
        end if
@@ -584,11 +584,11 @@
        else if(idq == 0) then
          Fel%opname = 'q'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 13, idq should be:"
-         write(out_unitp,*) "   1 (cart.) or 2 (=r) or -3 (=u)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 13, idq should be:"
+         write(out_unit,*) "   1 (cart.) or 2 (=r) or -3 (=u)"
          err_el_loc = 1
          !STOP
        end if
@@ -601,11 +601,11 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_cosq'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 14, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 14, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -618,11 +618,11 @@
        else if(idq == 0) then
          Fel%opname = 'cosq'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 15, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 15, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -635,11 +635,11 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_sinq'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 16, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 16, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -652,11 +652,11 @@
        else if(idq == 0) then
          Fel%opname = 'sinq'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 17, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 17, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -669,11 +669,11 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_tanq'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 18, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 18, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -686,11 +686,11 @@
        else if(idq == 0) then
          Fel%opname = 'tanq'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 19, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 19, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -703,11 +703,11 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_cotq'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 20, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 20, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -720,11 +720,11 @@
        else if(idq == 0) then
          Fel%opname = 'cotq'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 21, idq should be:"
-         write(out_unitp,*) "   3 (=\theta) or 4 (=\phi)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 21, idq should be:"
+         write(out_unit,*) "   3 (=\theta) or 4 (=\phi)"
          err_el_loc = 1
          !STOP
        end if
@@ -735,10 +735,10 @@
        else if(idq == 0) then
          Fel%opname = 'Pq_q'//calfa
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 22, idq should be: -3 (=u)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 22, idq should be: -3 (=u)"
          err_el_loc = 1
          !STOP
        end if
@@ -749,10 +749,10 @@
        else if(idq == 0) then
          Fel%opname = 'q'//calfa//'_Pq'
        else
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idq=', idq
-         write(out_unitp,*) 'idf=', idf
-         write(out_unitp,*) "for idf = 23, idq should be: -3 (=u)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idq=', idq
+         write(out_unit,*) 'idf=', idf
+         write(out_unit,*) "for idf = 23, idq should be: -3 (=u)"
          err_el_loc = 1
        end if
 
@@ -767,10 +767,10 @@
        Fel%opname = 'L_z'//calfa
 
      case default
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', idf
-       write(out_unitp,*) "This idf is not registered for an elementary operator"
-       write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) 'idf=', idf
+       write(out_unit,*) "This idf is not registered for an elementary operator"
+       write(out_unit,*) "   illegal value of idf . (Internal Bug)"
        err_el_loc = 1
      end select
 
@@ -809,8 +809,8 @@
    ! find sin ..., dq, qs or q (q must be at the end)
    String_loc = trim(adjustl(String))
    CALL string_uppercase_TO_lowercase(String_loc)
-   IF (debug) write(out_unitp,*) 'String_loc: ',String_loc
-   flush(out_unitp)
+   IF (debug) write(out_unit,*) 'String_loc: ',String_loc
+   flush(out_unit)
 
    IF (index(String_loc,'sin') > 0) THEN
      String_loc = String_loc(4:len(String_loc))
@@ -844,26 +844,26 @@
    ELSE
      STOP 'other operateurs not yet'
    END IF
-   IF (debug)  write(out_unitp,*) 'Fel%idf',Fel%idf
-   IF (debug)  write(out_unitp,*) 'String_loc: ',String_loc
+   IF (debug)  write(out_unit,*) 'Fel%idf',Fel%idf
+   IF (debug)  write(out_unit,*) 'String_loc: ',String_loc
 
    IF (index(String_loc,'^') > 0) THEN ! we must be sure that ^ exist
      ! the exponent MUST be just after the operator/function/q
      IF (String_loc(1:1) /= '^') THEN
-       write(out_unitp,*) 'String_loc: ',String_loc
-       write(out_unitp,*) 'ERROR in StringMCTDH_TO_opel: wrong ^ position.'
+       write(out_unit,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'ERROR in StringMCTDH_TO_opel: wrong ^ position.'
        STOP 'ERROR in StringMCTDH_TO_opel: wrong ^ position'
      END IF
 
      String_loc = String_loc(2:len(String_loc))
-     IF (debug)  write(out_unitp,*) 'String_loc: ',String_loc
+     IF (debug)  write(out_unit,*) 'String_loc: ',String_loc
      read(String_loc,*,iostat=err_el_loc) i_exp
      IF (err_el_loc /= 0) THEN
        ! the exponent is not an integer => real ?
        read(String_loc,*,iostat=err_el_loc) r_exp
        IF (err_el_loc /= 0) THEN
-         write(out_unitp,*) 'String_loc: ',String_loc
-         write(out_unitp,*) 'ERROR in StringMCTDH_TO_opel while readind the exponent'
+         write(out_unit,*) 'String_loc: ',String_loc
+         write(out_unit,*) 'ERROR in StringMCTDH_TO_opel while readind the exponent'
          STOP 'ERROR in StringMCTDH_TO_opel while readind the exponent'
        END IF
        ! in this case the r_exp should be a half-integer: i/2
@@ -921,8 +921,8 @@
    ! find sin ..., dq, qs or q (q must be at the end)
    String_loc = trim(adjustl(String))
    CALL string_uppercase_TO_lowercase(String_loc)
-   IF (debug) write(out_unitp,*) 'String_loc: ',String_loc
-   flush(out_unitp)
+   IF (debug) write(out_unit,*) 'String_loc: ',String_loc
+   flush(out_unit)
 
    IF (index(String_loc,'sin') > 0) THEN
      String_loc = String_loc(4:len(String_loc))
@@ -956,26 +956,26 @@
    ELSE
      STOP 'other operateurs not yet'
    END IF
-   IF (debug)  write(out_unitp,*) 'Fel%idf',Fel%idf
-   IF (debug)  write(out_unitp,*) 'String_loc: ',String_loc
+   IF (debug)  write(out_unit,*) 'Fel%idf',Fel%idf
+   IF (debug)  write(out_unit,*) 'String_loc: ',String_loc
 
    IF (index(String_loc,'^') > 0) THEN ! we must be sure that ^ exist
      ! the exponent MUST be just after the operator/function/q
      IF (String_loc(1:1) /= '^') THEN
-       write(out_unitp,*) 'String_loc: ',String_loc
-       write(out_unitp,*) 'ERROR in StringMidas_TO_opel: wrong ^ position.'
+       write(out_unit,*) 'String_loc: ',String_loc
+       write(out_unit,*) 'ERROR in StringMidas_TO_opel: wrong ^ position.'
        STOP 'ERROR in StringMidas_TO_opel: wrong ^ position'
      END IF
 
      String_loc = String_loc(2:len(String_loc))
-     IF (debug)  write(out_unitp,*) 'String_loc: ',String_loc
+     IF (debug)  write(out_unit,*) 'String_loc: ',String_loc
      read(String_loc,*,iostat=err_el_loc) i_exp
      IF (err_el_loc /= 0) THEN
        ! the exponent is not an integer => real ?
        read(String_loc,*,iostat=err_el_loc) r_exp
        IF (err_el_loc /= 0) THEN
-         write(out_unitp,*) 'String_loc: ',String_loc
-         write(out_unitp,*) 'ERROR in StringMidas_TO_opel while readind the exponent'
+         write(out_unit,*) 'String_loc: ',String_loc
+         write(out_unit,*) 'ERROR in StringMidas_TO_opel while readind the exponent'
          STOP 'ERROR in StringMidas_TO_opel while readind the exponent'
        END IF
        ! in this case the r_exp should be a half-integer: i/2
@@ -1102,10 +1102,10 @@
        FelName_loc  = Qnamealfa_MCTDH(Qname,Fel%alfa)
 
      case default
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idf=', Fel%idf
-           write(out_unitp,*) "This idf is not registered for an elementary operator"
-           write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idf=', Fel%idf
+           write(out_unit,*) "This idf is not registered for an elementary operator"
+           write(out_unit,*) "   illegal value of idf . (Internal Bug)"
            STOP
      end select
 
@@ -1265,10 +1265,10 @@ END FUNCTION Qnamealfa_MCTDH
        FelName_loc = trim('\hat{L}_z')
 
      case default
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idf=', Fel%idf
-           write(out_unitp,*) "This idf is not registered for an elementary operator"
-           write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idf=', Fel%idf
+           write(out_unit,*) "This idf is not registered for an elementary operator"
+           write(out_unit,*) "   illegal value of idf . (Internal Bug)"
            STOP
      end select
      FelName = FelName_loc
@@ -1364,9 +1364,9 @@ END FUNCTION Qnamealfa_Latex
    !DML test if we have half integer
    IF ( .NOT. IS_integer(Fel%alfa)) THEN
      calfa = '^(' // TO_string(Fel%alfa) // ')'
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'Fel%alfa=',calfa
-     write(out_unitp,*) " MidasCpp is not working with half-integers"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'Fel%alfa=',calfa
+     write(out_unit,*) " MidasCpp is not working with half-integers"
      STOP " MidasCpp is not working with half-integers"
    END IF
 
@@ -1526,10 +1526,10 @@ END FUNCTION Qnamealfa_Latex
 
 
      case default
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idf=', Fel%idf
-           write(out_unitp,*) "This idf is not registered for an elementary operator"
-           write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idf=', Fel%idf
+           write(out_unit,*) "This idf is not registered for an elementary operator"
+           write(out_unit,*) "   illegal value of idf . (Internal Bug)"
            STOP
      end select
 
@@ -1568,9 +1568,9 @@ END FUNCTION Qnamealfa_Latex
      END IF
    ELSE
      calfa = '^(' // TO_string(Fel%alfa) // ')'
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'Fel%alfa=',calfa
-     write(out_unitp,*) " MidasCpp is not working with half-integers"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'Fel%alfa=',calfa
+     write(out_unit,*) " MidasCpp is not working with half-integers"
      STOP " MidasCpp is not working with half-integers"
    END IF
 
@@ -1678,10 +1678,10 @@ END FUNCTION Qnamealfa_Latex
 
 
      case default
-       write(out_unitp,*) 'ERROR in ',routine_name
-       write(out_unitp,*) 'idf=', Fel%idf
-       write(out_unitp,*) "This idf is not registered for an elementary operator"
-       write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+       write(out_unit,*) 'ERROR in ',routine_name
+       write(out_unit,*) 'idf=', Fel%idf
+       write(out_unit,*) "This idf is not registered for an elementary operator"
+       write(out_unit,*) "   illegal value of idf . (Internal Bug)"
        STOP
      end select
 
@@ -1863,10 +1863,10 @@ END FUNCTION Qnamealfa_Latex
        FelName_loc = trim('Lz')
 
      case default
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idf=', Fel%idf
-           write(out_unitp,*) "This idf is not registered for an elementary operator"
-           write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idf=', Fel%idf
+           write(out_unit,*) "This idf is not registered for an elementary operator"
+           write(out_unit,*) "   illegal value of idf . (Internal Bug)"
            STOP
      end select
      FelName = FelName_loc
@@ -2036,10 +2036,10 @@ END FUNCTION Qnamealfa_Latex
        FelName_loc = 'Lz'
 
      case default
-           write(out_unitp,*) 'ERROR in ',routine_name
-           write(out_unitp,*) 'idf=', Fel%idf
-           write(out_unitp,*) "This idf is not registered for an elementary operator"
-           write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+           write(out_unit,*) 'ERROR in ',routine_name
+           write(out_unit,*) 'idf=', Fel%idf
+           write(out_unit,*) "This idf is not registered for an elementary operator"
+           write(out_unit,*) "   illegal value of idf . (Internal Bug)"
            STOP
      end select
      FelName = FelName_loc
@@ -2303,7 +2303,7 @@ END FUNCTION Qnamealfa_Latex
      if(present(i_file)) then
        i_open = i_file
      else
-       i_open = out_unitp
+       i_open = out_unit
      end if
 
      if (header_loc) then
@@ -2386,7 +2386,7 @@ END FUNCTION Qnamealfa_Latex
 
      character (len=*), parameter   :: routine_name='get_NumVal_OpEl'
 
-     !write(out_unitp,*) 'Fel%idf,Fel%alfa,qval',Fel%idf,Fel%alfa,qval ; flush(out_unitp)
+     !write(out_unit,*) 'Fel%idf,Fel%alfa,qval',Fel%idf,Fel%alfa,qval ; flush(out_unit)
 
    ! we need to split when Fel%alfa is an integer or half-integer (used as as a real, ralfa)
    !   because qval**ralfa is not working when qval <= ZERO [ qval**ralfa = exp(ralfa*log(qval) ]
@@ -2435,10 +2435,10 @@ END FUNCTION Qnamealfa_Latex
        case(24,25,26)
          RValOp = ONE
        case default
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idf=',Fel%idf
-         write(out_unitp,*) "This idf is not registered for an elementary operator"
-         write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idf=',Fel%idf
+         write(out_unit,*) "This idf is not registered for an elementary operator"
+         write(out_unit,*) "   illegal value of idf . (Internal Bug)"
          STOP
        end select
    ELSE
@@ -2485,10 +2485,10 @@ END FUNCTION Qnamealfa_Latex
        case(24,25,26)
          RValOp = ONE
        case default
-         write(out_unitp,*) 'ERROR in ',routine_name
-         write(out_unitp,*) 'idf=',Fel%idf
-         write(out_unitp,*) "This idf is not registered for an elementary operator"
-         write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+         write(out_unit,*) 'ERROR in ',routine_name
+         write(out_unit,*) 'idf=',Fel%idf
+         write(out_unit,*) "This idf is not registered for an elementary operator"
+         write(out_unit,*) "   illegal value of idf . (Internal Bug)"
          STOP
        end select
      END IF
@@ -2536,16 +2536,16 @@ END FUNCTION Qnamealfa_Latex
      F_OpEl = tmp_OpEl
 
    case(24,25,26) ! Lx,Ly,Lz
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idf=', F_OpEl%idf
-     write(out_unitp,*) "Impossible to deal with Lx, Ly, Lz !!"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idf=', F_OpEl%idf
+     write(out_unit,*) "Impossible to deal with Lx, Ly, Lz !!"
      STOP
 
    case default
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idf=', F_OpEl%idf
-     write(out_unitp,*) "This idf is not registered for an elementary operator"
-     write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idf=', F_OpEl%idf
+     write(out_unit,*) "This idf is not registered for an elementary operator"
+     write(out_unit,*) "   illegal value of idf . (Internal Bug)"
      STOP
    end select
 
@@ -2596,10 +2596,10 @@ END FUNCTION Qnamealfa_Latex
      idf1 = 3 ; idf2 = 4
 
    case default
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idf=', F_OpEl%idf
-     write(out_unitp,*) "This idf is not registered for an elementary operator"
-     write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idf=', F_OpEl%idf
+     write(out_unit,*) "This idf is not registered for an elementary operator"
+     write(out_unit,*) "   illegal value of idf . (Internal Bug)"
      STOP
    end select
 
@@ -2737,10 +2737,10 @@ END FUNCTION Qnamealfa_Latex
 
 
    case default
-     write(out_unitp,*) 'ERROR in ',routine_name
-     write(out_unitp,*) 'idf=', d0OpEl%idf
-     write(out_unitp,*) "This idf is not registered for an elementary operator"
-     write(out_unitp,*) "   illegal value of idf . (Internal Bug)"
+     write(out_unit,*) 'ERROR in ',routine_name
+     write(out_unit,*) 'idf=', d0OpEl%idf
+     write(out_unit,*) "This idf is not registered for an elementary operator"
+     write(out_unit,*) "   illegal value of idf . (Internal Bug)"
      STOP
    end select
 

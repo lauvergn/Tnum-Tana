@@ -7,7 +7,7 @@
 !
 !     CALL calc_f2_f1Q_NH3(Q,Tdef2,Tdef1,vep,rho,nb_act,nb_var)
       SUBROUTINE calc_f2_f1Q_NH3(Q,f2Q,f1Q,vep,rho,nq,nb_var)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -34,14 +34,14 @@
 !     parameter (debug=.TRUE.)
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING calc_f2_f1Q'
-      write(out_unitp,*) 'Q',Q
+      write(out_unit,*) 'BEGINNING calc_f2_f1Q'
+      write(out_unit,*) 'Q',Q
       END IF
 !---------------------------------------------------------------------
 
        IF (nq .NE.  2) THEN
-         write(out_unitp,*) ' ERROR in calc_f2_f1Q_NH3'
-         write(out_unitp,*) ' nq should be equal to 2',nq
+         write(out_unit,*) ' ERROR in calc_f2_f1Q_NH3'
+         write(out_unit,*) ' nq should be equal to 2',nq
          STOP
        END IF
 
@@ -73,11 +73,11 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'x R',x,R
-      write(out_unitp,*) 'f1Q',f1Q
-      write(out_unitp,*) 'f2Q',f2Q
-      write(out_unitp,*) 'vep,rho',vep,rho
-      write(out_unitp,*) 'END calc_f2_f1Q'
+      write(out_unit,*) 'x R',x,R
+      write(out_unit,*) 'f1Q',f1Q
+      write(out_unit,*) 'f2Q',f2Q
+      write(out_unit,*) 'vep,rho',vep,rho
+      write(out_unit,*) 'END calc_f2_f1Q'
       END IF
 !---------------------------------------------------------------------
 
@@ -112,7 +112,7 @@
 !======================================================================
 !
       SUBROUTINE calc_f2_f1Q_jac1(Q,f2Q,f1Q,vep,rho,nq,nb_var)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -142,15 +142,15 @@
 !     parameter (debug=.TRUE.)
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING calc_f2_f1Q'
-      write(out_unitp,*) 'Q',Q
-      write(out_unitp,*) 'masses',masses
+      write(out_unit,*) 'BEGINNING calc_f2_f1Q'
+      write(out_unit,*) 'Q',Q
+      write(out_unit,*) 'masses',masses
       END IF
 !---------------------------------------------------------------------
 
        IF (nq .NE. 1) THEN
-         write(out_unitp,*) ' ERROR in calc_f2_f1Q_cart'
-         write(out_unitp,*) ' nq should be equal to 1',nq
+         write(out_unit,*) ' ERROR in calc_f2_f1Q_cart'
+         write(out_unit,*) ' nq should be equal to 1',nq
          STOP
        END IF
 
@@ -173,13 +173,13 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'x RR r',x,RR,r
-      write(out_unitp,*) 'M RR',1.d0/MM_inv,RR
-      write(out_unitp,*) 'm r',1.d0/m_inv,r
-      write(out_unitp,*) 'inertie_inv',inertie_inv
-      write(out_unitp,*) 'f1Q',f1Q
-      write(out_unitp,*) 'f2Q',f2Q
-      write(out_unitp,*) 'END calc_f2_f1Q'
+      write(out_unit,*) 'x RR r',x,RR,r
+      write(out_unit,*) 'M RR',1.d0/MM_inv,RR
+      write(out_unit,*) 'm r',1.d0/m_inv,r
+      write(out_unit,*) 'inertie_inv',inertie_inv
+      write(out_unit,*) 'f1Q',f1Q
+      write(out_unit,*) 'f2Q',f2Q
+      write(out_unit,*) 'END calc_f2_f1Q'
       END IF
 !---------------------------------------------------------------------
 
@@ -212,7 +212,7 @@
 !======================================================================
 !
       SUBROUTINE calc_f2_f1Q_jac3(Q,f2Q,f1Q,vep,rho,nq,nb_var)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
 
@@ -241,21 +241,21 @@
 !     parameter (debug=.TRUE.)
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING calc_f2_f1Q'
-      write(out_unitp,*) 'Q',Q
-      write(out_unitp,*) 'masses',masses
+      write(out_unit,*) 'BEGINNING calc_f2_f1Q'
+      write(out_unit,*) 'Q',Q
+      write(out_unit,*) 'masses',masses
       END IF
 !---------------------------------------------------------------------
 
        IF (nb_var .NE. nq) THEN
-         write(out_unitp,*) ' ERROR in calc_f2_f1Q_cart'
-         write(out_unitp,*) ' nq should be equal to nb_var',nq,nb_var
+         write(out_unit,*) ' ERROR in calc_f2_f1Q_cart'
+         write(out_unit,*) ' nq should be equal to nb_var',nq,nb_var
          STOP
        END IF
 
        IF (nq .NE. nb_at) THEN
-         write(out_unitp,*) ' ERROR in calc_f2_f1Q_cart'
-         write(out_unitp,*) ' nq should be equal to nb_at',nq,nb_at
+         write(out_unit,*) ' ERROR in calc_f2_f1Q_cart'
+         write(out_unit,*) ' nq should be equal to nb_at',nq,nb_at
          STOP
        END IF
 !      -------------------------------------------------------
@@ -294,13 +294,13 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'x RR r',x,RR,r
-      write(out_unitp,*) 'M RR',1.d0/MM_inv,RR
-      write(out_unitp,*) 'm r',1.d0/m_inv,r
-      write(out_unitp,*) 'inertie_inv',inertie_inv
-      write(out_unitp,*) 'f1Q',f1Q
-      write(out_unitp,*) 'f2Q',f2Q
-      write(out_unitp,*) 'END calc_f2_f1Q'
+      write(out_unit,*) 'x RR r',x,RR,r
+      write(out_unit,*) 'M RR',1.d0/MM_inv,RR
+      write(out_unit,*) 'm r',1.d0/m_inv,r
+      write(out_unit,*) 'inertie_inv',inertie_inv
+      write(out_unit,*) 'f1Q',f1Q
+      write(out_unit,*) 'f2Q',f2Q
+      write(out_unit,*) 'END calc_f2_f1Q'
       END IF
 !---------------------------------------------------------------------
 
@@ -334,7 +334,7 @@
 !======================================================================
 !
       SUBROUTINE calc_f2_f1Q_val(Q,f2Q,f1Q,vep,rho,nq,nb_var)
-      USE mod_system
+      USE TnumTana_system_m
       IMPLICIT NONE
 
        integer nq,nb_var
@@ -363,8 +363,8 @@
 !     parameter (debug=.TRUE.)
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'BEGINNING calc_f2_f1Q'
-      write(out_unitp,*) 'Q',Q
+      write(out_unit,*) 'BEGINNING calc_f2_f1Q'
+      write(out_unit,*) 'Q',Q
       END IF
 !---------------------------------------------------------------------
 
@@ -373,8 +373,8 @@
        a  = Q(2)
        r  = Q(3)
 
-!     write(out_unitp,*) 'RR a r',RR,a,r
-!     write(out_unitp,*) 'RR a r',Q(1),Q(2),Q(3)
+!     write(out_unit,*) 'RR a r',RR,a,r
+!     write(out_unit,*) 'RR a r',Q(1),Q(2),Q(3)
 !     STOP
 
        sa = sin(a)
@@ -406,11 +406,11 @@
 
 !---------------------------------------------------------------------
       IF (debug) THEN
-      write(out_unitp,*) 'Q',Q
-      write(out_unitp,*) 'rho vep',rho,vep
-      write(out_unitp,*) 'f1Q',f1Q
-      write(out_unitp,*) 'f2Q',f2Q
-      write(out_unitp,*) 'END calc_f2_f1Q'
+      write(out_unit,*) 'Q',Q
+      write(out_unit,*) 'rho vep',rho,vep
+      write(out_unit,*) 'f1Q',f1Q
+      write(out_unit,*) 'f2Q',f2Q
+      write(out_unit,*) 'END calc_f2_f1Q'
       END IF
 !---------------------------------------------------------------------
 

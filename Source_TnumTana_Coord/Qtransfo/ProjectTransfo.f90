@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_ProjectTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
 
@@ -113,15 +113,15 @@
       CALL alloc_ProjectTransfo(ProjectTransfo,nb_Qin)
 
 
-      ! read(in_unitp,*,IOSTAT=err)
+      ! read(in_unit,*,IOSTAT=err)
       ! IF (err /= 0) THEN
-      !   write(out_unitp,*) ' ERROR in ',name_sub
-      !   write(out_unitp,*) ' "End of file", while reading an empty line.'
-      !   write(out_unitp,*) ' Check your data !!'
+      !   write(out_unit,*) ' ERROR in ',name_sub
+      !   write(out_unit,*) ' "End of file", while reading an empty line.'
+      !   write(out_unit,*) ' Check your data !!'
       !   STOP
       ! END IF
 
-      flush(out_unitp)
+      flush(out_unit)
 
       END SUBROUTINE Read_ProjectTransfo
 !-----------------------------------------------------------------------
@@ -134,8 +134,8 @@
 
       IF (.NOT. associated(ProjectTransfo)) RETURN
 
-      write(out_unitp,*) 'BEGINNING Write_ProjectTransfo '
-      write(out_unitp,*) 'END Write_ProjectTransfo'
+      write(out_unit,*) 'BEGINNING Write_ProjectTransfo '
+      write(out_unit,*) 'END Write_ProjectTransfo'
 
       END SUBROUTINE Write_ProjectTransfo
 

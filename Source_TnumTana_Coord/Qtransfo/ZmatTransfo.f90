@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
       MODULE mod_ZmatTransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       use mod_Constant,     only: table_atom, get_mass_tnum
       use mod_Lib_QTransfo ! only all
@@ -96,13 +96,13 @@
         USE mod_Lib_QTransfo, ONLY : make_nameQ
       TYPE (Type_ZmatTransfo), intent(inout) :: ZmatTransfo
 
-!      write(out_unitp,*) 'BEGINNING alloc_ZmatTransfo'
-!      write(out_unitp,*) 'nat',ZmatTransfo%nat
+!      write(out_unit,*) 'BEGINNING alloc_ZmatTransfo'
+!      write(out_unit,*) 'nat',ZmatTransfo%nat
 
        IF (ZmatTransfo%nat < 3) THEN
-         write(out_unitp,*) ' ERROR in alloc_ZmatTransfo'
-         write(out_unitp,*) ' wrong value of nat',ZmatTransfo%nat
-         write(out_unitp,*) ' CHECK the source !!'
+         write(out_unit,*) ' ERROR in alloc_ZmatTransfo'
+         write(out_unit,*) ' wrong value of nat',ZmatTransfo%nat
+         write(out_unit,*) ' CHECK the source !!'
          STOP
        END IF
 
@@ -148,7 +148,7 @@
        ZmatTransfo%symbole(:) = ""
 
 
-!      write(out_unitp,*) 'END alloc_ZmatTransfo'
+!      write(out_unit,*) 'END alloc_ZmatTransfo'
 
       END SUBROUTINE alloc_ZmatTransfo
 
@@ -158,7 +158,7 @@
 
        TYPE (Type_ZmatTransfo), intent(inout) :: ZmatTransfo
 
-       !write(out_unitp,*) 'BEGINNING dealloc_ZmatTransfo'; flush(out_unitp)
+       !write(out_unit,*) 'BEGINNING dealloc_ZmatTransfo'; flush(out_unit)
 
        IF (associated(ZmatTransfo%ind2_zmat))  THEN
          CALL dealloc_array(ZmatTransfo%ind2_zmat,                      &
@@ -203,7 +203,7 @@
        nullify(ZmatTransfo%type_Qin)
        nullify(ZmatTransfo%name_Qin)
 
-       !write(out_unitp,*) 'END dealloc_ZmatTransfo'; flush(out_unitp)
+       !write(out_unit,*) 'END dealloc_ZmatTransfo'; flush(out_unit)
 
       END SUBROUTINE dealloc_ZmatTransfo
 
@@ -238,12 +238,12 @@
 
        !-----------------------------------------------------------------------
        IF (print_level > 1) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*) 'nat0,nat',ZmatTransfo%nat0,ZmatTransfo%nat
-         write(out_unitp,*) 'nb_var',ZmatTransfo%nb_var
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'nat0,nat',ZmatTransfo%nat0,ZmatTransfo%nat
+         write(out_unit,*) 'nb_var',ZmatTransfo%nb_var
          ZmatTransfo%ncart = 3 * ZmatTransfo%nat
-         write(out_unitp,*) 'ncart',ZmatTransfo%ncart
-         write(out_unitp,*) 'cos_th',ZmatTransfo%cos_th
+         write(out_unit,*) 'ncart',ZmatTransfo%ncart
+         write(out_unit,*) 'cos_th',ZmatTransfo%cos_th
        END IF
 
        it         = 0
@@ -262,18 +262,18 @@
         IF (ZmatTransfo%nat0 >= 1) THEN
           iz  = 0
           i   = 1
-          IF (print_level > 1) write(out_unitp,*) "==================",i
-          read(in_unitp,*,IOSTAT=err_io) name_at
+          IF (print_level > 1) write(out_unit,*) "==================",i
+          read(in_unit,*,IOSTAT=err_io) name_at
           IF (err_io /= 0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) '  while reading the first line ',       &
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  while reading the first line ',       &
                                          'of the "Zmat" transformation.'
-            write(out_unitp,*) ' Check your data !!'
+            write(out_unit,*) ' Check your data !!'
             STOP
           END IF
           ZZ = -1
           at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-          IF (print_level > 1) write(out_unitp,*) i,ZZ,at
+          IF (print_level > 1) write(out_unit,*) i,ZZ,at
 
           ZmatTransfo%ind2_zmat(1,i) = i
           ZmatTransfo%ind2_zmat(2,i) = 0
@@ -303,18 +303,18 @@
           IF (ZmatTransfo%nat0 >= 2) THEN
 
             i   = 2
-            IF (print_level > 1) write(out_unitp,*) "==================",i
-            read(in_unitp,*,IOSTAT=err_io) name_at,n1
+            IF (print_level > 1) write(out_unit,*) "==================",i
+            read(in_unit,*,IOSTAT=err_io) name_at,n1
             IF (err_io /= 0) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  while reading the second line ',    &
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  while reading the second line ',    &
                                          'of the "Zmat" transformation.'
-              write(out_unitp,*) ' Check your data !!'
+              write(out_unit,*) ' Check your data !!'
               STOP
             END IF
             ZZ = -1
             at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-            IF (print_level > 1) write(out_unitp,*) i,ZZ,at,n1
+            IF (print_level > 1) write(out_unit,*) i,ZZ,at,n1
 
             iz = iz+1
             ZmatTransfo%type_Qin(iz) = 2
@@ -328,8 +328,8 @@
 
 
            IF (n1 == 0 ) THEN
-              write(out_unitp,*) 'ERROR in ',name_sub
-              write(out_unitp,*) 'The second atom can NOT be in cartesian'
+              write(out_unit,*) 'ERROR in ',name_sub
+              write(out_unit,*) 'The second atom can NOT be in cartesian'
               STOP
             END IF
 
@@ -355,19 +355,19 @@
             IF (ZmatTransfo%nat0 >= 3) THEN
 
               i   = 3
-              IF (print_level > 1) write(out_unitp,*) "==================",i
-              read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2
+              IF (print_level > 1) write(out_unit,*) "==================",i
+              read(in_unit,*,IOSTAT=err_io) name_at,n1,n2
               IF (err_io /= 0) THEN
-                write(out_unitp,*) ' ERROR in ',name_sub
-                write(out_unitp,*) '  while reading the third line ',   &
+                write(out_unit,*) ' ERROR in ',name_sub
+                write(out_unit,*) '  while reading the third line ',   &
                                          'of the "Zmat" transformation.'
-                write(out_unitp,*) ' Check your data !!'
+                write(out_unit,*) ' Check your data !!'
                 STOP
               END IF
 
               ZZ = -1
               at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-              IF (print_level > 1) write(out_unitp,*) i,ZZ,at,n1,n2
+              IF (print_level > 1) write(out_unit,*) i,ZZ,at,n1,n2
 
               ZmatTransfo%ind2_zmat(1,i) = i
               ZmatTransfo%ind2_zmat(2,i) = n1
@@ -376,8 +376,8 @@
               ZmatTransfo%ind2_zmat(5,i) = 0
 
               IF (n1 == 0) THEN
-                write(out_unitp,*) 'ERROR in ',name_sub
-                write(out_unitp,*) 'The third atom can NOT be in cartesian'
+                write(out_unit,*) 'ERROR in ',name_sub
+                write(out_unit,*) 'The third atom can NOT be in cartesian'
                 STOP
               END IF
 
@@ -403,11 +403,11 @@
                 IF (ZmatTransfo%cos_th) THEN
                   ZmatTransfo%type_Qin(iz) = -3 ! cos(angle)
                   CALL make_nameQ(ZmatTransfo%name_Qin(iz),"Qzmat_Costh",iz,it)
-                  IF (print_level > 1) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
+                  IF (print_level > 1) write(out_unit,*) at,n1,'polyspherical with cos(th)'
                 ELSE
                   ZmatTransfo%type_Qin(iz) = 3  ! angle
                   CALL make_nameQ(ZmatTransfo%name_Qin(iz),"Qzmat_th",iz,it)
-                  IF (print_level > 1) write(out_unitp,*) at,n1,'polyspherical with th'
+                  IF (print_level > 1) write(out_unit,*) at,n1,'polyspherical with th'
                 END IF
               ELSE IF (n2 > 0) THEN
                 ic2 = ZmatTransfo%ind_zmat(1,n2)
@@ -427,18 +427,18 @@
 
               DO i=4,ZmatTransfo%nat0
 
-                IF (print_level > 1) write(out_unitp,*) "==================",i
-                read(in_unitp,*,IOSTAT=err_io) name_at,n1,n2,n3
+                IF (print_level > 1) write(out_unit,*) "==================",i
+                read(in_unit,*,IOSTAT=err_io) name_at,n1,n2,n3
                 IF (err_io /= 0) THEN
-                  write(out_unitp,*) ' ERROR in ',name_sub
-                  write(out_unitp,'(a,i0,a)') '  while reading the ',i, &
+                  write(out_unit,*) ' ERROR in ',name_sub
+                  write(out_unit,'(a,i0,a)') '  while reading the ',i, &
                                  'th line of the "Zmat" transformation.'
-                  write(out_unitp,*) ' Check your data !!'
+                  write(out_unit,*) ' Check your data !!'
                   STOP
                 END IF
                 ZZ = -1
                 at = get_mass_Tnum(mendeleev,Z=ZZ,name=name_at)
-                IF (print_level > 1) write(out_unitp,*) i,ZZ,at,n1,n2,n3
+                IF (print_level > 1) write(out_unit,*) i,ZZ,at,n1,n2,n3
                 ZmatTransfo%ind2_zmat(1,i)=i
                 ZmatTransfo%ind2_zmat(2,i)=n1
                 ZmatTransfo%ind2_zmat(3,i)=n2
@@ -447,7 +447,7 @@
 
                 IF (n1 == 0) THEN
                   ! l'atome est defini en coordonnees cartesiennes
-                  IF (print_level > 1) write(out_unitp,*) at,'cart'
+                  IF (print_level > 1) write(out_unit,*) at,'cart'
                   IF (at > ZERO) THEN
                    ZmatTransfo%nat_act          = ZmatTransfo%nat_act + 1
                    symbole(ZmatTransfo%nat_act) = name_at
@@ -474,7 +474,7 @@
 
                 ELSE
                   ! at en coord internes
-                  IF (print_level > 1) write(out_unitp,*) at,n1,n2,n3
+                  IF (print_level > 1) write(out_unit,*) at,n1,n2,n3
                   IF (at > ZERO) THEN
                     ZmatTransfo%nat_act          = ZmatTransfo%nat_act + 1
                     symbole(ZmatTransfo%nat_act) = name_at
@@ -499,11 +499,11 @@
                     IF (ZmatTransfo%cos_th) THEN
                       ZmatTransfo%type_Qin(iz) = -3 ! cos(angle)
                       CALL make_nameQ(ZmatTransfo%name_Qin(iz),"Qzmat_Costh",iz,it)
-                      IF (print_level > 1) write(out_unitp,*) at,n1,'polyspherical with cos(th)'
+                      IF (print_level > 1) write(out_unit,*) at,n1,'polyspherical with cos(th)'
                     ELSE
                       ZmatTransfo%type_Qin(iz) = 3 ! angle
                       CALL make_nameQ(ZmatTransfo%name_Qin(iz),"Qzmat_th",iz,it)
-                      IF (print_level > 1) write(out_unitp,*) at,n1,'polyspherical with th'
+                      IF (print_level > 1) write(out_unit,*) at,n1,'polyspherical with th'
                     END IF
                   ELSE IF (n2 > 0) THEN
                     ic2 = ZmatTransfo%ind_zmat(1,n2)
@@ -531,8 +531,8 @@
             END IF
           END IF
         ELSE
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' There is no atoms !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' There is no atoms !!'
           STOP
         END IF
 
@@ -543,7 +543,7 @@
        ZmatTransfo%symbole(:) = symbole(:)
        ZmatTransfo%masses(:)  = masses(:)
 
-      IF (print_level > 1) write(out_unitp,*) 'END ',name_sub
+      IF (print_level > 1) write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_ZmatTransfo
 
 
@@ -585,12 +585,12 @@
       character (len=*), parameter :: name_sub='calc_ZmatTransfo'
 !      -----------------------------------------------------------------
        IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*)
         CALL Write_ZmatTransfo(ZmatTransfo)
-        write(out_unitp,*) 'dnQzmat'
+        write(out_unit,*) 'dnQzmat'
         CALL Write_dnSVM(dnQzmat,nderiv)
        END IF
       !-----------------------------------------------------------------
@@ -637,9 +637,9 @@
         CALL sub3_dnVec_TOxf(dnx,icf,dnAt1,nderiv)
         !-----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*)
-          write(out_unitp,*) '-------------------------------------------------'
-          write(out_unitp,*) 'atom :',i
+          write(out_unit,*)
+          write(out_unit,*) '-------------------------------------------------'
+          write(out_unit,*) 'atom :',i
           CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
         END IF
         !-----------------------------------------------------------------
@@ -663,7 +663,7 @@
           i   = 2
           icf = ZmatTransfo%ind_zmat(1,i)
           ic1 = ZmatTransfo%ind_zmat(2,i)
-!         write(out_unitp,*) 'icf,ic1',icf,ic1
+!         write(out_unit,*) 'icf,ic1',icf,ic1
 
           CALL Set_ZERO_TO_dnSVM(dnEz2)
           IF (ZmatTransfo%New_Orient) THEN
@@ -676,15 +676,15 @@
             dnEz2%d0(:) = [ZERO,ZERO,ONE]
           END IF
 
-          !write(out_unitp,*) 'dnEz2',dnEz2%d0
+          !write(out_unit,*) 'dnEz2',dnEz2%d0
 
           CALL sub3_dnx_AT2_new(dnx,icf,ic1,dnd,dnEz2,nderiv,check)
 
           !-----------------------------------------------------------------
           IF (debug) THEN
-            write(out_unitp,*)
-            write(out_unitp,*) '-------------------------------------------------'
-            write(out_unitp,*) 'atom :',i
+            write(out_unit,*)
+            write(out_unit,*) '-------------------------------------------------'
+            write(out_unit,*) 'atom :',i
             CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
           END IF
           !-----------------------------------------------------------------
@@ -729,7 +729,7 @@
 
               case1 = (ZmatTransfo%ind_zmat(2,i) ==            &
                        ZmatTransfo%ind_zmat(1,1) )
-!             write(out_unitp,*) 'icf,ic1,ic2,case1',icf,ic1,ic2,case1
+!             write(out_unit,*) 'icf,ic1,ic2,case1',icf,ic1,ic2,case1
               CALL check_Valence(i_q,dnQval%d0,ZmatTransfo%type_Qin(i_q))
 
               IF (ZmatTransfo%New_Orient) THEN
@@ -762,9 +762,9 @@
                 END IF
               END IF
             END IF
-            !write(out_unitp,*) 'New_Orient',ZmatTransfo%New_Orient
-            !write(out_unitp,*) 'dnEx3',dnEx3%d0
-            !write(out_unitp,*) 'dnEz3',dnEz3%d0
+            !write(out_unit,*) 'New_Orient',ZmatTransfo%New_Orient
+            !write(out_unit,*) 'dnEx3',dnEx3%d0
+            !write(out_unit,*) 'dnEz3',dnEz3%d0
 
             CALL sub3_dnx_AT3_new(dnx,icf,ic1,check,                    &
                                   dnd,dnCval,dnSval,                    &
@@ -772,9 +772,9 @@
 
             !-----------------------------------------------------------------
             IF (debug) THEN
-              write(out_unitp,*)
-              write(out_unitp,*) '-------------------------------------------------'
-              write(out_unitp,*) 'atom :',i
+              write(out_unit,*)
+              write(out_unit,*) '-------------------------------------------------'
+              write(out_unit,*) 'atom :',i
               CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
             END IF
             !-----------------------------------------------------------------
@@ -822,9 +822,9 @@
                   END IF
                 END IF
                 CALL calc_cross_product(dnEz3%d0,nEz3,dnEx3%d0,nEx3,dnEy3%d0,nEy3)
-                !write(out_unitp,*) 'dnEx3',dnEx3%d0
-                !write(out_unitp,*) 'dnEy3',dnEy3%d0
-                !write(out_unitp,*) 'dnEz3',dnEz3%d0
+                !write(out_unit,*) 'dnEx3',dnEx3%d0
+                !write(out_unit,*) 'dnEy3',dnEy3%d0
+                !write(out_unit,*) 'dnEz3',dnEz3%d0
 
                 i_q = i_q + 1
                 CALL sub_dnVec_TO_dnS(dnQzmat,dnd,i_q)
@@ -904,9 +904,9 @@
 
               !-----------------------------------------------------------------
               IF (debug) THEN
-                write(out_unitp,*)
-                write(out_unitp,*) '-------------------------------------------------'
-                write(out_unitp,*) 'atom :',i
+                write(out_unit,*)
+                write(out_unit,*) '-------------------------------------------------'
+                write(out_unit,*) 'atom :',i
                 CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
               END IF
               !-----------------------------------------------------------------
@@ -914,8 +914,8 @@
             END DO
           END IF
         ELSE
-          write(out_unitp,*) ' STOP in ',name_sub
-          write(out_unitp,*) ' ERROR : there is no atoms !!'
+          write(out_unit,*) ' STOP in ',name_sub
+          write(out_unit,*) ' ERROR : there is no atoms !!'
           STOP
         END IF
         !=================================================
@@ -924,10 +924,10 @@
         !=================================================
         !-----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'Final Cartesian coordinates:'
+          write(out_unit,*) 'Final Cartesian coordinates:'
           CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-          write(out_unitp,*) 'END ',name_sub
-          write(out_unitp,*)
+          write(out_unit,*) 'END ',name_sub
+          write(out_unit,*)
         END IF
         !-----------------------------------------------------------------
         !=================================================
@@ -980,22 +980,22 @@
       character (len=*), parameter :: name_sub='calc_ZmatTransfo_outTOin'
 !     -----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*)
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*)
         CALL Write_ZmatTransfo(ZmatTransfo)
 
-        write(out_unitp,*) 'Cartesian coordinates:'
+        write(out_unit,*) 'Cartesian coordinates:'
         CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
       END IF
       !-----------------------------------------------------------------
       ncart0 = 3*ZmatTransfo%nat0
 
       IF (nderiv > 0) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' nderiv > 0 is not possible'
-        write(out_unitp,*) ' It should NOT append ! Check the Fortran source'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nderiv > 0 is not possible'
+        write(out_unit,*) ' It should NOT append ! Check the Fortran source'
         STOP
       END IF
 
@@ -1005,17 +1005,17 @@
         nc2 = ZmatTransfo%ind_zmat(2,i)
         nc3 = abs(ZmatTransfo%ind_zmat(3,i))
         nc4 = ZmatTransfo%ind_zmat(4,i)
-        IF (debug) write(out_unitp,*) '-------------------',i
-        IF (debug) write(out_unitp,*) 'nc1,nc2,nc3,nc4',nc1,nc2,nc3,nc4
+        IF (debug) write(out_unit,*) '-------------------',i
+        IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4',nc1,nc2,nc3,nc4
 
 
         IF (i == 2) THEN
 
           IF (nc2==0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' Your zmatrix are using:'
-            write(out_unitp,*) ' cartesian coordinates for the 2d atom'
-            write(out_unitp,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' Your zmatrix are using:'
+            write(out_unit,*) ' cartesian coordinates for the 2d atom'
+            write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
             STOP
           END IF
 
@@ -1023,16 +1023,16 @@
           iqz = iqz + 1
           dnQzmat%d0(iqz) = norm1
           ez(:) = v1(:) / norm1
-          IF (debug) write(out_unitp,*) ' nc1,nc2,v1',nc1,nc2,v1(:)
-          IF (debug) write(out_unitp,*) ' nc1,nc2,d',nc1,nc2,norm1
+          IF (debug) write(out_unit,*) ' nc1,nc2,v1',nc1,nc2,v1(:)
+          IF (debug) write(out_unit,*) ' nc1,nc2,d',nc1,nc2,norm1
 
         ELSE IF (i == 3) THEN
 
           IF (nc2==0) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) ' Your zmatrix are using:'
-            write(out_unitp,*) ' cartesian coordinates for the 3d atom'
-            write(out_unitp,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) ' Your zmatrix are using:'
+            write(out_unit,*) ' cartesian coordinates for the 3d atom'
+            write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
             STOP
           END IF
 
@@ -1043,18 +1043,18 @@
           iqz = iqz + 1
           dnQzmat%d0(iqz) = norm1
 
-          IF (debug) write(out_unitp,*) nc1,nc2,v1,norm1
-          IF (debug) write(out_unitp,*) nc3,nc2,v2,norm2
+          IF (debug) write(out_unit,*) nc1,nc2,v1,norm1
+          IF (debug) write(out_unit,*) nc3,nc2,v2,norm2
 
           CALL calc_angle(angle_v,v1,norm1,v2,norm2)
           IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
-            write(out_unitp,*) ' WARNNING in ',name_sub
-            write(out_unitp,*) ' 3 atoms are aligned!',nc1,nc2,nc3
-            write(out_unitp,*) ' I cannot calculate the valence angle'
-            write(out_unitp,*) ' angle,cos(angle)',angle_v,cos(angle_v)
-            write(out_unitp,*) ' Check your data !'
+            write(out_unit,*) ' WARNNING in ',name_sub
+            write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+            write(out_unit,*) ' I cannot calculate the valence angle'
+            write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
+            write(out_unit,*) ' Check your data !'
             DO idum=1,ZmatTransfo%nat0
-              write(out_unitp,*) idum,dnx%d0(3*idum-2:3*idum)
+              write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
             END DO
           END IF
           iqz = iqz + 1
@@ -1068,12 +1068,12 @@
           ex(:) = ex(:)/sqrt(dot_product(ex,ex))
           CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
 
-          IF (debug) write(out_unitp,*) ' ex(:)',ex(:)
-          IF (debug) write(out_unitp,*) ' ey(:)',ey(:)
-          IF (debug) write(out_unitp,*) ' ez(:)',ez(:)
+          IF (debug) write(out_unit,*) ' ex(:)',ex(:)
+          IF (debug) write(out_unit,*) ' ey(:)',ey(:)
+          IF (debug) write(out_unit,*) ' ez(:)',ez(:)
 
 
-          IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,d,angle',         &
+          IF (debug) write(out_unit,*) ' nc1,nc2,nc3,d,angle',         &
                                        nc1,nc2,nc3,norm1,dnQzmat%d0(iqz)
 
         ELSE ! i>3
@@ -1081,7 +1081,7 @@
           IF (nc2==0 .AND. nc3==0 .AND. nc4==0) THEN
             nc0 = ZmatTransfo%ind_zmat(1,1) ! first atom (can be dummy)
             CALL calc_vector2(v1,norm1,nc0,nc1,dnx%d0,ncart0)
-            IF (debug) write(out_unitp,*) ' nc1,nc0,v1,norm1',nc1,nc0,v1,norm1
+            IF (debug) write(out_unit,*) ' nc1,nc0,v1,norm1',nc1,nc0,v1,norm1
 
             iqz = iqz + 1
             dnQzmat%d0(iqz) = dot_product(v1,ex) ! x
@@ -1089,33 +1089,33 @@
             dnQzmat%d0(iqz) = dot_product(v1,ey) ! y
             iqz = iqz + 1
             dnQzmat%d0(iqz) = dot_product(v1,ez) ! z
-            IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,x,y,z',         &
+            IF (debug) write(out_unit,*) ' nc1,nc2,nc3,x,y,z',         &
                                         nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz),sqrt(dnQzmat%d0(iqz-2:iqz)**2)
           ELSE IF (nc2/=0 .AND. nc3==0 .AND. nc4==0) THEN
             !CALL calc_vector2(v1,norm1,nc1,nc2,dnx%d0,ncart0)
             CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
 
-            IF (debug) write(out_unitp,*) ' v1,norm1',v1(:),norm1
+            IF (debug) write(out_unit,*) ' v1,norm1',v1(:),norm1
 
             iqz = iqz + 1
             dnQzmat%d0(iqz) = norm1
 
             CALL calc_angle(angle_v,ez,norm2,v1,norm1)
-            IF (debug) write(out_unitp,*) ' ez,norm2',ez,norm2
-            IF (debug) write(out_unitp,*) ' angle_v',angle_v
+            IF (debug) write(out_unit,*) ' ez,norm2',ez,norm2
+            IF (debug) write(out_unit,*) ' angle_v',angle_v
 
             IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
-              write(out_unitp,*) ' WARNNING in ',name_sub
-              write(out_unitp,*) ' 3 atoms are aligned!',nc1,nc2,nc3
-              write(out_unitp,*) ' I cannot calculate the valence angle'
-              write(out_unitp,*) ' angle,cos(angle)',angle_v,cos(angle_v)
-              write(out_unitp,*) ' Check your data !'
+              write(out_unit,*) ' WARNNING in ',name_sub
+              write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+              write(out_unit,*) ' I cannot calculate the valence angle'
+              write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
+              write(out_unit,*) ' Check your data !'
               DO idum=1,ZmatTransfo%nat0
-                write(out_unitp,*) idum,dnx%d0(3*idum-2:3*idum)
+                write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
               END DO
             END IF
             iqz = iqz + 1
-            IF (debug) write(out_unitp,*) ' ZmatTransfo%cos_th',ZmatTransfo%cos_th
+            IF (debug) write(out_unit,*) ' ZmatTransfo%cos_th',ZmatTransfo%cos_th
 
             IF (ZmatTransfo%cos_th) THEN
               dnQzmat%d0(iqz) = cos(angle_v)
@@ -1128,7 +1128,7 @@
 
             iqz = iqz + 1
             dnQzmat%d0(iqz) = angle_d
-            IF (debug) write(out_unitp,*) ' nc1,nc2,nc3,R,th,phi',      &
+            IF (debug) write(out_unit,*) ' nc1,nc2,nc3,R,th,phi',      &
                                         nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz)
           ELSE
 
@@ -1142,13 +1142,13 @@
 
             CALL calc_angle(angle_v,v2,norm2,v1,norm1)
             IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
-              write(out_unitp,*) ' WARNNING in ',name_sub
-              write(out_unitp,*) ' 3 atoms are aligned!',nc1,nc2,nc3
-              write(out_unitp,*) ' I cannot calculate the valence angle'
-              write(out_unitp,*) ' angle,cos(angle)',angle_v,cos(angle_v)
-              write(out_unitp,*) ' Check your data !'
+              write(out_unit,*) ' WARNNING in ',name_sub
+              write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+              write(out_unit,*) ' I cannot calculate the valence angle'
+              write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
+              write(out_unit,*) ' Check your data !'
               DO idum=1,ZmatTransfo%nat0
-                write(out_unitp,*) idum,dnx%d0(3*idum-2:3*idum)
+                write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
               END DO
             END IF
             iqz = iqz + 1
@@ -1166,7 +1166,7 @@
             iqz = iqz + 1
             dnQzmat%d0(iqz) = angle_d
 
-            IF (debug) write(out_unitp,*) 'nc1,nc2,nc3,nc4,d,angle,angle_d',&
+            IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4,d,angle,angle_d',&
                            nc1,nc2,nc3,nc4,dnQzmat%d0(iqz-2:iqz)
           END IF
 
@@ -1178,10 +1178,10 @@
         !=================================================
         !-----------------------------------------------------------------
         IF (debug) THEN
-          write(out_unitp,*) 'dnQzmat'
+          write(out_unit,*) 'dnQzmat'
           CALL Write_dnSVM(dnQzmat,nderiv)
-          write(out_unitp,*) 'END ',name_sub
-          write(out_unitp,*)
+          write(out_unit,*) 'END ',name_sub
+          write(out_unit,*)
         END IF
         !-----------------------------------------------------------------
         !=================================================
@@ -1210,9 +1210,9 @@
 
       IF (.NOT. associated(ZmatTransfo1%ind2_zmat) .OR.                 &
           .NOT. associated(ZmatTransfo1%ind_zmat) ) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' ZmatTransfo1 is NOT allocated !!'
-        write(out_unitp,*) ' Check the source'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' ZmatTransfo1 is NOT allocated !!'
+        write(out_unit,*) ' Check the source'
         STOP
       END IF
 
@@ -1233,7 +1233,7 @@
 
       ZmatTransfo2%cos_th       = ZmatTransfo1%cos_th
 
-!     write(out_unitp,*) 'END ZmatTransfo1TOZmatTransfo2'
+!     write(out_unit,*) 'END ZmatTransfo1TOZmatTransfo2'
 
       END SUBROUTINE ZmatTransfo1TOZmatTransfo2
 
@@ -1246,35 +1246,35 @@
       character (len=*), parameter :: name_sub='Write_ZmatTransfo'
 
 
-      write(out_unitp,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unitp,*) 'ncart_act,ncart',                             &
+      write(out_unit,*) 'ncart_act,ncart',                             &
                   ZmatTransfo%ncart_act,ZmatTransfo%ncart
 
-      write(out_unitp,*) 'nat_act,nat0,nat,',                           &
+      write(out_unit,*) 'nat_act,nat0,nat,',                           &
                   ZmatTransfo%nat_act,ZmatTransfo%nat0,ZmatTransfo%nat
 
-      write(out_unitp,*) 'nb_var',ZmatTransfo%nb_var
+      write(out_unit,*) 'nb_var',ZmatTransfo%nb_var
 
-      write(out_unitp,*) 'ind2_zmat'
+      write(out_unit,*) 'ind2_zmat'
       IF (associated(ZmatTransfo%ind2_zmat)) THEN
         DO i=1,ZmatTransfo%nat
-          write(out_unitp,*) i,ZmatTransfo%ind2_zmat(:,i)
+          write(out_unit,*) i,ZmatTransfo%ind2_zmat(:,i)
         END DO
       END IF
-      write(out_unitp,*) 'ind_zmat,cos_th',ZmatTransfo%cos_th
+      write(out_unit,*) 'ind_zmat,cos_th',ZmatTransfo%cos_th
       IF (associated(ZmatTransfo%ind_zmat)) THEN
         DO i=1,ZmatTransfo%nat
-          write(out_unitp,*) i,ZmatTransfo%ind_zmat(:,i)
+          write(out_unit,*) i,ZmatTransfo%ind_zmat(:,i)
         END DO
       END IF
 
-      write(out_unitp,*) 'New_Orient',ZmatTransfo%New_Orient
-      write(out_unitp,*) 'vAt1',ZmatTransfo%vAt1(:)
-      write(out_unitp,*) 'vAt2',ZmatTransfo%vAt2(:)
-      write(out_unitp,*) 'vAt3',ZmatTransfo%vAt3(:)
+      write(out_unit,*) 'New_Orient',ZmatTransfo%New_Orient
+      write(out_unit,*) 'vAt1',ZmatTransfo%vAt1(:)
+      write(out_unit,*) 'vAt2',ZmatTransfo%vAt2(:)
+      write(out_unit,*) 'vAt3',ZmatTransfo%vAt3(:)
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_ZmatTransfo
 

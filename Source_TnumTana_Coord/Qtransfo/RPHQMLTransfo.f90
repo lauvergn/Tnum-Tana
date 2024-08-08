@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_RPHQMLTransfo
-  use mod_system
+  use TnumTana_system_m
   IMPLICIT NONE
 
   PRIVATE
@@ -98,54 +98,54 @@ SUBROUTINE Read_RPHQMLTransfo(RPHQMLTransfo,nb_Qin,option)
   CALL alloc_NParray(RPHQMLTransfo%list_QMLMapping, [nb_Qin],'RPHQMLTransfo%list_QMLMapping', name_sub)
 
   nb_act1 = 0
-  read(in_unitp,RPH_QML,IOSTAT=err_read)
+  read(in_unit,RPH_QML,IOSTAT=err_read)
 
   IF (err_read /= 0) THEN
-     write(out_unitp,*) ' ERROR in ',name_sub
-     write(out_unitp,*) '  while reading the "RPH_QML" namelist'
-     write(out_unitp,*) ' end of file or end of record'
-     write(out_unitp,*) ' Check your data !!'
+     write(out_unit,*) ' ERROR in ',name_sub
+     write(out_unit,*) '  while reading the "RPH_QML" namelist'
+     write(out_unit,*) ' end of file or end of record'
+     write(out_unit,*) ' Check your data !!'
      STOP 'ERROR in Read_RPHQMLTransfo: while reading "RPH_QML" namelist.'
   END IF
-  write(out_unitp,RPH_QML)
+  write(out_unit,RPH_QML)
 
   IF (nb_act1 < 1) THEN
-     write(out_unitp,*) ' ERROR in ',name_sub
-     write(out_unitp,*) '  while reading the "RPH_QML" namelist'
-     write(out_unitp,*) ' nb_act1 < 1',nb_act1
-     write(out_unitp,*) ' Check your data !!'
+     write(out_unit,*) ' ERROR in ',name_sub
+     write(out_unit,*) '  while reading the "RPH_QML" namelist'
+     write(out_unit,*) ' nb_act1 < 1',nb_act1
+     write(out_unit,*) ' Check your data !!'
      STOP 'ERROR in Read_RPHQMLTransfo: while reading "RPH_QML" namelist, nb_act1 < 1.'
   END IF
 
-  read(in_unitp,*,IOSTAT=err_read) RPHQMLTransfo%list_act_OF_Qout(:)
-  !write(out_unitp,*) 'list_act_OF_Qout for RPHQML',RPHQMLTransfo%list_act_OF_Qout
+  read(in_unit,*,IOSTAT=err_read) RPHQMLTransfo%list_act_OF_Qout(:)
+  !write(out_unit,*) 'list_act_OF_Qout for RPHQML',RPHQMLTransfo%list_act_OF_Qout
   IF (err_read /= 0) THEN
-    write(out_unitp,*) ' ERROR in ',name_sub
-    write(out_unitp,*) '  while reading "list_act_OF_Qout"'
-    write(out_unitp,*) ' end of file or end of record'
-    write(out_unitp,*) ' Check your data !!'
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) '  while reading "list_act_OF_Qout"'
+    write(out_unit,*) ' end of file or end of record'
+    write(out_unit,*) ' Check your data !!'
     STOP 'ERROR in Read_RPHQMLTransfo: while reading "list_act_OF_Qout".'
   END IF
 
-  read(in_unitp,*,IOSTAT=err_read) RPHQMLTransfo%list_QMLMapping(:)
+  read(in_unit,*,IOSTAT=err_read) RPHQMLTransfo%list_QMLMapping(:)
   IF (err_read /= 0) THEN
-    write(out_unitp,*) ' ERROR in ',name_sub
-    write(out_unitp,*) '  while reading "list_QMLMapping"'
-    write(out_unitp,*) '  end of file or end of record'
-    write(out_unitp,*) ' Check your data !!'
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) '  while reading "list_QMLMapping"'
+    write(out_unit,*) '  end of file or end of record'
+    write(out_unit,*) ' Check your data !!'
     STOP
   END IF
   DO i=1,nb_Qin
     IF (RPHQMLTransfo%list_act_OF_Qout(i) == 21 .AND.                          &
         RPHQMLTransfo%list_QMLMapping(i)  == 0) THEN
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
-      write(out_unitp,*) '  list_QMLMapping(i) MUST be greater than 0'
-      write(out_unitp,*) ' Check your data !!'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  list_QMLMapping(i)=0, for flexible coordinate i',i
+      write(out_unit,*) '  list_QMLMapping(i) MUST be greater than 0'
+      write(out_unit,*) ' Check your data !!'
       STOP
     END IF
   END DO
-  flush(out_unitp)
+  flush(out_unit)
 
   RPHQMLTransfo%nb_inact21_out  = count(RPHQMLTransfo%list_act_OF_Qout(:) == 21)
   RPHQMLTransfo%nb_act1_in      = nb_act1
@@ -170,9 +170,9 @@ SUBROUTINE Read_RPHQMLTransfo(RPHQMLTransfo,nb_Qin,option)
       iv_rest = iv_rest + 1
       RPHQMLTransfo%list_QinTOQout(iv_rest) = i
     CASE default
-      write(out_unitp,*) ' ERROR in ',name_sub
-      write(out_unitp,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
-      write(out_unitp,*) ' Possible values: 21 0'
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
+      write(out_unit,*) ' Possible values: 21 0'
       STOP 'ERROR in Read_RPHQMLTransfo: Type act/inact OF Qout is impossible.'
     END SELECT
   END DO
@@ -273,27 +273,27 @@ IMPLICIT NONE
   integer :: err_mem,memory
   character (len=*), parameter :: name_sub='Write_RPHQMLTransfo'
 
-  write(out_unitp,*) 'BEGINNING ',name_sub
+  write(out_unit,*) 'BEGINNING ',name_sub
 
-  write(out_unitp,*) 'nb_var        ',RPHQMLTransfo%nb_var
-  write(out_unitp,*) 'nb_act1_in    ',RPHQMLTransfo%nb_act1_in
-  write(out_unitp,*) 'nb_inact21_in ',RPHQMLTransfo%nb_inact21_in
-  write(out_unitp,*) 'nb_inact21_out',RPHQMLTransfo%nb_inact21_out
+  write(out_unit,*) 'nb_var        ',RPHQMLTransfo%nb_var
+  write(out_unit,*) 'nb_act1_in    ',RPHQMLTransfo%nb_act1_in
+  write(out_unit,*) 'nb_inact21_in ',RPHQMLTransfo%nb_inact21_in
+  write(out_unit,*) 'nb_inact21_out',RPHQMLTransfo%nb_inact21_out
 
   IF (allocated(RPHQMLTransfo%list_act_OF_Qout)) THEN
-    write(out_unitp,*) 'list_act_OF_Qout',RPHQMLTransfo%list_act_OF_Qout(:)
+    write(out_unit,*) 'list_act_OF_Qout',RPHQMLTransfo%list_act_OF_Qout(:)
   END IF
   IF (allocated(RPHQMLTransfo%list_QinTOQout)) THEN
-    write(out_unitp,*) 'list_QinTOQout',RPHQMLTransfo%list_QinTOQout(:)
+    write(out_unit,*) 'list_QinTOQout',RPHQMLTransfo%list_QinTOQout(:)
   END IF
   IF (allocated(RPHQMLTransfo%list_QoutTOQin)) THEN
-    write(out_unitp,*) 'list_QoutTOQin',RPHQMLTransfo%list_QoutTOQin(:)
+    write(out_unit,*) 'list_QoutTOQin',RPHQMLTransfo%list_QoutTOQin(:)
   END IF
   IF (allocated(RPHQMLTransfo%list_QMLMapping)) THEN
-    write(out_unitp,*) 'list_QoutTOQin',RPHQMLTransfo%list_QMLMapping(:)
+    write(out_unit,*) 'list_QoutTOQin',RPHQMLTransfo%list_QMLMapping(:)
   END IF
-  write(out_unitp,*) 'END ',name_sub
-  flush(out_unitp)
+  write(out_unit,*) 'END ',name_sub
+  flush(out_unit)
 END SUBROUTINE Write_RPHQMLTransfo
 
 
@@ -311,10 +311,10 @@ IMPLICIT NONE
   !----- for debuging ----------------------------------
   !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'RPHQMLTransfo1'
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'RPHQMLTransfo1'
     CALL Write_RPHQMLTransfo(RPHQMLTransfo1)
-    flush(out_unitp)
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
 
@@ -349,10 +349,10 @@ IMPLICIT NONE
 
   !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'RPHTransfo2'
+    write(out_unit,*) 'RPHTransfo2'
     CALL Write_RPHQMLTransfo(RPHQMLTransfo2)
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
   !---------------------------------------------------------------------
 
@@ -395,16 +395,16 @@ SUBROUTINE calc_RPHQMLTransfo(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
 
 !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'inTOout',inTOout
-    write(out_unitp,*) 'nderiv',nderiv
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'inTOout',inTOout
+    write(out_unit,*) 'nderiv',nderiv
     CALL Write_RPHQMLTransfo(RPHQMLTransfo)
 
-    write(out_unitp,*) 'Qact1',dnQin%d0(1:RPHQMLTransfo%nb_act1_in)
+    write(out_unit,*) 'Qact1',dnQin%d0(1:RPHQMLTransfo%nb_act1_in)
 
-    write(out_unitp,*) 'dnQin'
+    write(out_unit,*) 'dnQin'
     CALL Write_dnVec(dnQin,nderiv=nderiv_debug)
-    flush(out_unitp)
+    flush(out_unit)
   END IF
 !---------------------------------------------------------------------
 
@@ -469,7 +469,7 @@ SUBROUTINE calc_RPHQMLTransfo(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
 
     IF (nderiv > 0 .AND. debug) THEN
       Jacobian = get_Jacobian(dnQinact21_out)
-      IF (allocated(Jacobian)) CALL Write_Mat(Jacobian,out_unitp,5,info='Jacobian')
+      IF (allocated(Jacobian)) CALL Write_Mat(Jacobian,out_unit,5,info='Jacobian')
     END IF
 
     DO i=1,RPHQMLTransfo%nb_inact21_out
@@ -488,9 +488,9 @@ SUBROUTINE calc_RPHQMLTransfo(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
       CASE (0)
         CONTINUE
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
-        write(out_unitp,*) ' Possible values: 21 0'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
+        write(out_unit,*) ' Possible values: 21 0'
         STOP 'ERROR in calc_RPHQMLTransfo: Type act/inact OF Qout is impossible.'
       END SELECT
     END DO
@@ -502,10 +502,10 @@ SUBROUTINE calc_RPHQMLTransfo(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
 
 !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'dnQout'
+    write(out_unit,*) 'dnQout'
     CALL Write_dnVec(dnQout,nderiv=nderiv_debug)
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
 !---------------------------------------------------------------------
 
@@ -547,15 +547,15 @@ SUBROUTINE calc_RPHQMLTransfo_v0(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
 
 !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'BEGINNING ',name_sub
-    write(out_unitp,*) 'inTOout',inTOout
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'inTOout',inTOout
     CALL Write_RPHQMLTransfo(RPHQMLTransfo)
 
-    write(out_unitp,*) 'Qact1',dnQin%d0(1:RPHQMLTransfo%nb_act1_in)
+    write(out_unit,*) 'Qact1',dnQin%d0(1:RPHQMLTransfo%nb_act1_in)
 
-    write(out_unitp,*) 'dnQin'
+    write(out_unit,*) 'dnQin'
     CALL Write_dnVec(dnQin,nderiv=nderiv_debug)
-    flush(out_unitp)
+    flush(out_unit)
   END IF
 !---------------------------------------------------------------------
 
@@ -634,9 +634,9 @@ SUBROUTINE calc_RPHQMLTransfo_v0(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
       CASE (0)
         CONTINUE
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
-        write(out_unitp,*) ' Possible values: 21 0'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' Type act/inact OF Qout',RPHQMLTransfo%list_act_OF_Qout(i),' is impossible'
+        write(out_unit,*) ' Possible values: 21 0'
         STOP 'ERROR in calc_RPHQMLTransfo: Type act/inact OF Qout is impossible.'
       END SELECT
     END DO
@@ -648,10 +648,10 @@ SUBROUTINE calc_RPHQMLTransfo_v0(dnQin,dnQout,RPHQMLTransfo,nderiv,inTOout)
 
 !---------------------------------------------------------------------
   IF (debug) THEN
-    write(out_unitp,*) 'dnQout'
+    write(out_unit,*) 'dnQout'
     CALL Write_dnVec(dnQout,nderiv=nderiv_debug)
-    write(out_unitp,*) 'END ',name_sub
-    flush(out_unitp)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
   END IF
 !---------------------------------------------------------------------
 

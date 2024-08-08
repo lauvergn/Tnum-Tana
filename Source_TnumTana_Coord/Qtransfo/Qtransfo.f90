@@ -33,7 +33,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Qtransfo
-      use mod_system
+      use TnumTana_system_m
       USE mod_dnSVM
       use mod_Constant, only: table_atom
 
@@ -163,15 +163,15 @@ MODULE mod_Qtransfo
       !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
+         write(out_unit,*) 'BEGINNING ',name_sub
        END IF
 !-----------------------------------------------------------
        nullify(M_mass)
 
         IF (Qtransfo%num_transfo > 1 .AND. nb_Qin < 1) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' nb_Qin < 1',nb_Qin
-          write(out_unitp,*) 'and it is NOT the initial transformation',&
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nb_Qin < 1',nb_Qin
+          write(out_unit,*) 'and it is NOT the initial transformation',&
                  Qtransfo%num_transfo
           STOP
         END IF
@@ -203,43 +203,43 @@ MODULE mod_Qtransfo
         not_all          = .FALSE.
         check_LinearTransfo = .TRUE.
 
-        read(in_unitp,Coord_transfo,IOSTAT=err_io)
+        read(in_unit,Coord_transfo,IOSTAT=err_io)
         err_io = 0
         IF (err_io < 0) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-          write(out_unitp,*) ' end of file or end of record'
-          write(out_unitp,*) ' Probably, nb_transfo is to large in the namelist "variables"'
-          write(out_unitp,*) '   or you have forgotten a coordinate tranformation ...'
-          write(out_unitp,*) '   or you have forgotten the "Cartesian transfo"'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "Coord_transfo"'
+          write(out_unit,*) ' end of file or end of record'
+          write(out_unit,*) ' Probably, nb_transfo is to large in the namelist "variables"'
+          write(out_unit,*) '   or you have forgotten a coordinate tranformation ...'
+          write(out_unit,*) '   or you have forgotten the "Cartesian transfo"'
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in read_Qtransfo:  while reading the namelist "Coord_transfo"'
         END IF
         IF (err_io > 0) THEN
-          write(out_unitp,Coord_transfo)
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  while reading the namelist "Coord_transfo"'
-          write(out_unitp,*) ' Probably, some arguments of namelist are wrong.'
-          write(out_unitp,*) ' Check your data !!'
+          write(out_unit,Coord_transfo)
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  while reading the namelist "Coord_transfo"'
+          write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+          write(out_unit,*) ' Check your data !!'
           STOP 'ERROR in read_Qtransfo:  while reading the namelist "Coord_transfo"'
         END IF
-        write(out_unitp,*) '=========================================='
+        write(out_unit,*) '=========================================='
 
-        IF (debug) write(out_unitp,Coord_transfo)
+        IF (debug) write(out_unit,Coord_transfo)
 
         Qtransfo%name_transfo = TO_lowercase(trim(adjustl(name_transfo)))
         Qtransfo%inTOout      = inTOout
         Qtransfo%opt_transfo  = opt_transfo
         Qtransfo%skip_transfo = skip_transfo
         IF(MPI_id==0) THEN
-          write(out_unitp,'(a,a)' )  ' transfo:               ',Qtransfo%name_transfo
-          write(out_unitp,'(a,i0)')  ' Option of the transfo: ',Qtransfo%opt_transfo
-          write(out_unitp,'(a,l1)' ) ' Skip the transfo:      ',Qtransfo%skip_transfo
-          write(out_unitp,'(a,i0)')  ' num_transfo:           ',Qtransfo%num_transfo
-          write(out_unitp,'(a,l1)' ) ' inTOout:               ',Qtransfo%inTOout
-          write(out_unitp,'(a)'   )  '------------------------------------------'
+          write(out_unit,'(a,a)' )  ' transfo:               ',Qtransfo%name_transfo
+          write(out_unit,'(a,i0)')  ' Option of the transfo: ',Qtransfo%opt_transfo
+          write(out_unit,'(a,l1)' ) ' Skip the transfo:      ',Qtransfo%skip_transfo
+          write(out_unit,'(a,i0)')  ' num_transfo:           ',Qtransfo%num_transfo
+          write(out_unit,'(a,l1)' ) ' inTOout:               ',Qtransfo%inTOout
+          write(out_unit,'(a)'   )  '------------------------------------------'
         ENDIF
-        flush(out_unitp)
+        flush(out_unit)
 
         SELECT CASE (Qtransfo%name_transfo)
         CASE ('identity')
@@ -257,15 +257,15 @@ MODULE mod_Qtransfo
 
           CALL alloc_array(Qtransfo%list_Qin_TO_Qout,[Qtransfo%nb_Qin],&
                           "Qtransfo%list_Qin_TO_Qout",name_sub)
-          read(in_unitp,*,IOSTAT=err_io) Qtransfo%list_Qin_TO_Qout(1:nb_Qin)
+          read(in_unit,*,IOSTAT=err_io) Qtransfo%list_Qin_TO_Qout(1:nb_Qin)
           IF (err_io /= 0) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) '  while reading "list_Qin_TO_Qout"'
-             write(out_unitp,*) ' end of file or end of record'
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) '  while reading "list_Qin_TO_Qout"'
+             write(out_unit,*) ' end of file or end of record'
+             write(out_unit,*) ' Check your data !!'
              STOP 'ERROR in read_Qtransfo: while reading "list_Qin_TO_Qout"'
           END IF
-          IF (print_level > 0) write(out_unitp,*) 'list_Qin_TO_Qout',Qtransfo%list_Qin_TO_Qout(:)
+          IF (print_level > 0) write(out_unit,*) 'list_Qin_TO_Qout',Qtransfo%list_Qin_TO_Qout(:)
           Qtransfo%type_Qin(:) = 0
           DO i=1,Qtransfo%nb_Qin
             i_Q = Qtransfo%list_Qin_TO_Qout(i)
@@ -276,12 +276,12 @@ MODULE mod_Qtransfo
             END IF
           END DO
 !          IF (count(Qtransfo%type_Qin(:) == 0) > 0) THEN
-!             write(out_unitp,*) ' ERROR in ',name_sub
-!             write(out_unitp,*) '  type_Qin "type_Qin"',Qtransfo%type_Qin(:)
+!             write(out_unit,*) ' ERROR in ',name_sub
+!             write(out_unit,*) '  type_Qin "type_Qin"',Qtransfo%type_Qin(:)
 !
-!             write(out_unitp,*) '  Wrong "list_Qin_TO_Qout"',           &
+!             write(out_unit,*) '  Wrong "list_Qin_TO_Qout"',           &
 !                                        Qtransfo%list_Qin_TO_Qout(:)
-!             write(out_unitp,*) ' Check your data !!'
+!             write(out_unit,*) ' Check your data !!'
 !             STOP
 !          END IF
         CASE ('linear')
@@ -333,10 +333,10 @@ MODULE mod_Qtransfo
           Qtransfo%LinearTransfo%inv = .TRUE.
           Qtransfo%LinearTransfo%check_LinearTransfo = .FALSE.
           IF (nb_transfo < 1) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) '  Wrong number of transformation:',nb_transfo
-             write(out_unitp,*) '  for the LC_projection_inv transformation'
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) '  Wrong number of transformation:',nb_transfo
+             write(out_unit,*) '  for the LC_projection_inv transformation'
+             write(out_unit,*) ' Check your data !!'
              STOP 'ERROR in read_Qtransfo: nb_transfo < 1 for LC_projection_inv Transfo'
           END IF
           Qtransfo%nb_transfo = nb_transfo
@@ -426,10 +426,10 @@ MODULE mod_Qtransfo
           Tana_Is_Possible = .FALSE. ! could be changed
           Qtransfo%nb_Qin  = nb_Qin
           IF (nb_transfo < 1) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) '  Wrong number of transformation:',nb_transfo
-             write(out_unitp,*) '  for the oneD transformation'
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) '  Wrong number of transformation:',nb_transfo
+             write(out_unit,*) '  for the oneD transformation'
+             write(out_unit,*) ' Check your data !!'
              STOP 'ERROR in read_Qtransfo: nb_transfo < 1 for oneD Transfo'
           END IF
           Qtransfo%nb_transfo = nb_transfo
@@ -510,9 +510,9 @@ MODULE mod_Qtransfo
         CASE ('zmat') ! It should be one of the first transfo read
           Tana_Is_Possible = .FALSE.
           IF (nat < 2) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) ' nat < 2',nat
-              write(out_unitp,*) ' Check your data !!'
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) ' nat < 2',nat
+              write(out_unit,*) ' Check your data !!'
               STOP 'ERROR in read_Qtransfo: nat < 2 for zmat Transfo'
           END IF
           Qtransfo%Primitive_Coord    = .TRUE.
@@ -524,7 +524,7 @@ MODULE mod_Qtransfo
           Qtransfo%ZmatTransfo%ncart  = 3*(nat+1)
           Qtransfo%nb_Qin             = max(1,3*nat-6)+nb_extra_Coord
           Qtransfo%nb_Qout            = 3*(nat+1)
-          IF (debug) write(out_unitp,*) 'nat0,nat,nb_var,ncart',        &
+          IF (debug) write(out_unit,*) 'nat0,nat,nb_var,ncart',        &
                      Qtransfo%ZmatTransfo%nat0,Qtransfo%ZmatTransfo%nat,&
                   Qtransfo%ZmatTransfo%nb_var,Qtransfo%ZmatTransfo%ncart
 
@@ -545,9 +545,9 @@ MODULE mod_Qtransfo
          IF (nb_vect < 1 .AND. nat > 1) nb_vect = nat-1
 
           IF (nb_vect < 1) THEN
-             write(out_unitp,*) ' ERROR in ',name_sub
-             write(out_unitp,*) ' nb_vect < 1',nb_vect
-             write(out_unitp,*) ' Check your data !!'
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) ' nb_vect < 1',nb_vect
+             write(out_unit,*) ' Check your data !!'
              STOP 'ERROR in read_Qtransfo: nb_vect < 1 for Bunch Transfo'
           END IF
           IF (name_transfo == 'bunch_poly') with_vectors = .FALSE.
@@ -570,7 +570,7 @@ MODULE mod_Qtransfo
             Qtransfo%BunchTransfo%type_Qin => Qtransfo%type_Qin
             Qtransfo%BunchTransfo%name_Qin => Qtransfo%name_Qin
 
-            IF (debug) write(out_unitp,*) 'nat0,nat,nb_vect,ncart,nb_G',&
+            IF (debug) write(out_unit,*) 'nat0,nat,nb_vect,ncart,nb_G',&
                   Qtransfo%BunchTransfo%nat0,Qtransfo%BunchTransfo%nat, &
               Qtransfo%BunchTransfo%nb_vect,Qtransfo%BunchTransfo%ncart,&
                               Qtransfo%BunchTransfo%nb_G
@@ -594,7 +594,7 @@ MODULE mod_Qtransfo
             Qtransfo%BunchTransfo%type_Qin => Qtransfo%type_Qin
             Qtransfo%BunchTransfo%name_Qin => Qtransfo%name_Qin
 
-            IF (debug) write(out_unitp,*) 'nat0,nat,nb_vect,ncart,nb_G',&
+            IF (debug) write(out_unit,*) 'nat0,nat,nb_vect,ncart,nb_G',&
                   Qtransfo%BunchTransfo%nat0,Qtransfo%BunchTransfo%nat, &
               Qtransfo%BunchTransfo%nb_vect,Qtransfo%BunchTransfo%ncart,&
                               Qtransfo%BunchTransfo%nb_G
@@ -609,12 +609,12 @@ MODULE mod_Qtransfo
         CASE ('poly')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
           IF ( .NOT. associated(Qtransfo%BunchTransfo)) THEN
-            write(out_unitp,*) ' ERROR in ',name_sub
-            write(out_unitp,*) 'For Poly transfo, ... '
-            write(out_unitp,*) ' Qtransfo%BunchTransfo MUST be associoted TO'
-            write(out_unitp,*) ' mole%tab_Qtransfo(1)%BunchTransfo.'
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) 'For Poly transfo, ... '
+            write(out_unit,*) ' Qtransfo%BunchTransfo MUST be associoted TO'
+            write(out_unit,*) ' mole%tab_Qtransfo(1)%BunchTransfo.'
 
-            write(out_unitp,*) ' Check the fortran !!'
+            write(out_unit,*) ' Check the fortran !!'
             STOP 'ERROR in read_Qtransfo: Problem with BunchTransfo for poly transfo'
           END IF
 
@@ -638,9 +638,9 @@ MODULE mod_Qtransfo
                                  Qtransfo%BunchTransfo,iF_inout)
 
           IF (debug) THEN
-            write(out_unitp,*) ' Type and name of polyspherical coordinates'
+            write(out_unit,*) ' Type and name of polyspherical coordinates'
             DO i=1,Qtransfo%nb_Qin
-              write(out_unitp,*) 'i,type,name',i,Qtransfo%type_Qin(i),Qtransfo%name_Qin(i)
+              write(out_unit,*) 'i,type,name',i,Qtransfo%type_Qin(i),Qtransfo%name_Qin(i)
             END DO
 
             CALL RecWrite_BFTransfo(Qtransfo%BFTransfo,.TRUE.)
@@ -673,7 +673,7 @@ MODULE mod_Qtransfo
           Qtransfo%QTOXanaTransfo%ncart     = 3*(nat+1)
           Qtransfo%QTOXanaTransfo%ncart_act = 3*nat
 
-          IF (debug) write(out_unitp,*) 'nat0,nat,nb_var,ncart',        &
+          IF (debug) write(out_unit,*) 'nat0,nat,nb_var,ncart',        &
                                          Qtransfo%QTOXanaTransfo%nat0,  &
                                          Qtransfo%QTOXanaTransfo%nat,   &
                                          Qtransfo%QTOXanaTransfo%nb_var,&
@@ -696,15 +696,15 @@ MODULE mod_Qtransfo
           CALL Read_CartesianTransfo(Qtransfo%CartesianTransfo)
 
         CASE ('not_allocated')
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) 'name_transfo is NOT allocated!'
-          write(out_unitp,*) ' Check the source!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) 'name_transfo is NOT allocated!'
+          write(out_unit,*) ' Check the source!'
           STOP 'ERROR in read_Qtransfo: name_transfo is NOT allocated'
 
         CASE default ! ERROR: wrong transformation !
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
-          CALL Write_list_Qtransfo(out_unitp)
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The transformation is UNKNOWN: ',trim(name_transfo)
+          CALL Write_list_Qtransfo(out_unit)
           STOP 'ERROR in read_Qtransfo: wrong coordinate transformation'
         END SELECT
 
@@ -726,7 +726,7 @@ MODULE mod_Qtransfo
 
 
         IF (debug) CALL Write_QTransfo(Qtransfo)
-        write(out_unitp,*) '=========================================='
+        write(out_unit,*) '=========================================='
 
   END SUBROUTINE read_Qtransfo
 
@@ -792,8 +792,8 @@ MODULE mod_Qtransfo
           name_transfo = 'not_allocated'
           IF (allocated(Qtransfo%name_transfo)) name_transfo = Qtransfo%name_transfo
 
-          write(out_unitp,*) 'BEGINNING : ',name_sub,' : ',name_transfo
-          flush(out_unitp)
+          write(out_unit,*) 'BEGINNING : ',name_sub,' : ',name_transfo
+          flush(out_unit)
         END IF
 
         Qtransfo%print_done      = .FALSE.
@@ -892,8 +892,8 @@ MODULE mod_Qtransfo
         nullify(Qtransfo%name_Qout)  ! because it is a true pointer
 
         IF (debug) THEN
-          write(out_unitp,*) 'END : ',name_sub,' : ',name_transfo
-          flush(out_unitp)
+          write(out_unit,*) 'END : ',name_sub,' : ',name_transfo
+          flush(out_unit)
           deallocate(name_transfo)
         END IF
   END SUBROUTINE dealloc_Qtransfo
@@ -973,11 +973,11 @@ MODULE mod_Qtransfo
       name_transfo = 'not_allocated'
       IF (allocated(Qtransfo1%name_transfo)) name_transfo = Qtransfo1%name_transfo
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'name_transfo: ',name_transfo
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'name_transfo: ',name_transfo
         CALL Write_Qtransfo(Qtransfo1)
-        flush(out_unitp)
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------------
       Qtransfo2%print_done      = .FALSE.
@@ -1090,11 +1090,11 @@ MODULE mod_Qtransfo
 
       CASE ('oned','infrange','infiniterange')
         IF (Qtransfo2%nb_transfo < 1) THEN
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) '  Wrong number of transformation:',       &
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) '  Wrong number of transformation:',       &
                                            Qtransfo2%nb_transfo
-          write(out_unitp,*) '  for the oneD transformation'
-          write(out_unitp,*) ' Check the fortran source !!'
+          write(out_unit,*) '  for the oneD transformation'
+          write(out_unit,*) ' Check the fortran source !!'
           STOP
         END IF
 
@@ -1154,17 +1154,17 @@ MODULE mod_Qtransfo
         CONTINUE ! nothing to do
 
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
-        CALL Write_list_Qtransfo(out_unitp)
-        write(out_unitp,*) ' Check the source!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The transformation is UNKNOWN: ',name_transfo
+        CALL Write_list_Qtransfo(out_unit)
+        write(out_unit,*) ' Check the source!'
         STOP
       END SELECT
       !-----------------------------------------------------------------
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------------
       deallocate(name_transfo)
@@ -1205,22 +1205,22 @@ MODULE mod_Qtransfo
       IF (allocated(Qtransfo%name_transfo)) name_transfo = Qtransfo%name_transfo
 
       IF (debug) THEN
-        write(out_unitp,*)
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        write(out_unitp,*) 'New Qtransfo',it,' ',name_transfo
-        write(out_unitp,*) 'nderiv',nderiv
-        write(out_unitp,*) 'Qtransfo%nb_act',Qtransfo%nb_act
-        write(out_unitp,*) 'inTOout',inTOout_loc
-        write(out_unitp,*) 'nb_Qin,nb_Qout',Qtransfo%nb_Qin,Qtransfo%nb_Qout
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'New Qtransfo',it,' ',name_transfo
+        write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'Qtransfo%nb_act',Qtransfo%nb_act
+        write(out_unit,*) 'inTOout',inTOout_loc
+        write(out_unit,*) 'nb_Qin,nb_Qout',Qtransfo%nb_Qin,Qtransfo%nb_Qout
 
         IF (inTOout_loc) THEN
-          write(out_unitp,*) 'dnOin :'
+          write(out_unit,*) 'dnOin :'
           CALL Write_dnSVM(dnQin,nderiv_debug)
         ELSE
-          write(out_unitp,*) 'dnOout :'
+          write(out_unit,*) 'dnOout :'
           CALL Write_dnSVM(dnQout,nderiv_debug)
         END IF
-        flush(out_unitp)
+        flush(out_unit)
       END IF
       !-----------------------------------------------------------------
       IF (inTOout_loc) THEN
@@ -1230,9 +1230,9 @@ MODULE mod_Qtransfo
       END IF
 
       IF (Qtransfo%skip_transfo) THEN
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) 'skip_transfo=t MUST be treated before'
-        write(out_unitp,*) ' Check the source!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) 'skip_transfo=t MUST be treated before'
+        write(out_unit,*) ' Check the source!'
         STOP 'ERROR in calc_Qtransfo: skip_transfo=t MUST be treated before'
       END IF
 
@@ -1377,46 +1377,46 @@ MODULE mod_Qtransfo
 
       CASE ('qtox_ana') ! it has to be one of the last one
         IF (nderiv > 0) THEN
-           write(out_unitp,*) ' ERROR in ',name_sub
-           write(out_unitp,*) ' nderiv MUST = 0',nderiv
-           write(out_unitp,*) ' USED, num_x=t and num_g=t in'
-           write(out_unitp,*) ' the namelist "variables" or "geom"'
+           write(out_unit,*) ' ERROR in ',name_sub
+           write(out_unit,*) ' nderiv MUST = 0',nderiv
+           write(out_unit,*) ' USED, num_x=t and num_g=t in'
+           write(out_unit,*) ' the namelist "variables" or "geom"'
            STOP 'ERROR in calc_Qtransfo: nderiv MUST = 0 with qtox_ana transfo'
         END IF
         CALL Q_TO_X_ana(dnQin%d0, size(dnQin%d0),dnQout%d0,size(dnQout%d0),inTOout_loc)
 
       CASE ('cartesian') ! it has to be one of the last one
-         write(out_unitp,*) ' ERROR in ',name_sub
-         write(out_unitp,*) ' Do NOT use this subroutine'
-         write(out_unitp,*) ' CALL directly "calc_CartesianTransfo_new"'
+         write(out_unit,*) ' ERROR in ',name_sub
+         write(out_unit,*) ' Do NOT use this subroutine'
+         write(out_unit,*) ' CALL directly "calc_CartesianTransfo_new"'
          STOP 'ERROR in calc_Qtransfo: Do NOT use this subroutine with cartesian transfo'
 
          !CALL calc_CartesianTransfo(dnQin,dnQout,Qtransfo%CartesianTransfo,nderiv,inTOout_loc)
       CASE ('not_allocated')
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) 'name_transfo is NOT allocated!'
-          write(out_unitp,*) ' Check the source!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) 'name_transfo is NOT allocated!'
+          write(out_unit,*) ' Check the source!'
           STOP 'ERROR in calc_Qtransfo: name_transfo is NOT allocated'
       CASE default
-        write(out_unitp,*) ' ERROR in ',name_sub
-        write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
-        CALL Write_list_Qtransfo(out_unitp)
-        write(out_unitp,*) ' Check the source!'
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' The transformation is UNKNOWN: ',name_transfo
+        CALL Write_list_Qtransfo(out_unit)
+        write(out_unit,*) ' Check the source!'
         STOP 'ERROR in calc_Qtransfo: The transformation is UNKNOWN'
       END SELECT
 
       !-----------------------------------------------------------------
       IF (debug) THEN
         IF (inTOout_loc) THEN
-          write(out_unitp,*) 'dnOout :'
+          write(out_unit,*) 'dnOout :'
           CALL Write_dnSVM(dnQout,nderiv_debug)
         ELSE
-          write(out_unitp,*) 'dnOin :'
+          write(out_unit,*) 'dnOin :'
           CALL Write_dnSVM(dnQin,nderiv_debug)
         END IF
-        write(out_unitp,*)
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
       deallocate(name_transfo)
 
@@ -1450,58 +1450,58 @@ MODULE mod_Qtransfo
         END IF
 
         IF (Qtransfo%print_done .AND. .NOT. force_print_loc) THEN
-          write(out_unitp,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
-          write(out_unitp,*) ' Writing already done.'
-          flush(out_unitp)
+          write(out_unit,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
+          write(out_unit,*) ' Writing already done.'
+          flush(out_unit)
           RETURN
         END IF
-        write(out_unitp,*) 'BEGINNING ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        flush(out_unit)
 
         Qtransfo%print_done = .TRUE.
 
         IF(MPI_id==0) THEN
-          write(out_unitp,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
-          write(out_unitp,*) 'BeforeActive: ',Qtransfo%BeforeActive
-          write(out_unitp,*) 'Primitive_Coord: ',Qtransfo%Primitive_Coord
+          write(out_unit,*) 'name_transfo,num_transfo: ',name_transfo,Qtransfo%num_transfo
+          write(out_unit,*) 'BeforeActive: ',Qtransfo%BeforeActive
+          write(out_unit,*) 'Primitive_Coord: ',Qtransfo%Primitive_Coord
 
-          write(out_unitp,*) ' Option of the transfo: ',Qtransfo%opt_transfo
-          write(out_unitp,*) ' Skip the transfo: ',Qtransfo%skip_transfo
+          write(out_unit,*) ' Option of the transfo: ',Qtransfo%opt_transfo
+          write(out_unit,*) ' Skip the transfo: ',Qtransfo%skip_transfo
 
-          write(out_unitp,*) ' Parameter(s) to be optimized?: ',Qtransfo%opt_param
+          write(out_unit,*) ' Parameter(s) to be optimized?: ',Qtransfo%opt_param
 
-          write(out_unitp,*) 'nb_var,nb_act',                             &
+          write(out_unit,*) 'nb_var,nb_act',                             &
                            Qtransfo%nb_var,Qtransfo%nb_act
-          write(out_unitp,*) 'nb_Qin,nb_Qout',                            &
+          write(out_unit,*) 'nb_Qin,nb_Qout',                            &
                            Qtransfo%nb_Qin,Qtransfo%nb_Qout
 
-          flush(out_unitp)
-          write(out_unitp,*) '---------------------------------------'
+          flush(out_unit)
+          write(out_unit,*) '---------------------------------------'
           IF (associated(Qtransfo%name_Qout) .AND. associated(Qtransfo%type_Qout)) THEN
             DO i_Q=1,Qtransfo%nb_Qout
-              write(out_unitp,*) 'i_Q,name_Qout,type_Qout',i_Q," ",       &
+              write(out_unit,*) 'i_Q,name_Qout,type_Qout',i_Q," ",       &
                      trim(Qtransfo%name_Qout(i_Q)),                       &
                      Qtransfo%type_Qout(i_Q)
-              flush(out_unitp)
+              flush(out_unit)
 
             END DO
           ELSE
-            write(out_unitp,*) 'asso name_Qout and type_Qout',            &
+            write(out_unit,*) 'asso name_Qout and type_Qout',            &
              associated(Qtransfo%name_Qout),associated(Qtransfo%type_Qout)
           END IF
 
           IF (associated(Qtransfo%name_Qin) .AND. associated(Qtransfo%type_Qin)) THEN
-            write(out_unitp,*) '---------------------------------------'
+            write(out_unit,*) '---------------------------------------'
             DO i_Q=1,Qtransfo%nb_Qin
-              write(out_unitp,*) 'i_Q,name_Qin,type_Qin',i_Q," ",         &
+              write(out_unit,*) 'i_Q,name_Qin,type_Qin',i_Q," ",         &
                      trim(Qtransfo%name_Qin(i_Q)),                        &
                      Qtransfo%type_Qin(i_Q)
             END DO
           ELSE
-            write(out_unitp,*) 'asso name_Qin and type_Qin',              &
+            write(out_unit,*) 'asso name_Qin and type_Qin',              &
              associated(Qtransfo%name_Qin),associated(Qtransfo%type_Qin)
           END IF
-          write(out_unitp,*) '---------------------------------------'
+          write(out_unit,*) '---------------------------------------'
         ENDIF ! for MPI_id==0
 
         SELECT CASE (name_transfo)
@@ -1509,27 +1509,27 @@ MODULE mod_Qtransfo
           CONTINUE ! nothing !
 
         CASE ('order')
-           write(out_unitp,*) 'list_Qin_TO_Qout',Qtransfo%list_Qin_TO_Qout(:)
+           write(out_unit,*) 'list_Qin_TO_Qout',Qtransfo%list_Qin_TO_Qout(:)
 
         CASE ('linear','linear_inv','lc_projection_inv',                &
             'linear_transp','linear_transp_inv','linear_inv_transp')
-          write(out_unitp,*)  'Mat of LinearTransfo: '
-          CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unitp,4)
+          write(out_unit,*)  'Mat of LinearTransfo: '
+          CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unit,4)
 
-          write(out_unitp,*)  'Mat_inv of LinearTransfo: '
-          CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unitp,4)
+          write(out_unit,*)  'Mat_inv of LinearTransfo: '
+          CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
 
         CASE ('nm')
           IF (associated(Qtransfo%NMTransfo)) THEN
             CALL Write_NMTransfo(Qtransfo%NMTransfo)
           END IF
           IF (associated(Qtransfo%LinearTransfo%mat)) THEN
-            write(out_unitp,*)  'Mat of LinearTransfo (NM): '
-            CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unitp,4)
+            write(out_unit,*)  'Mat of LinearTransfo (NM): '
+            CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unit,4)
           END IF
           IF (associated(Qtransfo%LinearTransfo%mat_inv)) THEN
-            write(out_unitp,*)  'Mat_inv of LinearTransfo (NM): '
-            CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unitp,4)
+            write(out_unit,*)  'Mat_inv of LinearTransfo (NM): '
+            CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
           END IF
 
         CASE ('rph')
@@ -1548,19 +1548,19 @@ MODULE mod_Qtransfo
           END IF
 
         CASE ('hyperspherical')
-          write(out_unitp,*) 'nb_HyperSphe: ',                          &
+          write(out_unit,*) 'nb_HyperSphe: ',                          &
                  Qtransfo%HyperSpheTransfo%nb_HyperSphe
-          write(out_unitp,*) 'list_HyperSphe: ',                        &
+          write(out_unit,*) 'list_HyperSphe: ',                        &
                  Qtransfo%HyperSpheTransfo%list_HyperSphe(:)
 
         CASE ('oned','infrange','infiniterange')
-          write(out_unitp,*) 'oneD transfo or InfiniteRange'
+          write(out_unit,*) 'oneD transfo or InfiniteRange'
           IF (Qtransfo%nb_transfo < 1) THEN
-              write(out_unitp,*) ' ERROR in ',name_sub
-              write(out_unitp,*) '  Wrong number of transformation:',   &
+              write(out_unit,*) ' ERROR in ',name_sub
+              write(out_unit,*) '  Wrong number of transformation:',   &
                                                    Qtransfo%nb_transfo
-              write(out_unitp,*) '  for the oneD transformation'
-              write(out_unitp,*) ' Check the fortran source !!'
+              write(out_unit,*) '  for the oneD transformation'
+              write(out_unit,*) ' Check the fortran source !!'
               STOP
           END IF
           CALL Write_oneDTransfo(Qtransfo%oneDTransfo)
@@ -1573,9 +1573,9 @@ MODULE mod_Qtransfo
 
         CASE ('flexible')
           nb_flex_act = Qtransfo%FlexibleTransfo%nb_flex_act
-          write(out_unitp,*) 'nb_flex_act',nb_flex_act,':',             &
+          write(out_unit,*) 'nb_flex_act',nb_flex_act,':',             &
                  Qtransfo%FlexibleTransfo%list_act(1:nb_flex_act)
-          write(out_unitp,*) 'flex: ',                                  &
+          write(out_unit,*) 'flex: ',                                  &
                                Qtransfo%FlexibleTransfo%list_flex(:)
 
         CASE ('active')
@@ -1597,19 +1597,19 @@ MODULE mod_Qtransfo
           CALL Write_CartesianTransfo(Qtransfo%CartesianTransfo)
 
         CASE ('not_allocated')
-          write(out_unitp,*) 'name_transfo is NOT allocated!'
+          write(out_unit,*) 'name_transfo is NOT allocated!'
 
         CASE default ! ERROR: wrong transformation !
-          write(out_unitp,*) ' ERROR in ',name_sub
-          write(out_unitp,*) ' The transformation is UNKNOWN: ',name_transfo
-          CALL Write_list_Qtransfo(out_unitp)
-          write(out_unitp,*) ' Check the source!'
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The transformation is UNKNOWN: ',name_transfo
+          CALL Write_list_Qtransfo(out_unit)
+          write(out_unit,*) ' Check the source!'
           STOP
         END SELECT
         deallocate(name_transfo)
 
-        write(out_unitp,*) 'END ',name_sub
-        flush(out_unitp)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
 
       END SUBROUTINE Write_Qtransfo
 
@@ -1653,16 +1653,16 @@ MODULE mod_Qtransfo
       !-----------------------------------------------------------------
        IF (.NOT. Qtransfo%LinearTransfo%check_LinearTransfo) RETURN
        IF (debug) THEN
-         write(out_unitp,*) 'BEGINNING ',name_sub
-         write(out_unitp,*)
+         write(out_unit,*) 'BEGINNING ',name_sub
+         write(out_unit,*)
          CALL Write_Qtransfo(Qtransfo)
-         write(out_unitp,*)
+         write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
       IF (.NOT. associated(Qtransfo%type_Qout) ) THEN
-        write(out_unitp,*) ' ERROR in name_sub'
-        write(out_unitp,*) ' Qtransfo%type_Qout is not associated'
-        write(out_unitp,*) ' CHECK the fortran !'
+        write(out_unit,*) ' ERROR in name_sub'
+        write(out_unit,*) ' Qtransfo%type_Qout is not associated'
+        write(out_unit,*) ' CHECK the fortran !'
         STOP
       END IF
       Qtransfo%type_Qin(:) = 0
@@ -1676,21 +1676,21 @@ MODULE mod_Qtransfo
               Qtransfo%type_Qin(i_Qin) = typ_Q
             ELSE
             IF (typ_Q /= Qtransfo%type_Qout(i_Qout) ) THEN
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
                 CALL Write_Qtransfo(Qtransfo)
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) 'ERROR: in ',name_sub
-                write(out_unitp,*) 'i_Qout,i_Qin',i_Qout,i_Qin
-                write(out_unitp,*) 'type_Qout and type_Qin',            &
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
+                write(out_unit,*) 'ERROR: in ',name_sub
+                write(out_unit,*) 'i_Qout,i_Qin',i_Qout,i_Qin
+                write(out_unit,*) 'type_Qout and type_Qin',            &
                                        Qtransfo%type_Qout(i_Qout),typ_Q
-                write(out_unitp,*)
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
-                write(out_unitp,*) '==================================='
+                write(out_unit,*)
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
+                write(out_unit,*) '==================================='
                 STOP
              END IF
             END IF
@@ -1700,9 +1700,9 @@ MODULE mod_Qtransfo
 
 !      -----------------------------------------------------------------
        IF (debug) THEN
-         write(out_unitp,*) 'type_Qin  : ',Qtransfo%type_Qin
-         write(out_unitp,*) 'type_Qout : ',Qtransfo%type_Qout
-         write(out_unitp,*) 'END ',name_sub
+         write(out_unit,*) 'type_Qin  : ',Qtransfo%type_Qin
+         write(out_unit,*) 'type_Qout : ',Qtransfo%type_Qout
+         write(out_unit,*) 'END ',name_sub
        END IF
 !      -----------------------------------------------------------------
 

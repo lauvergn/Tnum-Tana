@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
       PROGRAM Tnum_f90
-      use mod_system
+      use TnumTana_system_m
       use mod_dnSVM
       use mod_Constant
       use mod_Coord_KEO
@@ -81,8 +81,8 @@
       !-----------------------------------------------------------------
 
       IF (associated(mole%NMTransfo) .OR. associated(mole%RPHTransfo)) THEN
-        write(out_unitp,*) "ERROR: This test program cannot be used with"
-        write(out_unitp,*) "Normal modes (NM) or RPH"
+        write(out_unit,*) "ERROR: This test program cannot be used with"
+        write(out_unit,*) "Normal modes (NM) or RPH"
         STOP
       END IF
 
@@ -108,27 +108,27 @@
 !-------------------------------------------------
 !     - Cartesian coordinates --------------------
 !     --------------------------------------------
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
         CALL time_perso('sub_QactTOdnx')
 
         nderiv = 0
         CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
-        write(out_unitp,*) "======================================"
+        write(out_unit,*) "======================================"
         CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,.FALSE.)
-        write(out_unitp,*) 'dnx: ',mole%ncart
+        write(out_unit,*) 'dnx: ',mole%ncart
         CALL write_dnx(1,mole%ncart,dnx,nderiv)
 
         CALL Write_Cartg98(dnx%d0,mole)
 
         CALL dealloc_dnSVM(dnx)
         CALL time_perso('sub_QactTOdnx')
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
-        write(out_unitp,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
+        write(out_unit,*) "======================================"
 !-------------------------------------------------
 !-------------------------------------------------
 
@@ -137,6 +137,6 @@
       CALL dealloc_NParray(Qact,'Qact',name_sub)
 
 
-      write(out_unitp,*) 'END ',name_sub
+      write(out_unit,*) 'END ',name_sub
 
       END PROGRAM Tnum_f90

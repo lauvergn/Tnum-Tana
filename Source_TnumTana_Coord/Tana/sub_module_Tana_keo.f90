@@ -34,7 +34,7 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Tana_keo
-   use mod_system
+   use TnumTana_system_m
    use mod_Tnum,           only : CoordType, tnum, Write_CoordType
    use mod_ActiveTransfo,  only : qact_to_qdyn_from_activetransfo
    USE mod_paramQ
@@ -101,9 +101,9 @@ MODULE mod_Tana_keo
 !===========================================================
 
       IF (debug) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) ' BEGINNING Tana'
-        flush(out_unitp)
+        write(out_unit,*) '================================================='
+        write(out_unit,*) ' BEGINNING Tana'
+        flush(out_unit)
       END IF
 
       nullify(M_mass_out)
@@ -118,18 +118,18 @@ MODULE mod_Tana_keo
       end do
       if (.not. poly .and. para_Tnum%Tana) then
         CALL Write_CoordType(mole,.TRUE.)
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "Tana works only with the polyspherical coordinates"
-        write(out_unitp,*) "poly=",poly
-        write(out_unitp,*) " Check your data input"
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "Tana works only with the polyspherical coordinates"
+        write(out_unit,*) "poly=",poly
+        write(out_unit,*) " Check your data input"
         STOP 'ERROR in compute_analytical_KEO: Tana=t and poly=f'
       end if
       frame =  mole%tab_Qtransfo(i_transfo)%BFTransfo%frame
       if (.not.frame) then
         CALL Write_CoordType(mole,.TRUE.)
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "The first vector MUST define a frame"
-        write(out_unitp,*) " its corresponding data structure frame should be true"
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "The first vector MUST define a frame"
+        write(out_unit,*) " its corresponding data structure frame should be true"
         STOP 'ERROR in compute_analytical_KEO: The first vector MUST define a frame'
         STOP
       end if
@@ -184,29 +184,29 @@ MODULE mod_Tana_keo
       constraint = (count(mole%ActiveTransfo%list_act_of_Qdyn /= 1 .AND.&
                           mole%ActiveTransfo%list_act_of_Qdyn /= 21) > 0 )
       IF (nb_act /= mole%nb_act) THEN
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "  mole%nb_act from mole is not equal to nb_act"
-        write(out_unitp,*) '  nb_act,mole%nb_act',nb_act,mole%nb_act
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "  mole%nb_act from mole is not equal to nb_act"
+        write(out_unit,*) '  nb_act,mole%nb_act',nb_act,mole%nb_act
         STOP
       END IF
       IF (mole%nb_act == 0) THEN
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "  there is no active coordinates"
-        write(out_unitp,*) '  mole%nb_act',mole%nb_act
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "  there is no active coordinates"
+        write(out_unit,*) '  mole%nb_act',mole%nb_act
         STOP
       END IF
       !-----------------------------------------------------------------
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'vectors indices in their subsystem to the indices in the BF'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'vectors indices in their subsystem to the indices in the BF'
+      flush(out_unit)
       i_var = 1
       call  iv_system_to_iv_BF(mole%tab_Qtransfo(i_transfo)%BFTransfo,i_var)
       call init_tab_num_frame_Peuler(mole%tab_Qtransfo(i_transfo)%BFTransfo,P_euler)
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'Initialization of the coordinates associated with each subsystem'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'Initialization of the coordinates associated with each subsystem'
+      flush(out_unit)
       i_var = 1
       With_Li = .FALSE.
       call extract_qval_F_system(mole%tab_Qtransfo(i_transfo)%BFTransfo,        &
@@ -214,13 +214,13 @@ MODULE mod_Tana_keo
                                  i_var , With_Li)
 
       DO i_var=1,mole%nb_var
-        write(out_unitp,*) tab_Qname(i_var)
+        write(out_unit,*) tab_Qname(i_var)
         CALL write_op(tabQpoly_Qel(i_var))
       END DO
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'Initialization of the M_mass matrix of each subsystem'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'Initialization of the M_mass matrix of each subsystem'
+      flush(out_unit)
 
       do k = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
       do j = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
@@ -236,19 +236,19 @@ MODULE mod_Tana_keo
                             mole%tab_Qtransfo(1)%BunchTransfo%M_Tana,M_mass_out)
 
       TWOxKEO = CZERO
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Computation of the 2xKEO (in full dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Computation of the 2xKEO (in full dimension)'
+      flush(out_unit)
 
       call get_opKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,  TWOxKEO,          &
                      P_Euler, M_mass_out, scalar_PiPj)
 
       nb_terms_KEO_withoutVep = size(TWOxKEO%sum_prod_op1d)
 
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) '================================================='
 
       IF (debug) THEN
-        write(out_unitp,*) ' Write 2xKEO (in full dimension)'
+        write(out_unit,*) ' Write 2xKEO (in full dimension)'
         call write_op(TWOxKEO,header=.TRUE.)
       END IF
 
@@ -263,77 +263,77 @@ MODULE mod_Tana_keo
       END IF
       nb_terms_KEO_withVep = size(TWOxKEO%sum_prod_op1d)
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Add the extra potential term  KEO'
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
-      write(out_unitp,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Add the extra potential term  KEO'
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
+      write(out_unit,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
+      flush(out_unit)
 
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Computation of the 2xKEO (in reduced dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Computation of the 2xKEO (in reduced dimension)'
+      flush(out_unit)
       CALL get_KEO_for_Qactiv(TWOxKEO, constraint,Qact,tabQpoly_Qel,tabQact_Qel, &
                               list_Qactiv,list_QpolytoQact)
       IF (debug) CALL write_op(TWOxKEO,header=.TRUE.)
-      write(out_unitp,*) '================================================='
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      flush(out_unit)
 
 
 
       IF (With_Li) THEN
-        CALL write_keo_VSCFform(mole,TWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
+        CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
         STOP
       ELSE
         !new = .TRUE.
         new = .FALSE.
         IF (new) THEN
-          write(out_unitp,*) '================================================='
-          write(out_unitp,*) ' GET F2 F1 (in reduced dimension)'
-          flush(out_unitp)
+          write(out_unit,*) '================================================='
+          write(out_unit,*) ' GET F2 F1 (in reduced dimension)'
+          flush(out_unit)
           CALL  Get_F2_F1_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,&
                                        TWOxKEO,para_Tnum%ExpandTWOxKEO,       &
                                        tabQact_Qel,mole%nb_act,mole%nb_var,   &
                                        para_Tnum%nrho)
           IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-          write(out_unitp,*) '================================================='
+          write(out_unit,*) '================================================='
         ELSE
           !!!! The expansion MUST be done after removing inactive terms.
           !!!! Otherwise, the KEO can be not hermitian !
-          write(out_unitp,*) '================================================='
-          write(out_unitp,*) ' Expand 2xKEO (in reduced dimension)'
-          flush(out_unitp)
+          write(out_unit,*) '================================================='
+          write(out_unit,*) ' Expand 2xKEO (in reduced dimension)'
+          flush(out_unit)
           CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,para_Tnum%ExpandTWOxKEO)
-          write(out_unitp,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
+          write(out_unit,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
           IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-          write(out_unitp,*) '================================================='
+          write(out_unit,*) '================================================='
         END IF
       END IF
       !para_Tnum%TWOxKEO = TWOxKEO ! usefull ?
 
       IF (get_Gana) THEN
-          write(out_unitp,*) '================================================='
-          write(out_unitp,*) ' Get Gana'
-          flush(out_unitp)
+          write(out_unit,*) '================================================='
+          write(out_unit,*) ' Get Gana'
+          flush(out_unit)
           CALL  Get_Gana_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,   &
                                        TWOxKEO,Gana,                            &
                                        tabQact_Qel,mole%nb_act,mole%nb_var,     &
                                        para_Tnum%nrho)
           CALL write_op(Gana,header=.TRUE.)
           CALL dealloc_NParray(Gana,'Gana',routine_name)
-          write(out_unitp,*) '================================================='
+          write(out_unit,*) '================================================='
       END IF
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' output of the analytical  KEO'
-      write(out_unitp,*) ' MCTDH    Form: ',para_Tnum%MCTDHForm
-      write(out_unitp,*) ' VSCF     Form: ',para_Tnum%VSCFForm
-      write(out_unitp,*) ' MidasCpp Form: ',para_Tnum%MidasCppForm
-      write(out_unitp,*) ' LaTex    Form: ',para_Tnum%LaTexForm
-      write(out_unitp,*) ' Fortran  Form: ',para_Tnum%FortranForm
-      write(out_unitp,*) '================================================='
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' output of the analytical  KEO'
+      write(out_unit,*) ' MCTDH    Form: ',para_Tnum%MCTDHForm
+      write(out_unit,*) ' VSCF     Form: ',para_Tnum%VSCFForm
+      write(out_unit,*) ' MidasCpp Form: ',para_Tnum%MidasCppForm
+      write(out_unit,*) ' LaTex    Form: ',para_Tnum%LaTexForm
+      write(out_unit,*) ' Fortran  Form: ',para_Tnum%FortranForm
+      write(out_unit,*) '================================================='
+      flush(out_unit)
 
       tab_Qname(:) = tab_Qname(list_QactTOQpoly(:)) ! to change the order due to the "constraints"
 
@@ -344,28 +344,28 @@ MODULE mod_Tana_keo
                               tab_Qname, para_Tnum%JJ)
         close(io_mctdh) ! CALL file_close cannot be used
 
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) "output MCTDH format"
-        write(out_unitp,*) '-------------------------------------------------'
-        !call write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
-        call write_keo_mctdh_form(mole,TWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
+        write(out_unit,*) '================================================='
+        write(out_unit,*) "output MCTDH format"
+        write(out_unit,*) '-------------------------------------------------'
+        !call write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        call write_keo_mctdh_form(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
 
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%VSCFForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'VSCF form'
-        write(out_unitp,*) '-------------------------------------------------'
-        !CALL write_keo_VSCFform(mole,TWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
-        CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'VSCF form'
+        write(out_unit,*) '-------------------------------------------------'
+        !CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%MidasCppForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'MidasCpp formatted file'
-        write(out_unitp,*) '-------------------------------------------------'
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'MidasCpp formatted file'
+        write(out_unit,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
         !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
         CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
@@ -375,18 +375,18 @@ MODULE mod_Tana_keo
         CALL write_mol_MidasCppForm(mole, nio, tab_Qname, unit='bohr')
         close(nio) ! CALL file_close cannot be used
 
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'MidasCpp formatted KEO: T = '
-        write(out_unitp,*) '-------------------------------------------------'
-        !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unitp, tab_Qname, 0)
-        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, 0)
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'MidasCpp formatted KEO: T = '
+        write(out_unit,*) '-------------------------------------------------'
+        !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unit, tab_Qname, 0)
+        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, 0)
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%LaTexForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'LaTex file: Eq_KEO.tex'
-        write(out_unitp,*) '-------------------------------------------------'
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'LaTex file: Eq_KEO.tex'
+        write(out_unit,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
         CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
         close(nio) ! CALL file_close cannot be used
@@ -394,9 +394,9 @@ MODULE mod_Tana_keo
 
 
       IF (para_Tnum%FortranForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'Fortran file: TanaF2F1Vep.f90'
-        write(out_unitp,*) '-------------------------------------------------'
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'Fortran file: TanaF2F1Vep.f90'
+        write(out_unit,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'TanaF2F1Vep.f90', iunit = nio)
         CALL write_keo_Fortranform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
         close(nio) ! CALL file_close cannot be used
@@ -418,9 +418,9 @@ MODULE mod_Tana_keo
       CALL dealloc_array(scalar_PiPj,'scalar_PiPj',routine_name)
 
       IF (debug) THEN
-        write(out_unitp,*) ' END Tana'
-        write(out_unitp,*) '================================================='
-        flush(out_unitp)
+        write(out_unit,*) ' END Tana'
+        write(out_unit,*) '================================================='
+        flush(out_unit)
       END IF
 
    END SUBROUTINE compute_analytical_KEO
@@ -467,9 +467,9 @@ MODULE mod_Tana_keo
 !===========================================================
       nullify(M_mass_out)
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' BEGINNING Tana'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' BEGINNING Tana'
+      flush(out_unit)
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
@@ -481,17 +481,17 @@ MODULE mod_Tana_keo
       end do
       if (.not. poly .and. para_Tnum%Tana) then
         CALL Write_CoordType(mole,.TRUE.)
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "Tana works only with the polyspherical coordinates"
-        write(out_unitp,*) " Check your data input"
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "Tana works only with the polyspherical coordinates"
+        write(out_unit,*) " Check your data input"
         STOP
       end if
       frame =  mole%tab_Qtransfo(i_transfo)%BFTransfo%frame
       if (.not.frame) then
         CALL Write_CoordType(mole,.TRUE.)
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "The first vector should define a frame"
-        write(out_unitp,*) " its corresponding data structure frame should be true"
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "The first vector should define a frame"
+        write(out_unit,*) " its corresponding data structure frame should be true"
         STOP
       end if
 
@@ -546,42 +546,42 @@ MODULE mod_Tana_keo
       constraint = (count(mole%ActiveTransfo%list_act_of_Qdyn /= 1 .AND.&
                           mole%ActiveTransfo%list_act_of_Qdyn /= 21) > 0 )
       IF (nb_act /= mole%nb_act) THEN
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "  mole%nb_act from mole is not equal to nb_act"
-        write(out_unitp,*) '  nb_act,mole%nb_act',nb_act,mole%nb_act
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "  mole%nb_act from mole is not equal to nb_act"
+        write(out_unit,*) '  nb_act,mole%nb_act',nb_act,mole%nb_act
         STOP
       END IF
       IF (mole%nb_act == 0) THEN
-        write(out_unitp,*) ' ERROR in ',routine_name
-        write(out_unitp,*) "  there is no active coordinates"
-        write(out_unitp,*) '  mole%nb_act',mole%nb_act
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) "  there is no active coordinates"
+        write(out_unit,*) '  mole%nb_act',mole%nb_act
         STOP
       END IF
       !-----------------------------------------------------------------
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'vectors indices in their subsystem to the indice in th BF'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'vectors indices in their subsystem to the indice in th BF'
+      flush(out_unit)
       i_var = 1
       call  iv_system_to_iv_BF(mole%tab_Qtransfo(i_transfo)%BFTransfo,i_var)
       call init_tab_num_frame_Peuler(mole%tab_Qtransfo(i_transfo)%BFTransfo,P_euler)
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'Initialization of the coordinates associated with each subsystem'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'Initialization of the coordinates associated with each subsystem'
+      flush(out_unit)
       i_var = 1
       With_Li = .FALSE.
       call extract_qval_F_system(mole%tab_Qtransfo(i_transfo)%BFTransfo, &
       &                     tab_Q, list_Qactiv, tab_Qname, tabQpoly_Qel, i_var, With_Li)
 
       DO i_var=1,mole%nb_var
-        write(out_unitp,*) tab_Qname(i_var)
+        write(out_unit,*) tab_Qname(i_var)
         CALL write_op(tabQpoly_Qel(i_var))
       END DO
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'Initialization of the M_mass matrix of each subsystem'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'Initialization of the M_mass matrix of each subsystem'
+      flush(out_unit)
 
       do k = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
       do j = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
@@ -597,9 +597,9 @@ MODULE mod_Tana_keo
       & M_mass_out)
 
       TWOxKEO = CZERO
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Computation of the 2xKEO (in full dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Computation of the 2xKEO (in full dimension)'
+      flush(out_unit)
 
       call  get_opKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,  TWOxKEO, &
                       P_Euler, M_mass_out, scalar_PiPj)
@@ -611,100 +611,100 @@ MODULE mod_Tana_keo
       END IF
       nb_terms_KEO_withVep = size(TWOxKEO%sum_prod_op1d)
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Add the extra potential term  KEO'
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
-      write(out_unitp,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Add the extra potential term  KEO'
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
+      write(out_unit,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
+      flush(out_unit)
 
       IF (debug) THEN
-        write(out_unitp,*) ' Write 2xKEO (in full dimension)'
+        write(out_unit,*) ' Write 2xKEO (in full dimension)'
         call write_op(TWOxKEO,header=.TRUE.)
       END IF
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Computation of the 2xKEO (in reduced dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Computation of the 2xKEO (in reduced dimension)'
+      flush(out_unit)
       CALL get_KEO_for_Qactiv(TWOxKEO, constraint,Qact,tabQpoly_Qel,tabQact_Qel, &
                               list_Qactiv,list_QpolytoQact)
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) '================================================='
 
       !new = .TRUE.
       new = .FALSE.
       IF (new) THEN
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' GET F2 F1 (in reduced dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' GET F2 F1 (in reduced dimension)'
+      flush(out_unit)
       CALL  Get_F2_F1_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,&
                                    TWOxKEO,para_Tnum%ExpandTWOxKEO,       &
                                    tabQact_Qel,mole%nb_act,mole%nb_var,para_Tnum%nrho)
       IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) '================================================='
       ELSE
       !!!! The expansion MUST be done after removing inactive terms.
       !!!! Otherwise, the KEO can be not hermitian !
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' Expand 2xKEO (in reduced dimension)'
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' Expand 2xKEO (in reduced dimension)'
+      flush(out_unit)
       CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,para_Tnum%ExpandTWOxKEO)
-      write(out_unitp,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
+      write(out_unit,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
       IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-      write(out_unitp,*) '================================================='
+      write(out_unit,*) '================================================='
       END IF
 
 
 
 
-      write(out_unitp,*) '================================================='
-      write(out_unitp,*) ' output of the analytical  KEO'
-      write(out_unitp,*) ' MCTDH    Form: ',para_Tnum%MCTDHForm
-      write(out_unitp,*) ' VSCF     Form: ',para_Tnum%VSCFForm
-      write(out_unitp,*) ' MidasCpp Form: ',para_Tnum%MidasCppForm
-      write(out_unitp,*) ' LaTex    Form: ',para_Tnum%LaTexForm
-      write(out_unitp,*) '================================================='
-      flush(out_unitp)
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' output of the analytical  KEO'
+      write(out_unit,*) ' MCTDH    Form: ',para_Tnum%MCTDHForm
+      write(out_unit,*) ' VSCF     Form: ',para_Tnum%VSCFForm
+      write(out_unit,*) ' MidasCpp Form: ',para_Tnum%MidasCppForm
+      write(out_unit,*) ' LaTex    Form: ',para_Tnum%LaTexForm
+      write(out_unit,*) '================================================='
+      flush(out_unit)
 
       tab_Qname(:) = tab_Qname(list_QactTOQpoly(:)) ! to change the order du to the "constraints"
 
       IF (para_Tnum%MCTDHForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) "output MCTDH format"
-        write(out_unitp,*) '-------------------------------------------------'
-        !call write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
-        call write_keo_mctdh_form(mole, para_Tnum%TWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
+        write(out_unit,*) '================================================='
+        write(out_unit,*) "output MCTDH format"
+        write(out_unit,*) '-------------------------------------------------'
+        !call write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        call write_keo_mctdh_form(mole, para_Tnum%TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
 
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%VSCFForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'VSCF form'
-        write(out_unitp,*) '-------------------------------------------------'
-        CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, para_Tnum%JJ)
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'VSCF form'
+        write(out_unit,*) '-------------------------------------------------'
+        CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%MidasCppForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'MidasCpp formatted file'
-        write(out_unitp,*) '-------------------------------------------------'
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'MidasCpp formatted file'
+        write(out_unit,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
         !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
         CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
         close(nio) ! CALL file_close cannot be used
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'MidasCpp formatted KEO: T = '
-        write(out_unitp,*) '-------------------------------------------------'
-        !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unitp, tab_Qname, 0)
-        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unitp, tab_Qname, 0)
-        write(out_unitp,*) '================================================='
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'MidasCpp formatted KEO: T = '
+        write(out_unit,*) '-------------------------------------------------'
+        !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unit, tab_Qname, 0)
+        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, 0)
+        write(out_unit,*) '================================================='
       END IF
 
       IF (para_Tnum%LaTexForm) THEN
-        write(out_unitp,*) '================================================='
-        write(out_unitp,*) 'LaTex file'
-        write(out_unitp,*) '-------------------------------------------------'
+        write(out_unit,*) '================================================='
+        write(out_unit,*) 'LaTex file'
+        write(out_unit,*) '-------------------------------------------------'
         CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
         CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
         close(nio) ! CALL file_close cannot be used
@@ -821,8 +821,8 @@ MODULE mod_Tana_keo
      character (len=*), parameter       :: routine_name='iv_system_to_iv_BF'
 
       ! if(.not.allocated(tab_v)) then
-      !   write(out_unitp,*) ' ERROR in',routine_name
-      !   write(out_unitp,*) "you should allocate tab_v before calling this subroutine"
+      !   write(out_unit,*) ' ERROR in',routine_name
+      !   write(out_unit,*) "you should allocate tab_v before calling this subroutine"
       ! end if
        ivF = 1
        tab_iv(i_var) = ivF
@@ -869,17 +869,14 @@ MODULE mod_Tana_keo
       end do
       nvec = F_system%nb_vect-nsub_syst+1
       nb_var = max(1,3*nvec-3)
-      write(out_unitp,*) '************************************'
-      write(out_unitp,*) 'begin sub_system', F_system%tab_num_frame
-      write(out_unitp,*) 'nvec=', nvec
-      write(out_unitp,*) 'nsub_syt=', nsub_syst
+      write(out_unit,*) '************************************'
+      write(out_unit,*) 'begin sub_system', F_system%tab_num_frame
+      write(out_unit,*) 'nvec=', nvec
+      write(out_unit,*) 'nsub_syt=', nsub_syst
       do i = 1, size(F_system%euler)
         if(F_system%euler(i)) nb_var = nb_var + 1
       end do
-     ! if(F_system%nb_vect > 0) then
-     !   if(F_system%tab_BFTransfo(1)%frame)  nb_var = nb_var + 1
-     ! end if
-     ! if(compare_tab(F_system%euler, [.false., .false., .false.])) then
+
      if( F_system%nb_vect >1) then
        if(F_system%tab_BFTransfo(1)%frame) then
          do i=2, F_system%nb_vect
@@ -896,7 +893,7 @@ MODULE mod_Tana_keo
      tab_Qel(i_var) = F_system%Qvec(1)
 
      tab_Qname(i_var) = "R_1^{"//trim(F_system%name_frame(2:i_len))//'}'
-     write(out_unitp,*) 'i_var_F= R', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+     write(out_unit,*) 'i_var_F= R', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
      i_var = i_var+1
       ivF = ivF+1
       iq = 1
@@ -912,14 +909,14 @@ MODULE mod_Tana_keo
             tab_Qel(i_var) = F_system%tab_BFTransfo(iv)%Qvec(1)
 
             tab_Qname(i_var) = "R_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
-            write(out_unitp,*) 'i_var_F= R', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+            write(out_unit,*) 'i_var_F= R', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
 
             i_var = i_var+1
             ivF = ivF+1
 
             tab_Qel(i_var) = F_system%tab_BFTransfo(iv)%Qvec(2)
 
-            write(out_unitp,*) 'i_var_F th=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+            write(out_unit,*) 'i_var_F th=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
             if(F_system%cos_th) then
               tab_Qname(i_var) = &
               &  "u_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
@@ -934,16 +931,16 @@ MODULE mod_Tana_keo
             tab_Qel(i_var+1) = F_system%tab_BFTransfo(iv)%Qvec(2)
             tab_Qel(i_var+2) = F_system%tab_BFTransfo(iv)%Qvec(3)
 
-            write(out_unitp,*) 'i_var_F R=', ivF, 'i_var_BF=', i_var, 'qval=',tab_Q(i_var)
+            write(out_unit,*) 'i_var_F R=', ivF, 'i_var_BF=', i_var, 'qval=',tab_Q(i_var)
             if(F_system%tab_BFTransfo(iv)%cart) then
               tab_Qname(i_var) = "x_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               i_var = i_var+1
               ivF = ivF+1
-              write(out_unitp,*) 'i_var_F y=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+              write(out_unit,*) 'i_var_F y=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
               tab_Qname(i_var) = "y_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               i_var = i_var+1
               ivF = ivF+1
-              write(out_unitp,*) 'i_var_F z=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+              write(out_unit,*) 'i_var_F z=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
               tab_Qname(i_var) = "z_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               i_var = i_var+1
               ivF = ivF+1
@@ -951,7 +948,7 @@ MODULE mod_Tana_keo
               tab_Qname(i_var) = "R_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               i_var = i_var+1
               ivF = ivF+1
-              write(out_unitp,*) 'i_var_F th=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+              write(out_unit,*) 'i_var_F th=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
               if(F_system%cos_th) then
                 tab_Qname(i_var) = "u_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               else
@@ -959,7 +956,7 @@ MODULE mod_Tana_keo
               end if
               i_var = i_var+1
               ivF = ivF+1
-              write(out_unitp,*) 'i_var_F phi=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
+              write(out_unit,*) 'i_var_F phi=', ivF, 'i_var_BF=', i_var,'qval=',tab_Q(i_var)
               tab_Qname(i_var) = "\varphi_"//trim(ci)//"^{"//trim(F_system%name_frame(2:i_len))//'}'
               i_var = i_var+1
               ivF = ivF+1
@@ -970,7 +967,7 @@ MODULE mod_Tana_keo
       do i = 1, size(F_system%euler)
         if(F_system%euler(i)) then
           tab_Qel(i_var) = F_system%QEuler(i)
-          write(out_unitp,*) 'i_var_F euler =', ivF, 'i_var_BF=', i_var, 'qval=',tab_Q(i_var)
+          write(out_unit,*) 'i_var_F euler =', ivF, 'i_var_BF=', i_var, 'qval=',tab_Q(i_var)
           if(i==1) then
             tab_Qname(i_var) = "\alpha^{"//trim(F_system%name_frame(2:i_len))//'}'
           else if(i==2) then
@@ -986,10 +983,10 @@ MODULE mod_Tana_keo
           ivF = ivF+1
         end if
       end do
-      write(out_unitp,*) 'end sub_system', F_system%tab_num_frame
-      write(out_unitp,*) '************************************'
-      write(out_unitp,*)
-      write(out_unitp,*)
+      write(out_unit,*) 'end sub_system', F_system%tab_num_frame
+      write(out_unit,*) '************************************'
+      write(out_unit,*)
+      write(out_unit,*)
    end subroutine extract_qval_F_system
 
 
