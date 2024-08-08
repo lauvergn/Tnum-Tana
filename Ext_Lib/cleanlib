@@ -3,3 +3,5 @@ rm -rf AD_dnSVM*
 rm -rf QuantumModelLib*
 rm -rf FOR_EVRT*
 rm -rf ConstPhys*
+rm -rf EVRT_dnSVM*
+rm -rf nDindex*
