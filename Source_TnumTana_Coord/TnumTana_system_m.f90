@@ -35,7 +35,7 @@
 !===========================================================================
 MODULE TnumTana_system_m
   USE QDUtil_m
-  USE mod_MPI
+  USE mod_MPI,           ONLY : MPI_id, keep_MPI
   USE FOR_EVRT_system_m, ONLY : param_FOR_optimization, para_FOR_optimization
   IMPLICIT NONE
 

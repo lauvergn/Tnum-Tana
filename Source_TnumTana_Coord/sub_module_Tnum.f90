@@ -627,7 +627,7 @@ MODULE mod_Tnum
     USE mod_ZmatTransfo,      only : Read_ZmatTransfo
     USE mod_CartesianTransfo, only : Write_CartesianTransfo
     USE mod_constant
-    USE mod_MPI
+    
     IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------

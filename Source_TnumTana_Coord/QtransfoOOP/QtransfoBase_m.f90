@@ -82,7 +82,7 @@ MODULE QtransfoBase_m
   
 CONTAINS
   SUBROUTINE Write_QtransfoBase_Tnum(this)
-    USE mod_MPI
+    
 
     CLASS (QtransfoBase_t), intent(in) :: this
 
@@ -146,7 +146,7 @@ CONTAINS
 
   END FUNCTION get_TransfoType_QtransfoBase_Tnum
   SUBROUTINE Read_Q_QtransfoBase_Tnum(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
-    USE mod_MPI
+    
     USE mod_Constant,         ONLY: REAL_WU,convRWU_TO_R_WITH_WorkingUnit
     IMPLICIT NONE
 

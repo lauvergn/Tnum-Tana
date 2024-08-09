@@ -84,7 +84,7 @@ CONTAINS
 !      Read reference geometry
 !=======================================================================================
       SUBROUTINE read_RefGeom_CoordType(mole,para_Tnum)
-      USE mod_MPI
+      
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       IMPLICIT NONE
 

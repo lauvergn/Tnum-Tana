@@ -69,7 +69,7 @@ MODULE Qtransfo_m
   
 CONTAINS
   SUBROUTINE Write_Qtransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS(Qtransfo_t), intent(in) :: this
@@ -87,7 +87,7 @@ CONTAINS
 
   END SUBROUTINE Write_Qtransfo_Tnum
   SUBROUTINE Write_typeQtransfo_Tnum(this,it)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS(QtransfoBase_t), intent(in) :: this
@@ -410,7 +410,7 @@ CONTAINS
 !  Remarks: it sets up Qdyn0 as well
 !=======================================================================================
   SUBROUTINE Read_RefGeom_QTransfo_Tnum(Q0,Q0_itQtransfo,Qtransfo)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
@@ -628,7 +628,7 @@ CONTAINS
 !  Get Qact from other coordinates (transformation)
 !=======================================================================================
   SUBROUTINE Qit_TO_Qact_Qtransfo_Tnum(Qact,Qit,Q_itQtransfo,Qtransfo)
-    USE mod_MPI
+    
     USE ADdnSVM_m
     IMPLICIT NONE
 
@@ -735,7 +735,7 @@ CONTAINS
 !
 !=======================================================================================
   SUBROUTINE Qit_TO_Qdyn_Qtransfo_Tnum(Qdyn,Qit,Q_itQtransfo,Qtransfo)
-    USE mod_MPI
+    
     USE ADdnSVM_m
     IMPLICIT NONE
 

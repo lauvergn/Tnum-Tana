@@ -76,8 +76,7 @@ $(OBJ_DIR)/sub_PrimOp.o : \
           $(mod_dnsvm) \
           $(mod_cap) \
           $(mod_hstep) \
-          $(mod_constant) \
-          $(mod_mpi)
+          $(mod_constant)
 $(OBJ_DIR)/sub_PrimOp_RPH.o : \
           $(mod_ndfit) \
           $(mod_primop_def) \
@@ -119,7 +118,6 @@ $(OBJ_DIR)/Module_ForTnumTana_Driver.o : \
 $(OBJ_DIR)/ActiveTransfo.o : \
           $(tnumtana_system_m) \
           $(mod_dnsvm) \
-          $(mod_mpi) \
           $(mod_lib_qtransfo)
 $(OBJ_DIR)/BunchPolyTransfo.o : \
           $(tnumtana_system_m) \
@@ -181,7 +179,6 @@ $(OBJ_DIR)/Qtransfo.o : \
           $(mod_rphtransfo) \
           $(mod_rphqmltransfo) \
           $(mod_activetransfo) \
-          $(mod_mpi) \
           $(mod_lib_qtransfo) \
           $(addnsvm_m)
 $(OBJ_DIR)/RPHQMLTransfo.o : \
@@ -218,13 +215,11 @@ $(OBJ_DIR)/sub_freq.o : \
 $(OBJ_DIR)/ActiveTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m) \
-          $(mod_mpi) \
           $(addnsvm_m) \
           $(mod_lib_qtransfo)
 $(OBJ_DIR)/CartTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m) \
-          $(mod_mpi) \
           $(zmattransfo_m) \
           $(addnsvm_m) \
           $(mod_lib_qtransfo)
@@ -236,7 +231,6 @@ $(OBJ_DIR)/LinearTransfo_m.o : \
           $(qtransfobase_m)
 $(OBJ_DIR)/QtransfoBase_m.o : \
           $(tnumtana_system_m) \
-          $(mod_mpi) \
           $(mod_constant) \
           $(addnsvm_m)
 $(OBJ_DIR)/Qtransfo_m.o : \
@@ -245,14 +239,12 @@ $(OBJ_DIR)/Qtransfo_m.o : \
           $(zmattransfo_m) \
           $(identitytransfo_m) \
           $(activetransfo_m) \
-          $(mod_mpi) \
           $(addnsvm_m) \
           $(mod_constant) \
           $(carttransfo_m)
 $(OBJ_DIR)/ZmatTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m) \
-          $(mod_mpi) \
           $(mod_constant) \
           $(mod_lib_qtransfo) \
           $(addnsvm_m)
@@ -381,7 +373,8 @@ $(OBJ_DIR)/TnumTana_Lib.o : \
           $(::)
 $(OBJ_DIR)/TnumTana_system_m.o : \
           $(qdutil_m) \
-          $(mod_mpi)
+          $(mod_mpi) \
+          $(for_evrt_system_m)
 $(OBJ_DIR)/sub_module_Coord_KEO.o : \
           $(mod_lib_qtransfo) \
           $(mod_freq) \
@@ -412,7 +405,6 @@ $(OBJ_DIR)/sub_module_Tnum.o : \
           $(mod_lib_qtransfo) \
           $(mod_zmattransfo) \
           $(mod_constant) \
-          $(mod_mpi) \
           $(mod_flexibletransfo)
 $(OBJ_DIR)/sub_module_paramQ.o : \
           $(tnumtana_system_m) \
@@ -422,5 +414,4 @@ $(OBJ_DIR)/sub_module_paramQ.o : \
           $(mod_cartesiantransfo) \
           $(mod_qtransfo) \
           $(mod_tnum) \
-          $(mod_constant) \
-          $(mod_mpi)
+          $(mod_constant)

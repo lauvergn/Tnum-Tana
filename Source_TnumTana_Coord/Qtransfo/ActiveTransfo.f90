@@ -247,7 +247,7 @@ MODULE mod_ActiveTransfo
       !!@description: TODO
       !!@param: TODO
       SUBROUTINE Read_ActiveTransfo(ActiveTransfo,nb_Qin)
-      USE mod_MPI
+      
 
       TYPE (Type_ActiveTransfo),  intent(inout) :: ActiveTransfo
       integer,                    intent(in)    :: nb_Qin
@@ -385,7 +385,7 @@ MODULE mod_ActiveTransfo
       END SUBROUTINE Read2_ActiveTransfo
 
       SUBROUTINE Write_ActiveTransfo(ActiveTransfo)
-      USE mod_MPI
+      
 
       TYPE (Type_ActiveTransfo), pointer, intent(in) :: ActiveTransfo
 

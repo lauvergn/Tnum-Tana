@@ -91,7 +91,7 @@ CONTAINS
 
   END SUBROUTINE CartTransfo2_TO_CartTransfo1
   SUBROUTINE Write_CartTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS (CartTransfo_t), intent(in) :: this
@@ -117,7 +117,7 @@ CONTAINS
 
   END SUBROUTINE Write_CartTransfo_Tnum
   SUBROUTINE WriteNice_CartTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     TYPE (CartTransfo_t), intent(in) :: this

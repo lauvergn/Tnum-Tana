@@ -421,7 +421,16 @@ clean_extlib:
 #=======================================================================================
 #add dependencies
 $(OBJ):                     | $(EXTLib)
-include dependencies.mk
+#===============================================
+#===============================================
+#============= make dependencies =============
+#===============================================
+.PHONY: dep
+dependencies.mk fortranlist.mk dep:
+	./scripts/dependency.sh
+#===============================================
+include ./dependencies.mk
+
 
 $(LIBA):                    $(OBJ)
 $(LIBAF):                   $(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)

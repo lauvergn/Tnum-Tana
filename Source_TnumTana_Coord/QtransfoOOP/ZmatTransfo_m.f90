@@ -80,7 +80,7 @@ MODULE ZmatTransfo_m
   
 CONTAINS
   SUBROUTINE Write_ZmatTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS (ZmatTransfo_t), intent(in) :: this
@@ -124,7 +124,7 @@ CONTAINS
 
   END SUBROUTINE Write_ZmatTransfo_Tnum
   SUBROUTINE WriteNice_ZmatTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     TYPE (ZmatTransfo_t), intent(in) :: this
@@ -185,7 +185,7 @@ CONTAINS
 
   END FUNCTION get_TransfoType_ZmatTransfo_Tnum
   SUBROUTINE Read_Q_ZmatTransfo_Tnum(this,Q,nb_var,unit,info,xyz,xyz_with_dummy,xyz_TnumOrder)
-    USE mod_MPI
+    
     USE mod_Constant,         ONLY: REAL_WU,convRWU_TO_R_WITH_WorkingUnit
     IMPLICIT NONE
 

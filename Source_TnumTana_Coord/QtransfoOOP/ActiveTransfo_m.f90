@@ -82,7 +82,7 @@ MODULE ActiveTransfo_m
   END INTERFACE
 CONTAINS
   SUBROUTINE Write_ActiveTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS (ActiveTransfo_t), intent(in) :: this
@@ -119,7 +119,7 @@ CONTAINS
 
   END SUBROUTINE Write_ActiveTransfo_Tnum
   SUBROUTINE WriteNice_ActiveTransfo_Tnum(this)
-    USE mod_MPI
+    
     IMPLICIT NONE
 
     CLASS (ActiveTransfo_t), intent(in) :: this

@@ -124,7 +124,7 @@ MODULE mod_Qtransfo
       SUBROUTINE read_Qtransfo(Qtransfo,nb_Qin,nb_extra_Coord,                  &
                                With_Tab_dnQflex,QMLib_in,mendeleev,             &
                                Tana_Is_Possible)
-        USE mod_MPI
+        
         USE mod_Lib_QTransfo, ONLY : make_nameQ
 
         TYPE (Type_Qtransfo), intent(inout)    :: Qtransfo
@@ -1172,7 +1172,7 @@ MODULE mod_Qtransfo
     END SUBROUTINE Qtransfo1TOQtransfo2
   SUBROUTINE calc_Qtransfo(dnQin,dnQout,Qtransfo,nderiv,inTOout)
     USE ADdnSVM_m
-    USE mod_MPI
+    
 
         TYPE (Type_dnVec),    intent(inout)        :: dnQin,dnQout
         TYPE (Type_Qtransfo), intent(in)           :: Qtransfo
@@ -1426,7 +1426,7 @@ MODULE mod_Qtransfo
   !!@param: TODO
   !===============================================================================
   SUBROUTINE Write_Qtransfo(Qtransfo,force_print)
-        USE mod_MPI
+        
 
         TYPE (Type_Qtransfo) :: Qtransfo
         logical, optional    :: force_print

@@ -3584,7 +3584,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       USE mod_Coord_KEO
       USE mod_SimpleOp
       USE mod_PrimOp_def
-      USE mod_MPI
+      
       IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
