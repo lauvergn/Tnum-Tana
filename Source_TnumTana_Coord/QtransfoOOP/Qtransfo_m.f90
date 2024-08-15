@@ -44,11 +44,9 @@ MODULE Qtransfo_m
   PRIVATE :: Init_QTransfo_Tnum
   PRIVATE :: Write_Qtransfo_Tnum,dealloc_QTransfo_Tnum
   PRIVATE :: QinTOQout_QTransfo_Tnum,QoutTOQin_QTransfo_Tnum
-  PRIVATE :: QactTOdnQact_QTransfo_Tnum
   PRIVATE :: Read_RefGeom_QTransfo_Tnum
 
   PUBLIC :: Qtransfo_t,Init_Qtransfo,Read_RefGeom
-  PUBLIC :: QactTOdnQact
 
   TYPE :: Qtransfo_t
     CLASS (QtransfoBase_t), allocatable :: Qtransfo
@@ -64,9 +62,6 @@ MODULE Qtransfo_m
   END INTERFACE
   INTERFACE Init_Qtransfo
     MODULE PROCEDURE Init_QTransfo_Tnum
-  END INTERFACE
-  INTERFACE QactTOdnQact
-    MODULE PROCEDURE QactTOdnQact_QTransfo_Tnum
   END INTERFACE
   
 CONTAINS
@@ -100,24 +95,6 @@ CONTAINS
     write(out_unit,*) "Qtransfo(it)%Qtransfo",it," : '",this%get_TransfoType(),"'"
 
   END SUBROUTINE Write_typeQtransfo_Tnum
-  FUNCTION QactTOdnQact_QTransfo_Tnum(this,Qact,nderiv) RESULT(dnQact)
-    USE ADdnSVM_m
-    USE ActiveTransfo_m
-    IMPLICIT NONE
-
-    TYPE (dnVec_t)                      :: dnQact
-
-    TYPE(Qtransfo_t),        intent(in) :: this
-    real(kind=Rkind),        intent(in) :: Qact(:)
-    integer,                 intent(in) :: nderiv
-
-    integer :: nb_act
-    character (len=*), parameter :: name_sub = "QactTOdnQact_QTransfo_Tnum"
-
-
-    dnQact = QactTOdnQact(this%Qtransfo,Qact,nderiv)
-
-  END FUNCTION QactTOdnQact_QTransfo_Tnum
 
   SUBROUTINE Init_QTransfo_Tnum(this,nb_extra_Coord,QMLib_in,mendeleev, &
                                 TnumPrint_level,Read0_nml,QtBase_old)
