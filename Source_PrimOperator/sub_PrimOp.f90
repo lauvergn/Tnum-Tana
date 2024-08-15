@@ -644,6 +644,7 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   integer :: ie,ith,iQa,iQ,iQact1,iQinact21
   integer, allocatable, save :: tab_iQa(:)
   logical :: Find_iQa
+  integer :: numths
 
   !----- for debuging --------------------------------------------------
   integer :: err_mem,memory
@@ -659,9 +660,11 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   !-----------------------------------------------------------
 
   IF (.NOT. allocated(tab_iQa)) THEN
-   !allocate(tab_iQa(0:Grid_maxth-1))
-   allocate(tab_iQa(0:omp_get_num_threads()-1))
-   tab_iQa(:) = 1
+    numths = 1
+    !$ numths = omp_get_num_threads()
+    !allocate(tab_iQa(0:Grid_maxth-1))
+    allocate(tab_iQa(0:numths-1))
+    tab_iQa(:) = 1
   END IF
 
   !here it should be Qin of RPH (therefore Qdyn ?????)
@@ -1246,12 +1249,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       step24 = step2*HALF*HALF
       stepp = ONE/(PrimOp%stepOp+PrimOp%stepOp)
 
-      !IF (Grid_omp == 0) THEN
-      !  nb_thread = 1
-      !ELSE
-      !  nb_thread = Grid_maxth
-      !END IF
-      nb_thread = omp_get_num_threads()
+      nb_thread = 1
+      !$ nb_thread = omp_get_num_threads()
       IF (PrimOp%OnTheFly) nb_thread = 1
       IF (print_level > 1) write(out_unit,*) 'nb_thread in ',name_sub,' : ',nb_thread
       flush(out_unit)
