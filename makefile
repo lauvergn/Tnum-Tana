@@ -179,8 +179,8 @@ ifeq ($(FFC),gfortran)
   FC_VER = $(shell $(FFC) --version | head -1 )
 
 endif
-#CompC=gcc
-CompC=/opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
+CompC=gcc
+#CompC=/opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
 #=================================================================================
 #=================================================================================
 # ifort compillation v17 v18 with mkl
