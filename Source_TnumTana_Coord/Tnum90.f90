@@ -617,7 +617,8 @@ SUBROUTINE OOP_Qtransfo()
   Qact = Qtransfo(nb_Qtransfo)%Qtransfo%get_Qact0()
   write(out_unit,*) 'Qact',Qact
 
-  Qin = QactTOdnQact(Qtransfo(nb_Qtransfo)%Qtransfo,Qact,nderiv=1)
+  !Qin = QactTOdnQact(Qtransfo(nb_Qtransfo),Qact,nderiv=1) ! it does not work with ifx 2023.1.0 20230320 !!!!!
+  Qin = Variable_dnVec(Qact,nderiv=1)
 
   write(out_unit,*) '-------------------------------------------'
   write(out_unit,*) 'Qact',Qact

@@ -38,7 +38,7 @@ MODULE ActiveTransfo_m
   IMPLICIT NONE
 
   PRIVATE
-  PUBLIC :: ActiveTransfo_t,Init_ActiveTransfo
+  PUBLIC :: ActiveTransfo_t,Init_ActiveTransfo,QactTOdnQact
 
   TYPE, EXTENDS (QtransfoBase_t) :: ActiveTransfo_t
     integer                        :: nb_act              = 0
@@ -80,6 +80,10 @@ MODULE ActiveTransfo_m
   INTERFACE TypeCoordAna
     MODULE PROCEDURE TypeCoordAna_ActiveTransfo_Tnum
   END INTERFACE
+  INTERFACE QactTOdnQact
+    MODULE PROCEDURE QactTOdnQact_ActiveTransfo_Tnum
+  END INTERFACE
+
 CONTAINS
   SUBROUTINE Write_ActiveTransfo_Tnum(this)
     
@@ -570,6 +574,41 @@ CONTAINS
     !write(6,*) ' END ',name_sub
 
   END FUNCTION QoutTOQin_ActiveTransfo_Tnum
+
+  FUNCTION QactTOdnQact_ActiveTransfo_Tnum(this,Qact,nderiv) RESULT(dnQact)
+    USE ADdnSVM_m
+    IMPLICIT NONE
+
+    TYPE (dnVec_t)                      :: dnQact
+
+    CLASS(QtransfoBase_t),   intent(in) :: this
+    real(kind=Rkind),        intent(in) :: Qact(:)
+    integer,                 intent(in) :: nderiv
+
+    integer :: nb_act
+    character (len=*), parameter :: name_sub = "QactTOdnQact_ActiveTransfo_Tnum"
+
+    SELECT TYPE (this)
+    TYPE IS(ActiveTransfo_t)
+       nb_act = this%nb_act
+    CLASS DEFAULT
+      write(out_unit,*) "ERROR in ",name_sub
+      write(out_unit,*) " Wrong dynamical type."
+      write(out_unit,*) " It should be 'ActiveTransfo_t'"
+      STOP 'ERROR in QactTOdnQact_QTransfo_Tnum: Wrong dynamical type'
+    END SELECT
+
+    IF (size(Qact) < nb_act) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) 'Qact size is smaller than nb_act'
+      write(out_unit,*) 'size(Qact), nb_act',size(Qact),nb_act
+      STOP 'ERROR in QactTOdnQact_QTransfo_Tnum: Qact size is smaller than nb_act'
+    END IF
+
+    dnQact = Variable_dnVec(Qact(1:nb_act),nderiv=nderiv)
+
+  END FUNCTION QactTOdnQact_ActiveTransfo_Tnum
+
   FUNCTION get_Qact0_ActiveTransfo_Tnum(this,full) RESULT(Qact0)
 
     real (kind=Rkind), allocatable :: Qact0(:)

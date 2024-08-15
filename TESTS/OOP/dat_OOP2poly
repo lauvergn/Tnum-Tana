@@ -1,12 +1,8 @@
 
 here=`pwd`
-DIR_EVRT=$here/..
+DIR_EVRT=$here/../..
 
 cd $DIR_EVRT
-  #make cleanall
-  #rm -f /Users/lauvergn/git/AD_dnSVM/lib*.a
-  #make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM FOREVRT_DIR=/Users/lauvergn/git/FOR_EVRT
-  #make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM QML_DIR=/Users/lauvergn/git/QuantumModelLib
   make OPT=0 tnum-dist
 cd $here
 
@@ -27,6 +23,7 @@ u   -0.5
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
 # for OOP
+  &variables nb_Qtransfo=2  /
   &Coord_transfo name_transfo='zmat' nat=4 cos_th=t /
     O
     X 1

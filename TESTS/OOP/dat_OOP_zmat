@@ -3,9 +3,6 @@ here=`pwd`
 DIR_EVRT=$here/../..
 
 cd $DIR_EVRT
-  #rm -f /Users/lauvergn/git/AD_dnSVM/lib*.a
-  #make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM FOREVRT_DIR=/Users/lauvergn/git/FOR_EVRT
-  #make OPT=0 tnum-dist AD_DIR=/Users/lauvergn/git/AD_dnSVM
   make OPT=0 tnum-dist
 cd $here
 

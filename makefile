@@ -20,6 +20,9 @@ INT = 4
 extf = f90
 ## how to get external libraries;  "loc" (default): from local zip file, Empty or something else (v0.5): from github
 EXTLIB_TYPE = loc
+## c compiler for the cDriver
+CompC = gcc
+#CompC := /opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
 #=================================================================================
 #=================================================================================
 ifeq ($(FC),)
@@ -179,8 +182,6 @@ ifeq ($(FFC),gfortran)
   FC_VER = $(shell $(FFC) --version | head -1 )
 
 endif
-CompC=gcc
-#CompC=/opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
 #=================================================================================
 #=================================================================================
 # ifort compillation v17 v18 with mkl
@@ -189,10 +190,11 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
 
   # opt management
   ifeq ($(OOPT),1)
-      #F90FLAGS = -O -parallel -g -traceback
       FFLAGS = -O  -g -traceback -heap-arrays
+      CFLAGS = -O  -g -traceback -heap-arrays
   else
       FFLAGS = -O0 -check all -g -traceback
+      CFLAGS = -O0            -g -traceback
   endif
 
   # integer kind management
@@ -207,8 +209,10 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
   ifeq ($(OOMP),1)
     ifeq ($(FFC),ifort)
       FFLAGS += -qopenmp -parallel
+      CFLAGS += -qopenmp -parallel
     else # ifx
       FFLAGS += -qopenmp
+      CFLAGS += -qopenmp
     endif
   endif
 
@@ -244,6 +248,7 @@ $(info ***********COMPILER VERSION: $(FC_VER))
 ifeq ($(FFC),mpifort)
 $(info ***********COMPILED with:    $(MPICORE))
 endif
+$(info *********c-COMPILER:         $(CompC))
 $(info ***********OpenMP:           $(OOMP))
 $(info ***********Lapack:           $(LLAPACK))
 $(info ***********FFLAGS0:          $(FFLAGS0))
@@ -278,9 +283,6 @@ $(info ************ OBJ: $(OBJ))
 #===============================================
 #============= Several mains ===================
 #===============================================
-.PHONY: all
-all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver
-	@echo "All executables"
 #
 # normal Tnum-Tana
 #
@@ -333,6 +335,11 @@ Tnum_MidasCpp Midas midas: $(TNUM_MiddasCppEXE)
 #
 $(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF)
 	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF) $(FLIB)
+#
+#
+.PHONY: all
+all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver
+	@echo "All executables"
 #===============================================
 #===============================================
 #============= TESTS ===========================
