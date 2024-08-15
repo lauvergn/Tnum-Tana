@@ -1288,9 +1288,6 @@ MODULE mod_dnGG_dng
                      mole%ncart_act,dnA%nb_var_Matl,                    &
                      mole%Without_Rot,mole%With_VecCOM,mole%Mtot)
 
-!test linear dep:
-!       CALL Linear_Dep(dnA%d0(1:mole%nb_act,1:mole%nb_act))
-
       END IF
 
       IF (nderivA >= 1) THEN
@@ -2984,61 +2981,5 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       END DO
 
       END SUBROUTINE gG100TOgG
-      SUBROUTINE Linear_Dep(g)
-      IMPLICIT NONE
-      real (kind=Rkind), intent(in) :: g(:,:)
 
-      integer :: n
-      real (kind=Rkind), allocatable :: Vec(:,:),vp(:)
-      real (kind=Rkind), allocatable :: gij(:,:),gsi(:),d1f(:),gnsi(:),gn(:,:)
-      integer :: i,j
-
-RETURN
-      n = size(g,dim=1)
-      allocate(Vec(n,n))
-      allocate(vp(n))
-
-      CALL Write_Mat(g,out_unit,5,info='g')
-      CALL diagonalization(g,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
-      CALL Write_Mat(Vec,out_unit,5,info='Vec')
-      CALL Write_Vec(vp,out_unit,5,info='vp')
-      write(out_unit,*)
-      flush(out_unit)
-
-      gij = g(1:n-1,1:n-1)
-      gsi = g(1:n-1,n)
-      CALL Write_Vec(gsi,out_unit,5,info='gsi')
-      write(out_unit,*)
-
-      allocate(d1f(n-1))
-
-      CALL Linear_Sys(gij,gsi,d1f,n-1)
-      gnsi = gsi(:) - matmul(gij,d1f)
-
-      CALL Write_Vec(gnsi,out_unit,5,info='gnsi')
-      write(out_unit,*)
-      flush(out_unit)
-
-
-      gn = g
-      gn(n,n) = gn(n,n)-TWO*dot_product(gsi,d1f)
-      DO i=1,n-1
-      DO j=1,n-1
-        gn(n,n) = g(n,n) + gij(i,j)*d1f(i)*d1f(j)
-      END DO
-      END DO
-      gn(n,1:n-1) = gsi(:) - matmul(gij,d1f) ! zero
-      gn(1:n-1,n) = gn(n,1:n-1)               ! zero
-      CALL Write_Mat(gn,out_unit,5,info='gn')
-
-      CALL diagonalization(gn,vp,Vec,diago_type=2,sort=1,phase=.FALSE.)
-      CALL Write_Mat(Vec,out_unit,5,info='Vec')
-      CALL Write_Vec(vp,out_unit,5,info='vp')
-      flush(out_unit)
-
-
-      deallocate(Vec)
-      deallocate(vp)
-      STOP
-      END SUBROUTINE Linear_Dep
 END MODULE mod_dnGG_dng
