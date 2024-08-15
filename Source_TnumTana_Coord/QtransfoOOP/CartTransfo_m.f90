@@ -161,7 +161,6 @@ CONTAINS
     END IF
 
     this%name_transfo    = 'Cart'
-    this%inTOout         = .TRUE.
     this%Primitive_Coord = .FALSE.
 
     IF (debug) THEN

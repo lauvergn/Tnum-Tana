@@ -1,6 +1,6 @@
 
 here=`pwd`
-DIR_EVRT=$here/..
+DIR_EVRT=$here/../..
 
 cd $DIR_EVRT
   #rm -f /Users/lauvergn/git/AD_dnSVM/lib*.a
@@ -26,6 +26,7 @@ u   -0.5
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 OOP=t /
 # for OOP
+  &variables nb_Qtransfo=2  /
   &Coord_transfo name_transfo='zmat' nat=3 /
     X
     H 1

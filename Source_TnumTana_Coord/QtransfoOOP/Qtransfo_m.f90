@@ -133,11 +133,14 @@ CONTAINS
   END FUNCTION QactTOdnQact_QTransfo_Tnum
 
   SUBROUTINE Init_QTransfo_Tnum(this,nb_extra_Coord,QMLib_in,mendeleev, &
-                                TnumPrint_level,Read_nml,QtBase_old)
+                                TnumPrint_level,Read0_nml,QtBase_old)
     USE mod_Constant,     only: table_atom
     USE QtransfoBase_m
-    USE ActiveTransfo_m
     USE ZmatTransfo_m
+
+    USE LinearTransfo_m
+
+    USE ActiveTransfo_m
     USE CartTransfo_m
     IMPLICIT NONE
 
@@ -145,7 +148,7 @@ CONTAINS
     TYPE(Qtransfo_t),                 intent(inout) :: this
     CLASS (QtransfoBase_t), optional, intent(in)    :: QtBase_old
     integer,                          intent(in)    :: nb_extra_Coord,TnumPrint_level
-    logical,                          intent(in)    :: QMLib_in,Read_nml
+    logical,                          intent(in)    :: QMLib_in,Read0_nml
     TYPE (table_atom),                intent(in)    :: mendeleev
 
 
@@ -162,7 +165,7 @@ CONTAINS
     character (len=line_len)      :: file_hessian
     logical :: hessian_read,k_read,not_all
 
-    logical :: check_LinearTransfo
+    logical :: Read_nml
 
     namelist /Coord_transfo/ name_transfo,nat,nb_vect,cos_th,       &
                              nb_G,nb_X,opt_transfo,skip_transfo,    &
@@ -170,8 +173,7 @@ CONTAINS
                              nb_transfo,purify_hess,eq_hess,k_Half, &
                              hessian_old,hessian_onthefly,file_hessian,&
                              hessian_cart,hessian_read,k_read,nb_read,&
-                             d0c_read,not_all,check_LinearTransfo,  &
-                             QMLib                          
+                             d0c_read,not_all,QMLib,Read_nml                          
 
     !----- for debuging --------------------------------------------------
     integer :: err_mem,memory,err_io
@@ -210,7 +212,8 @@ CONTAINS
       nb_read             = 0
       nb_transfo          = 1
       not_all             = .FALSE.
-      check_LinearTransfo = .TRUE.
+      Read_nml            = .FALSE.
+
 
       err_io = 0
       read(in_unit,Coord_transfo,IOSTAT=err_io)
@@ -222,7 +225,7 @@ CONTAINS
         write(out_unit,*) '   or you have forgotten a coordinate tranformation ...'
         write(out_unit,*) '   or you have forgotten the "Cartesian transfo"'
         write(out_unit,*) ' Check your data !!'
-        STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
+        STOP 'ERROR in Init_QTransfo_Tnum:  while reading the namelist "Coord_transfo"'
       END IF
       IF (err_io > 0) THEN
         write(out_unit,Coord_transfo)
@@ -230,7 +233,7 @@ CONTAINS
         write(out_unit,*) '  while reading the namelist "Coord_transfo"'
         write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
         write(out_unit,*) ' Check your data !!'
-        STOP 'ERROR in Tnum_Read_Qtransfo:  while reading the namelist "Coord_transfo"'
+        STOP 'ERROR in Init_QTransfo_Tnum:  while reading the namelist "Coord_transfo"'
       END IF
       IF (debug .OR. TnumPrint_level > 1) write(out_unit,Coord_transfo)
     ELSE
@@ -271,13 +274,22 @@ CONTAINS
     !-------------------------------------------------------------------
     ! Second select for the initialization
     SELECT CASE (trim(name_transfo))
+    CASE ('zmat') ! It should be one of the first transfo read
+      allocate(ZmatTransfo_t :: this%Qtransfo)
+      this%Qtransfo = Init_ZmatTransfo(nat,cos_th,nb_extra_Coord,mendeleev,  &
+                                       read_nml,skip_transfo,TnumPrint_level)
+
     CASE ('identity')
       allocate(IdentityTransfo_t :: this%Qtransfo)
-      this%Qtransfo = Init_IdentityTransfo(QtBase_old,inTOout,skip_transfo)
+      this%Qtransfo = Init_IdentityTransfo(QtBase_old,skip_transfo,TnumPrint_level)
+
+    CASE ('linear')
+      allocate(LinearTransfo_t :: this%Qtransfo)
+      this%Qtransfo = Init_LinearTransfo(QtBase_old,read_nml,skip_transfo,TnumPrint_level)
 
     CASE ('active') ! the last read transformation
       allocate(ActiveTransfo_t :: this%Qtransfo)
-      this%Qtransfo = Init_ActiveTransfo(QtBase_old,TnumPrint_level)
+      this%Qtransfo = Init_ActiveTransfo(QtBase_old,read_nml,skip_transfo,TnumPrint_level)
 
       !Qtransfo%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
       !Qtransfo%ActiveTransfo%QMLib            = QMLib
@@ -287,10 +299,6 @@ CONTAINS
       !ELSE
       !  CALL Read_ActiveTransfo(Qtransfo%ActiveTransfo,nb_Qin)
       !END IF
-
-    CASE ('zmat') ! It should be one of the first transfo read
-      allocate(ZmatTransfo_t :: this%Qtransfo)
-      this%Qtransfo = Init_ZmatTransfo(nat,cos_th,nb_extra_Coord,mendeleev,TnumPrint_level)
 
     CASE ('cart') ! it is a special transformation
       allocate(CartTransfo_t :: this%Qtransfo)
@@ -407,7 +415,7 @@ CONTAINS
 
 !=======================================================================================
 !  Read reference geometry and convert it in atomic unit: Q0(:)
-!  Remarks: it sets up Qdyn0 as well
+!  Remarks: it defines up Qdyn0 as well
 !=======================================================================================
   SUBROUTINE Read_RefGeom_QTransfo_Tnum(Q0,Q0_itQtransfo,Qtransfo)
     

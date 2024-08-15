@@ -15,3 +15,10 @@ TESTS/err*
 TESTS/freq.xyz
 TESTS/keo.op
 TESTS/TanaF2F1Vep.f90
+TESTS/*/*log
+TESTS/*/res*
+TESTS/*/Xres*
+TESTS/*/err*
+TESTS/*/freq.xyz
+TESTS/*/keo.op
+TESTS/*/TanaF2F1Vep.f90

@@ -186,11 +186,12 @@ CONTAINS
     TransfoType = 'ActiveTransfo_t'
 
   END FUNCTION get_TransfoType_ActiveTransfo_Tnum
-  FUNCTION Init_ActiveTransfo_Tnum(QtBase_old,TnumPrint_level) RESULT(this)
+  FUNCTION Init_ActiveTransfo_Tnum(QtBase_old,read_nml,skip_transfo,TnumPrint_level) RESULT(this)
     IMPLICIT NONE
 
     TYPE (ActiveTransfo_t)                 :: this
     TYPE (QtransfoBase_t),   intent(in)    :: QtBase_old
+    logical,                 intent(in)    :: read_nml,skip_transfo
     integer,                 intent(in)    :: TnumPrint_level
 
     integer :: iQ
@@ -207,7 +208,6 @@ CONTAINS
     END IF
 
     this%name_transfo = 'active'
-    this%inTOout      = .TRUE.
 
     this%nb_Qout      = QtBase_old%nb_Qin
     this%name_Qout    = QtBase_old%name_Qin

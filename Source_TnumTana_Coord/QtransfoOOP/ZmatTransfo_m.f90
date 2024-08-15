@@ -278,16 +278,19 @@ CONTAINS
     !-----------------------------------------------------------------
 
   END SUBROUTINE Read_Q_ZmatTransfo_Tnum
-  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev,TnumPrint_level) &
-                                  RESULT(this)
+  FUNCTION Init_ZmatTransfo_Tnum(nat0,cos_th,nb_extra_Coord,mendeleev,  &
+                                 read_nml,skip_transfo,TnumPrint_level) &
+                                 RESULT(this)
     USE mod_Constant,     only: table_atom, get_mass_Tnum
     USE mod_Lib_QTransfo
     IMPLICIT NONE
 
     TYPE (ZmatTransfo_t)                   :: this
-    integer,                 intent(in)    :: nat0,nb_extra_Coord,TnumPrint_level
+    integer,                 intent(in)    :: nat0,nb_extra_Coord
     logical,                 intent(in)    :: cos_th
     TYPE (table_atom),       intent(in)    :: mendeleev
+    integer,                 intent(in)    :: TnumPrint_level
+    logical,                 intent(in)    :: read_nml,skip_transfo
 
 
     integer                  :: n1,n2,n3
@@ -302,8 +305,8 @@ CONTAINS
 
     !------------------------------------------------------------------
     integer :: err_mem,memory,err_io
-    logical, parameter :: debug=.FALSE.
-    !logical, parameter :: debug=.TRUE.
+    !logical, parameter :: debug=.FALSE.
+    logical, parameter :: debug=.TRUE.
     character (len=*), parameter :: name_sub = "Init_ZmatTransfo_Tnum"
     !------------------------------------------------------------------
 
@@ -324,8 +327,8 @@ CONTAINS
     CALL dealloc_ZmatTransfo_Tnum(this)
 
     this%name_transfo    = 'zmat'
-    this%inTOout         = .TRUE.
     this%Primitive_Coord = .TRUE.
+    this%skip_transfo    = skip_transfo
 
     this%cos_th          = cos_th
     this%nat0            = nat0

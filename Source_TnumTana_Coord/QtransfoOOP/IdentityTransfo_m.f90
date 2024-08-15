@@ -58,19 +58,18 @@ CONTAINS
     TransfoType = 'IdentityTransfo_t'
 
   END FUNCTION get_TransfoType_IdentityTransfo_Tnum
-  FUNCTION Init_IdentityTransfo_Tnum(QtBase_old,inTOout,skip_transfo) RESULT(this)
+  FUNCTION Init_IdentityTransfo_Tnum(QtBase_old,skip_transfo,TnumPrint_level) RESULT(this)
     IMPLICIT NONE
 
     TYPE (IdentityTransfo_t)              :: this  
     TYPE (QtransfoBase_t),  intent(in)    :: QtBase_old
-
-    logical,                intent(in)    :: inTOout,skip_transfo
+    integer,                intent(in)    :: TnumPrint_level
+    logical,                intent(in)    :: skip_transfo
 
     integer :: i
     character (len=*), parameter :: name_sub = "Init_IdentityTransfo_Tnum"
 
     this%name_transfo = 'identity'
-    this%inTOout      = inTOout
     this%skip_transfo = skip_transfo
 
     this%nb_Qout   = QtBase_old%nb_Qout
