@@ -580,18 +580,18 @@ SUBROUTINE OOP_Qtransfo()
 
   !--- first: read the first Qtransfo outside the loop
   it = 1
-  !write(out_unit,*) 'Read_Qtransfo, it:',it
+  IF (debug) write(out_unit,*) 'Read_Qtransfo, it:',it
   CALL Init_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,Read0_nml=.TRUE., &
                      mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level)
-  !write(out_unit,*) 'END Read_Qtransfo, it:',it
+  IF (debug) write(out_unit,*) 'END Read_Qtransfo, it:',it
 
   DO it=2,size(Qtransfo) ! here the loop go from the "out" to "in" direction
-    !write(out_unit,*) 'Read_Qtransfo, it:',it
+    IF (debug) write(out_unit,*) 'Read_Qtransfo, it:',it
 
     CALL Init_Qtransfo(Qtransfo(it),nb_extra_Coord=0,QMLib_in=.FALSE.,Read0_nml=.TRUE., &
                        mendeleev=const_phys%mendeleev,TnumPrint_level=TnumPrint_level, &
                        QtBase_old=Qtransfo(it-1)%Qtransfo)
-    !write(out_unit,*) 'END Read_Qtransfo, it:',it
+    IF (debug) write(out_unit,*) 'END Read_Qtransfo, it:',it
 
     IF (TnumPrint_level > 1) CALL Qtransfo(it)%Write()
   END DO

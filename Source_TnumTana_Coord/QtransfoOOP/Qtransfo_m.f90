@@ -187,7 +187,7 @@ CONTAINS
     END IF
     !-----------------------------------------------------------
 
-    IF (Read_nml) THEN
+    IF (Read0_nml) THEN
       name_transfo        = "identity"
       QMLib               = QMLib_in
       opt_transfo         = 0

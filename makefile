@@ -97,7 +97,6 @@ QML_DIR    = $(ExtLibDIR)/QuantumModelLib
 QMLMOD_DIR = $(QML_DIR)/OBJ/obj$(extlib_obj)
 QMLLIBA    = $(QML_DIR)/libQMLib$(extlib_obj).a
 
-
 nDindex_DIR    = $(ExtLibDIR)/nDindex
 nDindexMOD_DIR = $(nDindex_DIR)/obj/obj$(extlib_obj)
 nDindexLIBA    = $(nDindex_DIR)/libnDindex$(extlib_obj).a
@@ -123,6 +122,7 @@ CONSTPHYSMOD_DIR = $(CONSTPHYS_DIR)/obj/obj$(extlibwi_obj)
 CONSTPHYSLIBA    = $(CONSTPHYS_DIR)/libPhysConst$(extlibwi_obj).a
 
 EXTLib     = $(CONSTPHYSLIBA) $(FOREVRTLIBA) $(QDLIBA)  $(ADLIBA) $(EVRTdnSVMLIBA) $(nDindexLIBA) $(QMLLIBA)
+
 EXTMod     = -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(nDindexMOD_DIR) \
              -I$(EVRTdnSVMMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
 #===============================================================================
@@ -165,24 +165,73 @@ ifeq ($(FFC),gfortran)
   FFLAGS += -cpp $(CPPSHELL)
 
   FLIB   = $(EXTLib)
-  FSLIB  = 
   # OS management
   ifeq ($(LLAPACK),1)
     ifeq ($(OS),Darwin)    # OSX
       # OSX libs (included lapack+blas)
-      FSLIB += -framework Accelerate
+      FLIB += -framework Accelerate
     else                   # Linux
       # linux libs
-      FSLIB += -llapack -lblas
+      FLIB += -llapack -lblas
     endif
-    FLIB += $(FSLIB)
   endif
 
   FC_VER = $(shell $(FFC) --version | head -1 )
 
 endif
-#CompC=/usr/bin/gcc
-CompC=/usr/local/Cellar/gcc/13.2.0/bin/gcc-13
+#CompC=gcc
+CompC=/opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
+#=================================================================================
+#=================================================================================
+# ifort compillation v17 v18 with mkl
+#=================================================================================
+ifeq ($(FFC),$(filter $(FFC),ifort ifx))
+
+  # opt management
+  ifeq ($(OOPT),1)
+      #F90FLAGS = -O -parallel -g -traceback
+      FFLAGS = -O  -g -traceback -heap-arrays
+  else
+      FFLAGS = -O0 -check all -g -traceback
+  endif
+
+  # integer kind management
+  ifeq ($(INT),8)
+    FFLAGS   += -i8
+  endif
+
+  # where to store the modules
+  FFLAGS +=-module $(MOD_DIR)
+
+  # omp management
+  ifeq ($(OOMP),1)
+    ifeq ($(FFC),ifort)
+      FFLAGS += -qopenmp -parallel
+    else # ifx
+      FFLAGS += -qopenmp
+    endif
+  endif
+
+  # some cpreprocessing
+  FFLAGS += -cpp $(CPPSHELL)
+
+  # where to look the .mod files
+  FFLAGS += $(EXTMod)
+
+  FLIB    = $(EXTLib)
+  ifeq ($(LLAPACK),1)
+    ifeq ($(FFC),ifort)
+      FLIB += -mkl -lpthread
+    else # ifx
+      FLIB += -qmkl -lpthread
+    endif
+  else
+    FLIB += -lpthread
+  endif
+
+  FC_VER = $(shell $(FFC) --version | head -1 )
+
+endif
 #=================================================================================
 
 #===============================================================================
@@ -229,15 +278,20 @@ $(info ************ OBJ: $(OBJ))
 #===============================================
 #============= Several mains ===================
 #===============================================
+.PHONY: all
+all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver
+	@echo "All executables"
+#
+# normal Tnum-Tana
+#
 TNUMEXE  = Tnum90.exe
 TNUMMAIN = Tnum90
-
 .PHONY: tnum Tnum tnum-dist Tnum-dist
 tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 	@echo "Tnum OK"
 
 $(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF)
-	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF) $(FSLIB)
+	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF) $(FLIB)
 #
 #  Drivers (c and f90)
 #
@@ -253,12 +307,12 @@ Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
 Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
 	@echo "Main_TnumTana_cDriver OK"
 
-$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/TnumTana_Lib.o $(OBJ_DIR)/sub_system.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) | $(EXTLib)
-	$(FFC) $(FFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB)
-	$(CompC) $(CFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/Module_ForTnumTana_Driver.o $(OBJ_DIR)/sub_system.o $(OBJ_DIR)/TnumTana_Lib.o $(Coord_KEO_EXT_SRCFILES_OBJ) $(LIBA) $(FLIB) -lgfortran -lm
+$(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(LIBAF)
+	$(CompC) $(CFLAGS) -o $(Main_TnumTana_cDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(LIBAF) $(FLIB) -lgfortran -lm
 $(Main_TnumTana_FDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF)
-	$(FFC) $(FFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF) $(FSLIB)
+	$(FFC)   $(FFLAGS) -o $(Main_TnumTana_FDriverEXE) $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(LIBAF) $(FLIB)
 #
+# MCTDH Tnum-Tana
 #
 TNUMMCTDHEXE = Tnum90_MCTDH.exe
 TNUMMCTDHMAIN = Tnum90_MCTDH
@@ -267,8 +321,9 @@ Tnum_MCTDH: $(TNUMMCTDHEXE)
 	@echo "Tnum_MCTDH OK"
 #
 $(TNUMMCTDHEXE):  $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(LIBAF)
-	$(FFC) $(FFLAGS) -o $(TNUMMCTDHEXE) $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(LIBAF) $(FSLIB)
+	$(FFC) $(FFLAGS) -o $(TNUMMCTDHEXE) $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(LIBAF) $(FLIB)
 #
+# Midas Tnum-Tana
 #
 TNUM_MiddasCppEXE  = Tnum90_MidasCpp.exe
 TNUM_MiddasCppMAIN = Tnum90_MidasCpp
@@ -277,7 +332,7 @@ Tnum_MidasCpp Midas midas: $(TNUM_MiddasCppEXE)
 	@echo "Tnum_MidasCpp OK"
 #
 $(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF)
-	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF) $(FSLIB)
+	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF) $(FLIB)
 #===============================================
 #===============================================
 #============= TESTS ===========================
@@ -318,6 +373,10 @@ $(OBJ_DIR)/%.o: %.f
 	@echo "  compile: " $<
 	$(FFC) $(FFLAGS) -o $@ -c $<
 #
+$(OBJ_DIR)/%.o: %.c
+	@echo "  compile: " $<
+	$(CompC) $(CFLAGS)  -o $@ -c $<
+#
 #===============================================
 #============= make sub_system =================
 #=============  with the .f or .f90 extention ==
@@ -327,11 +386,6 @@ sub_pot/sub_system.$(extf): sub_pot/sub_system_save.$(extf)
 #===============================================
 #===============================================
 #
-#===============================================
-#  C driver compilation
-#===============================================
-$(OBJ_DIR)/Main_TnumTana_cDriver.o:Source_TnumTana_Coord/Main_TnumTana_cDriver.c
-	$(CompC) $(CFLAGS)  -c Source_TnumTana_Coord/Main_TnumTana_cDriver.c
 #===============================================
 #===============================================
 #
@@ -438,56 +492,3 @@ $(OBJ_DIR)/$(TNUMMAIN).o:   $(LIBA)
 
 $(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/$(Main_TnumTana_cDriver).o : $(LIBA) | $(EXTLib) 
 
-#=================================================================================
-#=================================================================================
-# ifort compillation v17 v18 with mkl
-#=================================================================================
-ifeq ($(FFC),$(filter $(FFC),ifort ifx))
-
-  # opt management
-  ifeq ($(OOPT),1)
-      #F90FLAGS = -O -parallel -g -traceback
-      FFLAGS = -O  -g -traceback -heap-arrays
-  else
-      FFLAGS = -O0 -check all -g -traceback
-  endif
-
-  # integer kind management
-  ifeq ($(INT),8)
-    FFLAGS   += -i8
-  endif
-
-  # where to store the modules
-  FFLAGS +=-module $(MOD_DIR)
-
-  # omp management
-  ifeq ($(OOMP),1)
-    ifeq ($(FFC),ifort)
-      FFLAGS += -qopenmp -parallel
-    else # ifx
-      FFLAGS += -qopenmp
-    endif
-  endif
-
-  # some cpreprocessing
-  FFLAGS += -cpp $(CPPSHELL)
-
-  # where to look the .mod files
-  FFLAGS += $(EXTMod)
-
-  FLIB    = $(EXTLib)
-  ifneq ($(LLAPACK),1)
-    ifeq ($(FFC),ifort)
-      FLIB += -mkl -lpthread
-    else # ifx
-      FLIB += -qmkl -lpthread
-    endif
-  else
-    FLIB += -lpthread
-  endif
-
-  FC_VER = $(shell $(F90) --version | head -1 )
-
-endif
-#=================================================================================
-#=================================================================================

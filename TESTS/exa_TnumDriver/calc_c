@@ -1,0 +1,12 @@
+
+here=`pwd`
+cd ../..
+  make OPT=0 Tnum_cDriver
+cd $here
+
+#test c_driver: it needs to read/write from/to the standard input/output.
+
+
+ ../../Main_TnumTana_cDriver.exe < dat_driver0 > res_cdriver0
+ ../../Main_TnumTana_cDriver.exe < dat_driver1 > res_cdriver1
+
