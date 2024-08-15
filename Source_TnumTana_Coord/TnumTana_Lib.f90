@@ -54,7 +54,7 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
   !$OMP    CRITICAL (Qact_TO_cart_CRIT)
   IF (Init == 0) THEN
     Init = 1
-    CALL versionEVRT(.TRUE.)
+    CALL TnumTana_version(.TRUE.)
     CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
@@ -130,7 +130,7 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
   !$OMP    CRITICAL (Qact_TO_cartCOM_CRIT)
   IF (Init == 0) THEN
     Init = 1
-    CALL versionEVRT(.TRUE.)
+    CALL TnumTana_version(.TRUE.)
     CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
@@ -203,7 +203,7 @@ SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
   !$OMP    CRITICAL (cart_TO_Qact_CRIT)
   IF (Init == 0) THEN
     Init = 1
-    CALL versionEVRT(.TRUE.)
+    CALL TnumTana_version(.TRUE.)
     CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :
@@ -633,7 +633,7 @@ SUBROUTINE Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
     init     = 1
     init_sub = 1
 
-    CALL versionEVRT(.TRUE.)
+    CALL TnumTana_version(.TRUE.)
     CALL set_print_level(-1)
     !-----------------------------------------------------------------
     !     - read the coordinate transformations :

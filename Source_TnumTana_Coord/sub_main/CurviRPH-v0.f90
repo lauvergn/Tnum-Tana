@@ -75,7 +75,7 @@ implicit NONE
   !===========================================================================
   ! Tnum data read (without flexible transformation)
 
-  CALL versionEVRT(.TRUE.)
+  CALL TnumTana_version(.TRUE.)
   print_level=2
 
   !-----------------------------------------------------------------

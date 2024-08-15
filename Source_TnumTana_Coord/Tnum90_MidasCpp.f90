@@ -76,7 +76,7 @@ PROGRAM Tnum90_MidasCpp
 !===========================================================
 !===========================================================
   !para_mem%mem_debug = .TRUE.
-  CALL versionEVRT(.TRUE.)
+  CALL TnumTana_version(.TRUE.)
 
   !-----------------------------------------------------------------
   !     - read the coordinate transformations :
