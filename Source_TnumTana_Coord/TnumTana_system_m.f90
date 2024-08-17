@@ -70,6 +70,7 @@ CONTAINS
 
   END SUBROUTINE TnumTana_dihedral_range
   SUBROUTINE TnumTana_version(write_version)
+    USE iso_fortran_env
     USE mod_MPI
     IMPLICIT NONE
   
@@ -77,49 +78,27 @@ CONTAINS
 
 
 #if defined(__TNUM_VER)
-character (len=*), parameter :: Tnum_version = __TNUM_VER
+    character (len=*), parameter :: Tnum_version = __TNUM_VER
 #else
-character (len=*), parameter :: Tnum_version = "unknown: -D__TNUM_VER=?"
+    character (len=*), parameter :: Tnum_version = "unknown: -D__TNUM_VER=?"
 #endif
 
 #if defined(__TANA_VER)
-character (len=*), parameter :: Tana_version = __TANA_VER
+    character (len=*), parameter :: Tana_version = __TANA_VER
 #else
-character (len=*), parameter :: Tana_version = "unknown: -D__TANA_VER=?"
+    character (len=*), parameter :: Tana_version = "unknown: -D__TANA_VER=?"
 #endif
 
 #if defined(__COMPILE_DATE)
-character (len=*), parameter :: compile_date = __COMPILE_DATE
+    character (len=*), parameter :: compile_date = __COMPILE_DATE
 #else
-character (len=*), parameter :: compile_date = "unknown: -D__COMPILE_DATE=?"
+    character (len=*), parameter :: compile_date = "unknown: -D__COMPILE_DATE=?"
 #endif
 
 #if defined(__COMPILE_HOST)
-character (len=*), parameter :: compile_host = __COMPILE_HOST
+    character (len=*), parameter :: compile_host = __COMPILE_HOST
 #else
-character (len=*), parameter :: compile_host = "unknown: -D__COMPILE_HOST=?"
-#endif
-#if defined(__COMPILER)
-character (len=*), parameter :: compiler = __COMPILER
-#else
-character (len=*), parameter :: compiler = "unknown: -D__COMPILER=?"
-#endif
-#if defined(__COMPILER_VER)
-character (len=*), parameter :: compiler_ver = __COMPILER_VER
-#else
-character (len=*), parameter :: compiler_ver = "unknown: -D__COMPILER_VER=?"
-#endif
-#if defined(__COMPILER_OPT)
-character (len=*), parameter :: compiler_opt = &
-    __COMPILER_OPT
-#else
-character (len=*), parameter :: compiler_opt = "unknown: -D__COMPILER_OPT=?"
-#endif
-#if defined(__COMPILER_LIBS)
-character (len=*), parameter :: compiler_libs = &
-     __COMPILER_LIBS
-#else
-character (len=*), parameter :: compiler_libs = "unknown: -D__COMPILER_LIBS=?"
+    character (len=*), parameter :: compile_host = "unknown: -D__COMPILE_HOST=?"
 #endif
   
     character (len=*), parameter :: Tnum_name='Tnum'
@@ -133,10 +112,8 @@ character (len=*), parameter :: compiler_libs = "unknown: -D__COMPILER_LIBS=?"
                  Tana_name,trim(adjustl(Tana_version))
 
       write(out_unit,*) 'Compiled on "',trim(compile_host), '" the ',trim(compile_date)
-      write(out_unit,*) 'Compiler version: ',trim(compiler_ver)
-      write(out_unit,*) 'Compiler options: ',trim(compiler_opt)
-      write(out_unit,*) 'Compiler libs: ',trim(compiler_libs)
-
+      write(out_unit,*) 'Compiler:         ',compiler_version()
+      write(out_unit,*) 'Compiler options: ',compiler_options()
       write(out_unit,*) '-----------------------------------------------'
       write(out_unit,*) Tnum_name,' is written David Lauvergnat [1]'
       write(out_unit,*) Tana_name,' is written by Mamadou Ndong [1] and David Lauvergnat [1]'
