@@ -21,8 +21,8 @@ extf = f90
 ## how to get external libraries;  "loc" (default): from local zip file, Empty or something else (v0.5): from github
 EXTLIB_TYPE = loc
 ## c compiler for the cDriver
-CompC = gcc
-#CompC := /opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
+#CompC = gcc
+CompC := /opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
 #=================================================================================
 #=================================================================================
 ifeq ($(FC),)

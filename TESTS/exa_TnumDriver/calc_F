@@ -12,3 +12,5 @@ cp dat_driver0 dat_driver
 
 cp dat_driver1 dat_driver
 ../../Main_TnumTana_FDriver.exe > res_Fdriver1
+
+rm dat_driver
