@@ -870,7 +870,7 @@
 
         CALL calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act1,nderiv,RPHTransfo%QMlib)
         RPHpara_AT_Qact1%dnGrad%d0(:)   = Tab_dnGrad(:)%d0
-        d0hess(:,:)                     = reshape(Tab_dnHess(:)%d0,shape=[nb_inact21,nb_inact21])
+        d0hess(:,:)                     = reshape((Tab_dnHess(:)%d0),shape=[nb_inact21,nb_inact21])
         RPHpara_AT_Qact1%dnHess%d0(:,:) = d0hess
 
         DO i=1,size(Tab_dnGrad)
