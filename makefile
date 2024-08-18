@@ -245,7 +245,7 @@ all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver
 ut UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
 	@echo "---------------------------------------"
 	@echo "Unitary tests for the Tnum"
-	@cd TESTS ; ./run_tests
+	@cd TESTS ; ./run_tests_WithoutComp
 	@echo "---------------------------------------"
 #===============================================
 #============= Library: lib_FOR_EVRT.a  ========
