@@ -3749,7 +3749,7 @@
         write(out_unit,*) 'Each line corresponds to a linear combinaison of the vectors to form an atomic position'
 
         DO iv=1,size(BB,dim=1)
-          write(out_unit,*) iv,BB(iv,:)
+          write(out_unit,*) iv,(BB(iv,:))
         END DO
         CALL Write_Mat(BB,out_unit,5)
       END IF

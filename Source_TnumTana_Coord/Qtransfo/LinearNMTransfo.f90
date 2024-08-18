@@ -341,7 +341,7 @@
             write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          write(out_unit,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
+          write(out_unit,*) "iLC,norm",iLC,dot_product((LC_read(iLC,:)),(LC_read(iLC,:))),'Read vect:',(LC_read(iLC,:))
         END DO
       ELSE
         DO iLC=1,nb_transfo
@@ -352,7 +352,7 @@
             write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          write(out_unit,*) "iLC,norm",iLC,dot_product(LC_read(iLC,:),LC_read(iLC,:)),'Read vect:',LC_read(iLC,:)
+          write(out_unit,*) "iLC,norm",iLC,dot_product((LC_read(iLC,:)),(LC_read(iLC,:))),'Read vect:',(LC_read(iLC,:))
         END DO
       END IF
       LC(:,:) = LC_read(:,:)
