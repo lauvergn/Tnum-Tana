@@ -9,16 +9,15 @@ sub_pot/sub_system.f
 sub_pot/sub_system.f90
 res
 TESTS/*log
+TESTS/err_Tnum
 TESTS/res*
 TESTS/Xres*
-TESTS/err*
 TESTS/freq.xyz
 TESTS/keo.op
 TESTS/TanaF2F1Vep.f90
 TESTS/*/*log
 TESTS/*/res*
 TESTS/*/Xres*
-TESTS/*/err*
 TESTS/*/freq.xyz
 TESTS/*/keo.op
 TESTS/*/TanaF2F1Vep.f90
