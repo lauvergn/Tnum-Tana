@@ -10,7 +10,6 @@ $DIR_EVRT/Tnum90.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t FortranForm=t MCTDHForm=t /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=1 inTOout=f /
 H  H  H   GOH1 (O H H)
-1  2  3   4
 
  &dummyX tab_At_TO_X=1, 2,3 type_dummyX='Radau' /
 
