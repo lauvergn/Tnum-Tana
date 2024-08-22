@@ -20,8 +20,8 @@ ifeq ($(FFC),gfortran)
   # where to store .mod files
   FFLAGS +=-J$(MOD_DIR)
 
-  # where to look .mod files
-  FFLAGS += $(EXTMod)
+  # where to look .mod files (add -I$(MOD_DIR) for nagfor)
+  FFLAGS += -I$(MOD_DIR) $(EXTMod)
 
   # omp management (default with openmp)
   ifeq ($(OOMP),1)
@@ -66,8 +66,8 @@ ifeq ($(FFC),lfortran)
   # where to store .mod files
   FFLAGS +=-J$(MOD_DIR)
 
-  # where to look .mod files
-  FFLAGS += $(EXTMod)
+  # where to look .mod files (add -I$(MOD_DIR) for nagfor)
+  FFLAGS += -I$(MOD_DIR) $(EXTMod)
 
   # omp management (default with openmp)
   ifeq ($(OOMP),1)
@@ -113,8 +113,8 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
   # where to store the modules
   FFLAGS +=-module $(MOD_DIR)
 
-  # where to look .mod files
-  FFLAGS += $(EXTMod)
+  # where to look .mod files (add -I$(MOD_DIR) for nagfor)
+  FFLAGS += -I$(MOD_DIR) $(EXTMod)
 
   # omp management
   ifeq ($(OOMP),1)
@@ -171,8 +171,8 @@ ifeq ($(FFC),nagfor)
   # where to store the .mod files
   FFLAGS +=-mdir $(MOD_DIR)
 
-  # where to look .mod files
-  FFLAGS += $(EXTMod)
+  # where to look .mod files (add -I$(MOD_DIR) for nagfor)
+  FFLAGS += -I$(MOD_DIR) $(EXTMod)
 
   # omp management
   ifeq ($(OOMP),1)
