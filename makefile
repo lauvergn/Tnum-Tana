@@ -63,12 +63,12 @@ TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(MAIN_path)/version-TT)
 TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(MAIN_path)/version-TT)
 
 # Extension for the object directory and the library
+ext_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 ifeq ($(FFC),mpifort)
   extlibwi_obj:=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 else
-  extlibwi_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+  extlibwi_obj:=$(ext_obj)
 endif
-extlib_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 
 OBJ_DIR = obj/obj$(extlibwi_obj)
 $(info ***********OBJ_DIR:            $(OBJ_DIR))
@@ -81,44 +81,43 @@ LIBAF=libTnumTanaFull$(extlibwi_obj).a
 #=================================================================================
 #
 #===============================================================================
-#
-#===============================================================================
-# external lib (QML, AD_dnSVM ...)
+# external lib : QDUtilLib AD_dnSVM ConstPhys QuantumModelLib nDindex EVRT_dnSVM FOR_EVRT
 ifeq ($(ExtLibDIR),)
   ExtLibDIR := $(MAIN_path)/Ext_Lib
 endif
-
-QML_DIR    = $(ExtLibDIR)/QuantumModelLib
-QMLMOD_DIR = $(QML_DIR)/OBJ/obj$(extlib_obj)
-QMLLIBA    = $(QML_DIR)/libQMLib$(extlib_obj).a
-
-nDindex_DIR    = $(ExtLibDIR)/nDindex
-nDindexMOD_DIR = $(nDindex_DIR)/obj/obj$(extlib_obj)
-nDindexLIBA    = $(nDindex_DIR)/libnDindex$(extlib_obj).a
-
-EVRTdnSVM_DIR    = $(ExtLibDIR)/EVRT_dnSVM
-EVRTdnSVMMOD_DIR = $(EVRTdnSVM_DIR)/obj/obj$(extlib_obj)
-EVRTdnSVMLIBA    = $(EVRTdnSVM_DIR)/libEVRT_dnSVM$(extlib_obj).a
-
-AD_DIR    = $(ExtLibDIR)/AD_dnSVM
-ADMOD_DIR = $(AD_DIR)/OBJ/obj$(extlib_obj)
-ADLIBA    = $(AD_DIR)/libAD_dnSVM$(extlib_obj).a
+$(shell [ -d $(ExtLibDIR) ] || (echo $(ExtLibDIR) "does not exist" ; exit 1))
 
 QD_DIR    = $(ExtLibDIR)/QDUtilLib
-QDMOD_DIR = $(QD_DIR)/OBJ/obj$(extlib_obj)
-QDLIBA    = $(QD_DIR)/libQD$(extlib_obj).a
+QDMOD_DIR = $(QD_DIR)/OBJ/obj$(ext_obj)
+QDLIBA    = $(QD_DIR)/libQD$(ext_obj).a
 
-FOREVRT_DIR    = $(ExtLibDIR)/FOR_EVRT
-FOREVRTMOD_DIR = $(FOREVRT_DIR)/obj/obj$(extlibwi_obj)
-FOREVRTLIBA    = $(FOREVRT_DIR)/libFOR_EVRT$(extlibwi_obj).a
+AD_DIR    = $(ExtLibDIR)/AD_dnSVM
+ADMOD_DIR = $(AD_DIR)/OBJ/obj$(ext_obj)
+ADLIBA    = $(AD_DIR)/libAD_dnSVM$(ext_obj).a
 
 CONSTPHYS_DIR    = $(ExtLibDIR)/ConstPhys
 CONSTPHYSMOD_DIR = $(CONSTPHYS_DIR)/obj/obj$(extlibwi_obj)
 CONSTPHYSLIBA    = $(CONSTPHYS_DIR)/libPhysConst$(extlibwi_obj).a
 
-EXTLib     = $(CONSTPHYSLIBA) $(FOREVRTLIBA) $(EVRTdnSVMLIBA) $(nDindexLIBA) $(QMLLIBA) $(ADLIBA) $(QDLIBA)
+QML_DIR    = $(ExtLibDIR)/QuantumModelLib
+QMLMOD_DIR = $(QML_DIR)/OBJ/obj$(ext_obj)
+QMLLIBA    = $(QML_DIR)/libQMLib$(ext_obj).a
+
+nDindex_DIR    = $(ExtLibDIR)/nDindex
+nDindexMOD_DIR = $(nDindex_DIR)/obj/obj$(ext_obj)
+nDindexLIBA    = $(nDindex_DIR)/libnDindex$(ext_obj).a
+
+EVRTdnSVM_DIR    = $(ExtLibDIR)/EVRT_dnSVM
+EVRTdnSVMMOD_DIR = $(EVRTdnSVM_DIR)/obj/obj$(ext_obj)
+EVRTdnSVMLIBA    = $(EVRTdnSVM_DIR)/libEVRT_dnSVM$(ext_obj).a
+
+FOREVRT_DIR    = $(ExtLibDIR)/FOR_EVRT
+FOREVRTMOD_DIR = $(FOREVRT_DIR)/obj/obj$(extlibwi_obj)
+FOREVRTLIBA    = $(FOREVRT_DIR)/libFOR_EVRT$(extlibwi_obj).a
+
+EXTLib     = $(FOREVRTLIBA) $(CONSTPHYSLIBA) $(EVRTdnSVMLIBA) $(nDindexLIBA) $(QMLLIBA) $(ADLIBA) $(QDLIBA)
 EXTMod     = -I$(CONSTPHYSMOD_DIR) -I$(FOREVRTMOD_DIR) -I$(nDindexMOD_DIR) \
-             -I$(EVRTdnSVMMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR)
+             -I$(EVRTdnSVMMOD_DIR) -I$(QMLMOD_DIR) -I$(ADMOD_DIR) -I$(QDMOD_DIR) 
 #===============================================================================
 # 
 #=================================================================================
@@ -241,7 +240,6 @@ Tnum_MidasCpp Midas midas: $(TNUM_MiddasCppEXE)
 $(TNUM_MiddasCppEXE):  $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF)
 	$(FFC) $(FFLAGS) -o $(TNUM_MiddasCppEXE) $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(LIBAF) $(FLIB)
 #
-#
 .PHONY: all
 all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver
 	@echo "All executables"
@@ -328,60 +326,57 @@ zip: cleanall
 	@echo "  done zip"
 #===============================================
 #=== external libraries ========================
-# AD_dnSVM + QML Lib
+# QDUtilLib AD_dnSVM ConstPhys QuantumModelLib nDindex EVRT_dnSVM FOR_EVRT
 #===============================================
 #
-$(CONSTPHYSLIBA):
-	@test -d $(ExtLibDIR)     || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(CONSTPHYS_DIR) || (cd $(ExtLibDIR) ; ./get_ConstPhys.sh $(EXTLIB_TYPE))
-	@test -d $(CONSTPHYS_DIR) || (echo $(CONSTPHYS_DIR) "does not exist" ; exit 1)
-	cd $(CONSTPHYS_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(CONSTPHYS_DIR) " in "$(BaseName)
+.PHONY: getlib
+getlib:
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh ConstPhys dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh QuantumModelLib dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh FOR_EVRT dev
 #
-$(FOREVRTLIBA):
-	@test -d $(ExtLibDIR)   || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(FOREVRT_DIR) || (cd $(ExtLibDIR) ; ./get_FOR_EVRT.sh $(EXTLIB_TYPE))
-	@test -d $(FOREVRT_DIR) || (echo $(FOREVRT_DIR) "does not exist" ; exit 1)
-	cd $(FOREVRT_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(FOREVRTLIBA) " in " $(BaseName)
+$(QDLIBA): getlib
+	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(QDLIBA) " in "$(BaseName)
 #
-$(nDindexLIBA):
-	@test -d $(ExtLibDIR)   || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(nDindex_DIR) || (cd $(ExtLibDIR) ; ./get_nDindex.sh  $(EXTLIB_TYPE))
-	@test -d $(nDindex_DIR) || (echo $(nDindex_DIR) "does not exist" ; exit 1)
+$(ADLIBA): getlib
+	cd $(ExtLibDIR)/AD_dnSVM ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(ADLIBA) || (echo $(ADLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(ADLIBA) " in "$(BaseName)
+#
+$(CONSTPHYSLIBA): getlib
+	cd $(ExtLibDIR)/ConstPhys ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(CONSTPHYSLIBA) || (echo $(CONSTPHYSLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(CONSTPHYSLIBA) " in "$(BaseName)
+#
+$(QMLLIBA): getlib
+	cd $(ExtLibDIR)/QuantumModelLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(QMLLIBA) || (echo $(QMLLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(QMLLIBA) " in "$(BaseName)
+#
+$(nDindexLIBA): getlib
 	cd $(nDindex_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(nDindex_DIR) " in "$(BaseName)
+	@test -f $(nDindexLIBA) || (echo $(nDindexLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(nDindexLIBA) " in "$(BaseName)
 #
-$(EVRTdnSVMLIBA):
-	@test -d $(ExtLibDIR)     || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(EVRTdnSVM_DIR) || (cd $(ExtLibDIR) ; ./get_EVRT_dnSVM.sh  $(EXTLIB_TYPE))
-	@test -d $(EVRTdnSVM_DIR) || (echo $(EVRTdnSVM_DIR) "does not exist" ; exit 1)
+$(EVRTdnSVMLIBA): getlib
 	cd $(EVRTdnSVM_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(EVRTdnSVM_DIR) " in "$(BaseName)
+	@test -f $(EVRTdnSVMLIBA) || (echo $(EVRTdnSVMLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(EVRTdnSVMLIBA) " in "$(BaseName)
 #
-$(QMLLIBA):
-	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(QML_DIR)   || (cd $(ExtLibDIR) ; ./get_QML.sh $(EXTLIB_TYPE))
-	@test -d $(QML_DIR)   || (echo $(QML_DIR) "does not exist" ; exit 1)
-	cd $(QML_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(QDLIBA) " in "$(BaseName)
-#
-$(ADLIBA):
-	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(AD_DIR)    || (cd $(ExtLibDIR) ; ./get_dnSVM.sh  $(EXTLIB_TYPE))
-	@test -d $(AD_DIR)    || (echo $(AD_DIR) "does not exist" ; exit 1)
-	cd $(AD_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(AD_DIR) " in "$(BaseName)
-#
-$(QDLIBA):
-	@test -d $(ExtLibDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	@test -d $(QD_DIR)    || (cd $(ExtLibDIR) ; ./get_QDUtilLib.sh $(EXTLIB_TYPE))
-	@test -d $(QD_DIR)    || (echo $(QD_DIR) "does not exist" ; exit 1)
-	cd $(QD_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
-	@echo "  done " $(QDLIBA) " in "$(BaseName)
+$(FOREVRTLIBA): getlib
+	cd $(FOREVRT_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	@test -f $(FOREVRTLIBA) || (echo $(FOREVRTLIBA) "does not exist" ; exit 1)
+	@echo "  done " $(FOREVRTLIBA) " in "$(BaseName)
 ##
 .PHONY: clean_extlib
 clean_extlib:
+	echo cleanlib, DIR=$(ExtLibDIR)
 	cd $(ExtLibDIR) ; ./cleanlib
 #=======================================================================================
 #=======================================================================================

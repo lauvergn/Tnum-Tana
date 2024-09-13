@@ -1,0 +1,48 @@
+#!/bin/bash
+
+mkdir -p temp
+rm -f temp/*
+
+cat scripts/ReadMeHead.md > ReadMe.md
+
+
+awk '/=== README ==/,/=== END README ==/' SRC/Model_m.f90 > temp/RMtmp
+for f90 in SRC/QML/*f90
+do
+  awk '/=== README ==/,/=== END README ==/' $f90 >> temp/RMtmp
+done
+  
+cd temp
+
+#-----------------------------------------------------
+#split with a pattern works on a mac (osx)
+#split -p "END README" RMtmp readme_
+#
+#-----------------------------------------------------
+# problem with too many open files
+#awk '/END README/{c++} {print > "readme_"c }' RMtmp
+
+awk '/END README/ {c_prev=c;c++}
+    {
+      ff="readme_"c
+      print > ff
+      if (c_prev != c) {
+        #print "close: readme_"c_prev
+        close("readme_"c_prev)
+      }
+    }' RMtmp
+#-----------------------------------------------------
+
+rm RMtmp
+
+for name in readme_*
+do
+  #echo $name
+  pot=`awk '/pot_name/ {print $4}' $name`
+  echo \## Model $pot >> ../ReadMe.md
+  grep -v README $name | sed "s/!!//" >> ../ReadMe.md
+done
+
+cd ..
+
+rm -r temp

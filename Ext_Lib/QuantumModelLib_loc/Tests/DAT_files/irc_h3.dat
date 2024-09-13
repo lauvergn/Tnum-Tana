@@ -1,0 +1,33 @@
+&potential
+  pot_name='H3_LSTH' ! potential surface name
+  PubliUnit=F
+  IRC=T /
+
+&opt
+  icv = 3
+  TS=t
+  hessian_method = 'ana'
+  Largest_disp   = 0.4
+  list_act=3,9
+ /
+&irc
+ Max_it = 40
+ Delta_s = 0.1
+ Method='BS'
+ order2=16
+ m0_BS=128
+ Method2='Euler'
+ /
+
+ Method2='MidPoint'
+
+&irc
+ Max_it = 40
+ Delta_s = 0.1
+ Method='Euler'
+ order2=500
+ /
+ Method='Euler'
+ Method='MidPoint'
+
+

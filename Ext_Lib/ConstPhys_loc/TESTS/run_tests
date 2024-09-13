@@ -1,0 +1,46 @@
+#!/bin/bash
+
+here=`pwd`
+DIR_SRC=$here/..
+echo $here
+echo $DIR_SRC
+
+PCEXE=$DIR_SRC/PhysConst.exe
+
+
+if (! test -f $PCEXE) then
+  cd $DIR_SRC
+    make FC=gfortran OPT=0 INT=4 LAPACK=0 PhysConst &> $here/comp.log
+  cd $here
+  compOK=`grep -c 'OK' comp.log `
+  if [ $compOK = '1' ] 
+  then
+     echo " PhysConst.exe compilation: OK"
+  else
+     echo " PhysConst.exe compilation: ERROR"
+     exit 1
+  fi
+fi
+
+OldTestsDir=output_28nov2018
+
+./clean
+
+for dat_name in dat*
+do
+   res_name=`echo res_$dat_name | sed 's/dat_//'`
+   echo $res_name
+   $PCEXE < $dat_name > $here/$res_name
+done
+
+for res_name in res*
+do
+   echo ---------------------------------------
+   echo ----------- $res_name
+
+   ./CompareMass  $res_name
+   ./CompareConst $res_name
+
+   echo ---------------------------------------
+done
+

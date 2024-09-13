@@ -1,0 +1,32 @@
+name = "ConstPhys"
+version = "0.0.0"
+license = "MIT"
+author = "David Lauvergnat"
+maintainer = "david.lauvergnat@universite-paris-saclay.fr"
+copyright = "2024 David Lauvergnat"
+
+[library]
+source-dir="SRC"
+
+[install]
+library = true
+
+[[test]]
+name="TestCP"
+source-dir="TESTS"
+main="PhysicalConstants_Main.f90"
+
+[build]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+
+[fortran]
+implicit-external = true 
+
+
+[preprocess]
+cpp.macros = ["__PHYSCTEPATH=\"'`pwd`'\""]
+
+[dependencies]
+QDUtilLib = { path = "Ext_lib/QDUtilLib" }

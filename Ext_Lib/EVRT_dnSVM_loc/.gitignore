@@ -1,0 +1,9 @@
+.DS_Store */.DS_Store */*/.DS_Store
+obj/*
+*.exe
+*.a 
+*.log
+res
+SRC/*/*.i
+TESTS/*log
+TESTS/res*

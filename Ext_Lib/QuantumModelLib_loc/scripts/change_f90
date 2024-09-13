@@ -1,0 +1,20 @@
+#list_f90="SRC/*f90 SRC/*/*f90"
+list_f90=" SRC/ModelLib/*f90"
+
+for f in $list_f90
+do
+
+  echo ===============================
+  echo file: $f
+  for sub in alloc_dnS
+  do
+    echo --------------------------------------
+    echo $f   $sub
+#    sed "s/"$sub"/"$sub"_QML/g" $f > $f.i
+    #sed "s/mod_NumParameters/QMLLib_NumParameters_m/" $f > $f.i
+     cp $f.i $f
+
+    echo ""
+  done
+
+done

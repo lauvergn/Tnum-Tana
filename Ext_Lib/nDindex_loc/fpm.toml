@@ -1,0 +1,31 @@
+name = "nDindex"
+version = "0.0.0"
+license = "MIT"
+author = "David Lauvergnat"
+maintainer = "david.lauvergnat@universite-paris-saclay.fr"
+copyright = "2024 David Lauvergnat"
+
+[library]
+source-dir="SRC"
+
+[install]
+library = true
+
+[[test]]
+name="TestnDindex"
+source-dir="TESTS"
+main="TEST_nDindex.f90"
+
+[build]
+link = ["blas", "lapack"]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+
+[fortran]
+implicit-external = true 
+
+
+[dependencies]
+QDUtilLib = { path = "Ext_lib/QDUtilLib" }
+openmp = "*"

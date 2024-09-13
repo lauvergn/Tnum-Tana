@@ -1,0 +1,20 @@
+name = "ForEVRT"
+
+[[test]]
+name="Test_ForEVRT"
+source-dir="TESTS"
+main="Test_FOR_EVRT.f90"
+
+[fortran]
+implicit-external = true 
+
+[dependencies]
+QDUtilLib       = { path = "Ext_lib/QDUtilLib" }
+AD_dnSVM        = { path = "Ext_lib/AD_dnSVM" }
+nDindex         = { path = "Ext_lib/nDindex" }
+EVRT_dnSVM      = { path = "Ext_lib/EVRT_dnSVM" }
+openmp = "*"
+
+[preprocess]
+cpp.macros = ["__LAPACK=1"]
+#cpp.macros = ["__LAPACK=1","run_MPI=0","int8=0","run_MPI_ifort=0"]

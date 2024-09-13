@@ -1,0 +1,12 @@
+ &constantes mass_version='NIST2018' version='CODATA2014' /
+ 2000.   ! mass of 2000. au
+ 20.0.   ! Wrong real => ERROR
+ C       ! give the C mass of the main isotop (A=12)
+ H
+ Fe
+ Xe
+ O
+ 2H      ! give the mass of D (H with Z=1,A=2)
+13C      ! give C mass of the isotop with A=13
+ 6_14    ! give the C mass of the isotop with A=14
+ XX      ! Unknown atom => ERROR

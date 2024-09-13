@@ -1,0 +1,32 @@
+name = "EVRT_dnSVM"
+version = "0.0.0"
+license = "MIT"
+author = "David Lauvergnat"
+maintainer = "david.lauvergnat@universite-paris-saclay.fr"
+copyright = "2024 David Lauvergnat"
+
+[library]
+source-dir="SRC"
+
+[install]
+library = true
+
+[[test]]
+name="Test_EVRT_dnSVM"
+source-dir="TESTS"
+main="Test_EVRT_dnSVM.f90"
+
+
+[build]
+link = ["blas", "lapack"]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+
+[fortran]
+implicit-external = true 
+
+[dependencies]
+QDUtilLib = { path = "Ext_lib/QDUtilLib" }
+AD_dnSVM  = { path = "Ext_lib/AD_dnSVM" }
+openmp = "*"

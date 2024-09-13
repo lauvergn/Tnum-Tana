@@ -1,0 +1,8 @@
+&potential
+  pot_name='Retinal_JPCB2000' ! potential surface name
+  ndim=3 PubliUnit=f
+  adiabatic=t
+  Phase_checking=f
+  read_nml=t
+   /
+BathMode_Order 2
