@@ -32,6 +32,7 @@ activetransfo_m = $(OBJ_DIR)/ActiveTransfo_m.o
 carttransfo_m = $(OBJ_DIR)/CartTransfo_m.o
 identitytransfo_m = $(OBJ_DIR)/IdentityTransfo_m.o
 lineartransfo_m = $(OBJ_DIR)/LinearTransfo_m.o
+onedtransfo_m = $(OBJ_DIR)/OneDTransfo_m.o
 qtransfobase_m = $(OBJ_DIR)/QtransfoBase_m.o
 qtransfo_m = $(OBJ_DIR)/Qtransfo_m.o
 zmattransfo_m = $(OBJ_DIR)/ZmatTransfo_m.o
@@ -228,7 +229,12 @@ $(OBJ_DIR)/IdentityTransfo_m.o : \
           $(qtransfobase_m)
 $(OBJ_DIR)/LinearTransfo_m.o : \
           $(tnumtana_system_m) \
-          $(qtransfobase_m)
+          $(qtransfobase_m) \
+          $(addnsvm_m)
+$(OBJ_DIR)/OneDTransfo_m.o : \
+          $(tnumtana_system_m) \
+          $(qtransfobase_m) \
+          $(addnsvm_m)
 $(OBJ_DIR)/QtransfoBase_m.o : \
           $(tnumtana_system_m) \
           $(mod_constant) \
@@ -238,10 +244,11 @@ $(OBJ_DIR)/Qtransfo_m.o : \
           $(qtransfobase_m) \
           $(zmattransfo_m) \
           $(identitytransfo_m) \
+          $(lineartransfo_m) \
           $(activetransfo_m) \
-          $(addnsvm_m) \
           $(mod_constant) \
-          $(carttransfo_m)
+          $(carttransfo_m) \
+          $(addnsvm_m)
 $(OBJ_DIR)/ZmatTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m) \
@@ -374,7 +381,8 @@ $(OBJ_DIR)/TnumTana_Lib.o : \
 $(OBJ_DIR)/TnumTana_system_m.o : \
           $(qdutil_m) \
           $(mod_mpi) \
-          $(for_evrt_system_m)
+          $(for_evrt_system_m) \
+          $(iso_fortran_env)
 $(OBJ_DIR)/sub_module_Coord_KEO.o : \
           $(mod_lib_qtransfo) \
           $(mod_freq) \

@@ -191,6 +191,15 @@ tnum Tnum tnum-dist Tnum-dist: $(TNUMEXE)
 $(TNUMEXE):  $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF)
 	$(FFC) $(FFLAGS) -o $(TNUMEXE) $(OBJ_DIR)/$(TNUMMAIN).o $(LIBAF) $(FLIB)
 #
+TNUMOOPEXE  = Tnum_OOP.exe
+TNUMOOPMAIN = Tnum_OOP
+.PHONY: tnumoop oop OOP
+tnumoop OOP oop: $(TNUMOOPEXE)
+	@echo "TnumOOP OK"
+
+$(TNUMOOPEXE):  $(OBJ_DIR)/$(TNUMOOPMAIN).o $(LIBAF)
+	$(FFC) $(FFLAGS) -o $(TNUMOOPEXE) $(OBJ_DIR)/$(TNUMOOPMAIN).o $(LIBAF) $(FLIB)
+#
 #  Drivers (c and f90)
 #
 Main_TnumTana_FDriverEXE=Main_TnumTana_FDriver.exe
@@ -389,9 +398,13 @@ dependencies.mk fortranlist.mk dep:
 include ./dependencies.mk
 
 
-$(LIBA):                    $(OBJ)
-$(LIBAF):                   $(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)
-$(OBJ_DIR)/$(TNUMMAIN).o:   $(LIBA)
+$(LIBA):                       				$(OBJ)
+$(LIBAF):                      				$(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)
 
-$(OBJ_DIR)/$(TNUMMAIN).o $(OBJ_DIR)/$(TNUMMCTDHMAIN).o $(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o $(OBJ_DIR)/$(Main_TnumTana_FDriver).o $(OBJ_DIR)/$(Main_TnumTana_cDriver).o : $(LIBA) | $(EXTLib) 
+$(OBJ_DIR)/$(TNUMMAIN).o:      				$(LIBA) | $(EXTLib) 
+$(OBJ_DIR)/$(TNUMOOPMAIN).o:   				$(LIBA) | $(EXTLib) 
+$(OBJ_DIR)/$(TNUMMCTDHMAIN).o:      		$(LIBA) | $(EXTLib) 
+$(OBJ_DIR)/$(TNUM_MiddasCppMAIN).o:   		$(LIBA) | $(EXTLib)
+$(OBJ_DIR)/$(Main_TnumTana_FDriver).o:   	$(LIBA) | $(EXTLib) 
+$(OBJ_DIR)/$(Main_TnumTana_cDriver).o:   	$(LIBA) | $(EXTLib) 
 
