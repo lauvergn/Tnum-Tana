@@ -118,7 +118,7 @@ CONTAINS
       write(out_unit,*) Tnum_name,' is written David Lauvergnat [1]'
       write(out_unit,*) Tana_name,' is written by Mamadou Ndong [1] and David Lauvergnat [1]'
       write(out_unit,*) '  with contributions'
-      write(out_unit,*) '      Emil Lund klinting (coupling with MidasCpp) [2]'
+      write(out_unit,*) '      Emil Lund klinting and Frederik Bader (coupling with MidasCpp) [2]'
 
       write(out_unit,*) Tnum_name,' and ',Tana_name,' are under MIT license.'
       write(out_unit,*)
