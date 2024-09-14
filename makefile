@@ -210,10 +210,10 @@ Main_TnumTana_FDriver   =Main_TnumTana_FDriver
 Main_TnumTana_cDriverEXE=Main_TnumTana_cDriver.exe
 Main_TnumTana_cDriver   =Main_TnumTana_cDriver
 
-.PHONY: Tnum_FDriver Tnum_cDriver
-Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
+.PHONY: Tnum_FDriver Tnum_cDriver cDriver FDriver
+FDriver Tnum_FDriver: $(Main_TnumTana_FDriverEXE)
 	@echo "Main_TnumTana_FDriver OK"
-Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
+cDriver Tnum_cDriver: $(Main_TnumTana_cDriverEXE)
 	@echo "Main_TnumTana_cDriver OK"
 
 $(Main_TnumTana_cDriverEXE): $(OBJ_DIR)/$(Main_TnumTana_cDriver).o $(LIBAF)
@@ -332,48 +332,56 @@ zip: cleanall
 # QDUtilLib AD_dnSVM ConstPhys QuantumModelLib nDindex EVRT_dnSVM FOR_EVRT
 #===============================================
 #
+DEV=dev
 .PHONY: getlib
 getlib:
-	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh ConstPhys dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh QuantumModelLib dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh FOR_EVRT dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh ConstPhys $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh QuantumModelLib $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh FOR_EVRT $(DEV)
 #
-$(QDLIBA): getlib
+$(QDLIBA): 
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
 	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(QDLIBA) " in "$(BaseName)
 #
-$(ADLIBA): getlib
+$(ADLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM $(DEV)
 	cd $(ExtLibDIR)/AD_dnSVM ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(ADLIBA) || (echo $(ADLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(ADLIBA) " in "$(BaseName)
 #
-$(CONSTPHYSLIBA): getlib
+$(CONSTPHYSLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh ConstPhys $(DEV)
 	cd $(ExtLibDIR)/ConstPhys ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(CONSTPHYSLIBA) || (echo $(CONSTPHYSLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(CONSTPHYSLIBA) " in "$(BaseName)
 #
-$(QMLLIBA): getlib
+$(QMLLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh QuantumModelLib $(DEV)
 	cd $(ExtLibDIR)/QuantumModelLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(QMLLIBA) || (echo $(QMLLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(QMLLIBA) " in "$(BaseName)
 #
-$(nDindexLIBA): getlib
-	cd $(nDindex_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+$(nDindexLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex $(DEV)
+	cd $(ExtLibDIR)/nDindex ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(nDindexLIBA) || (echo $(nDindexLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(nDindexLIBA) " in "$(BaseName)
 #
-$(EVRTdnSVMLIBA): getlib
-	cd $(EVRTdnSVM_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+$(EVRTdnSVMLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM $(DEV)
+	cd $(ExtLibDIR)/EVRT_dnSVM ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(EVRTdnSVMLIBA) || (echo $(EVRTdnSVMLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(EVRTdnSVMLIBA) " in "$(BaseName)
 #
-$(FOREVRTLIBA): getlib
-	cd $(FOREVRT_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+$(FOREVRTLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh FOR_EVRT $(DEV)
+	cd $(ExtLibDIR)/FOR_EVRT ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(FOREVRTLIBA) || (echo $(FOREVRTLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(FOREVRTLIBA) " in "$(BaseName)
 ##
@@ -399,7 +407,6 @@ dependencies.mk fortranlist.mk dep:
 	./scripts/dependency.sh
 #===============================================
 include ./dependencies.mk
-
 
 $(LIBA):                       				$(OBJ)
 $(LIBAF):                      				$(LIBA) $(Coord_KEO_EXT_SRCFILES_OBJ)
