@@ -22,7 +22,7 @@ extf = f90
 EXTLIB_TYPE = loc
 ## c compiler for the cDriver
 #CompC = gcc
-CompC := /opt/homebrew/Cellar/gcc/14.1.0_2/bin/gcc-14
+CompC := gcc-14
 #=================================================================================
 #=================================================================================
 ifeq ($(FC),)
@@ -156,12 +156,15 @@ $(info ************************************************************************)
 $(info ************************************************************************)
 
 #==========================================
-VPATH = Source_PrimOperator sub_pot \
-        Source_TnumTana_Coord Source_TnumTana_Coord/Qtransfo Source_TnumTana_Coord/QtransfoOOP Source_TnumTana_Coord/Tana \
-        Source_TnumTana_Coord/Tnum sub_operator_T
+VPATH = APP APP/cDriver APP/FDriver \
+		 SRC/Source_PrimOperator SRC/sub_pot \
+        SRC/Source_TnumTana_Coord SRC/Source_TnumTana_Coord/Qtransfo \
+		SRC/Source_TnumTana_Coord/QtransfoOOP SRC/Source_TnumTana_Coord/Tana \
+        SRC/Source_TnumTana_Coord/Tnum SRC/sub_operator_T
 
 # special files
-Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90 Module_ForTnumTana_Driver.f90 TnumTana_Lib.f90
+Coord_KEO_EXT_SRCFILES      = calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90 \
+                              Module_ForTnumTana_Driver.f90 TnumTana_Lib.f90
 Coord_KEO_EXT_SRCFILES_OBJ0 = ${Coord_KEO_EXT_SRCFILES:.f90=.o}
 Coord_KEO_EXT_SRCFILES_OBJ  = $(addprefix $(OBJ_DIR)/, $(Coord_KEO_EXT_SRCFILES_OBJ0))
 $(info ************ Coord_KEO_EXT_SRCFILES_OBJ: $(Coord_KEO_EXT_SRCFILES_OBJ))
@@ -291,8 +294,8 @@ $(OBJ_DIR)/%.o: %.c
 #============= make sub_system =================
 #=============  with the .f or .f90 extention ==
 #===============================================
-sub_pot/sub_system.$(extf): sub_pot/sub_system_save.$(extf)
-	cp sub_pot/sub_system_save.$(extf) sub_pot/sub_system.$(extf)
+SRC/sub_pot/sub_system.$(extf): SRC_NotUsed/sub_pot/sub_system_save.$(extf)
+	cp SRC_NotUsed/sub_pot/sub_system_save.$(extf) SRC/sub_pot/sub_system.$(extf)
 #===============================================
 #===============================================
 #
@@ -304,7 +307,7 @@ sub_pot/sub_system.$(extf): sub_pot/sub_system_save.$(extf)
 clean:
 	rm -f  $(OBJ_DIR)/*.o
 	rm -f *.log
-	rm -f sub_pot/sub_system.f sub_pot/sub_system.f90
+	rm -f SRC/sub_pot/sub_system.f SRC/sub_pot/sub_system.f90
 	rm -f TEST*.x
 	@echo "  done cleaning"
 
@@ -378,6 +381,11 @@ $(FOREVRTLIBA): getlib
 clean_extlib:
 	echo cleanlib, DIR=$(ExtLibDIR)
 	cd $(ExtLibDIR) ; ./cleanlib
+#
+#=======================================================================================
+.PHONY: fpm
+fpm: getlib
+	cd $(FOREVRT_DIR) ; make mpi
 #=======================================================================================
 #=======================================================================================
 #add dependencies

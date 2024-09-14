@@ -1,0 +1,67 @@
+name = "Tnum-Tana"
+version = "50.1"
+license = "MIT"
+author = "David Lauvergnat"
+maintainer = "david.lauvergnat@universite-paris-saclay.fr"
+copyright = "2024 David Lauvergnat"
+
+[[executable]]
+name="cDriver"
+source-dir="APP"
+main="Main_TnumTana_cDriver.c"
+
+[[executable]]
+name="Tnum90"
+source-dir="APP"
+main="Tnum90.f90"
+
+[[executable]]
+name="Tnum_OOP"
+source-dir="APP"
+main="Tnum_OOP.f90"
+
+[[executable]]
+name="Tnum90_MCTDH"
+source-dir="APP"
+main="Tnum90_MCTDH.f90"
+
+[[executable]]
+name="Tnum90_MidasCpp"
+source-dir="APP"
+main="Tnum90_MidasCpp.f90"
+
+[[executable]]
+name="FDriver"
+source-dir="APP"
+main="Main_TnumTana_FDriver.f90"
+
+[[executable]]
+name="TEST"
+source-dir="APP"
+main="TEST_TnumTana.f90"
+
+[build]
+link = ["blas", "lapack"]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+
+[library]
+source-dir="SRC"
+
+[fortran]
+implicit-external = true
+source-form="default"
+
+[dependencies]
+QDUtilLib       = { path = "Ext_lib/QDUtilLib" }
+AD_dnSVM        = { path = "Ext_lib/AD_dnSVM" }
+ConstPhys       = { path = "Ext_lib/ConstPhys" }
+QuantumModelLib = { path = "Ext_lib/QuantumModelLib" }
+nDindex         = { path = "Ext_lib/nDindex" }
+EVRT_dnSVM      = { path = "Ext_lib/EVRT_dnSVM" }
+FOR_EVRT        = { path = "Ext_lib/FOR_EVRT" }
+openmp          = "*"
+
+[preprocess]
+cpp.macros = ["__LAPACK=1"]

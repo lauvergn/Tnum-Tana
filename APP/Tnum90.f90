@@ -33,8 +33,7 @@
 !
 !===========================================================================
 !===========================================================================
-      PROGRAM Tnum_f90
-      use TnumTana_system_m
+  PROGRAM Tnum_f90
       use mod_dnSVM
       use mod_Constant
       USE TnumTana_system_m

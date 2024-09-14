@@ -33,7 +33,7 @@
 !
 !===========================================================================
 !===========================================================================
-      PROGRAM Tnum_f90
+      PROGRAM TnumTana
       use TnumTana_system_m
       use mod_dnSVM
       use mod_Constant
@@ -70,7 +70,7 @@
 !=======================================================================
 !=======================================================================
       CALL TnumTana_version(.TRUE.)
-      print_level=2
+      CALL set_print_level(2)
 
       !-----------------------------------------------------------------
       !     - read the coordinate transformations :
@@ -139,4 +139,4 @@
 
       write(out_unit,*) 'END ',name_sub
 
-      END PROGRAM Tnum_f90
+      END PROGRAM TnumTana

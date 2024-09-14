@@ -33,7 +33,7 @@
 !
 !===========================================================================
 !===========================================================================
-      PROGRAM Tnum_f90
+      PROGRAM Tnum90_MCTDH
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant
@@ -203,4 +203,4 @@
        write(out_unit,*) 'nb_alloc,nb_dealloc',para_mem%nb_alloc,para_mem%nb_dealloc
        write(out_unit,*) 'END Tnum'
 
-      END PROGRAM Tnum_f90
+      END PROGRAM Tnum90_MCTDH
