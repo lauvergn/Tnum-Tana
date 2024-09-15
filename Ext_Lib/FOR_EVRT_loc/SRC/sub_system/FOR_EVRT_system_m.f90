@@ -48,11 +48,11 @@ MODULE FOR_EVRT_system_m
 
   TYPE (param_FOR_optimization), save :: para_FOR_optimization
 CONTAINS
-  SUBROUTINE Write_RMat_MPI(f,nio,nbcol1,Rformat,info)
+  SUBROUTINE Write_RMat_MPI(f,nio,nbcol,Rformat,info)
     USE mod_MPI, ONLY : MPI_id
 
     real(kind=Rkind),    intent(in)           :: f(:,:)
-    integer,             intent(in)           :: nio,nbcol1
+    integer,             intent(in)           :: nio,nbcol
 
     character (len=*),   intent(in), optional :: Rformat
     character (len=*),   intent(in), optional :: info
@@ -61,24 +61,24 @@ CONTAINS
 
     IF (present(Rformat)) THEN
       IF (present(info)) THEN
-        CALL  Write_Mat(f,nio,nbcol1,Rformat=Rformat,info=info)
+        CALL  Write_Mat(f,nio,nbcol,Rformat=Rformat,info=info)
       ELSE
-        CALL  Write_Mat(f,nio,nbcol1,Rformat=Rformat)
+        CALL  Write_Mat(f,nio,nbcol,Rformat=Rformat)
       END IF
     ELSE
       IF (present(info)) THEN
-        CALL  Write_Mat(f,nio,nbcol1,info=info)
+        CALL  Write_Mat(f,nio,nbcol,info=info)
       ELSE
-        CALL  Write_Mat(f,nio,nbcol1)
+        CALL  Write_Mat(f,nio,nbcol)
       END IF
     END IF
 
   END SUBROUTINE Write_RMat_MPI
-  SUBROUTINE Write_CMat_MPI(f,nio,nbcol1,Rformat,info)
+  SUBROUTINE Write_CMat_MPI(f,nio,nbcol,Rformat,info)
     USE mod_MPI, ONLY : MPI_id
 
     complex(kind=Rkind), intent(in)           :: f(:,:)
-    integer,             intent(in)           :: nio,nbcol1
+    integer,             intent(in)           :: nio,nbcol
 
     character (len=*),   intent(in), optional :: Rformat
     character (len=*),   intent(in), optional :: info
@@ -88,64 +88,64 @@ CONTAINS
 
     IF (present(Rformat)) THEN
       IF (present(info)) THEN
-        CALL  Write_Mat(f,nio,nbcol1,Rformat=Rformat,info=info)
+        CALL  Write_Mat(f,nio,nbcol,Rformat=Rformat,info=info)
       ELSE
-        CALL  Write_Mat(f,nio,nbcol1,Rformat=Rformat)
+        CALL  Write_Mat(f,nio,nbcol,Rformat=Rformat)
       END IF
     ELSE
       IF (present(info)) THEN
-        CALL  Write_Mat(f,nio,nbcol1,info=info)
+        CALL  Write_Mat(f,nio,nbcol,info=info)
       ELSE
-        CALL  Write_Mat(f,nio,nbcol1)
+        CALL  Write_Mat(f,nio,nbcol)
       END IF
     END IF
 
   END SUBROUTINE Write_CMat_MPI
-  SUBROUTINE Write_RVec_MPI(l,nio,nbcol1,Rformat,info)
+  SUBROUTINE Write_RVec_MPI(l,nio,nbcol,Rformat,info)
     USE mod_MPI, ONLY : MPI_id
 
     real(kind=Rkind), intent(in)              :: l(:)
-    integer,             intent(in)           :: nio,nbcol1
+    integer,             intent(in)           :: nio,nbcol
 
     character (len=*),   intent(in), optional :: Rformat
     character (len=*),   intent(in), optional :: info
 
     IF (present(Rformat)) THEN
       IF (present(info)) THEN
-        CALL  Write_Vec(l,nio,nbcol1,Rformat=Rformat,info=info)
+        CALL  Write_Vec(l,nio,nbcol,Rformat=Rformat,info=info)
       ELSE
-        CALL  Write_Vec(l,nio,nbcol1,Rformat=Rformat)
+        CALL  Write_Vec(l,nio,nbcol,Rformat=Rformat)
       END IF
     ELSE
       IF (present(info)) THEN
-        CALL  Write_Vec(l,nio,nbcol1,info=info)
+        CALL  Write_Vec(l,nio,nbcol,info=info)
       ELSE
-        CALL  Write_Vec(l,nio,nbcol1)
+        CALL  Write_Vec(l,nio,nbcol)
       END IF
     END IF
 
   END SUBROUTINE Write_RVec_MPI
 
-  SUBROUTINE Write_CVec_MPI(l,nio,nbcol1,Rformat,info)
+  SUBROUTINE Write_CVec_MPI(l,nio,nbcol,Rformat,info)
     USE mod_MPI, ONLY : MPI_id
 
     complex(kind=Rkind), intent(in)           :: l(:)
-    integer,             intent(in)           :: nio,nbcol1
+    integer,             intent(in)           :: nio,nbcol
 
     character (len=*),   intent(in), optional :: Rformat
     character (len=*),   intent(in), optional :: info
 
     IF (present(Rformat)) THEN
       IF (present(info)) THEN
-        CALL  Write_Vec(l,nio,nbcol1,Rformat=Rformat,info=info)
+        CALL  Write_Vec(l,nio,nbcol,Rformat=Rformat,info=info)
       ELSE
-        CALL  Write_Vec(l,nio,nbcol1,Rformat=Rformat)
+        CALL  Write_Vec(l,nio,nbcol,Rformat=Rformat)
       END IF
     ELSE
       IF (present(info)) THEN
-        CALL  Write_Vec(l,nio,nbcol1,info=info)
+        CALL  Write_Vec(l,nio,nbcol,info=info)
       ELSE
-        CALL  Write_Vec(l,nio,nbcol1)
+        CALL  Write_Vec(l,nio,nbcol)
       END IF
     END IF
 

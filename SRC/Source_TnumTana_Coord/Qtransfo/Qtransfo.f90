@@ -1514,10 +1514,10 @@ MODULE mod_Qtransfo
         CASE ('linear','linear_inv','lc_projection_inv',                &
             'linear_transp','linear_transp_inv','linear_inv_transp')
           write(out_unit,*)  'Mat of LinearTransfo: '
-          CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unit,4)
+          CALL Write_Mat_MPI(Qtransfo%LinearTransfo%mat,out_unit,4)
 
           write(out_unit,*)  'Mat_inv of LinearTransfo: '
-          CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
+          CALL Write_Mat_MPI(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
 
         CASE ('nm')
           IF (associated(Qtransfo%NMTransfo)) THEN
@@ -1525,11 +1525,11 @@ MODULE mod_Qtransfo
           END IF
           IF (associated(Qtransfo%LinearTransfo%mat)) THEN
             write(out_unit,*)  'Mat of LinearTransfo (NM): '
-            CALL Write_Mat(Qtransfo%LinearTransfo%mat,out_unit,4)
+            CALL Write_Mat_MPI(Qtransfo%LinearTransfo%mat,out_unit,4)
           END IF
           IF (associated(Qtransfo%LinearTransfo%mat_inv)) THEN
             write(out_unit,*)  'Mat_inv of LinearTransfo (NM): '
-            CALL Write_Mat(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
+            CALL Write_Mat_MPI(Qtransfo%LinearTransfo%mat_inv,out_unit,4)
           END IF
 
         CASE ('rph')

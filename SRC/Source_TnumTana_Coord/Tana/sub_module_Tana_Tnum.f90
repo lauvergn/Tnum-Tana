@@ -100,11 +100,11 @@ MODULE mod_Tana_Tnum
 
       IF (maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0)) > ONETENTH**10) THEN
         write(out_unit,*) 'G of Tana  '
-        CALL write_mat(Gana,out_unit,4)
+        CALL Write_Mat_MPI(Gana,out_unit,4)
         write(out_unit,*) 'G of Tnum  '
-        CALL write_mat(dnGG%d0,out_unit,4)
+        CALL Write_Mat_MPI(dnGG%d0,out_unit,4)
         write(out_unit,*) 'Difference of G'
-        CALL write_mat(Gana-dnGG%d0,out_unit,4)
+        CALL Write_Mat_MPI(Gana-dnGG%d0,out_unit,4)
       END IF
       write(out_unit,*) '         max diff G: ',maxval(abs(Gana-dnGG%d0))
       write(out_unit,*) 'Relative max diff G: ',maxval(abs(Gana-dnGG%d0))/maxval(abs(dnGG%d0))
@@ -175,9 +175,9 @@ MODULE mod_Tana_Tnum
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*) 'vep',vep
          write(out_unit,*) 'f1 of Tnum  '
-         CALL write_vec(Tdef1,out_unit,4)
+         CALL write_Vec_MPI(Tdef1,out_unit,4)
          write(out_unit,*) 'f2 of Tnum  '
-         CALL write_mat(Tdef2,out_unit,4)
+         CALL Write_Mat_MPI(Tdef2,out_unit,4)
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*)
          write(out_unit,*) '-----------------------------------'
@@ -185,9 +185,9 @@ MODULE mod_Tana_Tnum
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*) 'vep',vep_ana
          write(out_unit,*) 'f1 of Tana  '
-         CALL write_vec(f1_ana,out_unit,4)
+         CALL write_Vec_MPI(f1_ana,out_unit,4)
          write(out_unit,*) 'f2 of Tana  '
-         CALL write_mat(f2_ana,out_unit,4)
+         CALL Write_Mat_MPI(f2_ana,out_unit,4)
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*)
       END IF
@@ -285,11 +285,11 @@ MODULE mod_Tana_Tnum
 
       IF (error_G/maxval(abs(dnGG%d0)) > ONETENTH**10) THEN
         write(out_unit,*) 'G of Tana  '
-        CALL write_mat(Gana,out_unit,4)
+        CALL Write_Mat_MPI(Gana,out_unit,4)
         write(out_unit,*) 'G of Tnum  '
-        CALL write_mat(dnGG%d0,out_unit,4)
+        CALL Write_Mat_MPI(dnGG%d0,out_unit,4)
         write(out_unit,*) 'Difference of G'
-        CALL write_mat(Gana-dnGG%d0,out_unit,4)
+        CALL Write_Mat_MPI(Gana-dnGG%d0,out_unit,4)
       END IF
       write(out_unit,*) '         max diff G: ',error_G
       write(out_unit,*) 'Relative max diff G: ',error_G/maxval(abs(dnGG%d0))
@@ -364,9 +364,9 @@ MODULE mod_Tana_Tnum
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*) 'vep',vep
          write(out_unit,*) 'f1 of Tnum  '
-         CALL write_vec(Tdef1,out_unit,4)
+         CALL write_Vec_MPI(Tdef1,out_unit,4)
          write(out_unit,*) 'f2 of Tnum  '
-         CALL write_mat(Tdef2,out_unit,4)
+         CALL Write_Mat_MPI(Tdef2,out_unit,4)
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*)
          write(out_unit,*) '-----------------------------------'
@@ -374,9 +374,9 @@ MODULE mod_Tana_Tnum
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*) 'vep',vep_ana
          write(out_unit,*) 'f1 of Tana  '
-         CALL write_vec(f1_ana,out_unit,4)
+         CALL write_Vec_MPI(f1_ana,out_unit,4)
          write(out_unit,*) 'f2 of Tana  '
-         CALL write_mat(f2_ana,out_unit,4)
+         CALL Write_Mat_MPI(f2_ana,out_unit,4)
          write(out_unit,*) '-----------------------------------'
          write(out_unit,*)
       END IF

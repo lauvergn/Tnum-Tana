@@ -189,9 +189,9 @@ CONTAINS
 
     IF (TnumPrint_level > 1 .OR. debug) THEN
       write(out_unit,*)  'mat of LinearTransfo: '
-      CALL Write_Mat(this%mat,out_unit,4)
+      CALL Write_Mat_MPI(this%mat,out_unit,4)
       write(out_unit,*)  'mat_inv of LinearTransfo: '
-      CALL Write_Mat(this%mat_inv,out_unit,4)
+      CALL Write_Mat_MPI(this%mat_inv,out_unit,4)
     END IF
     IF (debug) THEN
       write(out_unit,*) 'END ',name_sub
@@ -287,13 +287,13 @@ CONTAINS
 
       write(out_unit,*) 'matrix for the Qin to Qout linear transformation (this%mat):'
       IF (allocated(this%mat)) THEN
-        CALL Write_Mat(this%mat,out_unit,4)
+        CALL Write_Mat_MPI(this%mat,out_unit,4)
       ELSE
         write(out_unit,*) '... not allocated'
       END IF
       write(out_unit,*) 'matrix for the Qout to Qin linear transformation (this%mat_inv):'
       IF (allocated(this%mat_inv)) THEN
-        CALL Write_Mat(this%mat_inv,out_unit,4)
+        CALL Write_Mat_MPI(this%mat_inv,out_unit,4)
       ELSE
         write(out_unit,*) '... not allocated'
       END IF

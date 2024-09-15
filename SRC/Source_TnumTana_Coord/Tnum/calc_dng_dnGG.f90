@@ -918,7 +918,7 @@ MODULE mod_dnGG_dng
 
     !-----------------------------------------------------------
     IF (debug) THEN
-      CALL Write_Mat(d0GG,out_unit,5,info='d0GG')
+      CALL Write_Mat_MPI(d0GG,out_unit,5,info='d0GG')
       write(out_unit,*) 'END ',name_sub
     END IF
     !-----------------------------------------------------------
@@ -1013,10 +1013,10 @@ MODULE mod_dnGG_dng
     !-----------------------------------------------------------
     IF (debug) THEN
       IF (present(d0GG)) THEN
-        CALL Write_Mat(d0GG,out_unit,5,info='d0GG')
+        CALL Write_Mat_MPI(d0GG,out_unit,5,info='d0GG')
       END IF
       IF (present(d0g)) THEN
-        CALL Write_Mat(d0g,out_unit,5,info='d0g')
+        CALL Write_Mat_MPI(d0g,out_unit,5,info='d0g')
       END IF
       write(out_unit,*) 'END ',name_sub
     END IF
@@ -1662,7 +1662,7 @@ MODULE mod_dnGG_dng
 
 !-----------------------------------------------------------
        IF (debug) THEN
-         CALL Write_Mat(A,out_unit,4,Rformat='e30.20',info='d0A')
+         CALL Write_Mat_MPI(A,out_unit,4,Rformat='e30.20',info='d0A')
          write(out_unit,*) 'END sub_d0A'
        END IF
 !-----------------------------------------------------------
@@ -1809,7 +1809,7 @@ MODULE mod_dnGG_dng
 
       IF (debug) THEN
         DO ii=1,nb_act
-          CALL Write_Mat(d1A(:,:,ii),out_unit,4,Rformat='e30.20',info='d1A')
+          CALL Write_Mat_MPI(d1A(:,:,ii),out_unit,4,Rformat='e30.20',info='d1A')
         END DO
         write(out_unit,*) 'END sub_d1A'
       END IF
@@ -2001,7 +2001,7 @@ END SUBROUTINE sub_d1A
   IF (debug) THEN
     DO ii=1,nb_act
     DO jj=1,nb_act
-      CALL Write_Mat(d2A(:,:,ii,jj),out_unit,4,Rformat='e30.20',info='d2A')
+      CALL Write_Mat_MPI(d2A(:,:,ii,jj),out_unit,4,Rformat='e30.20',info='d2A')
     END DO
     END DO
     write(out_unit,*) 'END sub_d2A'

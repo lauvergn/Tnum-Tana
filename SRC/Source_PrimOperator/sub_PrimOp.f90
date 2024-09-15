@@ -1789,9 +1789,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         IF (debug .OR. print_freq_loc) THEN
           write(out_unit,*) 'Energy:',Get_Scal_FROM_Tab_OF_dnMatOp(dnMatOp)
           write(out_unit,*) 'Gradient:'
-          CALL Write_VecMat(d0grad,out_unit,5)
+          CALL Write_Vec_MPI(d0grad,out_unit,5)
           write(out_unit,*) 'Hessian:'
-          CALL Write_VecMat(d0h,out_unit,5)
+          CALL Write_Mat_MPI(d0h,out_unit,5)
         END IF
 
         CALL dealloc_Tab_OF_dnMatOp(dnMatOp)
@@ -1810,7 +1810,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       IF (debug .OR. print_freq_loc) THEN
         write(out_unit,*) 'Curvilinear kinetic part:'
-        CALL Write_VecMat(d0k,out_unit,5)
+        CALL Write_Mat_MPI(d0k,out_unit,5)
       END IF
 
       !----- frequencies ---------------------------------
@@ -1818,7 +1818,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       IF (debug .OR. print_freq_loc) THEN
         write(out_unit,*) 'd0c (NM?):'
-        CALL Write_VecMat(d0c,out_unit,5)
+        CALL Write_Mat_MPI(d0c,out_unit,5)
       END IF
 
       CALL dealloc_NParray(d0c,    "d0c",    name_sub)
@@ -2047,10 +2047,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !write with high precision to be able to read them
       write(out_unit,*) 'hessian matrix'
       write(out_unit,*) nb_NM,5
-      CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
+      CALL Write_Mat_MPI(d0h,out_unit,5,Rformat='e20.13')
       write(out_unit,*) 'kinetic matrix'
       write(out_unit,*) nb_NM,5
-      CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
+      CALL Write_Mat_MPI(d0k,out_unit,5,Rformat='e20.13')
 
 
       ! parameters for uncoupled HO
@@ -2074,13 +2074,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                          mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
         write(out_unit,*) 'purified hessian matrix'
         write(out_unit,*) nb_NM,5
-        CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
+        CALL Write_Mat_MPI(d0h,out_unit,5,Rformat='e20.13')
 
         CALL H0_symmetrization(d0k,nb_NM,mole%NMTransfo%Qact1_sym,      &
                         mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
         write(out_unit,*) 'purified K (kinetic) matrix'
         write(out_unit,*) nb_NM,5
-        CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
+        CALL Write_Mat_MPI(d0k,out_unit,5,Rformat='e20.13')
 
       END IF
       write(out_unit,*) '========================================='
@@ -2107,7 +2107,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         !write with high precision to be able to read it
         write(out_unit,*) 'd0c'
         write(out_unit,*) nb_NM,5
-        CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
+        CALL Write_Mat_MPI(d0c,out_unit,5,Rformat='e20.13')
       END IF
 
       write(out_unit,*) '========================================='
@@ -2135,16 +2135,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (debug) THEN
         write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*auTOcm_inv
         write(out_unit,*) 'd0c'
-        CALL Write_Mat(d0c,out_unit,5)
+        CALL Write_Mat_MPI(d0c,out_unit,5)
         write(out_unit,*) 'd0c_inv'
-        CALL Write_Mat(d0c_inv,out_unit,5)
+        CALL Write_Mat_MPI(d0c_inv,out_unit,5)
       END IF
 
       IF (mole%NMTransfo%k_Half) THEN
         write(out_unit,*) '==========================='
         d0k_save = matmul(transpose(d0c),matmul(d0k,d0c))
         write(out_unit,*) 'new d0k'
-        CALL Write_Mat(d0k_save,out_unit,5)
+        CALL Write_Mat_MPI(d0k_save,out_unit,5)
         DO i=1,nb_NM
           d0c(:,i)     = d0c(:,i)     / sqrt(d0k_save(i,i))
           d0c_inv(i,:) = d0c_inv(i,:) * sqrt(d0k_save(i,i))
@@ -2170,9 +2170,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       write(out_unit,*) 'frequencies (cm-1):',d0eh(:)*auTOcm_inv
       !write(out_unit,*) 'all scaling Gaussian  :',sqrt(abs(d0eh))
       !write(out_unit,*) 'd0c'
-      !CALL Write_Mat(d0c,out_unit,5)
+      !CALL Write_Mat_MPI(d0c,out_unit,5)
       !write(out_unit,*) 'd0c_inv'
-      !CALL Write_Mat(d0c_inv,out_unit,5)
+      !CALL Write_Mat_MPI(d0c_inv,out_unit,5)
 
       write(out_unit,*) '========================================='
       write(out_unit,*)
@@ -2194,9 +2194,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       IF (debug) THEN
         write(out_unit,*) 'mat'
-        CALL Write_Mat(mat,out_unit,5)
+        CALL Write_Mat_MPI(mat,out_unit,5)
         write(out_unit,*) 'mat_inv'
-        CALL Write_Mat(mat_inv,out_unit,5)
+        CALL Write_Mat_MPI(mat_inv,out_unit,5)
       END IF
 
       IF (print_level > 0) THEN
@@ -2279,7 +2279,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         d0eh(i) = dnGG%d0(i,i)
       END DO
       write(out_unit,*) 'new d0GG',mole%nb_act
-      CALL Write_Mat(dnGG%d0,out_unit,5)
+      CALL Write_Mat_MPI(dnGG%d0,out_unit,5)
 
       CALL dealloc_dnSVM(dnGG)
 !     -----------------------------------------------------------------
@@ -2562,7 +2562,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         IF (print_level > 1 .OR. debug) THEN
           write(out_unit,*) '==========================='
           write(out_unit,*) 'new d0k'
-          CALL Write_Mat(d0k_save,out_unit,5)
+          CALL Write_Mat_MPI(d0k_save,out_unit,5)
           write(out_unit,*) '==========================='
           flush(out_unit)
         END IF
@@ -2591,7 +2591,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           !write with high precision to be able to read it
           write(out_unit,*) 'd0c'
           write(out_unit,*) nb_NM,5
-          CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
+          CALL Write_Mat_MPI(d0c,out_unit,5,Rformat='e20.13')
         END IF
 
         IF (Ind_Coord_AtBlock(i_block) > 0) THEN
@@ -2644,9 +2644,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       mole%NMTransfo%nb_NM         = nb_NM
 
       !write(out_unit,*) ' Mat'
-      !CALL Write_Mat(mat,out_unit,5)
+      !CALL Write_Mat_MPI(mat,out_unit,5)
       !write(out_unit,*) ' Mat_inv'
-      !CALL Write_Mat(mat_inv,out_unit,5)
+      !CALL Write_Mat_MPI(mat_inv,out_unit,5)
 
       IF (print_level > 1 .OR. debug) THEN
         write(out_unit,*) '==========================='
@@ -2709,7 +2709,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
         write(out_unit,*) 'Mat of linear Transfo for the Normal modes'
         write(out_unit,*) 5
-        CALL Write_Mat(mat,out_unit,5,Rformat='e20.13')
+        CALL Write_Mat_MPI(mat,out_unit,5,Rformat='e20.13')
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
       END IF
@@ -2720,14 +2720,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) '=================================='
         write(out_unit,*) 'transpose(mat_inv) or d0c'
         write(out_unit,*) 'Each column corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat_inv),out_unit,5,Rformat='f10.3')
+        CALL Write_Mat_MPI(transpose(mat_inv),out_unit,5,Rformat='f10.3')
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
         write(out_unit,*) 'transpose(mat) or d0c_inv'
         write(out_unit,*) 'Each line corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat),out_unit,5,Rformat='f14.7')
+        CALL Write_Mat_MPI(transpose(mat),out_unit,5,Rformat='f14.7')
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
       END IF
@@ -2769,7 +2769,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
         write(out_unit,*) 'New d0GG',mole%nb_act
-        CALL Write_Mat(dnGG%d0,out_unit,5)
+        CALL Write_Mat_MPI(dnGG%d0,out_unit,5)
 
         CALL dealloc_dnSVM(dnGG)
         write(out_unit,*) '========================================='
@@ -2786,7 +2786,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                         PrimOp,hCC_loc,l_hCC_loc)
 
         write(out_unit,*) 'New d0h',mole%nb_act
-        CALL Write_Mat(d0h,out_unit,5)
+        CALL Write_Mat_MPI(d0h,out_unit,5)
 
         CALL dealloc_NParray(d0k,"d0k",     name_sub)
         CALL dealloc_NParray(d0h,"d0h",     name_sub)
@@ -3052,7 +3052,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           IF (print_level > 1 .OR. debug) THEN
             write(out_unit,*) '==========================='
             write(out_unit,*) 'new d0k'
-            CALL Write_Mat(d0k_save,out_unit,5)
+            CALL Write_Mat_MPI(d0k_save,out_unit,5)
             write(out_unit,*) '==========================='
           END IF
 
@@ -3080,7 +3080,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             !write with high precision to be able to read it
             write(out_unit,*) 'd0c'
             write(out_unit,*) nb_NM,5
-            CALL Write_Mat(d0c,out_unit,5,Rformat='e20.13')
+            CALL Write_Mat_MPI(d0c,out_unit,5,Rformat='e20.13')
           END IF
 
           IF (Ind_Coord_AtBlock(i_block) > 0) THEN
@@ -3133,9 +3133,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       mole%NMTransfo%nb_NM        = nb_NM
 
       !write(out_unit,*) ' Mat'
-      !CALL Write_Mat(mat,out_unit,5)
+      !CALL Write_Mat_MPI(mat,out_unit,5)
       !write(out_unit,*) ' Mat_inv'
-      !CALL Write_Mat(mat_inv,out_unit,5)
+      !CALL Write_Mat_MPI(mat_inv,out_unit,5)
 
       IF (print_level > 1 .OR. debug) THEN
         write(out_unit,*) '==========================='
@@ -3198,7 +3198,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) " &Coord_transfo name_transfo='linear' check_LinearTransfo=f /"
         write(out_unit,*) 'Mat of linear Transfo for the Normal modes'
         write(out_unit,*) 5
-        CALL Write_Mat(mat,out_unit,5,Rformat='e20.13')
+        CALL Write_Mat_MPI(mat,out_unit,5,Rformat='e20.13')
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
       END IF
@@ -3209,7 +3209,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) '=================================='
         write(out_unit,*) 'transpose(mat_inv) or d0c'
         write(out_unit,*) 'Each column corresponds to one normal mode'
-        CALL Write_Mat(transpose(mat_inv),out_unit,5,Rformat='f10.3')
+        CALL Write_Mat_MPI(transpose(mat_inv),out_unit,5,Rformat='f10.3')
         write(out_unit,*) '=================================='
         write(out_unit,*) '=================================='
       END IF
@@ -3251,7 +3251,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
         write(out_unit,*) 'New d0GG',mole%nb_act
-        CALL Write_Mat(dnGG%d0,out_unit,5)
+        CALL Write_Mat_MPI(dnGG%d0,out_unit,5)
 
         CALL dealloc_dnSVM(dnGG)
         write(out_unit,*) '========================================='
@@ -3268,7 +3268,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
                         PrimOp,hCC_loc,l_hCC_loc)
 
         write(out_unit,*) 'New d0h',mole%nb_act
-        CALL Write_Mat(d0h,out_unit,5)
+        CALL Write_Mat_MPI(d0h,out_unit,5)
 
         CALL dealloc_NParray(d0k,"d0k",     name_sub)
         CALL dealloc_NParray(d0h,"d0h",     name_sub)
@@ -3485,12 +3485,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (para_Tnum%WriteT .OR. debug .OR. print_level > 1) THEN
         write(out_unit,*) 'hessian matrix (not purified)'
         write(out_unit,*) nb_NM,5
-        CALL Write_Mat(d0h,out_unit,5,Rformat='e20.13')
-        !CALL Write_Mat(d0h,out_unit,5,Rformat='f12.6')
+        CALL Write_Mat_MPI(d0h,out_unit,5,Rformat='e20.13')
+        !CALL Write_Mat_MPI(d0h,out_unit,5,Rformat='f12.6')
         write(out_unit,*) 'kinetic matrix  (not purified)'
         write(out_unit,*) nb_NM,5
-        CALL Write_Mat(d0k,out_unit,5,Rformat='e20.13')
-        !CALL Write_Mat(d0k,out_unit,5,Rformat='f12.6')
+        CALL Write_Mat_MPI(d0k,out_unit,5,Rformat='e20.13')
+        !CALL Write_Mat_MPI(d0k,out_unit,5,Rformat='f12.6')
         flush(out_unit)
       END IF
 
@@ -3769,7 +3769,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       CALL get_Qmodel_GGdef(GGdef_Qmodel)
       IF (print_level > 1) THEN
         write(out_unit,*) ' GGdef_Qmodel'
-        CALL Write_Mat(GGdef_Qmodel,out_unit,5)
+        CALL Write_Mat_MPI(GGdef_Qmodel,out_unit,5)
       END IF
       IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo) THEN ! Qact
         DO i=1,ndim
@@ -3821,7 +3821,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
     CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     IF (print_level > 1) THEN
       write(out_unit,*) ' GGdef'
-      CALL Write_Mat(GGdef,out_unit,5)
+      CALL Write_Mat_MPI(GGdef,out_unit,5)
     END IF
     CALL dealloc_NPArray(GGdef,'GGdef',name_sub)
   END IF

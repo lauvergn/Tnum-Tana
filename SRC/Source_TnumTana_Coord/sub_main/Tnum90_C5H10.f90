@@ -262,7 +262,7 @@ stop
 
       CALL sub_dnFCC_TO_dnFcurvi(para_Q%Qact,dnFCC,dnFcurvi,mole)
       write(out_unit,*) 'Curvilinear hessian:'
-      CALL Write_VecMat(dnFcurvi%d2,out_unit,5)
+      CALL Write_Mat_MPI(dnFcurvi%d2,out_unit,5)
 
       ! frequencies calculation
 
@@ -320,7 +320,7 @@ stop
 
       CALL sub_dnFCC_TO_dnFcurvi(para_Q%Qact,dnFCC,dnFcurvi,mole)
       write(out_unit,*) 'Curvilinear hessian:'
-      CALL Write_VecMat(dnFcurvi%d2,out_unit,5)
+      CALL Write_Mat_MPI(dnFcurvi%d2,out_unit,5)
 
       ! frequencies calculation
 

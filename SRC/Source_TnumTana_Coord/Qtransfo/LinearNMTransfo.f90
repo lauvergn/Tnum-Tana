@@ -289,9 +289,9 @@
 
       IF (print_level > 1) THEN
         write(out_unit,*)  'mat of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat,out_unit,4)
+        CALL Write_Mat_MPI(LinearTransfo%mat,out_unit,4)
         write(out_unit,*)  'mat_inv of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat_inv,out_unit,4)
+        CALL Write_Mat_MPI(LinearTransfo%mat_inv,out_unit,4)
       END IF
       flush(out_unit)
 
@@ -416,9 +416,9 @@
 
         IF (debug) THEN
           write(out_unit,*) 'S_LC'
-          CALL Write_Mat(S_LC,out_unit,4)
+          CALL Write_Mat_MPI(S_LC,out_unit,4)
           write(out_unit,*) 'Sinv_LC'
-          CALL Write_Mat(Sinv_LC,out_unit,4)
+          CALL Write_Mat_MPI(Sinv_LC,out_unit,4)
         END IF
 
         ! the contribution of mat_inv
@@ -437,10 +437,10 @@
 
         IF (debug) THEN
           write(out_unit,*) 'S_LC'
-          CALL Write_Mat(S_LC,out_unit,4)
+          CALL Write_Mat_MPI(S_LC,out_unit,4)
 
           write(out_unit,*) 'Sinv_LC'
-          CALL Write_Mat(Sinv_LC,out_unit,4)
+          CALL Write_Mat_MPI(Sinv_LC,out_unit,4)
         END IF
 
         ! the contribution of mat_inv
@@ -486,7 +486,7 @@
 !      END DO
 !      END DO
       !write(out_unit,*)  'Overlap of mat_inv: '
-      !CALL Write_Mat(S,out_unit,4)
+      !CALL Write_Mat_MPI(S,out_unit,4)
       write(out_unit,*) 'mat_inv is set-up'
 
 
@@ -508,9 +508,9 @@
 
       IF (print_level > -1) THEN
         write(out_unit,*)  'mat of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat,out_unit,4)
+        CALL Write_Mat_MPI(LinearTransfo%mat,out_unit,4)
         write(out_unit,*)  'mat_inv of LinearTransfo: '
-        CALL Write_Mat(LinearTransfo%mat_inv,out_unit,4)
+        CALL Write_Mat_MPI(LinearTransfo%mat_inv,out_unit,4)
       END IF
       flush(out_unit)
 
@@ -790,14 +790,14 @@
           write(out_unit,*) ' Check your data !!'
           STOP
         END IF
-        IF (debug) CALL Write_Mat(NMTransfo%d0c(:,:),out_unit,nb_col,Rformat='f10.6')
+        IF (debug) CALL Write_Mat_MPI(NMTransfo%d0c(:,:),out_unit,nb_col,Rformat='f10.6')
 
         IF (debug) THEN
           IF (allocated(mat)) CALL dealloc_NParray(mat,"mat",name_sub)
           CALL alloc_NParray(mat,[nb_NM,nb_NM],"mat",name_sub)
           mat = matmul(transpose(NMTransfo%d0c),NMTransfo%d0c)
           write(out_unit,*) ' td0c.d0c'
-          CALL Write_Mat(mat,out_unit,nb_col,Rformat='f10.6')
+          CALL Write_Mat_MPI(mat,out_unit,nb_col,Rformat='f10.6')
           CALL dealloc_NParray(mat,"mat",name_sub)
         END IF
 
@@ -863,7 +863,7 @@
             write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) CALL Write_Mat(mat,out_unit,nb_col)
+          IF (debug) CALL Write_Mat_MPI(mat,out_unit,nb_col)
 
           NMTransfo%d0h(:,:) = NMTransfo%d0h(:,:) + mat(:,:)
 
@@ -916,7 +916,7 @@
             write(out_unit,*) ' Check your data !!'
             STOP
           END IF
-          IF (debug) CALL Write_Mat(mat,out_unit,nb_col)
+          IF (debug) CALL Write_Mat_MPI(mat,out_unit,nb_col)
 
           NMTransfo%d0k(:,:) = NMTransfo%d0k(:,:) + mat(:,:)
 
@@ -1034,11 +1034,11 @@
 
       IF (associated(NMTransfo%Q0_HObasis)) THEN
         write(out_unit,*) 'Q0_HObasis'
-        CALL Write_VecMat(NMTransfo%Q0_HObasis,out_unit,5)
+        CALL write_Vec_MPI(NMTransfo%Q0_HObasis,out_unit,5)
       END IF
       IF (associated(NMTransfo%scaleQ_HObasis)) THEN
         write(out_unit,*) 'scaleQ_HObasis'
-        CALL Write_VecMat(NMTransfo%scaleQ_HObasis,out_unit,5)
+        CALL write_Vec_MPI(NMTransfo%scaleQ_HObasis,out_unit,5)
       END IF
 
 
@@ -1050,11 +1050,11 @@
 
       IF (associated(NMTransfo%d0h)) THEN
         write(out_unit,*) 'd0h'
-        CALL Write_Mat(NMTransfo%d0h,out_unit,5)
+        CALL Write_Mat_MPI(NMTransfo%d0h,out_unit,5)
       END IF
       IF (associated(NMTransfo%d0k)) THEN
         write(out_unit,*) 'd0k'
-        CALL Write_Mat(NMTransfo%d0k,out_unit,5)
+        CALL Write_Mat_MPI(NMTransfo%d0k,out_unit,5)
       END IF
 
 
@@ -1065,13 +1065,13 @@
       IF (nb_NM > 0) THEN
         IF (associated(NMTransfo%d0c_inv)) THEN
           write(out_unit,*)  'd0c_inv: '
-          CALL Write_Mat(NMTransfo%d0c_inv,out_unit,4)
+          CALL Write_Mat_MPI(NMTransfo%d0c_inv,out_unit,4)
         END IF
         flush(out_unit)
 
         IF (associated(NMTransfo%d0c)) THEN
           write(out_unit,*)  'd0c: '
-          CALL Write_Mat(NMTransfo%d0c,out_unit,4)
+          CALL Write_Mat_MPI(NMTransfo%d0c,out_unit,4)
         END IF
         flush(out_unit)
 

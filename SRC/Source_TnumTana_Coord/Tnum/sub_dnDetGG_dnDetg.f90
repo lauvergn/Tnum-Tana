@@ -243,7 +243,7 @@ MODULE mod_dnDetGG_dnDetg
         !CALL Det_OF_m1(dnGG%d0,det,dnGG%nb_var_Matl)
         det = Det_OF(dnGG%d0)
         write(out_unit,*) 'nGG%d0 and det,jac',det,ONE/sqrt(det)
-        CALL Write_Mat(dnGG%d0,6,6)
+        CALL Write_Mat_MPI(dnGG%d0,6,6)
         CALL Det_OF_dnMat_TO_dnS(dnGG,dndetA,nderiv)
         mass = product(masses,mask=(masses > ONETENTH**5))
         write(out_unit,*) 'masses',masses

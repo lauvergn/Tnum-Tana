@@ -729,12 +729,12 @@ MODULE mod_CartesianTransfo
 
       write(out_unit,*) 'P_Axis_Ref',CartesianTransfo%P_Axis_Ref
       write(out_unit,*) 'Inertia Tensor'
-      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
+      CALL Write_Mat_MPI(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
       write(out_unit,*) 'Rotational constants'
-      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
+      CALL write_Vec_MPI(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
 
       write(out_unit,*) 'Initial Rotational matrix :'
-      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
+      CALL Write_Mat_MPI(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
 
       write(out_unit,*) 'Eckart',CartesianTransfo%Eckart
       write(out_unit,*) 'P_Axis_Always',CartesianTransfo%P_Axis_Always
@@ -1124,7 +1124,7 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%InertiaT(3,2) = -Iyz
 
       write(out_unit,*) 'Inertia Tensor, i_ref',i_ref_loc
-      CALL Write_VecMat(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
+      CALL Write_Mat_MPI(CartesianTransfo%InertiaT,nio=out_unit,nbcol=3)
       CALL diagonalization(CartesianTransfo%InertiaT,CartesianTransfo%ABC,Rot_PA, &
                            diago_type=1,sort=1,phase=.FALSE.)
 
@@ -1145,9 +1145,9 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%ABC(:) = CartesianTransfo%ABC(:) * get_Conv_au_TO_unit("E","cm-1")
 
       write(out_unit,*) 'Rotational Matrix (for principal axis)'
-      CALL Write_VecMat(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
+      CALL Write_Mat_MPI(CartesianTransfo%Rot_initial,nio=out_unit,nbcol=3)
       write(out_unit,*) 'Rotational constants'
-      CALL Write_VecMat(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
+      CALL write_Vec_MPI(CartesianTransfo%ABC,nio=out_unit,nbcol=3)
 
       DO i=1,CartesianTransfo%nat_act
         CartesianTransfo%MWQxyz(:,i,i_ref_loc) =                        &
@@ -1276,7 +1276,7 @@ MODULE mod_CartesianTransfo
 
         IF (debug) THEN
           write(out_unit,*) 'T'
-          CALL Write_Mat(T,out_unit,3)
+          CALL Write_Mat_MPI(T,out_unit,3)
           !CALL Det_OF_m1(T,det,3)
           det = Det_OF(T)
           write(out_unit,*) 'det T',irot,det
@@ -1505,11 +1505,11 @@ MODULE mod_CartesianTransfo
 
         IF (debug) THEN
           write(out_unit,*) 'A'
-          CALL Write_Mat(A,out_unit,3)
+          CALL Write_Mat_MPI(A,out_unit,3)
           write(out_unit,*) 'A1'
-          CALL Write_Mat(A1,out_unit,3)
+          CALL Write_Mat_MPI(A1,out_unit,3)
           write(out_unit,*) 'A2'
-          CALL Write_Mat(A2,out_unit,3)
+          CALL Write_Mat_MPI(A2,out_unit,3)
         END IF
 
         CALL diagonalization(A1,eig1,Vec1,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
@@ -1524,9 +1524,9 @@ MODULE mod_CartesianTransfo
 
         IF (debug) THEN
           write(out_unit,*) 'Vec1'
-          CALL Write_Mat(Vec1,out_unit,3)
+          CALL Write_Mat_MPI(Vec1,out_unit,3)
           write(out_unit,*) 'Vec2'
-          CALL Write_Mat(Vec2,out_unit,3)
+          CALL Write_Mat_MPI(Vec2,out_unit,3)
         END IF
 
         T(1,1) = sum(Vec1(1,:)*Vec2(1,:))
@@ -1570,7 +1570,7 @@ MODULE mod_CartesianTransfo
           write(out_unit,*) 'eig1 ',eig1
           write(out_unit,*) 'eig2 ',eig2
           write(out_unit,*) 'Eckart rotational matrix, T'
-          CALL Write_Mat(T,out_unit,3)
+          CALL Write_Mat_MPI(T,out_unit,3)
           write(out_unit,*) 'END ',name_sub
         END IF
 

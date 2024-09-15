@@ -36,7 +36,7 @@
   MODULE mod_SimpleOp
    use TnumTana_system_m
    use mod_dnSVM, only: type_dns, alloc_array, alloc_dns, dealloc_array,   &
-                        write_matofdns, sub_weightder_dns
+                        Write_MatOFdnS, sub_weightder_dns
    IMPLICIT NONE
 
    PRIVATE
@@ -748,14 +748,14 @@
                                         allocated(d0MatOp%ReVal) ) THEN
         DO iterm=1,d0MatOp%nb_term
           write(out_unit,*) ' iterm ',iterm,' : ',d0MatOp%derive_termQact(:,iterm)
-          CALL Write_Mat(d0MatOp%ReVal(:,:,iterm),out_unit,5)
+          CALL Write_Mat_MPI(d0MatOp%ReVal(:,:,iterm),out_unit,5)
         END DO
       END IF
 
       write(out_unit,*) ' complex ? ',d0MatOp%cplx
       IF (d0MatOp%cplx .AND. allocated(d0MatOp%ImVal) ) THEN
         write(out_unit,*) ' complex_term value: '
-        CALL Write_Mat(d0MatOp%ImVal(:,:),out_unit,5)
+        CALL Write_Mat_MPI(d0MatOp%ImVal(:,:),out_unit,5)
       END IF
 
       write(out_unit,*) ' alloc ? derive_term_TO_iterm:',allocated(d0MatOp%derive_term_TO_iterm)

@@ -874,7 +874,7 @@
       END IF
 
       write(out_unit,*) 'C_ini',associated(RPHTransfo%C_ini)
-      IF (associated(RPHTransfo%C_ini)) CALL Write_Mat(RPHTransfo%C_ini,out_unit,5)
+      IF (associated(RPHTransfo%C_ini)) CALL Write_Mat_MPI(RPHTransfo%C_ini,out_unit,5)
 
 
       write(out_unit,*) 'nb_Qa',RPHTransfo%nb_Qa
@@ -2171,11 +2171,11 @@
 
           IF (allocated(RPHpara2%QoutRef)) THEN
             write(out_unit,*) 'QoutRef:     ',iref
-            CALL Write_VecMat(RPHpara2%QoutRef(:,iref),out_unit,5,info='QoutRef')
+            CALL write_Vec_MPI(RPHpara2%QoutRef(:,iref),out_unit,5,info='QoutRef')
           END IF
           IF (allocated(RPHpara2%CinvRef)) THEN
             write(out_unit,*) 'CinvRef:     ',iref
-            CALL Write_VecMat(RPHpara2%CinvRef(:,:,iref),out_unit,5,info='CinvRef')
+            CALL Write_Mat_MPI(RPHpara2%CinvRef(:,:,iref),out_unit,5,info='CinvRef')
           END IF
         END DO
         write(out_unit,*)
@@ -2265,7 +2265,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
 
     write(out_unit,*) '==========================================='
     write(out_unit,*) 'Normal modes in line, C_inv at ref',iref
-    CALL Write_Mat(RPHpara2%CinvRef(:,:,iref),out_unit,5)
+    CALL Write_Mat_MPI(RPHpara2%CinvRef(:,:,iref),out_unit,5)
     write(out_unit,*) '==========================================='
 
 
@@ -2277,7 +2277,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
       DO iref=1,nb_ref
         VecNM = RPHpara2%CinvRef(iNM,:,iref)
         VecNM = VecNM / sqrt(dot_product(VecNM,VecNM))
-        CALL Write_Vec(VecNM,out_unit,nb_var,    &
+        CALL write_Vec_MPI(VecNM,out_unit,nb_var,    &
                        Rformat='f6.3',info=' NM ' // TO_string(iNM))
       END DO
     END DO
@@ -2419,7 +2419,7 @@ SUBROUTINE Read_RPHpara2(RPHpara2,nb_Ref,Switch_Type,nb_var,nb_act1)
         IF (i == 0) CYCLE
         VecNM = RPHpara2%CinvRef(i,:,iref)
         VecNM = VecNM / sqrt(dot_product(VecNM,VecNM))
-        CALL Write_Vec(VecNM,out_unit,nb_var,    &
+        CALL write_Vec_MPI(VecNM,out_unit,nb_var,    &
                         Rformat='f6.3',info=' NM ' // TO_string(i))
       END DO
     END DO
@@ -2673,7 +2673,7 @@ implicit NONE
       DO i=1,CurviRPH%nb_pts_ForQref
         write(out_unit,*) 'Qpath_ForQref',i,CurviRPH%Qpath_ForQref(i)
         write(out_unit,*) 'Qref',i
-        CALL Write_VecMat(CurviRPH%Qref(:,i),out_unit,5)
+        CALL write_Vec_MPI(CurviRPH%Qref(:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefQref)) THEN
@@ -2693,7 +2693,7 @@ implicit NONE
       DO i=1,CurviRPH%nb_pts_ForGrad
         write(out_unit,*) 'Qpath_ForGrad',i,CurviRPH%Qpath_ForGrad(i)
         write(out_unit,*) 'Grad',i
-        CALL Write_VecMat(CurviRPH%Grad(:,i),out_unit,5)
+        CALL write_Vec_MPI(CurviRPH%Grad(:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefGrad)) THEN
@@ -2713,7 +2713,7 @@ implicit NONE
       DO i=1,CurviRPH%nb_pts_ForHess
         write(out_unit,*) 'Qpath_ForHess',i,CurviRPH%Qpath_ForHess(i)
         write(out_unit,*) 'Hess',i
-        CALL Write_VecMat(CurviRPH%Hess(:,:,i),out_unit,5)
+        CALL Write_Mat_MPI(CurviRPH%Hess(:,:,i),out_unit,5)
       END DO
 
       IF (allocated(CurviRPH%CoefHess)) THEN
@@ -2893,13 +2893,13 @@ implicit NONE
         write(out_unit,*) 'IOerr',IOerr
         IF (debug) THEN
           write(out_unit,*) 'hess'
-          CALL Write_Mat(hess(:,:,ih),out_unit,5)
+          CALL Write_Mat_MPI(hess(:,:,ih),out_unit,5)
         END IF
         IF (IOerr /= 0) STOP 'ERROR while reading the hessian'
       END IF
     END DO
     write(out_unit,*) 'nb_pts for Qref ',CurviRPH2%nb_pts_ForQref
-    IF (debug) CALL Write_VecMat(CurviRPH2%Qpath_ForQref,out_unit,5)
+    IF (debug) CALL write_Vec_MPI(CurviRPH2%Qpath_ForQref,out_unit,5)
 
     !!! Transfert of grad and hess
     nb_grad = count(tab_Grad)
@@ -2997,12 +2997,12 @@ implicit NONE
     END DO
     IF (debug) THEN
       write(out_unit,*) 'fQpath for Qref:'
-      CALL Write_Mat(fQpath,out_unit,5)
+      CALL Write_Mat_MPI(fQpath,out_unit,5)
     END IF
     CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
     IF (debug) THEN
       write(out_unit,*) 'fQpath_inv for Qref:'
-      CALL Write_Mat(fQpath_inv,out_unit,5)
+      CALL Write_Mat_MPI(fQpath_inv,out_unit,5)
     END IF
     !for the fit coef.
     DO iq=1,CurviRPH%nb_Q21
@@ -3033,12 +3033,12 @@ implicit NONE
 
       IF (debug) THEN
         write(out_unit,*) 'fQpath for Grad:'
-        CALL Write_Mat(fQpath,out_unit,5)
+        CALL Write_Mat_MPI(fQpath,out_unit,5)
       END IF
       CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
       IF (debug) THEN
         write(out_unit,*) 'fQpath_inv for Grad:'
-        CALL Write_Mat(fQpath_inv,out_unit,5)
+        CALL Write_Mat_MPI(fQpath_inv,out_unit,5)
       END IF
 
       !for the fit of g
@@ -3074,12 +3074,12 @@ implicit NONE
 
       IF (debug) THEN
         write(out_unit,*) 'fQpath for hess:'
-        CALL Write_Mat(fQpath,out_unit,5)
+        CALL Write_Mat_MPI(fQpath,out_unit,5)
       END IF
       CALL inv_OF_Mat_TO_Mat_inv(fQpath,fQpath_inv,0,ZERO)
       IF (debug) THEN
         write(out_unit,*) 'fQpath_inv for hess:'
-        CALL Write_Mat(fQpath_inv,out_unit,5)
+        CALL Write_Mat_MPI(fQpath_inv,out_unit,5)
       END IF
 
       !for the fit of hess
@@ -3165,7 +3165,7 @@ implicit NONE
 
     IF (debug) THEN
       write(out_unit,*) 'Q21 '
-      CALL Write_VecMat(Q21,out_unit,5)
+      CALL write_Vec_MPI(Q21,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)
@@ -3192,7 +3192,7 @@ implicit NONE
 
     IF (debug) THEN
       write(out_unit,*) 'Grad '
-      CALL Write_VecMat(Grad,out_unit,5)
+      CALL write_Vec_MPI(Grad,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)
@@ -3221,7 +3221,7 @@ implicit NONE
 
     IF (debug) THEN
       write(out_unit,*) 'Hess '
-      CALL Write_Mat(Hess,out_unit,5)
+      CALL Write_Mat_MPI(Hess,out_unit,5)
     END IF
 
     CALL dealloc_NParray(fQpath,'fQpath',name_sub)

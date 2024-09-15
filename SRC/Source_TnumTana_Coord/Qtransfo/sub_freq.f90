@@ -195,11 +195,11 @@ MODULE mod_freq
       IF (debug) THEN
          write(out_unit,*) 'BEGINNING calc_freq_new'
          write(out_unit,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unit,5)
+         CALL Write_Mat_MPI(d0h,out_unit,5)
          write(out_unit,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
          write(out_unit,*) 'd0c_ini',nb_var
-         CALL Write_Mat(d0c_ini,out_unit,5)
+         CALL Write_Mat_MPI(d0c_ini,out_unit,5)
          flush(out_unit)
       END IF
 
@@ -256,7 +256,7 @@ MODULE mod_freq
        IF (debug) THEN
          write(out_unit,*)
          write(out_unit,*) 'd0ck(:,i)*sqrt(d0ek(i))'
-         CALL Write_Mat(d0ck,out_unit,5)
+         CALL Write_Mat_MPI(d0ck,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -278,7 +278,7 @@ MODULE mod_freq
        IF (debug) THEN
          write(out_unit,*)
          write(out_unit,*) 'd0h dans la nouvelle base'
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -312,7 +312,7 @@ MODULE mod_freq
          write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
          write(out_unit,*)
          write(out_unit,*) 'modes normaux: d0ch'
-         CALL Write_Mat(d0ch,out_unit,5)
+         CALL Write_Mat_MPI(d0ch,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -346,11 +346,11 @@ MODULE mod_freq
 
        CALL rota_degenerate_opt1(d0eh,d0c,nb_var,degenerate_freq)
        !write(out_unit,*) 'd0c'
-       !CALL Write_Mat(d0c,out_unit,5)
+       !CALL Write_Mat_MPI(d0c,out_unit,5)
 
        d0c_inv = inv_OF_Mat_TO(d0c)
        !write(out_unit,*) 'transpose(d0c_inv)'
-       !CALL Write_Mat(transpose(d0c_inv),out_unit,5)
+       !CALL Write_Mat_MPI(transpose(d0c_inv),out_unit,5)
 
 !     on reordonne d0c, d0c_inv et d0eh
       !CALL order_ini4(d0c,d0c_inv,d0eh,d0c_ini,nb_var,diab_freq)
@@ -374,14 +374,14 @@ MODULE mod_freq
 !-----------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unit,5)
+         CALL Write_Mat_MPI(d0c,out_unit,5)
          write(out_unit,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unit,5)
+         CALL Write_Mat_MPI(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
          write(out_unit,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unit,5)
+         CALL Write_Mat_MPI(mat1,out_unit,5)
          max_err = ZERO
          DO i=1,nb_var
          DO j=1,nb_var
@@ -493,11 +493,11 @@ end subroutine calc_freq_new
       IF (debug) THEN
          write(out_unit,*) 'BEGINNING calc_freq'
          write(out_unit,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unit,5)
+         CALL Write_Mat_MPI(d0h,out_unit,5)
          write(out_unit,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
          write(out_unit,*) 'd0c_ini',nb_var
-         CALL Write_Mat(d0c_ini,out_unit,5)
+         CALL Write_Mat_MPI(d0c_ini,out_unit,5)
          flush(out_unit)
       END IF
       !-----------------------------------------------------------
@@ -553,7 +553,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*)
          write(out_unit,*) 'd0ck(:,i)*sqrt(d0ek(i))'
-         CALL Write_Mat(d0ck,out_unit,5)
+         CALL Write_Mat_MPI(d0ck,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -575,7 +575,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*)
          write(out_unit,*) 'd0h dans la nouvelle base'
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -609,7 +609,7 @@ end subroutine calc_freq_new
          write(out_unit,*) 'frequencies (cm-1): ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
          write(out_unit,*)
          write(out_unit,*) 'modes normaux: d0ch'
-         CALL Write_Mat(d0ch,out_unit,5)
+         CALL Write_Mat_MPI(d0ch,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -661,14 +661,14 @@ end subroutine calc_freq_new
 !-----------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unit,5)
+         CALL Write_Mat_MPI(d0c,out_unit,5)
          write(out_unit,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unit,5)
+         CALL Write_Mat_MPI(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
          write(out_unit,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unit,5)
+         CALL Write_Mat_MPI(mat1,out_unit,5)
          max_err = ZERO
          DO i=1,nb_var
          DO j=1,nb_var
@@ -988,11 +988,11 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING calc_freq_WITH_d0c'
          write(out_unit,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unit,5)
+         CALL Write_Mat_MPI(d0h,out_unit,5)
          write(out_unit,*) 'd0k',nb_var
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
          write(out_unit,*) 'd0c',nb_var
-         CALL Write_Mat(d0c,out_unit,5)
+         CALL Write_Mat_MPI(d0c,out_unit,5)
          flush(out_unit)
        END IF
 !-----------------------------------------------------------
@@ -1029,7 +1029,7 @@ end subroutine calc_freq_new
 
       mat1 = matmul(d0c_inv,matmul(d0h,transpose(d0c_inv)))
       !write(out_unit,*) 'diago hess ?'
-      !CALL Write_Mat(mat1,out_unit,5)
+      !CALL Write_Mat_MPI(mat1,out_unit,5)
 
        DO i=1,nb_var
          d0eh(i) = mat1(i,i)
@@ -1081,7 +1081,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING H0_symmetrization'
          write(out_unit,*) 'h: ',n
-         CALL Write_Mat(h,out_unit,5)
+         CALL Write_Mat_MPI(h,out_unit,5)
          write(out_unit,*)
          write(out_unit,*) 'sym',sym
          write(out_unit,*) 'eq'
@@ -1153,7 +1153,7 @@ end subroutine calc_freq_new
 !-----------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'h: ',n
-         CALL Write_Mat(h,out_unit,5)
+         CALL Write_Mat_MPI(h,out_unit,5)
          write(out_unit,*) 'END H0_symmetrization'
        END IF
 !-----------------------------------------------------------
@@ -1202,7 +1202,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING calc_freqNM'
          write(out_unit,*) 'd0h',nb_var
-         CALL Write_Mat(d0h,out_unit,5)
+         CALL Write_Mat_MPI(d0h,out_unit,5)
          write(out_unit,*) 'sqrt(masses)',d0sm
        END IF
 !-----------------------------------------------------------
@@ -1219,7 +1219,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*)
          write(out_unit,*) 'mass-weighted hessian:'
-         CALL Write_Mat(d0k,out_unit,5)
+         CALL Write_Mat_MPI(d0k,out_unit,5)
        END IF
 !-----------------------------------------------------------
 
@@ -1242,13 +1242,13 @@ end subroutine calc_freq_new
          write(out_unit,*) 'frequencies : ',d0eh(:)*get_Conv_au_TO_unit('E','cm-1')
          write(out_unit,*)
          write(out_unit,*) 'modes normaux'
-         CALL Write_Mat(d0ch,out_unit,5)
+         CALL Write_Mat_MPI(d0ch,out_unit,5)
        END IF
 !-----------------------------------------------------------
 !      mat1 = transpose(d0ch)
 !      mat2 = matmul(mat1,d0ch)
 !      write(out_unit,*) 'test inversion de d0ch'
-!      CALL Write_Mat(mat2,out_unit,5)
+!      CALL Write_Mat_MPI(mat2,out_unit,5)
 
 
 
@@ -1272,14 +1272,14 @@ end subroutine calc_freq_new
 !-----------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'matrice de passage de b2 a b0'
-         CALL Write_Mat(d0c,out_unit,5)
+         CALL Write_Mat_MPI(d0c,out_unit,5)
          write(out_unit,*) 'matrice de passage de b0 a b2'
-         CALL Write_Mat(d0c_inv,out_unit,5)
+         CALL Write_Mat_MPI(d0c_inv,out_unit,5)
 
 !        test inversion ------------------------------------
          mat1 = matmul(d0c,d0c_inv)
          write(out_unit,*) 'test inversion de d0c'
-         CALL Write_Mat(mat1,out_unit,5)
+         CALL Write_Mat_MPI(mat1,out_unit,5)
        END IF
 !-----------------------------------------------------------
 
@@ -1362,7 +1362,7 @@ end subroutine calc_freq_new
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING gaussian_width'
          write(out_unit,*) 'd0c',nb_var
-         CALL Write_Mat(d0c,out_unit,5)
+         CALL Write_Mat_MPI(d0c,out_unit,5)
        END IF
 
        DO i=1,nb_var
@@ -1377,7 +1377,7 @@ end subroutine calc_freq_new
 
        IF (debug) THEN
          write(out_unit,*) 'A',nb_var
-         CALL Write_Mat(A,out_unit,5)
+         CALL Write_Mat_MPI(A,out_unit,5)
          write(out_unit,*) 'END gaussian_width'
        END IF
        end subroutine gaussian_width
@@ -1411,7 +1411,7 @@ end subroutine calc_freq_new
       write(out_unit,*) 'BEGINNING rota_denerated'
       write(out_unit,*) 'v',v
       write(out_unit,*) 'c'
-      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1492,7 +1492,7 @@ end subroutine calc_freq_new
       write(out_unit,*) 'ind_maxi ind_maxj',ind_maxi,ind_maxj
       write(out_unit,*) 'cos et sin',cc,ss,norme
       write(out_unit,*) 'new c'
-      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
       write(out_unit,*) 'END rota_denerated'
       END IF
 !---------------------------------------------------------------------
@@ -1519,7 +1519,7 @@ end subroutine calc_freq_new
       write(out_unit,*) 'BEGINNING rota_degenerate_opt1'
       write(out_unit,*) 'v',v
       write(out_unit,*) 'c'
-      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1605,7 +1605,7 @@ end subroutine calc_freq_new
 !---------------------------------------------------------------------
       IF (debug) THEN
       write(out_unit,*) 'new c'
-      CALL Write_Mat(c,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
       write(out_unit,*) 'END rota_degenerate_opt1'
       END IF
 !---------------------------------------------------------------------
@@ -1639,11 +1639,11 @@ end subroutine calc_freq_new
         write(out_unit,*) '  dia_freq',dia_freq
         write(out_unit,*) '  e',e
        write(out_unit,*) '  c'
-       CALL Write_Mat(c,out_unit,5)
+       CALL Write_Mat_MPI(c,out_unit,5)
        write(out_unit,*) '  c_inv'
-       CALL Write_Mat(c_inv,out_unit,5)
+       CALL Write_Mat_MPI(c_inv,out_unit,5)
         write(out_unit,*) '  c_ini'
-        CALL Write_Mat(c_ini,out_unit,5)
+        CALL Write_Mat_MPI(c_ini,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1741,9 +1741,9 @@ end subroutine calc_freq_new
       IF (debug) THEN
         write(out_unit,*) '  e',e
         write(out_unit,*) '  new c'
-        CALL Write_Mat(c,out_unit,5)
+        CALL Write_Mat_MPI(c,out_unit,5)
         write(out_unit,*) '  new c_inv'
-        CALL Write_Mat(c_inv,out_unit,5)
+        CALL Write_Mat_MPI(c_inv,out_unit,5)
         write(out_unit,*) 'END ',name_sub
       END IF
       !---------------------------------------------------------------------
@@ -1770,11 +1770,11 @@ end subroutine calc_freq_new
         write(out_unit,*) '  dia_freq',dia_freq
         write(out_unit,*) '  e',e
        write(out_unit,*) '  c'
-       CALL Write_Mat(c,out_unit,5)
+       CALL Write_Mat_MPI(c,out_unit,5)
        write(out_unit,*) '  c_inv'
-       CALL Write_Mat(c_inv,out_unit,5)
+       CALL Write_Mat_MPI(c_inv,out_unit,5)
         write(out_unit,*) '  c_ini'
-        CALL Write_Mat(c_ini,out_unit,5)
+        CALL Write_Mat_MPI(c_ini,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1874,9 +1874,9 @@ end subroutine calc_freq_new
       IF (debug) THEN
         write(out_unit,*) '  e',e
         write(out_unit,*) '  new c'
-        CALL Write_Mat(c,out_unit,5)
+        CALL Write_Mat_MPI(c,out_unit,5)
         write(out_unit,*) '  new c_inv'
-        CALL Write_Mat(c_inv,out_unit,5)
+        CALL Write_Mat_MPI(c_inv,out_unit,5)
         write(out_unit,*) 'END ',name_sub
       END IF
       !---------------------------------------------------------------------
@@ -1911,8 +1911,8 @@ end subroutine calc_freq_new
       write(out_unit,*) 'BEGINNING sort_with_Tab'
       write(out_unit,*) 'e',e
       write(out_unit,*) 'c, c_inv'
-      CALL Write_Mat(c,out_unit,5)
-      CALL Write_Mat(c_inv,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
+      CALL Write_Mat_MPI(c_inv,out_unit,5)
       END IF
 !---------------------------------------------------------------------
 
@@ -1957,8 +1957,8 @@ end subroutine calc_freq_new
       IF (debug) THEN
       write(out_unit,*) 'e',e
       write(out_unit,*) 'new c and c_inv'
-      CALL Write_Mat(c,out_unit,5)
-      CALL Write_Mat(c_inv,out_unit,5)
+      CALL Write_Mat_MPI(c,out_unit,5)
+      CALL Write_Mat_MPI(c_inv,out_unit,5)
       write(out_unit,*) 'END sort_with_Tab'
       END IF
 !---------------------------------------------------------------------

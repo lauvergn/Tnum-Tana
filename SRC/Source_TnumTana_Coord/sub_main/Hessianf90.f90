@@ -179,7 +179,7 @@
         END IF
         !write(out_unit,*) 'Grad',dnE%d1(mole%nb_act1+1:mole%nb_act)
 
-!        IF (nderiv == 2) CALL Write_Mat(dnE%d2,out_unit,5)
+!        IF (nderiv == 2) CALL Write_Mat_MPI(dnE%d2,out_unit,5)
 
 
         hess(:,:) = dnE%d2(mole%nb_act1+1:mole%nb_act,mole%nb_act1+1:mole%nb_act)
@@ -223,7 +223,7 @@
         write(out_unit,*) 'Vopt',dnE%d0,DV1opt*mole%const_phys%auTOcm_inv,dnE%d0+DV1opt
         write(out_unit,*) 'Qopt',para_Q%Qact(mole%nb_act1+1:mole%nb_act)
         !write(out_unit,*) 'hessG36 ',hessG36(i2i:i2f,i1i:i1f)
-!       CALL Write_Mat(hessG36,out_unit,5)
+!       CALL Write_Mat_MPI(hessG36,out_unit,5)
 
 
       CALL dealloc_CoordType(mole)
@@ -567,7 +567,7 @@
 
 !      DO is=1,n1*n2
 !        write(out_unit,*) 'sym:',symblocG36_FROM_blocS1xS2(is)
-!        CALL Write_Mat(blocG36_FROM_blocS1xS2(is,:,:),out_unit,5)
+!        CALL Write_Mat_MPI(blocG36_FROM_blocS1xS2(is,:,:),out_unit,5)
 !      END DO
 
 
@@ -704,7 +704,7 @@
       blocG36_FROM_blocGxG(is,ib,ib) = HALF
       blocG36_FROM_blocGxG(is,ic,ic) = HALF
       blocG36_FROM_blocGxG(is,id,id) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym A2'
       is=2
@@ -712,7 +712,7 @@
       blocG36_FROM_blocGxG(is,ib,ia) =-HALF
       blocG36_FROM_blocGxG(is,ic,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ic) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym A3'
       is=3
@@ -720,7 +720,7 @@
       blocG36_FROM_blocGxG(is,ib,ia) =-HALF
       blocG36_FROM_blocGxG(is,ic,id) = HALF
       blocG36_FROM_blocGxG(is,id,ic) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym A4'
       is=4
@@ -728,7 +728,7 @@
       blocG36_FROM_blocGxG(is,ib,ib) = HALF
       blocG36_FROM_blocGxG(is,ic,ic) =-HALF
       blocG36_FROM_blocGxG(is,id,id) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym E1a'
       is=5
@@ -736,14 +736,14 @@
       blocG36_FROM_blocGxG(is,ic,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,id) = HALF
       blocG36_FROM_blocGxG(is,id,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym E1b'
       is=6
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ic) =-HALF
       blocG36_FROM_blocGxG(is,ic,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym E2a'
       is=7
@@ -751,14 +751,14 @@
       blocG36_FROM_blocGxG(is,ic,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,id) = HALF
       blocG36_FROM_blocGxG(is,id,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym E2b'
       is=8
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,ic) =-HALF
       blocG36_FROM_blocGxG(is,ic,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym E3a'
       is=9
@@ -766,14 +766,14 @@
       blocG36_FROM_blocGxG(is,ic,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym E3b'
       is=10
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) = HALF
       blocG36_FROM_blocGxG(is,ib,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym E4a'
       is=11
@@ -781,35 +781,35 @@
       blocG36_FROM_blocGxG(is,ic,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,id) =-HALF
       blocG36_FROM_blocGxG(is,id,ib) = HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym E4b'
       is=12
       blocG36_FROM_blocGxG(is,ia,id) = HALF
       blocG36_FROM_blocGxG(is,id,ia) =-HALF
       blocG36_FROM_blocGxG(is,ib,ic) = HALF
       blocG36_FROM_blocGxG(is,ic,ib) =-HALF
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
       write(out_unit,*) ' GxG => sym Ga'
       is=13
       blocG36_FROM_blocGxG(is,ib,ib) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ia,ia) =-ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym Gb'
       is=14
       blocG36_FROM_blocGxG(is,ia,ib) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ib,ia) = ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym Gc'
       is=15
       blocG36_FROM_blocGxG(is,id,id) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,ic,ic) =-ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
       write(out_unit,*) ' GxG => sym Gd'
       is=16
       blocG36_FROM_blocGxG(is,ic,id) = ONE/sqrt(TWO)
       blocG36_FROM_blocGxG(is,id,ic) = ONE/sqrt(TWO)
-      CALL Write_Mat(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
+      CALL Write_Mat_MPI(blocG36_FROM_blocGxG(is,:,:),out_unit,5)
 
 
 stop

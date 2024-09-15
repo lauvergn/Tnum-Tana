@@ -789,7 +789,7 @@
       END IF
       IF (debug) THEN
         write(out_unit,*) 'RPHTransfo%C_ini'
-        CALL Write_Mat(RPHTransfo%C_ini,out_unit,4)
+        CALL Write_Mat_MPI(RPHTransfo%C_ini,out_unit,4)
         flush(out_unit)
       END IF
 
@@ -885,7 +885,7 @@
         CALL alloc_NParray(d1g,[nb_inact21,nb_act1],"d1g",name_sub)
         CALL alloc_NParray(d2g,[nb_inact21,nb_act1,nb_act1],"d2g",name_sub)
         CALL d0d1d2_g(d0g,d1g,d2g,Qdyn,mole_loc,.FALSE.,.FALSE.,RPHTransfo%step)
-        IF (debug) CALL Write_Vec(d0g,out_unit,4,info='d0grad')
+        IF (debug) CALL write_Vec_MPI(d0g,out_unit,4,info='d0grad')
         RPHpara_AT_Qact1%dnGrad%d0(:) = d0g
 
         CALL dealloc_NParray(d1g,"d1g",name_sub)
@@ -898,7 +898,7 @@
                         "d2hess",name_sub)
 
         CALL d0d1d2_h(d0hess,d1hess,d2hess,Qdyn,mole_loc,.FALSE.,.FALSE.,RPHTransfo%step)
-        IF (debug) CALL Write_Mat(d0hess,out_unit,4,info='d0hess')
+        IF (debug) CALL Write_Mat_MPI(d0hess,out_unit,4,info='d0hess')
 
         RPHpara_AT_Qact1%dnHess%d0(:,:) = d0hess
 
@@ -944,7 +944,7 @@
       CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
 
       CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
-      IF (debug) CALL Write_Mat(dnGG%d0,out_unit,4)
+      IF (debug) CALL Write_Mat_MPI(dnGG%d0,out_unit,4)
 
       i_Q21 = 0
       DO i=1,RPHTransfo%nb_var
@@ -958,15 +958,15 @@
               dnGG%d0(mole%liste_QdynTOQact(i),mole%liste_QdynTOQact(j))
         END DO
       END DO
-      IF (debug) CALL Write_Mat(d0k,out_unit,4,info='d0k')
+      IF (debug) CALL Write_Mat_MPI(d0k,out_unit,4,info='d0k')
 
       CALL dealloc_dnSVM(dnGG)
 
 !-----------------------------------------------------------------
 !     --- frequencies and normal modes calculation ....
       IF (debug) THEN
-        CALL Write_Mat(d0hess,out_unit,4,info='d0hess')
-        CALL Write_Mat(d0k,out_unit,4,info='d0k')
+        CALL Write_Mat_MPI(d0hess,out_unit,4,info='d0hess')
+        CALL Write_Mat_MPI(d0k,out_unit,4,info='d0k')
       END IF
 
       d0h(:,:) = d0hess(:,:)
@@ -979,8 +979,8 @@
                                RPHTransfo%Qinact2n_sym,               &
                                RPHTransfo%dim_equi,RPHTransfo%tab_equi)
         IF (debug) THEN
-          CALL Write_Mat(d0h,out_unit,4,info='d0hess symmetrized')
-          CALL Write_Mat(d0k,out_unit,4,info='d0k symmetrized')
+          CALL Write_Mat_MPI(d0h,out_unit,4,info='d0hess symmetrized')
+          CALL Write_Mat_MPI(d0k,out_unit,4,info='d0k symmetrized')
         END IF
         CALL calc_freq_block(nb_inact21,d0h,d0k,                        &
                              RPHpara_AT_Qact1%dneHess%d0,               &
@@ -1011,7 +1011,7 @@
         write(out_unit,*) 'dnLnN%d0 : ',RPHpara_AT_Qact1%dnLnN%d0
         write(out_unit,*) 'freq :     ',RPHpara_AT_Qact1%dneHess%d0(:)*auTOcm_inv
         write(out_unit,*) 'dnC%d0 :'
-        CALL Write_Mat(RPHpara_AT_Qact1%dnC%d0,out_unit,4)
+        CALL Write_Mat_MPI(RPHpara_AT_Qact1%dnC%d0,out_unit,4)
         write(out_unit,*) 'END ',name_sub
         flush(out_unit)
       END IF

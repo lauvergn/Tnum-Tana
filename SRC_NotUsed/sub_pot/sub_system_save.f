@@ -206,7 +206,7 @@ C=======================================================================
       IF (debug) THEN
         write(out_unit,*) 'Qact1',Qact1
         write(out_unit,*) 'd0h at Qact1'
-        CALL Write_Mat(d0h,6,4)
+        CALL Write_Mat_MPI(d0h,6,4)
         write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------

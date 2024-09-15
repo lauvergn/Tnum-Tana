@@ -36,7 +36,7 @@
 MODULE TnumTana_system_m
   USE QDUtil_m
   USE mod_MPI,           ONLY : MPI_id, keep_MPI
-  USE FOR_EVRT_system_m, ONLY : param_FOR_optimization, para_FOR_optimization
+  USE FOR_EVRT_system_m, ONLY : param_FOR_optimization, para_FOR_optimization, Write_Mat_MPI, Write_Vec_MPI
   IMPLICIT NONE
 
   logical :: print_CoordType_done = .FALSE.! if T, the CoordType has been already print

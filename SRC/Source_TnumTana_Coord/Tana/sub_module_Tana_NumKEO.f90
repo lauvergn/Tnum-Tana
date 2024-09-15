@@ -169,7 +169,7 @@
    IF (debug) THEN
      write(out_unit,*) 'vep',vep
      write(out_unit,*) 'G of Tana  '
-     CALL write_mat(Gana,out_unit,4)
+     CALL Write_Mat_MPI(Gana,out_unit,4)
      write(out_unit,*) 'END ',routine_name
    END IF
 
@@ -293,9 +293,9 @@
    IF (debug) THEN
      write(out_unit,*) 'vep',vep
      write(out_unit,*) 'f1 of Tana  '
-     CALL write_vec(f1,out_unit,4)
+     CALL write_Vec_MPI(f1,out_unit,4)
      write(out_unit,*) 'f2 of Tana  '
-     CALL write_mat(f2,out_unit,4)
+     CALL Write_Mat_MPI(f2,out_unit,4)
      write(out_unit,*) 'END ',routine_name
    END IF
 

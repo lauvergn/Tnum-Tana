@@ -196,14 +196,14 @@
 
       write(out_unit,*) 'Average hessian'
       write(out_unit,*) mole%nb_act,nb_col
-      CALL Write_Mat(hess,out_unit,nb_col)
+      CALL Write_Mat_MPI(hess,out_unit,nb_col)
 
       k     = k   /real(nb_average,kind=Rkind)
       !k = anint(k*TEN**4)/TEN**4
 
       write(out_unit,*) 'Average k (kinetic)'
       write(out_unit,*) mole%nb_act,nb_col
-      CALL Write_Mat(k,out_unit,nb_col)
+      CALL Write_Mat_MPI(k,out_unit,nb_col)
 
       CALL dealloc_dnSVM(dnGG)
       CALL dealloc_NParray(k,   'k',   name_sub)

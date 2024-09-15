@@ -3167,7 +3167,7 @@
       IF (print_level > 1) THEN
         write(out_unit,*) 'masses',masses(:)
         write(out_unit,*) 'A_inv'
-        CALL Write_Mat(BB,out_unit,5)
+        CALL Write_Mat_MPI(BB,out_unit,5)
       END IF
 
       !calculation of A (not mass weighted)
@@ -3175,7 +3175,7 @@
 
       IF (print_level > 1) THEN
         write(out_unit,*) 'A'
-        CALL Write_Mat(A,out_unit,5)
+        CALL Write_Mat_MPI(A,out_unit,5)
       END IF
 
       !Use the massweighted relation and sort the dummy atoms (centers of mass)
@@ -3194,11 +3194,11 @@
       !calculation of M (included the M of the center of mass)
       M_Tana = matmul(A,transpose(A))
       write(out_unit,*) 'M_Tana (with the center-of-mass contribution)'
-      CALL Write_Mat(M_Tana,out_unit,5)
+      CALL Write_Mat_MPI(M_Tana,out_unit,5)
 
       BunchTransfo%M_Tana(:,:) = M_Tana(1:nb_vect,1:nb_vect)
       write(out_unit,*) 'M_Tana (without the center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
+      CALL Write_Mat_MPI(BunchTransfo%M_Tana,out_unit,5)
 
       CALL dealloc_array(tab_iAtTOiCart,"tab_iAtTOiCart",name_sub)
       CALL dealloc_array(weight_vect,   "weight_vect",   name_sub)
@@ -3433,7 +3433,7 @@
 
         IF (print_level > 1) THEN
           write(out_unit,*) '  Mat_At_TO_centers'
-          CALL Write_Mat(BunchTransfo%Mat_At_TO_centers,out_unit,5)
+          CALL Write_Mat_MPI(BunchTransfo%Mat_At_TO_centers,out_unit,5)
 
           write(out_unit,*) '  COM'
           DO i=1,ubound(BunchTransfo%COM,dim=2)
@@ -3735,7 +3735,7 @@
       BunchTransfo%A(:,:) = A(:,:)
       IF (debug) THEN
         write(out_unit,*) 'A'
-        CALL Write_Mat(A,out_unit,5)
+        CALL Write_Mat_MPI(A,out_unit,5)
       END IF
       ! calculation of A_inv (B)
       CALL inv_OF_Mat_TO_Mat_inv(Asave,BB,0,ZERO) ! not SVD
@@ -3751,7 +3751,7 @@
         DO iv=1,size(BB,dim=1)
           write(out_unit,*) iv,(BB(iv,:))
         END DO
-        CALL Write_Mat(BB,out_unit,5)
+        CALL Write_Mat_MPI(BB,out_unit,5)
       END IF
 
 
@@ -3764,11 +3764,11 @@
       ! calculation of M (included the M of the center of mass)
       M_Tana = matmul(A,transpose(A))
       write(out_unit,*) '  M_Tana (with the center-of-mass contribution)'
-      CALL Write_Mat(M_Tana,out_unit,5)
+      CALL Write_Mat_MPI(M_Tana,out_unit,5)
 
       BunchTransfo%M_Tana(:,:) = M_Tana(1:BunchTransfo%nb_vect,1:BunchTransfo%nb_vect)
       write(out_unit,*) '  M_Tana (without the center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
+      CALL Write_Mat_MPI(BunchTransfo%M_Tana,out_unit,5)
 
       CALL dealloc_NParray(A,     "A",     name_sub)
       CALL dealloc_NParray(Asave, "Asave", name_sub)
@@ -3804,17 +3804,17 @@
 
 
      write(out_unit,*) 'A(iv,iat): Xat=>Vect'
-     CALL Write_Mat(BunchTransfo%A,out_unit,5)
+     CALL Write_Mat_MPI(BunchTransfo%A,out_unit,5)
 
      write(out_unit,*) 'A_inv(iat,iv): Vect=>Xat'
-     CALL Write_Mat(BunchTransfo%A_inv,out_unit,5)
+     CALL Write_Mat_MPI(BunchTransfo%A_inv,out_unit,5)
 
 
       write(out_unit,*) '---------------------------------------------'
       write(out_unit,*) '------------ Tana ---------------------------'
       write(out_unit,*) '---------------------------------------------'
       write(out_unit,*) 'M_Tana (without center-of-mass contribution)'
-      CALL Write_Mat(BunchTransfo%M_Tana,out_unit,5)
+      CALL Write_Mat_MPI(BunchTransfo%M_Tana,out_unit,5)
       write(out_unit,*) '---------------------------------------------'
       write(out_unit,*) '---------------------------------------------'
 

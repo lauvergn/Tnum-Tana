@@ -1337,7 +1337,7 @@ CONTAINS
 !     -----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*) 'Rotational matrix'
-        CALL Write_Mat(Rot_initial,out_unit,5)
+        CALL Write_Mat_MPI(Rot_initial,out_unit,5)
         write(out_unit,*) 'END ',name_sub
         write(out_unit,*)
       END IF

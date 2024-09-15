@@ -2137,10 +2137,10 @@ MODULE mod_Tnum
        write(out_unit,11) vep,rho
  11    format(' vep rho = ',2f30.15)
        write(out_unit,*)
-       CALL Write_Vec(f1i,out_unit,10,info=' f1i = ')
+       CALL write_Vec_MPI(f1i,out_unit,10,info=' f1i = ')
        write(out_unit,*)
        write(out_unit,*) ' f2ij'
-       CALL Write_Mat(f2ij,out_unit,4)
+       CALL Write_Mat_MPI(f2ij,out_unit,4)
        write(out_unit,*)
 
        end subroutine Write_f2f1vep
@@ -2173,7 +2173,7 @@ MODULE mod_Tnum
 
        write(out_unit,*)
        write(out_unit,*) 'Trot'
-       CALL Write_Mat(Trot,out_unit,3)
+       CALL Write_Mat_MPI(Trot,out_unit,3)
        write(out_unit,*)
 
        end subroutine Write_TcorTrot

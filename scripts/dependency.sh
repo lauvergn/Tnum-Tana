@@ -3,9 +3,10 @@
 name_dep=dependencies.mk
 SRCFile=fortranlist.mk
 
-list=`ls Source_PrimOperator/*.f90 Source_TnumTana_Coord/*.f90 \
-     Source_TnumTana_Coord/Qtransfo*/*.f90 Source_TnumTana_Coord/Tana/*.f90 Source_TnumTana_Coord/Tnum/*.f90`
-ExcludeList='Main_TnumTana_FDriver.f90 TEST_TnumTana.f90 Tnum90_MCTDH.f90 Tnum90_MidasCpp.f90 Tnum90.f90 Tnum_OOP.f90'
+list=`ls SRC/Source_PrimOperator/*.f90 SRC/Source_TnumTana_Coord/*.f90 \
+     SRC/Source_TnumTana_Coord/Qtransfo*/*.f90 SRC/Source_TnumTana_Coord/Tana/*.f90 SRC/Source_TnumTana_Coord/Tnum/*.f90`
+#ExcludeList='Main_TnumTana_FDriver.f90 TEST_TnumTana.f90 Tnum90_MCTDH.f90 Tnum90_MidasCpp.f90 Tnum90.f90 Tnum_OOP.f90'
+ExcludeList=' OneDTransfo_m.f90 '
 
 echo "#===============================================" > $name_dep
 echo "#===============================================" > $SRCFile

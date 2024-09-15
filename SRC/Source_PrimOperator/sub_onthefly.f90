@@ -551,7 +551,7 @@ END IF
           write(out_unit,*) 'located,err',located,err
           STOP
         END IF
-!       CALL Write_Mat(dnECC%d2,out_unit,5)
+!       CALL Write_Mat_MPI(dnECC%d2,out_unit,5)
 
         DO j=1,ncart_act
         DO i=1,j-1
@@ -1626,14 +1626,14 @@ SUBROUTINE Read_GradHess_Molpro(dnFCC,outm_name,nderiv,ncart_act)
           write(out_unit,*) 'located,err',located,err
           STOP
         END IF
-        !CALL Write_Mat(dnFCC%d2,out_unit,5)
+        !CALL Write_Mat_MPI(dnFCC%d2,out_unit,5)
         DO j=1,ncart_act
         DO i=1,j-1
           dnFCC%d2(i,j) = dnFCC%d2(j,i)
         END DO
         END DO
         IF (debug) THEN
-          CALL Write_Mat(dnFCC%d2,out_unit,5)
+          CALL Write_Mat_MPI(dnFCC%d2,out_unit,5)
           flush(out_unit)
         END IF
 

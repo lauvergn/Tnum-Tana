@@ -398,10 +398,10 @@
 
       write(out_unit,*) 'inv',RectilinearNM_Transfo%inv
       write(out_unit,*)  'Mat of RectilinearNM_Transfo: '
-      CALL Write_Mat(RectilinearNM_Transfo%mat,out_unit,4)
+      CALL Write_Mat_MPI(RectilinearNM_Transfo%mat,out_unit,4)
 
       write(out_unit,*)  'Mat_inv of RectilinearNM_Transfo: '
-      CALL Write_Mat(RectilinearNM_Transfo%mat_inv,out_unit,4)
+      CALL Write_Mat_MPI(RectilinearNM_Transfo%mat_inv,out_unit,4)
 
       write(out_unit,*) 'END ',name_sub
 

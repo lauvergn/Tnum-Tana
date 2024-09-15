@@ -32,7 +32,6 @@ activetransfo_m = $(OBJ_DIR)/ActiveTransfo_m.o
 carttransfo_m = $(OBJ_DIR)/CartTransfo_m.o
 identitytransfo_m = $(OBJ_DIR)/IdentityTransfo_m.o
 lineartransfo_m = $(OBJ_DIR)/LinearTransfo_m.o
-onedtransfo_m = $(OBJ_DIR)/OneDTransfo_m.o
 qtransfobase_m = $(OBJ_DIR)/QtransfoBase_m.o
 qtransfo_m = $(OBJ_DIR)/Qtransfo_m.o
 zmattransfo_m = $(OBJ_DIR)/ZmatTransfo_m.o
@@ -228,10 +227,6 @@ $(OBJ_DIR)/IdentityTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m)
 $(OBJ_DIR)/LinearTransfo_m.o : \
-          $(tnumtana_system_m) \
-          $(qtransfobase_m) \
-          $(addnsvm_m)
-$(OBJ_DIR)/OneDTransfo_m.o : \
           $(tnumtana_system_m) \
           $(qtransfobase_m) \
           $(addnsvm_m)

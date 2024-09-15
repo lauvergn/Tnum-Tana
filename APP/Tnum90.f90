@@ -214,7 +214,7 @@
           allocate(hess(mole%nb_act,mole%nb_act))
           CALL Get_Hess_FROM_Tab_OF_dnMatOp(hess,Tab_dnMatOp,1)
           write(out_unit,*) "Hessian of E: "
-          CALL Write_Mat(hess,out_unit,5)
+          CALL Write_Mat_MPI(hess,out_unit,5)
           deallocate(hess)
         END IF
 
@@ -432,7 +432,7 @@
         END DO
         IF (nderiv == 2) THEN
           write(out_unit,*) 'Curvilinear hessian:'
-          CALL Write_VecMat(dnFcurvi%d2,out_unit,5)
+          CALL Write_Mat_MPI(dnFcurvi%d2,out_unit,5)
         END IF
 
         IF (nderiv == 2) THEN
