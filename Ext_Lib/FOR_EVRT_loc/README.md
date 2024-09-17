@@ -24,11 +24,7 @@ make cleanall
 
 ## 1) Installation with fpm
 
-In the code, we use the c-preprocessing to turn on/off the MPI.
-But the actual fpm (0.9.0, alpha) does the c-preprocessing after checking the module uses. 
-Therefore, when MPI is not installed on your computer, the fpm intallation fails when MPI is turn off by the c-preprocessing.
-
-To overcome this problem run first:
+If it is not done yet, the external library directory links (in Ext_lib directory) need to be set by:
 
 ```bash
 make fpm

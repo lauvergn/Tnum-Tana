@@ -158,7 +158,7 @@ MODULE mod_MPI
   !-------------------------------------------------------------------------------------
   !> @brief MPI initialization 
   SUBROUTINE ini_MPI()
-    USE mod_NumParameters
+    USE QDUtil_m
     IMPLICIT NONE
 
     CALL MPI_Init(MPI_err)
@@ -213,7 +213,7 @@ MODULE mod_MPI
   !-------------------------------------------------------------------------------------
   !> @brief MPI_Finalize
   SUBROUTINE end_MPI()
-    USE mod_NumParameters
+    USE QDUtil_m
     IMPLICIT NONE
 
     IF(MPI_id==0) THEN
@@ -230,7 +230,7 @@ MODULE mod_MPI
   !> @brief get nodes information
   ! MPI_nodes_p0 are initialized, MPI_nodes_np ready
   SUBROUTINE get_nodes_info_MPI()
-    USE mod_NumParameters
+    USE QDUtil_m
     IMPLICIT NONE
 
     Integer                                      :: act_len

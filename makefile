@@ -307,7 +307,7 @@ SRC/sub_pot/sub_system.$(extf): SRC_NotUsed/sub_pot/sub_system_save.$(extf)
 clean:
 	rm -f  $(OBJ_DIR)/*.o
 	rm -f *.log
-	rm -f SRC/sub_pot/sub_system.f SRC/sub_pot/sub_system.f90
+#	rm -f SRC/sub_pot/sub_system.f SRC/sub_pot/sub_system.f90
 	rm -f TEST*.x
 	@echo "  done cleaning"
 
@@ -393,7 +393,6 @@ clean_extlib:
 #=======================================================================================
 .PHONY: fpm
 fpm: getlib
-	cd $(FOREVRT_DIR) ; make mpi
 #=======================================================================================
 #=======================================================================================
 #add dependencies

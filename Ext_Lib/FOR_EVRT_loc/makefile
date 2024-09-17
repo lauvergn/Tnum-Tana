@@ -170,18 +170,6 @@ $(LIBA): $(OBJ)
 	@echo "  done Library: "$(LIBA)
 #
 #===============================================
-#============= Make the MPI file (because fpm does not work)  =========
-#===============================================
-.PHONY: mpi
-mpi: SRC/sub_system/sub_module_MPI.f90 SRC/sub_system/sub_module_MPI_aux.f90
-
-SRC/sub_system/sub_module_MPI.f90:
-	gfortran $(FFLAGS) -E SRC_MPIdef/sub_module_MPI.f90 > SRC/sub_system/sub_module_MPI.f90
-SRC/sub_system/sub_module_MPI_aux.f90:
-	gfortran $(FFLAGS) -E SRC_MPIdef/sub_module_MPI_aux.f90 > SRC/sub_system/sub_module_MPI_aux.f90
-
-#
-#===============================================
 #============= compilation =====================
 #===============================================
 $(OBJ_DIR)/%.o: %.f90
@@ -201,7 +189,6 @@ cleanall : clean clean_extlib
 	rm -f *.a
 	rm -f *.exe
 	rm -f TESTS/res* TESTS/*log
-	rm -f SRC/sub_system/sub_module_MPI_aux.f90 SRC/sub_system/sub_module_MPI.f90
 	@echo "  done all cleaning"
 #===============================================
 #================ zip and copy the directory ===
@@ -255,7 +242,7 @@ clean_extlib:
 #===============================================
 #
 .PHONY: fpm
-fpm: getlib mpi
+fpm: getlib
 #=======================================================================================
 #=======================================================================================
 #add dependence for parallelization

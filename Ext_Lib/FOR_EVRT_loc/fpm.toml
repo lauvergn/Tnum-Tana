@@ -1,12 +1,20 @@
 name = "FOR_EVRT"
 
+
+[library]
+source-dir="SRC"
+
 [[test]]
 name="Test_ForEVRT"
 source-dir="TESTS"
 main="Test_FOR_EVRT.f90"
 
-#[build]
-#external-modules = ["mpi"]
+[build]
+link = ["blas", "lapack"]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+external-modules = ["mpi","ifport"]
 
 [fortran]
 implicit-external = true 
@@ -19,6 +27,5 @@ EVRT_dnSVM      = { path = "Ext_lib/EVRT_dnSVM" }
 openmp = "*"
 
 [preprocess]
-#cpp.macros = ["__LAPACK=1","run_MPI=0","int8=0","run_MPI_ifort=0"]
-cpp.macros = ["__LAPACK=1"]
+cpp.macros = ["__LAPACK=1","run_MPI=0","run_MPI_ifort=0"]
 

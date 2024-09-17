@@ -13,5 +13,3 @@ obj/*
 res
 TESTS/*log
 TESTS/res*
-SRC/sub_system/sub_module_MPI_aux.f90
-SRC/sub_system/sub_module_MPI.f90
