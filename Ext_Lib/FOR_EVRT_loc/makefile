@@ -205,29 +205,34 @@ zip: cleanall
 # AD_dnSVM + QDUTIL Lib
 #===============================================
 #
+DEV=
 .PHONY: getlib
 getlib:
-	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM dev
-	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib  $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex    $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM   $(DEV)
+	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM $(DEV)
 #
-$(nDindexLIBA): getlib
-	cd $(nDindex_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+$(nDindexLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh nDindex    $(DEV)
+	cd $(ExtLibDIR)/nDindex ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(nDindexLIBA) || (echo $(nDindexLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(nDindexLIBA) " in "$(BaseName)
 #
-$(EVRTdnSVMLIBA): getlib
-	cd $(EVRTdnSVM_DIR) ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+$(EVRTdnSVMLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh EVRT_dnSVM $(DEV)
+	cd $(ExtLibDIR)/EVRT_dnSVM ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(EVRTdnSVMLIBA) || (echo $(EVRTdnSVMLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(EVRTdnSVMLIBA) " in "$(BaseName)
 #
-$(QDLIBA): getlib
+$(QDLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib  $(DEV)
 	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(QDLIBA) " in "$(BaseName)
 #
-$(ADLIBA): getlib
+$(ADLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh AD_dnSVM   $(DEV)
 	cd $(ExtLibDIR)/AD_dnSVM ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(ADLIBA) || (echo $(ADLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(ADLIBA) " in "$(BaseName)

@@ -188,18 +188,20 @@ zip: cleanall
 #=== Add links to directories for fpm ==========
 #===============================================
 #
-.PHONY: fpmlink
-fpmlink: getlib
+.PHONY: fpm
+fpm: getlib
 #===============================================
 #=== external libraries ========================
 # QDUtil
 #===============================================
 #
+DEV=
 .PHONY: getlib
 getlib:
-	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
 #
-$(QDLIBA): getlib
+$(QDLIBA):
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
 	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
 	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(QDLIBA)

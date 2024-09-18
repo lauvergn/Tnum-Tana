@@ -198,10 +198,10 @@ zip: cleanall
 #===============================================
 #===============================================
 #== external libraries
-#
+DEV=
 .PHONY: getlib
 getlib:
-	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib dev
+	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
 #
 $(QDLIBA): getlib
 	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)

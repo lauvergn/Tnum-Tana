@@ -15,6 +15,8 @@ The exactness is guaranteed by the automatic differentiation procedures used for
 
 ## 1) Installation
 
+### 1a) Installation with a makefile
+
 The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran or ifort need to be recent.
 
 For instance, main executables can be built:
@@ -59,3 +61,32 @@ Remarks :
 - V is 4 or 8 (int4 / int8)
 
 If needed, the .mod files are in the **obj/obj_XXX_oppY_ompZ_lapackW_intV** directory.
+
+### 1b) Installation with fpm
+
+**fpm** is a Fortran Package Manager (see https://fpm.fortran-lang.org).
+If it is not done yet, the external library directory links (in Ext_lib directory) need to be set by:
+
+```bash
+make fpm
+```
+
+Then to build 
+
+```bash
+fpm build
+```
+
+To run some tests:
+
+```bash
+fpm run cDriver --< TESTS/exa_TnumDriver/dat_driver0
+fpm run cDriver --< TESTS/exa_TnumDriver/dat_driver1
+
+fpm run FDriver -- -i TESTS/exa_TnumDriver/dat_driver0
+fpm run FDriver -- -i TESTS/exa_TnumDriver/dat_driver1
+
+fpm run Tnum90          --< TESTS/exa_TnumDriver/dat_driver0
+fpm run Tnum90_MidasCpp --< TESTS/exa_TnumDriver/dat_driver0
+fpm run Tnum90_MCTDH    --< TESTS/exa_TnumDriver/dat_driver0
+```
