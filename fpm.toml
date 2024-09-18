@@ -64,4 +64,9 @@ FOR_EVRT        = { path = "Ext_lib/FOR_EVRT" }
 openmp          = "*"
 
 [preprocess]
-cpp.macros = ["__LAPACK=1","__COMPILE_DATE=\"'`date +\"%a %e %b %Y - %H:%M:%S\"`'\"","__COMPILE_HOST=\"'`hostname -s`'\"","__TNUM_VER=\"'`awk '/Tnum/ {print $3}' version-TT`'\"","__TANA_VER=\"'`awk '/Tana/ {print $3}' version-TT`'\""]
+cpp.macros = [
+    "__LAPACK=1","__COMPILE_DATE=\"'`date +\"%a %e %b %Y - %H:%M:%S\"`'\"",
+    "__COMPILE_HOST=\"'`hostname -s`'\"",
+    "__TNUM_VER=\"'`awk '/Tnum/ {print $3}' version-TT`'\"",
+    "__TANA_VER=\"'`awk '/Tana/ {print $3}' version-TT`'\""
+    ]
