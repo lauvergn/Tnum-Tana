@@ -2367,8 +2367,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 !      -----------------------------------------------------------------
       integer :: err_mem,memory
-      !logical, parameter :: debug=.FALSE.
-      logical, parameter :: debug=.TRUE.
+      logical, parameter :: debug=.FALSE.
+      !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'calc4_NM_TO_sym'
 !      -----------------------------------------------------------------
        IF (debug) THEN
@@ -2397,8 +2397,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
       ! analysis the number of block ... => nb_NM
-      CALL alloc_NParray(Ind_Coord_PerBlock,[mole%nb_var],          &
-                        "Ind_Coord_PerBlock",name_sub)
+      CALL alloc_NParray(Ind_Coord_PerBlock,[mole%nb_var],"Ind_Coord_PerBlock",name_sub)
 
       ! parameters for uncoupled HO
       CALL alloc_NParray(ScalePara   ,[mole%nb_var],"ScalePara",name_sub)
@@ -3667,22 +3666,38 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
           CALL get_Qact0(Qact,mole%ActiveTransfo)
 
-          SELECT CASE (mole%NMTransfo%NM_TO_sym_ver)
-          CASE(3)
-            CALL alloc_NParray(hCC,[mole%ncart_act,mole%ncart_act],"hCC",name_sub)
-            CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,.FALSE.)
-            CALL dealloc_NParray(hCC,"hCC",name_sub)
-
-          CASE(4)
-            CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
-
-          CASE(5)
-            CALL calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
-
-          CASE Default
-            CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
-
-          END SELECT
+          IF (mole%NMTransfo%hessian_cart .AND. mole%NMTransfo%hessian_read .AND. .NOT. mole%NMTransfo%hessian_onthefly) THEN
+            SELECT CASE (mole%NMTransfo%NM_TO_sym_ver)
+            CASE(3)
+              CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)  
+            CASE(4)
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+  
+            CASE(5)
+              CALL calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+  
+            CASE Default
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+  
+            END SELECT
+          ELSE
+            SELECT CASE (mole%NMTransfo%NM_TO_sym_ver)
+            CASE(3)
+              CALL alloc_NParray(hCC,[mole%ncart_act,mole%ncart_act],"hCC",name_sub)
+              CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,.FALSE.)
+              CALL dealloc_NParray(hCC,"hCC",name_sub)
+  
+            CASE(4)
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
+  
+            CASE(5)
+              CALL calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
+  
+            CASE Default
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp)
+  
+            END SELECT
+          END IF
           !IF (print_level > 1) CALL sub_QplusDQ_TO_Cart(Qact,mole)
 
         END IF

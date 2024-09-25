@@ -65,6 +65,7 @@ MODULE mod_Qtransfo
           logical                           :: inTOout         = .TRUE.
           integer                           :: nb_var          = 0
           integer                           :: nb_act          = 0
+          integer                           :: ncart_act       = 0
           integer                           :: nb_transfo      = 0
           integer                           :: opt_transfo     = 0 ! option for the transformation
           logical                           :: skip_transfo    = .FALSE.
@@ -194,7 +195,7 @@ MODULE mod_Qtransfo
         hessian_old      = .TRUE.
         hessian_cart     = .TRUE.
         hessian_onthefly = .FALSE.
-        file_hessian     = 'xx_freq.fchk'
+        file_hessian     = ''
         hessian_read     = .FALSE.
         k_read           = .FALSE.
         d0c_read         = .FALSE.
@@ -346,7 +347,7 @@ MODULE mod_Qtransfo
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('nm')
-          Tana_Is_Possible = .FALSE.
+          Tana_Is_Possible                    = .FALSE.
           Qtransfo%nb_Qin                     = nb_Qin
           Qtransfo%LinearTransfo%inv          = .FALSE.
           Qtransfo%LinearTransfo%check_LinearTransfo = .FALSE.
@@ -354,6 +355,8 @@ MODULE mod_Qtransfo
           CALL alloc_array(Qtransfo%NMTransfo,'Qtransfo%NMTransfo',name_sub)
 
           Qtransfo%NMTransfo%NM_TO_sym_ver    = opt_transfo
+
+          Qtransfo%NMTransfo%ncart_act        = Qtransfo%ncart_act
 
           Qtransfo%NMTransfo%purify_hess      = purify_hess
           Qtransfo%NMTransfo%eq_hess          = eq_hess
@@ -363,11 +366,15 @@ MODULE mod_Qtransfo
           Qtransfo%NMTransfo%hessian_cart     = hessian_cart
           IF ((hessian_read .OR. k_read) .AND. nb_read < 1) nb_read = 1
           Qtransfo%NMTransfo%hessian_read     = hessian_read
-          Qtransfo%NMTransfo%k_read           = k_read
+          Qtransfo%NMTransfo%k_read           = k_read 
           Qtransfo%NMTransfo%d0c_read         = d0c_read
           Qtransfo%NMTransfo%nb_read          = nb_read
 
           Qtransfo%NMTransfo%file_hessian%name      = trim(file_hessian)
+          IF (hessian_onthefly .AND. len_trim(file_hessian) == 0 ) THEN
+            Qtransfo%NMTransfo%file_hessian%name    = 'xx_freq.fchk'
+          END IF
+
           Qtransfo%NMTransfo%file_hessian%unit      = 0
           Qtransfo%NMTransfo%file_hessian%formatted = .TRUE.
           Qtransfo%NMTransfo%file_hessian%append    = .FALSE.
@@ -534,6 +541,8 @@ MODULE mod_Qtransfo
 
           CALL Read_ZmatTransfo(Qtransfo%ZmatTransfo,mendeleev)
 
+          Qtransfo%ncart_act = Qtransfo%ZmatTransfo%ncart_act
+
         CASE ('bunch','bunch_poly') ! It should one of the first transfo
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
          IF (.NOT. associated(Qtransfo%BunchTransfo)) THEN
@@ -605,6 +614,7 @@ MODULE mod_Qtransfo
               CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
             END IF
           END IF
+          Qtransfo%ncart_act = Qtransfo%BunchTransfo%ncart_act
 
         CASE ('poly')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
@@ -681,6 +691,9 @@ MODULE mod_Qtransfo
 
           CALL Read_QTOXanaTransfo(Qtransfo%QTOXanaTransfo,mendeleev)
 
+          Qtransfo%ncart_act = Qtransfo%QTOXanaTransfo%ncart_act
+
+          
         CASE ('cartesian') ! It should be one of the first transfo read
           Tana_Is_Possible            = .FALSE.
           Qtransfo%nb_Qin             = nb_Qin ! ncart_act
@@ -803,6 +816,7 @@ MODULE mod_Qtransfo
         Qtransfo%opt_transfo     = 0
         Qtransfo%nb_var          = 0
         Qtransfo%nb_act          = 0
+        Qtransfo%ncart_act       = 0
         Qtransfo%nb_transfo      = 0
         Qtransfo%skip_transfo    = .FALSE.
         Qtransfo%opt_param       = 0
@@ -989,6 +1003,7 @@ MODULE mod_Qtransfo
 
       Qtransfo2%nb_var          = Qtransfo1%nb_var
       Qtransfo2%nb_act          = Qtransfo1%nb_act
+      Qtransfo2%ncart_act       = Qtransfo1%ncart_act
       Qtransfo2%nb_transfo      = Qtransfo1%nb_transfo
 
       Qtransfo2%nb_Qin          = Qtransfo1%nb_Qin
@@ -1470,10 +1485,9 @@ MODULE mod_Qtransfo
 
           write(out_unit,*) ' Parameter(s) to be optimized?: ',Qtransfo%opt_param
 
-          write(out_unit,*) 'nb_var,nb_act',                             &
-                           Qtransfo%nb_var,Qtransfo%nb_act
-          write(out_unit,*) 'nb_Qin,nb_Qout',                            &
-                           Qtransfo%nb_Qin,Qtransfo%nb_Qout
+          write(out_unit,*) 'nb_var,nb_act',Qtransfo%nb_var,Qtransfo%nb_act
+          write(out_unit,*) 'ncart_act',Qtransfo%ncart_act
+          write(out_unit,*) 'nb_Qin,nb_Qout',Qtransfo%nb_Qin,Qtransfo%nb_Qout
 
           flush(out_unit)
           write(out_unit,*) '---------------------------------------'

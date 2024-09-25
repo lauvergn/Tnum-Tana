@@ -976,6 +976,7 @@ MODULE mod_Tnum
             mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
             mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
             mole%tab_Qtransfo(it)%nb_Qout    = mole%tab_Qtransfo(it-1)%nb_Qin
+            mole%tab_Qtransfo(it)%ncart_act  = mole%ncart_act
             IF (mole%tab_Qtransfo(it)%nb_Qout < 1) THEN
               write(out_unit,*) ' ERROR in ',name_sub
               write(out_unit,*) '  it:',it
