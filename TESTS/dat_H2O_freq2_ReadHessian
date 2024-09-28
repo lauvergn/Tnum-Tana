@@ -1,0 +1,29 @@
+here=`pwd`
+DIR_EVRT=$here/..
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables
+         Old_Qtransfo=f
+         nb_Qtransfo=3
+         nrho=2
+ /
+ &Coord_transfo name_transfo='zmat' nat=3 /
+O
+H 1
+H 1 2
+
+ &Coord_transfo name_transfo='NM' hessian_cart=t hessian_read=t file_hessian='hCC.txt' /
+
+ &Coord_transfo name_transfo='active' /
+1  1 1
+
+ &minimum read_itQ0transfo=1 /
+ RH 1.86971261116555840317
+ RH 1.86971261116555840317
+ A  1.74579834413738809286
+
+**
+
+err=`grep "frequencies" res | tail -1 | awk 'BEGIN {auTOcm_inv=219474.631443} {print ($4-2170.0459)/auTOcm_inv " " ($5-4140.0022)/auTOcm_inv " " ($6-4391.0669)/auTOcm_inv}'`
+
+echo $0 $err
