@@ -1894,8 +1894,8 @@
 !      -----------------------------------------------------------------
       integer :: nderiv_debug = 0
       integer :: err_mem,memory
-      !logical, parameter :: debug = .FALSE.
-      logical, parameter :: debug = .TRUE.
+      logical, parameter :: debug = .FALSE.
+      !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='calc_PolyTransfo_outTOin'
 !      -----------------------------------------------------------------
       IF (debug) THEN

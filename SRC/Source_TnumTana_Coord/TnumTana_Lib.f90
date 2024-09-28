@@ -795,3 +795,32 @@ SUBROUTINE get_GG_TnumTanaDriver_FOR_c(Qact,nb_act,GG,ndimG) BIND(C, name="get_G
   GG(:,:)      = GG_loc
 
 END SUBROUTINE get_GG_TnumTanaDriver_FOR_c
+
+SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c(Qact0,nb_act) BIND(C, name="get_Qact0_TnumTanaDriver_FOR_c")
+  USE, INTRINSIC :: ISO_C_BINDING,             ONLY : C_INT,C_DOUBLE
+  USE            :: TnumTana_system_m
+  USE            :: Module_ForTnumTana_Driver, ONLY : mole,Init
+  USE            :: mod_ActiveTransfo
+  IMPLICIT NONE
+
+  integer (kind=C_INT), intent(in)     :: nb_act
+  real (kind=C_DOUBLE), intent(inout)  :: Qact0(nb_act)
+
+  character (len=*), parameter :: name_sub='get_Qact0_TnumTanaDriver_FOR_c'
+
+
+  IF (Init == 0) THEN
+    write(out_unit,*) ' ERROR in ', name_sub
+    write(out_unit,*) '   The intialization IS NOT done!'
+    write(out_unit,*) ' First, you MUST call Init_TnumTana_FOR_Driver_FOR_c'
+    STOP
+  END IF
+  IF (nb_act /= mole%nb_act ) THEN
+     write(out_unit,*) ' ERROR in ', name_sub
+     write(out_unit,*) ' nb_act is different from the Tnum one ',nb_act,mole%nb_act
+     STOP
+  END IF
+
+  CALL get_Qact0(Qact0,mole%ActiveTransfo)
+
+END SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c
