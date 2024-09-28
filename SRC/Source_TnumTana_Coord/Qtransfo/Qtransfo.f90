@@ -135,14 +135,27 @@ MODULE mod_Qtransfo
         logical,              intent(inout)    :: Tana_Is_Possible
 
         character (len=Name_len) :: name_transfo,name_dum
-        integer :: nat,nb_vect,nbcol,nb_flex_act,nb_transfo,nb_G,nb_X
+        integer :: nbcol,nb_flex_act,nb_transfo
         integer :: opt_transfo
         logical :: skip_transfo,QMLib
-        logical :: cos_th,purify_hess,eq_hess,k_Half,inTOout
+        logical :: inTOout
+ 
+        ! for the zmat and poly transfo
+        logical :: cos_th
+        integer :: nat
+
+        ! for the bunch+poly transfo
+        integer :: nb_vect,nb_G,nb_X
+
+        ! for the linear transfo and NM transfo
+        logical :: check_LinearTransfo
+        ! for the NM transfo
+        logical :: hessian_ReadCoordBlocks,purify_hess,eq_hess,k_Half
+        logical :: hessian_read,k_read
         logical :: hessian_old,hessian_onthefly,hessian_cart,d0c_read
         character (len=line_len)      :: file_hessian
-        logical :: hessian_read,k_read,with_vectors,not_all
-        logical :: check_LinearTransfo
+
+        logical :: with_vectors,not_all
         integer :: i,it,i_Q,iF_inout,iat,iQin,iQout,nb_read
         real (kind=Rkind) ::  at
         real (kind=Rkind), pointer ::  M_mass(:,:)
@@ -151,12 +164,13 @@ MODULE mod_Qtransfo
 
         namelist /Coord_transfo/ name_transfo,nat,nb_vect,cos_th,       &
                                  nb_G,nb_X,opt_transfo,skip_transfo,    &
-                                 inTOout,with_vectors,                  &
-                                 nb_transfo,purify_hess,eq_hess,k_Half, &
-                              hessian_old,hessian_onthefly,file_hessian,&
-                               hessian_cart,hessian_read,k_read,nb_read,&
-                                 d0c_read,not_all,check_LinearTransfo,  &
-                                 QMLib
+                                 inTOout,with_vectors,nb_transfo,       &
+                                 hessian_ReadCoordBlocks,purify_hess,   &
+                                 eq_hess,k_Half,                        &
+                                 hessian_old,hessian_onthefly,hessian_cart, &
+                                 file_hessian,hessian_read,k_read,nb_read,&
+                                 d0c_read, &
+                                 not_all,check_LinearTransfo,QMLib
 !----- for debuging --------------------------------------------------
       integer :: err_mem,memory,err_io
       character (len=*), parameter :: name_sub = "read_Qtransfo"
@@ -189,6 +203,7 @@ MODULE mod_Qtransfo
         nb_X             = 0
         cos_th           = .TRUE.
         purify_hess      = .FALSE.
+        hessian_ReadCoordBlocks = .FALSE. ! equivalent to purify_hess
         eq_hess          = .FALSE.
         k_Half           = .FALSE.
         with_vectors     = .TRUE.
@@ -358,7 +373,7 @@ MODULE mod_Qtransfo
 
           Qtransfo%NMTransfo%ncart_act        = Qtransfo%ncart_act
 
-          Qtransfo%NMTransfo%purify_hess      = purify_hess
+          Qtransfo%NMTransfo%ReadCoordBlocks  = (hessian_ReadCoordBlocks .OR. purify_hess)
           Qtransfo%NMTransfo%eq_hess          = eq_hess
           Qtransfo%NMTransfo%k_Half           = k_Half
           Qtransfo%NMTransfo%hessian_old      = hessian_old

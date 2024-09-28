@@ -79,14 +79,14 @@
         real (kind=Rkind), pointer :: scaleQ_HObasis(:)    =>null()
 
 
-        real (kind=Rkind), pointer :: d0c_inv(:,:)     =>null()
-        real (kind=Rkind), pointer :: d0c(:,:)         =>null()
-        real (kind=Rkind), pointer :: phase(:)         =>null() ! to change the sign of d0c
-        real (kind=Rkind), pointer :: d0eh(:)          =>null()
-        logical                    :: purify_hess      = .FALSE.! if .TRUE., we use an hessian purified (default : .FALSE.)
+        real (kind=Rkind), pointer :: d0c_inv(:,:)             =>null()
+        real (kind=Rkind), pointer :: d0c(:,:)                 =>null()
+        real (kind=Rkind), pointer :: phase(:)                 =>null() ! to change the sign of d0c
+        real (kind=Rkind), pointer :: d0eh(:)                  =>null()
+        logical                    :: ReadCoordBlocks  = .FALSE.! if .TRUE., the hessian is transformed to a block diagonal form (default : .FALSE.)
+        integer, allocatable       :: BlockCoord(:)             ! define the list of coordinate blocks (same integer => same block)
         logical                    :: eq_hess          = .FALSE.! if .TRUE., we use an hessian purified (default : .FALSE.)
         logical                    :: k_Half           = .FALSE.! if .TRUE., make a transfo, to get -1/2D2./dx2
-        integer, pointer           :: Qact1_sym(:)     =>null() ! Qact1_sym(nb_NM)  : for the symmetrized H0
         integer, pointer           :: Qact1_eq(:,:)    =>null() ! Qact1_eq(nb_NM,nb_NM) : for the symmetrized H0
         integer                    :: nb_equi          = 0      ! number of set of equivalent variables
         integer, pointer           :: dim_equi(:)      =>null() ! dimension for each set of equivalence
@@ -695,8 +695,8 @@
       IF (associated(NMTransfo%tab_equi))  THEN
         CALL dealloc_array(NMTransfo%tab_equi,"NMTransfo%tab_equi",name_sub)
       END IF
-      IF (associated(NMTransfo%Qact1_sym))  THEN
-        CALL dealloc_array(NMTransfo%Qact1_sym,"NMTransfo%Qact1_sym",name_sub)
+      IF (allocated(NMTransfo%BlockCoord))  THEN
+        CALL dealloc_NParray(NMTransfo%BlockCoord,"NMTransfo%BlockCoord",name_sub)
       END IF
       IF (associated(NMTransfo%Qact1_eq))  THEN
         CALL dealloc_array(NMTransfo%Qact1_eq,"NMTransfo%Qact1_eq",name_sub)
@@ -732,7 +732,7 @@
 
       NMTransfo%nb_NM         = 0
 
-      NMTransfo%purify_hess   = .FALSE.
+      NMTransfo%ReadCoordBlocks   = .FALSE.
       NMTransfo%eq_hess       = .FALSE.
       NMTransfo%k_Half        = .FALSE.
       NMTransfo%nb_equi       = 0
@@ -986,10 +986,10 @@
         flush(out_unit)
       END IF
 
-      IF (NMTransfo%purify_hess) THEN
+      IF (NMTransfo%ReadCoordBlocks) THEN
 
-        IF (.NOT. associated(NMTransfo%Qact1_sym)) THEN
-          CALL alloc_array(NMTransfo%Qact1_sym,[nb_Qin],"NMTransfo%Qact1_sym",name_sub)
+        IF (.NOT. allocated(NMTransfo%BlockCoord)) THEN
+          CALL alloc_NParray(NMTransfo%BlockCoord,[nb_Qin],"NMTransfo%BlockCoord",name_sub)
         END IF
         IF (.NOT. associated(NMTransfo%Qact1_eq)) THEN
           CALL alloc_array(NMTransfo%Qact1_eq,[nb_Qin,nb_Qin],"NMTransfo%Qact1_eq",name_sub)
@@ -1003,16 +1003,16 @@
 
         write(out_unit,*)
         write(out_unit,*) "========================================"
-        write(out_unit,*) 'Hessian purification',NMTransfo%purify_hess
+        write(out_unit,*) 'Hessian block transformation',NMTransfo%ReadCoordBlocks
 
         write(out_unit,*) 'nb_Qin',nb_Qin
-        NMTransfo%Qact1_sym(:)  = 0
+        NMTransfo%BlockCoord(:)  = 0
         NMTransfo%Qact1_eq(:,:) = 0
 
-        read(in_unit,*,IOSTAT=err_read) name0,NMTransfo%Qact1_sym(:)
+        read(in_unit,*,IOSTAT=err_read) name0,NMTransfo%BlockCoord(:)
         IF (err_read /= 0) THEN
           write(out_unit,*) 'ERROR ',name_sub
-          write(out_unit,*) ' while reading Qact1_sym',name0,NMTransfo%Qact1_sym(:)
+          write(out_unit,*) ' while reading BlockCoord',name0,NMTransfo%BlockCoord(:)
           write(out_unit,*) ' Check your data !!'
           STOP
         END IF
@@ -1046,8 +1046,8 @@
         END DO
 
 
-        write(out_unit,*) 'Hessian purification parameters'
-        write(out_unit,*) 'Qact1_sym',NMTransfo%Qact1_sym(:)
+        write(out_unit,*) 'Hessian block transformation'
+        write(out_unit,*) 'BlockCoord',NMTransfo%BlockCoord(:)
         DO i=1,nb_Qin
           write(out_unit,*) 'Qact1_eq',i,NMTransfo%Qact1_eq(i,:)
         END DO
@@ -1140,13 +1140,13 @@
 
       END IF
 
-      IF (NMTransfo%purify_hess) THEN
+      IF (NMTransfo%ReadCoordBlocks) THEN
 
         write(out_unit,*)
         write(out_unit,*) "========================================"
-        write(out_unit,*) 'Hessian purification',NMTransfo%purify_hess
-        nb_Qin = size(NMTransfo%Qact1_sym(:))
-        write(out_unit,*)  'Qact1_sym: ',NMTransfo%Qact1_sym(:)
+        write(out_unit,*) 'Hessian block transformation',NMTransfo%ReadCoordBlocks
+        nb_Qin = size(NMTransfo%BlockCoord(:))
+        write(out_unit,*)  'BlockCoord: ',NMTransfo%BlockCoord(:)
 
         IF (NMTransfo%eq_hess) THEN
           DO i=1,nb_Qin
@@ -1241,16 +1241,16 @@
 
       END IF
 
-      NMTransfo2%k_Half      = NMTransfo1%k_Half
-      NMTransfo2%purify_hess = NMTransfo1%purify_hess
-      NMTransfo2%eq_hess     = NMTransfo1%eq_hess
+      NMTransfo2%k_Half          = NMTransfo1%k_Half
+      NMTransfo2%ReadCoordBlocks = NMTransfo1%ReadCoordBlocks
+      NMTransfo2%eq_hess         = NMTransfo1%eq_hess
 
-      IF (NMTransfo2%purify_hess) THEN
-        nb_Qin = size(NMTransfo1%Qact1_sym)
+      IF (NMTransfo2%ReadCoordBlocks) THEN
+        nb_Qin = size(NMTransfo1%BlockCoord)
 
-        CALL alloc_array(NMTransfo2%Qact1_sym,shape(NMTransfo1%Qact1_sym),&
-                        "NMTransfo2%Qact1_sym",name_sub)
-        NMTransfo2%Qact1_sym = NMTransfo1%Qact1_sym
+        CALL alloc_NParray(NMTransfo2%BlockCoord,shape(NMTransfo1%BlockCoord),&
+                          "NMTransfo2%BlockCoord",name_sub)
+        NMTransfo2%BlockCoord = NMTransfo1%BlockCoord
 
         CALL alloc_array(NMTransfo2%Qact1_eq,shape(NMTransfo1%Qact1_eq),&
                         "NMTransfo2%Qact1_eq",name_sub)

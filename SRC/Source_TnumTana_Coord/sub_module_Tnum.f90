@@ -1291,7 +1291,7 @@ MODULE mod_Tnum
                           "mole%tab_Qtransfo(it)%NMTransfo",name_sub)
           mole%NMTransfo => mole%tab_Qtransfo(it)%NMTransfo
 
-          mole%tab_Qtransfo(it)%NMTransfo%purify_hess      = purify_hess
+          mole%tab_Qtransfo(it)%NMTransfo%ReadCoordBlocks  = purify_hess
           mole%tab_Qtransfo(it)%NMTransfo%k_Half           = k_Half
           mole%tab_Qtransfo(it)%NMTransfo%hessian_old      = hessian_old
           mole%tab_Qtransfo(it)%NMTransfo%hessian_onthefly = hessian_onthefly
