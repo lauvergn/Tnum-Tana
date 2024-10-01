@@ -41,7 +41,7 @@ MODULE mod_Lib_QTransfo
                            sub_crossproduct_dnvec1_dnvec2_to_dnvec3, &
                            sub_normalize_dnvec, sub_dns_to_dnvec,    &
                            check_alloc_dnvec, dealloc_dnS,           &
-                           sub_dnS1_wPLUS_dnS2_TO_dnS3
+                           sub_dnS1_wPLUS_dnS2_TO_dnS3,Set_ZERO_TO_dnSVM
       IMPLICIT NONE
 
       PRIVATE
@@ -1367,7 +1367,7 @@ CONTAINS
   END SUBROUTINE calc_Tab_dnQflex_QML
 
 
-  SUBROUTINE calc_Tab_dnQflex_NotQML(Tab_dnQflex,nb_var,dnQact,nb_act1,nderiv,it,list_Type_var,With_Tab_dnQflex)
+  SUBROUTINE calc_Tab_dnQflex_NotQML(Tab_dnQflex,nb_var,dnQact,nb_act1,nderiv,it,list_Type_var,list_act,With_Tab_dnQflex)
     USE TnumTana_system_m
     USE mod_dnSVM
     USE ADdnSVM_m
@@ -1379,23 +1379,23 @@ CONTAINS
     TYPE (dnS_t),       intent(in)     :: dnQact(:)
     integer,            intent(in)     :: nderiv,it
     integer,            intent(in)     :: list_Type_var(:)
+    integer,            intent(in)     :: list_act(:)
     logical,            intent(in)     :: With_Tab_dnQflex
 
 
     TYPE (Type_dnS)         :: Tab_dnQflex_loc(nb_var)
+    TYPE (Type_dnS)         :: dnQflex_full
+    TYPE (dnS_t)            :: dnSflex_full
+
     real (kind=Rkind)       :: Qact(nb_act1)
-    integer                 :: i,j,i_Qdyn,type_var,nVarBig
-    TYPE (dnS_t) :: dnQflex
-    real(kind=Rkind), allocatable  :: d0
-    real(kind=Rkind), allocatable  :: d1(:)
-    real(kind=Rkind), allocatable  :: d2(:,:)
-    real(kind=Rkind), allocatable  :: d3(:,:,:)
+    integer                 :: i,j,i_Qdyn,type_var,nb_act1_full
+  
   
 
     !----- for debuging ----------------------------------
     character (len=*), parameter :: name_sub='calc_Tab_dnQflex_NotQML'
-    logical, parameter :: debug=.FALSE.
-    !logical, parameter :: debug=.TRUE.
+    !logical, parameter :: debug=.FALSE.
+    logical, parameter :: debug=.TRUE.
     !----- for debuging ----------------------------------
 
 
@@ -1406,7 +1406,9 @@ CONTAINS
       write(out_unit,*) 'nb_var,nb_act1',nb_var,nb_act1
       write(out_unit,*) 'nderiv,it',nderiv,it
       write(out_unit,*) 'list_Type_var',list_Type_var
+      write(out_unit,*) 'list_act',list_act
       write(out_unit,*) 'With_Tab_dnQflex',With_Tab_dnQflex
+      write(out_unit,*) 'nb_act1_full',get_nVar(Tab_dnQflex(1))
       flush(out_unit)
     END IF
     !---------------------------------------------------------------------
@@ -1440,40 +1442,25 @@ CONTAINS
 
     END IF
 
-    !- Tab_dnQflex_loc => Tab_dnQflex  --------------------------------
-    nVarBig = get_nVar(Tab_dnQflex(1))
-    IF (nderiv > 0) allocate(d1(nVarBig))
-    IF (nderiv > 1) THEN
-      allocate(d2(nVarBig,nVarBig))
-      d2 = ZERO
-    END IF
-    IF (nderiv > 2) THEN
-      allocate(d3(nVarBig,nVarBig,nVarBig))
-      d3 = ZERO
-    END IF
-STOP 'calc_Tab_dnQflex_NotQML: not yet'
+    ! here Tab_dnQflex_loc(:) is of Type_dnS (old one).
+    ! Their derivatives are with respect to the active variables of flexible coordinates (not the full active ones)
+    ! 1) transfer the partial derivative to the full one (type_dnS)
+    ! 2) transfer from type_dnS to dnS_t
+    ! 3) composition dnQlfex(dnQact)
+    nb_act1_full = get_nVar(Tab_dnQflex(1))
+    CALL alloc_dnSVM(dnQflex_full,nb_act1_full,nderiv)
+
     DO i_Qdyn=1,nb_var
       type_var = list_Type_var(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
-        !CALL sub_dnVec_TO_dnSt(Tab_dnQflex_loc,dnQflex,i_Qdyn) ! here the derivative are only along Qact(:)
-        IF (get_nVar(dnQflex) /= size(dnQact)) STOP 'ERROR in calc_Tab_dnQflex_NotQML: wrong size'
-        IF (nderiv > 0) THEN
-          d1 = ZERO
-          DO i=1,nb_act1
-!            d1(:) = d1 + dnQflex%d1(i) * get_d1(dnQact(i))
-          END DO
-        END IF
-        IF (nderiv > 1) THEN
-          d2 = ZERO
-          DO i=1,nb_act1
-          DO j=1,nb_act1
-!            d2(:,:) = d2 + dnQflex%d1(i) * get_d1(dnQact(i))
-          END DO
-          END DO
-        END IF
+        ! 1) transfer the partial derivative to the full one (type_dnS)
+        CALL sub_dnSpartial_TO_dnS_EVRT(Tab_dnQflex_loc(i_Qdyn),dnQflex_full,list_act)
+        ! 2) transfer from type_dnS to dnS_t
+        CALL sub_dnS_TO_dnSt(dnQflex_full,dnSflex_full)
+        ! 3) composition
       END IF
     END DO
-    !------------------------------------------------------------------
+ 
 
     !- deallocation -----------------------------------------------------
     DO i_Qdyn=1,nb_var
@@ -1482,11 +1469,12 @@ STOP 'calc_Tab_dnQflex_NotQML: not yet'
         CALL dealloc_dnSVM(Tab_dnQflex_loc(i_Qdyn))
       END IF
     END DO
+    CALL dealloc_dnSVM(dnQflex_full)
     !---------------------------------------------------------------------
     IF (debug) THEN
       DO i_Qdyn=1,nb_var
         write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
-        !CALL write_dnS(tab_dnQflex(i_Qdyn),nderiv)
+        CALL write_dnS(tab_dnQflex(i_Qdyn))
       END DO
       write(out_unit,*) 'END ',name_sub
       flush(out_unit)
@@ -1918,6 +1906,57 @@ SUBROUTINE calc_Tab_dnGradHess_gene(Tab_dnGrad,Tab_dnHess,nb_inact21,Qact,nb_act
   !---------------------------------------------------------------------
 
 END SUBROUTINE calc_Tab_dnGradHess_gene
+
+SUBROUTINE sub_dnSpartial_TO_dnS_EVRT(dnSpartial,dnS,list_flex_act)
+  TYPE (Type_dnS), intent(in)      :: dnSpartial
+  TYPE (Type_dnS), intent(inout)   :: dnS
+  integer,         intent(in)      :: list_flex_act(:)
+
+  integer :: i,j,k,iact,jact,kact,nderiv
+
+  nderiv = min(dnSpartial%nderiv,dnS%nderiv)
+
+  CALL set_ZERO_TO_dnSVM(dnS)
+
+  dnS%d0 = dnSpartial%d0
+
+  IF (nderiv > 0) THEN
+    DO i=1,size(list_flex_act)
+      iact = list_flex_act(i)
+      dnS%d1(iact) = dnSpartial%d1(i)
+    END DO
+  END IF
+
+  IF (nderiv > 1) THEN
+
+
+    DO i=1,size(list_flex_act)
+    DO j=1,size(list_flex_act)
+      iact = list_flex_act(i)
+      jact = list_flex_act(j)
+
+      dnS%d2(iact,jact) =  dnSpartial%d2(i,j)
+
+    END DO
+    END DO
+  END IF
+  IF (nderiv > 2) THEN
+
+    DO i=1,size(list_flex_act)
+    DO j=1,size(list_flex_act)
+    DO k=1,size(list_flex_act)
+      iact = list_flex_act(i)
+      jact = list_flex_act(j)
+      kact = list_flex_act(k)
+
+      dnS%d3(iact,jact,kact) = dnSpartial%d3(i,j,k)
+ 
+    END DO
+    END DO
+    END DO
+  END IF
+END SUBROUTINE sub_dnSpartial_TO_dnS_EVRT
+
 SUBROUTINE make_nameQ(nameQ,baseQ,iQ,it)
   character(len=Name_len), intent(inout)        :: nameQ
   character(len=*),        intent(in)           :: baseQ
