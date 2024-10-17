@@ -462,15 +462,16 @@ CONTAINS
 
     nb_flex = count(FlexibleTransfo%list_flex == 20)
     IF (nb_flex > 0) THEN
+      allocate(tab_dnQflex(dnQin%nb_var_vec))
+
       IF (FlexibleTransfo%QMLib) THEN
-        allocate(tab_dnQflex(dnQin%nb_var_vec))
         CALL calc_Tab_dnQflex_QML(Tab_dnQflex,dnQact_flex,nderiv,             &
                                   FlexibleTransfo%list_flex,                  &
                                   FlexibleTransfo%list_QMLMapping)
       ELSE
 
-        CALL calc_Tab_dnQflex_NotQML(Tab_dnQflex,dnQin%nb_var_vec,dnQact_flex,nb_flex_act,nderiv,-1,       &
-                                     FlexibleTransfo%list_flex,FlexibleTransfo%list_act,  &
+        CALL calc_Tab_dnQflex_NotQML(Tab_dnQflex,dnQin%nb_var_vec,dnQact_flex,nb_flex_act,nderiv,-1,     &
+                                     FlexibleTransfo%list_flex,FlexibleTransfo%list_act(1:nb_flex_act),  &
                                      FlexibleTransfo%With_Tab_dnQflex)
       END IF
     END IF

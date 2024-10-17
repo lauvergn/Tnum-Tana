@@ -1366,7 +1366,6 @@ CONTAINS
     END IF
   END SUBROUTINE calc_Tab_dnQflex_QML
 
-
   SUBROUTINE calc_Tab_dnQflex_NotQML(Tab_dnQflex,nb_var,dnQact,nb_act1,nderiv,it,list_Type_var,list_act,With_Tab_dnQflex)
     USE TnumTana_system_m
     USE mod_dnSVM
@@ -1383,9 +1382,8 @@ CONTAINS
     logical,            intent(in)     :: With_Tab_dnQflex
 
 
-    TYPE (Type_dnS)         :: Tab_dnQflex_loc(nb_var)
-    TYPE (Type_dnS)         :: dnQflex_full
-    TYPE (dnS_t)            :: dnSflex_full
+    TYPE (Type_dnS)         :: dnQflex_partial(nb_var)
+    TYPE (dnS_t)            :: dnSflex_partial,dnSflex_full,a
 
     real (kind=Rkind)       :: Qact(nb_act1)
     integer                 :: i,j,i_Qdyn,type_var,nb_act1_full
@@ -1394,8 +1392,8 @@ CONTAINS
 
     !----- for debuging ----------------------------------
     character (len=*), parameter :: name_sub='calc_Tab_dnQflex_NotQML'
-    !logical, parameter :: debug=.FALSE.
-    logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
     !----- for debuging ----------------------------------
 
 
@@ -1408,24 +1406,30 @@ CONTAINS
       write(out_unit,*) 'list_Type_var',list_Type_var
       write(out_unit,*) 'list_act',list_act
       write(out_unit,*) 'With_Tab_dnQflex',With_Tab_dnQflex
-      write(out_unit,*) 'nb_act1_full',get_nVar(Tab_dnQflex(1))
+      flush(out_unit)
+      write(out_unit,*) 'nb_act1_full',get_nVar(dnQact(1))
       flush(out_unit)
     END IF
     !---------------------------------------------------------------------
-
+    IF (debug) THEN
+      DO i=1,nb_act1
+        CALL Write_dnS(dnQact(i),info='dnQact' // TO_string(i))
+      END DO
+      flush(out_unit)
+    END IF
     Qact(:) = get_d0(dnQact)
 
     DO i_Qdyn=1,nb_var
       type_var = list_Type_var(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
-        CALL alloc_dnSVM(Tab_dnQflex_loc(i_Qdyn),nb_act1,nderiv)
+        CALL alloc_dnSVM(dnQflex_partial(i_Qdyn),nb_act1,nderiv)
         IF (debug) write(out_unit,*) 'i_Qdyn,type_var',i_Qdyn,type_var
       END IF
     END DO
 
     IF (With_Tab_dnQflex) THEN
-      IF (debug) write(out_unit,*) 'in ',name_sub,' with Tab_dnQflex'
-      CALL Calc_tab_dnQflex(Tab_dnQflex_loc,nb_var,Qact,nb_act1,nderiv,it)
+      IF (debug) write(out_unit,*) 'in ',name_sub,' with dnQflex_partial(:)'
+      CALL Calc_tab_dnQflex(dnQflex_partial,nb_var,Qact,nb_act1,nderiv,it)
     ELSE
       IF (debug) write(out_unit,*) 'in ',name_sub,' with dnQflex'
     
@@ -1433,54 +1437,67 @@ CONTAINS
         type_var = list_Type_var(i_Qdyn)
     
         IF (type_var == 20 .OR. type_var == 21) THEN
-          CALL calc_dnQflex(i_Qdyn,Tab_dnQflex_loc(i_Qdyn),Qact,nb_act1,nderiv,it)
+          CALL calc_dnQflex(i_Qdyn,dnQflex_partial(i_Qdyn),Qact,nb_act1,nderiv,it)
         ELSE IF (type_var == 200) THEN
-          CALL calc_dnQflex(i_Qdyn,Tab_dnQflex_loc(i_Qdyn),Qact,nb_act1,0,it)
+          CALL calc_dnQflex(i_Qdyn,dnQflex_partial(i_Qdyn),Qact,nb_act1,0,it)
         END IF
 
       END DO
 
     END IF
 
-    ! here Tab_dnQflex_loc(:) is of Type_dnS (old one).
+    ! here dnQflex_partial(:) is of Type_dnS (old one).
     ! Their derivatives are with respect to the active variables of flexible coordinates (not the full active ones)
-    ! 1) transfer the partial derivative to the full one (type_dnS)
-    ! 2) transfer from type_dnS to dnS_t
-    ! 3) composition dnQlfex(dnQact)
-    nb_act1_full = get_nVar(Tab_dnQflex(1))
-    CALL alloc_dnSVM(dnQflex_full,nb_act1_full,nderiv)
-
+    ! 1) transfer dnQflex_partial(:) (Type_dnS) to dnSflex_partial(:) (dnS_t)
+    ! 2) composition Tab_dnQflex(:) = dnSflex_partial(:)(dnQact)
     DO i_Qdyn=1,nb_var
       type_var = list_Type_var(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
-        ! 1) transfer the partial derivative to the full one (type_dnS)
-        CALL sub_dnSpartial_TO_dnS_EVRT(Tab_dnQflex_loc(i_Qdyn),dnQflex_full,list_act)
-        ! 2) transfer from type_dnS to dnS_t
-        CALL sub_dnS_TO_dnSt(dnQflex_full,dnSflex_full)
-        ! 3) composition
+        ! 1) transfer: dnSflex_partial = dnQflex_partial(i_Qdyn)
+        CALL sub_dnS_TO_dnSt(dnQflex_partial(i_Qdyn),dnSflex_partial)
+        IF (debug) THEN
+          write(out_unit,*) 'i_Qdyn,type_var',i_Qdyn,type_var
+          CALL Write_dnSVM(dnQflex_partial(i_Qdyn))
+          CALL Write_dnS(dnSflex_partial,info='dnSflex_partial')
+          flush(out_unit)
+        END IF
+       ! 2) composition
+        IF (debug) write(out_unit,*) 'composition' ; flush(out_unit)
+
+        Tab_dnQflex(i_Qdyn) = dnf_OF_dnS(dnSflex_partial,dnQact)
+
+        IF (debug) THEN
+          CALL Write_dnS(Tab_dnQflex(i_Qdyn),info='dnScompo')
+          flush(out_unit)
+        END IF
+    
       END IF
     END DO
- 
+
 
     !- deallocation -----------------------------------------------------
     DO i_Qdyn=1,nb_var
       type_var = list_Type_var(i_Qdyn)
       IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
-        CALL dealloc_dnSVM(Tab_dnQflex_loc(i_Qdyn))
+        CALL dealloc_dnSVM(dnQflex_partial(i_Qdyn))
       END IF
     END DO
-    CALL dealloc_dnSVM(dnQflex_full)
+    CALL dealloc_dnS(dnSflex_partial)
     !---------------------------------------------------------------------
     IF (debug) THEN
       DO i_Qdyn=1,nb_var
-        write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
-        CALL write_dnS(tab_dnQflex(i_Qdyn))
+        type_var = list_Type_var(i_Qdyn)
+        IF (type_var == 20 .OR. type_var == 200 .OR. type_var == 21) THEN
+          write(out_unit,*) 'tab_dnQflex : ',i_Qdyn,get_d0(dnQact)
+          CALL write_dnS(tab_dnQflex(i_Qdyn))
+        END IF
       END DO
       write(out_unit,*) 'END ',name_sub
       flush(out_unit)
     END IF
 
-END SUBROUTINE calc_Tab_dnQflex_NotQML
+  END SUBROUTINE calc_Tab_dnQflex_NotQML
+
 SUBROUTINE calc_Tab_dnQflex_gene(Tab_dnQflex,nb_var,Qact,nb_act1,nderiv,it,     &
                                  list_Type_var,list_QMLMapping,QMlib,With_Tab_dnQflex)
   USE TnumTana_system_m
