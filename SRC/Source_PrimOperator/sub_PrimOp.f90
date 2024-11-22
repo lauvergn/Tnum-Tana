@@ -445,20 +445,20 @@
                write(out_unit,*) 'size(Qit),Qit',size(Qit),Qit
                write(out_unit,*) 'QQMLib',Qit(PrimOp%Qit_TO_QQMLib)
             END IF
-          IF (get_Qmodel_Vib_Adia()) THEN
-            d0MatOp(iOpE)%param_TypeOp%QML_Vib_adia = .TRUE.
-            CALL sub_Qmodel_tab_HMatVibAdia(d0MatOp(iOpE)%ReVal,  &
-                      Qit(PrimOp%Qit_TO_QQMLib),size(d0MatOp(iOpE)%ReVal,dim=3))
-            !write(out_unit,*) 'QQML',Qit(PrimOp%Qit_TO_QQMLib)
-            !CALL Write_d0MatOp(d0MatOp(iOpE))
-            !STOP 'Vib_Adia'
-          ELSE
-            IF (PrimOp%pot_itQtransfo == 0) THEN
-              CALL sub_Qmodel_V(d0MatOp(iOpE)%ReVal(:,:,itermE),Qit)
+            IF (get_Qmodel_Vib_Adia()) THEN
+              d0MatOp(iOpE)%param_TypeOp%QML_Vib_adia = .TRUE.
+              CALL sub_Qmodel_tab_HMatVibAdia(d0MatOp(iOpE)%ReVal,  &
+                        Qit(PrimOp%Qit_TO_QQMLib),size(d0MatOp(iOpE)%ReVal,dim=3))
+              !write(out_unit,*) 'QQML',Qit(PrimOp%Qit_TO_QQMLib)
+              !CALL Write_d0MatOp(d0MatOp(iOpE))
+              !STOP 'Vib_Adia'
             ELSE
-              CALL sub_Qmodel_V(d0MatOp(iOpE)%ReVal(:,:,itermE),Qit(PrimOp%Qit_TO_QQMLib))
+              IF (PrimOp%pot_itQtransfo == 0) THEN
+                CALL sub_Qmodel_V(d0MatOp(iOpE)%ReVal(:,:,itermE),Qit)
+              ELSE
+                CALL sub_Qmodel_V(d0MatOp(iOpE)%ReVal(:,:,itermE),Qit(PrimOp%Qit_TO_QQMLib))
+              END IF
             END IF
-          END IF
             !----------------------------------------------------------------
             DO ie=1,PrimOp%nb_elec
              d0MatOp(iOpE)%ReVal(ie,ie,itermE) =                                &

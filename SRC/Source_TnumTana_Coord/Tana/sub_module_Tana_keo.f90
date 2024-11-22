@@ -306,6 +306,7 @@ MODULE mod_Tana_keo
           flush(out_unit)
           CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,para_Tnum%ExpandTWOxKEO)
           write(out_unit,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
+          !CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,out_unit,tab_Qname, para_Tnum%JJ)
           IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
           write(out_unit,*) '================================================='
         END IF

@@ -43,11 +43,15 @@
 
         TYPE param_TypeOp
 
-          integer                  :: type_Op = -1 ! -1: Not initialized
-                                                   ! 0 : Scalar
-                                                   ! 1 : H: F2.d^2 + F1.d^1 + V + (Cor+Rot)
-                                                   ! 10: H: d^1 G d^1 +V
-                                                   ! 21 and 22: P_i and P^2_i
+          integer                  :: type_Op = -1 !  -1: Not initialized
+                                                   !   0: Scalar
+                                                   !   1: H: F2.d^2 + F1.d^1 + V + (Cor+Rot)
+                                                   !  10: H: d^1 G d^1 +V
+                                                   !  21: P_i
+                                                   !  22: P_i^2
+                                                   ! 101: identity (basis or grid)
+                                                   ! 110: with a basis set
+
 
           integer                  :: n_Op  = 0  ! type of Operator :
                                                  ! 0 => H
@@ -57,7 +61,6 @@
 
           logical                  :: direct_KEO         = .FALSE. ! to be used with type_Op=10
           logical                  :: direct_ScalOp      = .FALSE. ! scalar Operotor and potential
-          !logical                  :: Op_WithContracRVec = .FALSE. ! use ContracRVec to make the operator
 
           logical                  :: QML_Vib_adia  = .FALSE. ! Vibrational adiabatic separation with QML
 
@@ -65,7 +68,7 @@
           integer                  :: nb_Term_Vib = 0
           integer                  :: nb_Term_Rot = 0
           integer                  :: nb_Qact     = 0
-          integer                  :: iQact       = 0 ! for typeOOp = 21 or 22
+          integer                  :: iQact       = 0 ! for type_Op = 21 or 22
           integer                  :: Jrot        = 0
 
           integer, allocatable     :: derive_termQact(:,:)      ! derive_termQact(2,nb_term)
@@ -156,6 +159,7 @@
       ELSE
         cplx_loc = .FALSE.
       END IF
+      para_TypeOp%cplx = cplx_loc
 
       IF (present(JRot)) THEN
         para_TypeOp%JRot = JRot
