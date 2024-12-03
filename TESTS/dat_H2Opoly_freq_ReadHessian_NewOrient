@@ -43,6 +43,6 @@ Hessian in CC HF/STO-3G
 
 # gaussian values : 2170.0459 4140.0022 4391.0669
 
-err=`grep "frequencies" res | tail -1 | awk 'BEGIN {auTOcm_inv=219474.631443} {print ($4-2170.0459)/auTOcm_inv " " ($5-4140.0022)/auTOcm_inv " " ($6-4391.0669)/auTOcm_inv}'`
+err=`grep "frequencies" res | tail -1 | LANG=c awk 'BEGIN {auTOcm_inv=219474.631443} {print ($4-2170.0459)/auTOcm_inv " " ($5-4140.0022)/auTOcm_inv " " ($6-4391.0669)/auTOcm_inv}'`
 
 echo $0 $err
