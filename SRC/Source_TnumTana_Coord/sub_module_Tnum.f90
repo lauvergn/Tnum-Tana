@@ -243,7 +243,7 @@ MODULE mod_Tnum
           logical                    :: LaTeXForm         = .FALSE.
           logical                    :: VSCFForm          = .FALSE.
           logical                    :: FortranForm       = .FALSE.
-
+          integer                    :: KEOExportVersion  = 1 ! Podolski form
 
           logical                    :: f2f1_ana          = .FALSE.
 
@@ -702,6 +702,8 @@ MODULE mod_Tnum
 
       logical           :: Tana,Tana_Init_Only
       logical           :: MidasCppForm,MCTDHForm,LaTeXForm,VSCFForm,FortranForm
+      integer           :: KEOExportVersion
+
       integer           :: Compa_TanaTnum
 
       real (kind=Rkind) :: stepT,stepOp
@@ -727,7 +729,7 @@ MODULE mod_Tnum
                      Gdiago,Gcte,NonGcteRange,QMLib_G,                          &
                      GTaylor_Order,vepTaylor_Order,                             &
                      MidasCppForm,MCTDHForm,LaTeXForm,                          &
-                     VSCFForm,FortranForm,                                      &
+                     VSCFForm,FortranForm,KEOExportVersion,                     &
                      KEO_TalyorOFQinact2n,f2f1_ana,                             &
                      charge,multiplicity,                                       &
                      header,footer,file_name_OTF,file_name_fchk,                &
@@ -774,6 +776,7 @@ MODULE mod_Tnum
       LaTeXForm            = para_Tnum%LaTeXForm      ! so that it is possible to change the default
       VSCFForm             = para_Tnum%VSCFForm       ! so that it is possible to change the default
       FortranForm          = para_Tnum%FortranForm
+      KEOExportVersion     = para_Tnum%KEOExportVersion
 
       nrho                 = 1
       vep_type             = -1
@@ -932,6 +935,18 @@ MODULE mod_Tnum
       para_Tnum%VSCFForm             = (Tana .AND. VSCFForm)
       para_Tnum%MidasCppForm         = (Tana .AND. MidasCppForm)
       para_Tnum%FortranForm          = (Tana .AND. FortranForm)
+      IF (Tana) THEN
+        IF (KEOExportVersion < 1 .OR. KEOExportVersion > 2) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Wrong KEOExportVersion value'
+          write(out_unit,*) ' KEOExportVersion',KEOExportVersion
+          write(out_unit,*) ' It should be 1 or 2'
+          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+        END IF
+        para_Tnum%KEOExportVersion = KEOExportVersion
+      ELSE
+        para_Tnum%KEOExportVersion = 0
+      END IF
 
       para_Tnum%KEO_TalyorOFQinact2n = KEO_TalyorOFQinact2n
       para_Tnum%f2f1_ana             = f2f1_ana

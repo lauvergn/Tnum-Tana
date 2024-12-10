@@ -328,11 +328,12 @@ MODULE mod_Tana_keo
 
       write(out_unit,*) '================================================='
       write(out_unit,*) ' output of the analytical  KEO'
-      write(out_unit,*) ' MCTDH    Form: ',para_Tnum%MCTDHForm
-      write(out_unit,*) ' VSCF     Form: ',para_Tnum%VSCFForm
-      write(out_unit,*) ' MidasCpp Form: ',para_Tnum%MidasCppForm
-      write(out_unit,*) ' LaTex    Form: ',para_Tnum%LaTexForm
-      write(out_unit,*) ' Fortran  Form: ',para_Tnum%FortranForm
+      write(out_unit,*) ' MCTDH    Form:    ',para_Tnum%MCTDHForm
+      write(out_unit,*) ' VSCF     Form:    ',para_Tnum%VSCFForm
+      write(out_unit,*) ' MidasCpp Form:    ',para_Tnum%MidasCppForm
+      write(out_unit,*) ' LaTex    Form:    ',para_Tnum%LaTexForm
+      write(out_unit,*) ' Fortran  Form:    ',para_Tnum%FortranForm
+      write(out_unit,*) ' KEOExportVersion: ',para_Tnum%KEOExportVersion
       write(out_unit,*) '================================================='
       flush(out_unit)
 
@@ -341,15 +342,38 @@ MODULE mod_Tana_keo
       IF (para_Tnum%MCTDHForm) THEN
 
         CALL file_open2(name_file='keo.op',iunit=io_mctdh)
-        CALL write_keo_mctdh_form(mole,TWOxKEO,io_mctdh,       &
-                              tab_Qname, para_Tnum%JJ)
+        SELECT CASE (para_Tnum%KEOExportVersion)
+        CASE (1)
+          CALL write_keo_mctdh_form(mole,TWOxKEO,io_mctdh,tab_Qname,para_Tnum%JJ)
+        CASE (2)
+          CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,io_mctdh,tab_Qname,para_Tnum%JJ)
+        CASE Default
+          write(out_unit,*) ' ERROR in ',routine_name
+          write(out_unit,*) ' Wrong KEOExportVersion value'
+          write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
+          write(out_unit,*) ' It should be 1 or 2'
+          write(out_unit,*) ' It is not possible. Check the Fortran!'
+          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+        END SELECT
+
         close(io_mctdh) ! CALL file_close cannot be used
 
         write(out_unit,*) '================================================='
         write(out_unit,*) "output MCTDH format"
         write(out_unit,*) '-------------------------------------------------'
-        !call write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
-        call write_keo_mctdh_form(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        SELECT CASE (para_Tnum%KEOExportVersion)
+        CASE (1)
+          CALL write_keo_mctdh_form(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        CASE (2)
+          CALL write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+        CASE Default
+          write(out_unit,*) ' ERROR in ',routine_name
+          write(out_unit,*) ' Wrong KEOExportVersion value'
+          write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
+          write(out_unit,*) ' It should be 1 or 2'
+          write(out_unit,*) ' It is not possible. Check the Fortran!'
+          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+        END SELECT
 
         write(out_unit,*) '================================================='
       END IF
