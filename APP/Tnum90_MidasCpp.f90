@@ -37,14 +37,14 @@ PROGRAM Tnum90_MidasCpp
   USE TnumTana_system_m
   USE mod_dnSVM
   USE mod_Constant
-  USE mod_Coord_KEO
+  USE mod_Coord_KEO, Tnum_t => Tnum
   USE mod_PrimOp
   IMPLICIT NONE
 
 !     - parameters for para_Tnum -----------------------
   TYPE (constant)  :: const_phys
   TYPE (CoordType) :: mole
-  TYPE (Tnum)      :: para_Tnum
+  TYPE (Tnum_t)    :: para_Tnum
   TYPE (PrimOp_t)  :: PrimOp
 
   TYPE(Type_dnMat) :: dnGG
@@ -57,16 +57,13 @@ PROGRAM Tnum90_MidasCpp
   real (kind=Rkind), allocatable :: Qxyz(:)
 !     - working parameters ------------------------------------------
   integer           :: i,j,n,ndim
-  real (kind=Rkind), parameter :: epsi_G = ONETENTH**10
+  real (kind=Rkind), parameter :: epsi_G   = ONETENTH**10
   real (kind=Rkind), parameter :: epsi_Vep = ONETENTH**10
-  logical           :: Tana_FROM_para_Tnum,Gcenter,Tana,Taylor
+  logical           :: Tana_FROM_para_Tnum,Gcenter,Tana,Taylor,Tnum
   integer           :: vepTaylor_Order,GTaylor_Order
-
-
   !     ------------------------------------------------------
 
-
-  NAMELIST /NewQ/ Gcenter,Tana,Taylor,vepTaylor_Order,GTaylor_Order
+  NAMELIST /NewQ/ Gcenter,Tnum,Tana,Taylor,vepTaylor_Order,GTaylor_Order
 
 
 !     - working parameters ------------------------------------------
@@ -75,6 +72,11 @@ PROGRAM Tnum90_MidasCpp
 
 !===========================================================
 !===========================================================
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) " Tnum-Tana initialization"
+  write(out_unit,*) "======================================"
   !para_mem%mem_debug = .TRUE.
   CALL TnumTana_version(.TRUE.)
 
@@ -121,13 +123,18 @@ PROGRAM Tnum90_MidasCpp
   CALL Write_XYZ(Qxyz,mole)
 !-------------------------------------------------
 !-------------------------------------------------
-
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "END Tnum-Tana initialization"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
 
 !-------------------------------------------------
 !  Evaluation of Qact TO xyz (Once)
 !-------------------------------------------------
   Gcenter         = .FALSE.
   Tana            = .FALSE.
+  Tnum            = .FALSE.
   Taylor          = .FALSE.
   vepTaylor_Order = 2
   GTaylor_Order   = 2
@@ -136,11 +143,13 @@ PROGRAM Tnum90_MidasCpp
     read(in_unit,*,IOSTAT=err_io) Qact
     IF (err_io == 0) THEN
       CALL sub_QactTOd0x(Qxyz,Qact,mole,Gcenter=Gcenter)
+      write(out_unit,*) ' Qact',Qact
       CALL Write_XYZ(Qxyz,mole,unit='bohr',io_unit=out_unit)
      END IF
   ELSE
      Tana   = .TRUE.
      Taylor = .TRUE.
+     Tnum   = .TRUE.
   END IF
   vepTaylor_Order = min(2,vepTaylor_Order)
   GTaylor_Order   = min(2,GTaylor_Order)
@@ -148,21 +157,12 @@ PROGRAM Tnum90_MidasCpp
 !-------------------------------------------------
 
 !-------------------------------------------------
-  IF (Tana .AND. Tana_FROM_para_Tnum) THEN
-    para_Tnum%Tana = Tana_FROM_para_Tnum
+  IF (Tnum) THEN
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
-    CALL time_perso('Tana')
-
-    CALL compute_analytical_KEO(TWOxKEO,mole,para_Tnum,Qact)
-    IF (print_level > 2) CALL write_op(TWOxKEO,header=.TRUE.)
-    IF (print_level > 2) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-
-    CALL comparison_G_FROM_Tnum_Tana(para_Tnum%ExpandTWOxKEO,mole,para_Tnum,Qact)
-
-    CALL delete_op(TWOxKEO)
+    CALL time_perso('Tnum')
 
     ! calculation of the G matrix. Then print the diagonal elements
     CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderiv=0)
@@ -170,14 +170,15 @@ PROGRAM Tnum90_MidasCpp
     para_Tnum%WriteT    = .FALSE.
     CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
 
-    write(out_unit,*) 'Coordinate, value, GQQ'
-    DO i=1,mole%nb_act
-      write(out_unit,*) 'Q' // TO_string(i-1),Qact(i),dnGG%d0(i,i)
-    END DO
+    write(out_unit,*) ' dnG at the curent geometry'
+    write(out_unit,*) ' Qact',Qact
+    write(out_unit,*) ' dnG'
+    CALL Write_dnSVM(dnGG,0)
+
 
     CALL dealloc_dnSVM(dnGG)
 
-    CALL time_perso('Tana')
+    CALL time_perso('Tnum')
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
@@ -185,13 +186,54 @@ PROGRAM Tnum90_MidasCpp
  END IF
 !-------------------------------------------------
 
+ !-------------------------------------------------
+ IF (Tana .AND. Tana_FROM_para_Tnum) THEN
+  para_Tnum%Tana = Tana_FROM_para_Tnum
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  CALL time_perso('Tana')
+  write(out_unit,*) ' Tana at the curent geometry'
+  write(out_unit,*) ' Qact',Qact
+  CALL compute_analytical_KEO(TWOxKEO,mole,para_Tnum,Qact)
+  IF (print_level > 2) CALL write_op(TWOxKEO,header=.TRUE.)
+  IF (print_level > 2) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
+
+  CALL comparison_G_FROM_Tnum_Tana(para_Tnum%ExpandTWOxKEO,mole,para_Tnum,Qact)
+
+  CALL delete_op(TWOxKEO)
+
+  ! calculation of the G matrix. Then print the diagonal elements
+  CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderiv=0)
+
+  para_Tnum%WriteT    = .FALSE.
+  CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
+
+  write(out_unit,*) 'Coordinate, value, GQQ'
+  DO i=1,mole%nb_act
+    write(out_unit,*) 'Q' // TO_string(i-1),Qact(i),dnGG%d0(i,i)
+  END DO
+
+  CALL dealloc_dnSVM(dnGG)
+
+  CALL time_perso('Tana')
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+  write(out_unit,*) "======================================"
+END IF
+!-------------------------------------------------
+
+
   IF (Taylor) THEN
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     CALL time_perso('Taylor expansion of G and Vep')
-
+    write(out_unit,*) ' Taylor expansion at the curent geometry'
+    write(out_unit,*) ' Qact',Qact
     IF (GTaylor_Order >= 0) THEN
       ! calculation of the G matrix. Then print the diagonal elements
       para_Tnum%WriteT    = .FALSE.
@@ -199,7 +241,6 @@ PROGRAM Tnum90_MidasCpp
 
       CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=GTaylor_Order)
       CALL export_Taylor_dnG(dnGG,Qact,epsi_G,file_name='Taylor_G.keo')
-      !CALL export_Taylor_dnG(dnGG,Qact,ZERO,file_name='Taylor_G.keo')
 
       CALL dealloc_dnSVM(dnGG)
     END IF
