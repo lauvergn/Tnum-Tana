@@ -26,6 +26,8 @@ For instance, main executables can be built:
 make Tnum
 # Example of Fortran driver:
 make Tnum_FDriver
+# another smplier example of Fortran driver (cartesian to curvilinear transformation):
+make X2Q
 # Example of c driver:
 make Tnum_cDriver
 # Special main Tnum/Tana executable for MCTDH:
@@ -82,6 +84,9 @@ To run some tests:
 ```bash
 fpm run cDriver --< TESTS/exa_TnumDriver/dat_driver0
 fpm run cDriver --< TESTS/exa_TnumDriver/dat_driver1
+
+fpm run X2Q --< TESTS/exa_TnumDriver/dat_driver0
+fpm run X2Q --< TESTS/exa_TnumDriver/dat_driver1
 
 fpm run FDriver -- -i TESTS/exa_TnumDriver/dat_driver0
 fpm run FDriver -- -i TESTS/exa_TnumDriver/dat_driver1

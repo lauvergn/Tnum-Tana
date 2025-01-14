@@ -36,6 +36,11 @@ source-dir="APP"
 main="Main_TnumTana_FDriver.f90"
 
 [[executable]]
+name="X2Q"
+source-dir="APP"
+main="Main_X2Q.f90"
+
+[[executable]]
 name="TEST"
 source-dir="APP"
 main="TEST_TnumTana.f90"
@@ -61,7 +66,7 @@ QuantumModelLib = { path = "Ext_lib/QuantumModelLib" }
 nDindex         = { path = "Ext_lib/nDindex" }
 EVRT_dnSVM      = { path = "Ext_lib/EVRT_dnSVM" }
 FOR_EVRT        = { path = "Ext_lib/FOR_EVRT" }
-openmp          = "*"
+#openmp          = "*"
 
 [preprocess]
 cpp.macros = [

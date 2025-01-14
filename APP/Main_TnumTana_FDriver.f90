@@ -58,8 +58,7 @@ PROGRAM Main_TnumTana_FDriver
 
   CALL ReadArguments(InputName,OutputName,X2Q,nb_eval)
 
-  open(newunit=ResUnit,file=OutputName)
-  open(newunit=InputUnit,file=InputName)
+ 
 
   CALL Init_InputUnit_Driver(InputUnit)
   CALL Init_OutputUnit_Driver(ResUnit)
