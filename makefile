@@ -259,7 +259,7 @@ all: lib Tnum-dist Tnum_MCTDH Tnum_MidasCpp Tnum_FDriver Tnum_cDriver X2Q
 #===============================================
 #
 .PHONY: ut UT_Tnum ut_Tnum UT_tnum ut_tnum
-ut UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum
+ut UT_Tnum ut_Tnum UT_tnum ut_tnum: Tnum Tnum_MidasCpp
 	@echo "---------------------------------------"
 	@echo "Unitary tests for the Tnum"
 	@cd TESTS ; ./run_tests_WithoutComp

@@ -8,6 +8,7 @@ obj/*
 sub_pot/sub_system.f
 sub_pot/sub_system.f90
 res
+TESTS/Taylor*.keo
 TESTS/*log
 TESTS/err_Tnum
 TESTS/res*
