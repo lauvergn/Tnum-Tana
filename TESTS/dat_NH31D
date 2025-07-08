@@ -1,0 +1,31 @@
+
+here=`pwd`
+DIR_EVRT=$here/..
+
+cd $DIR_EVRT
+ make tnum-dist
+cd $here
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=2  /
+ &Coord_transfo name_transfo='zmat' nat=4 /
+O
+H 1
+H 1 2
+H 1 2 3
+
+ &Coord_transfo name_transfo='active' /
+100 100 100   100 100 1
+
+ &minimum  /
+R 1.01126 angs
+R 1.01126 angs
+th 106.09358 °
+R 1.01126 angs
+th 106.09358 °
+D  180. °
+D  112.55201 °
+
+ &calculation calc_Tnum=f calc_gG=t nderivGg=0 /
+**
+
