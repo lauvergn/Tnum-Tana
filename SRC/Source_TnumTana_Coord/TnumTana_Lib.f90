@@ -783,6 +783,7 @@ SUBROUTINE get_GG_TnumTanaDriver_FOR_c(Qact,nb_act,GG,ndimG) BIND(C, name="get_G
 
 
   !- local parameters for para_Tnum -----------------------
+  integer                :: nb_act_loc,ndimG_loc ! we need that if int=8 is used at the compilation
   real (kind=Rkind)      :: Qact_loc(nb_act)
   real (kind=Rkind)      :: GG_loc(ndimG,ndimG)
   logical                :: def_loc = .TRUE.
@@ -790,8 +791,10 @@ SUBROUTINE get_GG_TnumTanaDriver_FOR_c(Qact,nb_act,GG,ndimG) BIND(C, name="get_G
 
   character (len=*), parameter :: name_sub='get_GG_TnumTanaDriver_FOR_c'
 
+  nb_act_loc   = nb_act ! convertion from C_INT to default fortran integer
+  ndimG_loc    = ndimG  ! convertion from C_INT to default fortran integer
   Qact_loc(:)  = Qact
-  CALL Tnum_get_GG(Qact_loc,nb_act,GG_loc,ndimG,def_loc)
+  CALL Tnum_get_GG(Qact_loc,nb_act_loc,GG_loc,ndimG_loc,def_loc)
   GG(:,:)      = GG_loc
 
 END SUBROUTINE get_GG_TnumTanaDriver_FOR_c
