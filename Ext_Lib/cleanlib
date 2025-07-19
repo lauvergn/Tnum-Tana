@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #remove the links
-rm -f QDUtilLib AD_dnSVM ConstPhys QuantumModelLib nDindex EVRT_dnSVM FOR_EVRT
+rm -fr QDUtilLib AD_dnSVM ConstPhys QuantumModelLib nDindex EVRT_dnSVM FOR_EVRT
 
 for dirlib in *_loc
 do
