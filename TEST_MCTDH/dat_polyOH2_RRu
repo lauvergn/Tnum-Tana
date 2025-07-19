@@ -1,6 +1,7 @@
-
 here=`pwd`
 DIR_EVRT=$here/..
+
+./comp
 
 $DIR_EVRT/Tnum90_MCTDH.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3  Tana=t /
@@ -15,8 +16,8 @@ $DIR_EVRT/Tnum90_MCTDH.exe << ** > res
 1 1 1
 
  &minimum  /
-ROH 1. angs
-ROH 1. angs
+ROH1 1. angs
+ROH2 1. angs
 cosA   0.5
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 /

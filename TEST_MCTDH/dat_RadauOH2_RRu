@@ -2,6 +2,9 @@
 here=`pwd`
 DIR_EVRT=$here/..
 
+
+./comp
+
 $DIR_EVRT/Tnum90_MCTDH.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t FortranForm=t MCTDHForm=t /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=1 inTOout=f /
