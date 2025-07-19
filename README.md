@@ -17,7 +17,7 @@ The exactness is guaranteed by the automatic differentiation procedures used for
 
 ### 1a) Installation with a makefile
 
-The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran or ifort need to be recent.
+The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran (working with gfortran-11 and above) or ifort need to be recent.
 
 For instance, main executables can be built:
 
