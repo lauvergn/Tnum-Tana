@@ -314,16 +314,19 @@ SRC/sub_pot/sub_system.$(extf): SRC_NotUsed/sub_pot/sub_system_save.$(extf)
 clean:
 	rm -f  $(OBJ_DIR)/*.o
 	rm -f *.log
-#	rm -f SRC/sub_pot/sub_system.f SRC/sub_pot/sub_system.f90
 	rm -f TEST*.x
 	@echo "  done cleaning"
-
+#
 cleanall : clean clean_extlib
 	rm -fr obj/* build
 	rm -f lib*.a
 	rm -f *.exe
 	cd TESTS ; ./clean
 	@echo "  done all cleaning"
+#
+cleanlocextlib: cleanall
+	cd $(MAIN_path)/Ext_Lib ; rm -rf *_loc
+	@echo "  done remove all local library directories (..._loc)"
 #===============================================
 #================ zip and copy the directory ===
 ExtLibSAVEDIR := /Users/lauvergn/git/Ext_Lib
