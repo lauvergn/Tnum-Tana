@@ -1268,7 +1268,7 @@ module mod_Tana_Sum_OpnD
      CALL get_F1_sum_nd_times_F2_nd_to_Fres_sum_nd(F1_sum_nd,F2_nd,Fres_sum_nd)
 
    END FUNCTION F1_sum_nd_times_F2_nd_to_Fres_sum_nd
-   FUNCTION F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd(F1_sum_nd,F2_sum_nd) RESULT(Fres_sum_nd)
+  FUNCTION F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd(F1_sum_nd,F2_sum_nd) RESULT(Fres_sum_nd)
      type(sum_opnd),       intent(in)       :: F2_sum_nd
      type(sum_opnd),       intent(in)       :: F1_sum_nd
      type(sum_opnd)   :: Fres_sum_nd
@@ -1277,66 +1277,73 @@ module mod_Tana_Sum_OpnD
 
      CALL get_F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd(F1_sum_nd,F2_sum_nd,Fres_sum_nd)
 
-   END FUNCTION F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd
- RECURSIVE SUBROUTINE Simplify_Sum_OpnD(SumOpnD,Expand_Sin2)
+  END FUNCTION F1_sum_nd_times_F2_sum_nd_to_Fres_sum_nd
+  RECURSIVE SUBROUTINE Simplify_Sum_OpnD(SumOpnD,Expand_Sin2)
 
-   type(sum_opnd),       intent(inout) :: SumOpnD
-   logical, optional                   :: Expand_Sin2
+    type(sum_opnd),       intent(inout) :: SumOpnD
+    logical, optional                   :: Expand_Sin2
 
-   integer                    :: i,j
-   logical                    :: Expand_Sin2_loc
-   type(sum_opnd)             :: Expand_SumOpnD
+    integer                    :: i,j
+    logical                    :: Expand_Sin2_loc
+    type(sum_opnd)             :: Expand_SumOpnD
 
-   !logical, parameter           :: debug=.TRUE.
-   logical, parameter           :: debug=.FALSE.
-   character (len=*), parameter :: routine_name="Simplify_Sum_OpnD"
+    type(opnd), allocatable    :: Temp_SumOpnD(:) ! it will contain a sum of OpnD
 
-   IF (debug) THEN
-       write(out_unit,*) 'BEGINNING ',routine_name
-       write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
-       write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
-       flush(out_unit)
-   END IF
+    !logical, parameter           :: debug=.TRUE.
+    logical, parameter           :: debug=.FALSE.
+    character (len=*), parameter :: routine_name="Simplify_Sum_OpnD"
 
-   IF (present(Expand_Sin2)) THEN
-     Expand_Sin2_loc = Expand_Sin2
-   ELSE
-     Expand_Sin2_loc = .FALSE.
-   END IF
+    IF (debug) THEN
+      write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
+      write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
+      flush(out_unit)
+      write(out_unit,*) 'BEGINNING ',routine_name
+    END IF
 
-   DO i = 1, size(SumOpnD%sum_prod_op1d)
-     SumOpnD%Cn(i) = SumOpnD%Cn(i) * get_coeff_OF_OpnD(SumOpnD%sum_prod_op1d(i))
-     CALL Set_coeff_OF_OpnD_TO_ONE(SumOpnD%sum_prod_op1d(i))
-   END DO
+    IF (present(Expand_Sin2)) THEN
+      Expand_Sin2_loc = Expand_Sin2
+    ELSE
+      Expand_Sin2_loc = .FALSE.
+    END IF
 
-   CALL remove_opzero_in_F_sum_nd( SumOpnD,routine_name)
+    DO i = 1, size(SumOpnD%sum_prod_op1d)
+      SumOpnD%Cn(i) = SumOpnD%Cn(i) * get_coeff_OF_OpnD(SumOpnD%sum_prod_op1d(i))
+      CALL Set_coeff_OF_OpnD_TO_ONE(SumOpnD%sum_prod_op1d(i))
+    END DO
 
-   DO i = 1,size(SumOpnD%sum_prod_op1d)
-   DO j = i+1,size(SumOpnD%sum_prod_op1d)
-     IF (compare_op(SumOpnD%sum_prod_op1d(i),SumOpnD%sum_prod_op1d(j))) THEN
+    CALL remove_opzero_in_F_sum_nd( SumOpnD,routine_name)
+    DO i = 1,size(SumOpnD%sum_prod_op1d)
+    DO j = i+1,size(SumOpnD%sum_prod_op1d)
+      IF (compare_op(SumOpnD%sum_prod_op1d(i),SumOpnD%sum_prod_op1d(j))) THEN
         SumOpnD%Cn(i) = SumOpnD%Cn(i) + SumOpnD%Cn(j)
         SumOpnD%sum_prod_op1d(j) = czero
         SumOpnD%Cn(j)            = CZERO
-     END IF
-   END DO
-   END DO
+      END IF
+    END DO
+    END DO
+    CALL remove_opzero_in_F_sum_nd(SumOpnD,routine_name)
 
-   CALL remove_opzero_in_F_sum_nd(SumOpnD,routine_name)
+    ! For each OpnD (sum_prod_op1d) make an expansion and check if only one term is obtained
+    DO i = 1,size(SumOpnD%sum_prod_op1d)
+      CALL Expand_OpnD_TO_SumOpnD(SumOpnD%sum_prod_op1d(i),Temp_SumOpnD)
+      IF (size(Temp_SumOpnD) == 1) SumOpnD%sum_prod_op1d(i) = Temp_SumOpnD(1)
+      CALL dealloc_NParray(Temp_SumOpnD,name_var='Temp_SumOpnD',name_sub=routine_name)
+    END DO
 
-   IF (Expand_Sin2_loc) THEN
-     CALL Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD(SumOpnD,Expand_SumOpnD)
-     SumOpnD = Expand_SumOpnD
-     CALL delete_op(Expand_SumOpnD)
-   END IF
+    IF (Expand_Sin2_loc) THEN
+      CALL Expand_Sin2_IN_Sum_OpnD_TO_Sum_OpnD(SumOpnD,Expand_SumOpnD)
+      SumOpnD = Expand_SumOpnD
+      CALL delete_op(Expand_SumOpnD)
+    END IF
 
-   IF (debug) THEN
-       write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
-       write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
-       write(out_unit,*) 'END ',routine_name
-       flush(out_unit)
-   END IF
+    IF (debug) THEN
+      write(out_unit,*) 'size: SumOpnD',size(SumOpnD%sum_prod_op1d)
+      write(out_unit,*) 'END ',routine_name
+      flush(out_unit)
+      write(out_unit,*) 'allocated: SumOpnD',allocated(SumOpnD%sum_prod_op1d)
+    END IF
 
- end subroutine Simplify_Sum_OpnD
+  end subroutine Simplify_Sum_OpnD
 
  !! @description: Simplify a sum_op_nd operator by removind all zero operators
  !! @param:    F_sum_nd     The 1d operator (type: op1d).

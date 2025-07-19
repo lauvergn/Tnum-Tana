@@ -538,22 +538,30 @@
    !! @param:       mole          The generalized variable (type: CoordType).
    !! @param:       TWOxKEO       The 2*KEO operator
    !! @param:       i_out         The id of the output file
-   SUBROUTINE write_keo_Latexform(mole, TWOxKEO, i_out, tab_Qname, param_JJ)
-   IMPLICIT NONE
+  SUBROUTINE write_keo_Latexform(mole, TWOxKEO, i_out, tab_VarName, param_JJ)
+    USE VarName_Tana_m
+    IMPLICIT NONE
 
-     type (CoordType),            intent(in)                :: mole
-     type(sum_opnd),            intent(in)                :: TWOxKEO
-     integer,                   intent(in)                :: i_out
-     character(len=*),          intent(in)                :: tab_Qname(:)
-     integer,                   intent(in)                :: param_JJ
+    type (CoordType),          intent(in)                :: mole
+    type(sum_opnd),            intent(in)                :: TWOxKEO
+    integer,                   intent(in)                :: i_out
+    TYPE (VarName_t),          intent(in)                :: tab_VarName(:)
+    integer,                   intent(in)                :: param_JJ
 
-     character (len = :), allocatable           :: FnDname
-     integer                                    :: i
-     integer                                    :: pq1,pq2,nb_pq,nb_J,nb_L
-     complex(kind=Rkind)                        :: Cn_new
-     real(kind=Rkind)                           :: Cn
-     character (len = *), parameter :: routine_name='write_keo_Latexform'
 
+    character(len=Name_len), allocatable       :: tab_Qname(:)
+    character (len = :), allocatable           :: FnDname
+    integer                                    :: i
+    integer                                    :: pq1,pq2,nb_pq,nb_J,nb_L
+    complex(kind=Rkind)                        :: Cn_new
+    real(kind=Rkind)                           :: Cn
+    character (len = *), parameter :: routine_name='write_keo_Latexform'
+
+
+    allocate(tab_Qname(size(tab_VarName)))
+    DO i=1,size(tab_VarName)
+      tab_Qname(i) = Latex_VarName(tab_VarName(i))
+    END DO
 
      write(i_out, '(A)') "\documentclass[10pt]{article}"
      write(i_out, '(A)') "\usepackage[usenames]{color}"
@@ -573,14 +581,19 @@
 
        IF (nb_J /= 0 .OR. nb_pq == 0) CYCLE
 
+        write(out_unit,*) '-----------------------------------------'
+        write(out_unit,*) 'term: ',i,TWOxKEO%Cn(i)
+        CALL write_op(TWOxKEO%sum_prod_op1d(i))
+        write(out_unit,*) '-----------------------------------------'
 
-       CALL Export_Latex_Opnd(TWOxKEO%sum_prod_op1d(i),tab_Qname,FnDname)
+        CALL Export_Latex_Opnd(TWOxKEO%sum_prod_op1d(i),tab_Qname,FnDname)
 
       ! divide by 2 because we have 2xKEO
        Cn_new = TWOxKEO%Cn(i) * get_coeff_OF_OpnD(TWOxKEO%sum_prod_op1d(i)) * CHALF
 
        write(i_out, '(A)') '     & ' // (get_Coef_name(Cn_new,With_format=.TRUE.) // FnDname) // ' \\'
 
+       write(6,*) 'coucou: Op term',i,'coef',Cn_new,get_Coef_name(Cn_new,With_format=.TRUE.)
      END DO
 
      !  vep
@@ -660,8 +673,8 @@
 
      write(i_out, *) "\end{document}"
 
-
-     IF (allocated(FnDname)) deallocate(FnDname)
+     IF (allocated(tab_Qname)) deallocate(tab_Qname)
+     IF (allocated(FnDname))   deallocate(FnDname)
 
    END SUBROUTINE write_keo_Latexform
 
@@ -739,60 +752,67 @@
 
 
 
-   END SUBROUTINE read_keo_mctdh_form
+  END SUBROUTINE read_keo_mctdh_form
    !! @description: Write the total KEO in a MCTDH format,
    !! @param:       mole          The generalized variable (type: CoordType).
    !! @param:       keo           The KEO operator
    !! @param:       i_out         The id of the output file
-   SUBROUTINE write_keo_mctdh_form(mole, keo, i_out, tab_Qname, param_JJ, title)
-   IMPLICIT NONE
+  SUBROUTINE write_keo_mctdh_form(mole, keo, i_out, tab_VarName, param_JJ, title)
+    USE VarName_Tana_m
+    IMPLICIT NONE
 
-     type (CoordType)                                     :: mole
-     type(sum_opnd),            intent(in)                :: keo
-     integer,                   intent(in)                :: i_out
-     character(len=*),          intent(in)                :: tab_Qname(:)
-     integer,                   intent(in)                :: param_JJ
-     character(len=*), optional,intent(inout)             :: title
+    type (CoordType)                                     :: mole
+    type(sum_opnd),            intent(in)                :: keo
+    integer,                   intent(in)                :: i_out
+    TYPE (VarName_t),          intent(in)                :: tab_VarName(:)
+    integer,                   intent(in)                :: param_JJ
+    character(len=*), optional,intent(inout)             :: title
 
-     type(sum_opnd)                             :: TWOxKEO_MCTDH
-     character (len = :), allocatable           :: FnDname
-     integer                                    :: i,ie
-     integer                                    :: pq1,pq2,nb_pq,nb_J,nb_L
-     complex(kind=Rkind)                        :: Cn_new
-     real(kind=Rkind)                           :: Cn
+    character(len=Name_len), allocatable       :: tab_Qname(:)
+    type(sum_opnd)                             :: TWOxKEO_MCTDH
+    character (len = :), allocatable           :: FnDname
+    integer                                    :: i,ie
+    integer                                    :: pq1,pq2,nb_pq,nb_J,nb_L
+    complex(kind=Rkind)                        :: Cn_new
+    real(kind=Rkind)                           :: Cn
 
-     integer                                    :: error
-     integer                                    :: j, j1, k, l, m, n
-     integer                                    :: ndim_sum, idf
-     integer                                    :: ndim_nd
-     integer                                    :: ndim_1d
-     integer                                    :: i_qsym, alfa
-     real(kind=Rkind)                           :: coeff
-     character (len = Name_longlen)             :: op_name_1d
-     character (len = Name_longlen)             :: op_name_tmp
-     character (len = Name_longlen)             :: op_name_J
-     character (len = 10), allocatable          :: C(:)
-     logical, allocatable                       :: l_op_out(:)
-     logical, allocatable                       :: l_JJ(:)
-     logical, allocatable                       :: l_qJ(:)
-     logical, allocatable                       :: l_Jz(:)
-     logical, allocatable                       :: l_Jy(:)
-     integer, allocatable                       :: list(:)
-     logical                                    :: l_qact
-     logical                                    :: op_JiJj
+    integer                                    :: error
+    integer                                    :: j, j1, k, l, m, n
+    integer                                    :: ndim_sum, idf
+    integer                                    :: ndim_nd
+    integer                                    :: ndim_1d
+    integer                                    :: i_qsym, alfa
+    real(kind=Rkind)                           :: coeff
+    character (len = Name_longlen)             :: op_name_1d
+    character (len = Name_longlen)             :: op_name_tmp
+    character (len = Name_longlen)             :: op_name_J
+    character (len = 10), allocatable          :: C(:)
+    logical, allocatable                       :: l_op_out(:)
+    logical, allocatable                       :: l_JJ(:)
+    logical, allocatable                       :: l_qJ(:)
+    logical, allocatable                       :: l_Jz(:)
+    logical, allocatable                       :: l_Jy(:)
+    integer, allocatable                       :: list(:)
+    logical                                    :: l_qact
+    logical                                    :: op_JiJj
 
-     logical, parameter :: debug = .FALSE.
-     !logical, parameter :: debug = .TRUE.
-     character (len = Name_longlen) :: routine_name='write_keo_mctdh_form'
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len = Name_longlen) :: routine_name='write_keo_mctdh_form'
 
-     IF (debug) THEN
+    IF (debug) THEN
        write(out_unit,*) 'BEGINNING ',routine_name
        flush(out_unit)
        CALL write_op(keo,header=.TRUE.)
        flush(out_unit)
-     END IF
+    END IF
 
-     TWOxKEO_MCTDH = keo
+    allocate(tab_Qname(size(tab_VarName)))
+    DO i=1,size(tab_VarName)
+       tab_Qname(i) = MCTDH_VarName(tab_VarName(i))
+    END DO
+
+    TWOxKEO_MCTDH = keo
 
      ndim_sum = size(TWOxKEO_MCTDH%sum_prod_op1d)
      write(i_out, '(A)')  "Op_DEFINE-SECTION"
@@ -818,6 +838,7 @@
     l_JJ = .false.
     l_Jz = .false.
     l_Jy = .false.
+
     if(param_JJ /=1) then
       do i = 1, ndim_sum
          do j = 1, size(TWOxKEO_MCTDH%sum_prod_op1d(i)%prod_op1d)
@@ -902,22 +923,28 @@
       n = 0
 
 
-     ! Deformation only (without the vep)
-     DO i = 1,size(TWOxKEO_MCTDH%sum_prod_op1d)
-       CALL get_pq_OF_OpnD(pq1,pq2,nb_pq,nb_J,nb_L,mole%nb_var,TWOxKEO_MCTDH%sum_prod_op1d(i))
-       !write(out_unit,*) 'pq1,pq2,nb_pq,nb_J,nb_L',pq1,pq2,nb_pq,nb_J,nb_L
+    ! Deformation only (without the vep)
+    DO i = 1,size(TWOxKEO_MCTDH%sum_prod_op1d)
+      CALL get_pq_OF_OpnD(pq1,pq2,nb_pq,nb_J,nb_L,mole%nb_var,TWOxKEO_MCTDH%sum_prod_op1d(i))
+      !write(out_unit,*) 'pq1,pq2,nb_pq,nb_J,nb_L',pq1,pq2,nb_pq,nb_J,nb_L
 
-       IF (nb_J > 0 .OR. nb_pq == 0) CYCLE
+      IF (nb_J > 0 .OR. nb_pq == 0) CYCLE
 
-       !Here the operators are modified, PQ => -idq and Jy => -iJy
-       CALL Export_MCTDH_Opnd(TWOxKEO_MCTDH%sum_prod_op1d(i),FnDname,mole%nb_act)
+      IF (debug) THEN
+        write(out_unit,*) '-----------------------------------------'
+        write(out_unit,*) 'term: ',i,TWOxKEO_MCTDH%Cn(i)
+        CALL write_op(TWOxKEO_MCTDH%sum_prod_op1d(i))
+        write(out_unit,*) '-----------------------------------------'
+      END IF
 
-       ! divide by 2 because we have 2xKEO
-       Cn_new = TWOxKEO_MCTDH%Cn(i) * get_coeff_OF_OpnD(TWOxKEO_MCTDH%sum_prod_op1d(i)) * CHALF
+      !Here the operators are modified, PQ => -idq and Jy => -iJy
+      CALL Export_MCTDH_Opnd(TWOxKEO_MCTDH%sum_prod_op1d(i),FnDname,mole%nb_act)
 
-       write(i_out, '(A)')  (get_Coef_name(Cn_new,MCTDH=.TRUE.) // FnDname)
+      ! divide by 2 because we have 2xKEO
+      Cn_new = TWOxKEO_MCTDH%Cn(i) * get_coeff_OF_OpnD(TWOxKEO_MCTDH%sum_prod_op1d(i)) * CHALF
+      write(i_out, '(A)')  (get_Coef_name(Cn_new,MCTDH=.TRUE.) // FnDname)
 
-     END DO
+    END DO
 
      ! only the vep
      write(i_out,*)
@@ -940,8 +967,8 @@
        write(i_out, '(A)')  (get_Coef_name(Cn_new,MCTDH=.TRUE.) // FnDname)
 
      END DO
-
-     IF (param_JJ > 0) THEN
+ 
+    IF (param_JJ > 0) THEN
      ! Rotation only Ji x Jj (i,j) = x,y,z
      write(i_out,*)
      write(i_out,*)
@@ -1009,13 +1036,12 @@
 
      write(i_out, *)
 
-
-
-     IF (allocated(FnDname))   deallocate(FnDname)
-
      write(i_out, '(A)')  "end-hamiltonian-section"
      write(i_out, '(A)')  "end-operator"
-      write(i_out, *)
+     write(i_out, *)
+
+     IF (allocated(FnDname))   deallocate(FnDname)
+     IF (allocated(tab_Qname)) deallocate(tab_Qname)
      deallocate(C)
      deallocate(l_op_out)
      deallocate(l_JJ)
@@ -1029,250 +1055,6 @@
      END IF
 
    END SUBROUTINE write_keo_mctdh_form
-   SUBROUTINE write_keo_mctdh_form_old(mole, keo, i_out, tab_Qname, param_JJ, title)
-   IMPLICIT NONE
-
-     type (CoordType)                                     :: mole
-     type(sum_opnd),            intent(in)                :: keo
-     integer,                   intent(in)                :: i_out
-     character(len=*),          intent(in)                :: tab_Qname(:)
-     integer,                   intent(in)                :: param_JJ
-     character(len=*), optional,intent(inout)             :: title
-
-     TYPE(Frac_t)                               :: alfa
-     integer                                    :: error
-     integer                                    :: i, j, j1, k, l, m, n
-     integer                                    :: ndim_sum, idf
-     integer                                    :: ndim_nd
-     integer                                    :: ndim_1d
-     integer                                    :: i_qsym
-     real(kind=Rkind)                           :: coeff,Cn
-     character (len = Name_longlen)             :: op_name_1d
-     character (len = Name_longlen)             :: op_name_tmp
-     character (len = Name_longlen)             :: op_name_J
-     character (len = 10), allocatable          :: C(:)
-     logical, allocatable                       :: l_op_out(:)
-     logical, allocatable                       :: l_JJ(:)
-     logical, allocatable                       :: l_qJ(:)
-     logical, allocatable                       :: l_Jz(:)
-     logical, allocatable                       :: l_Jy(:)
-     integer, allocatable                       :: list(:)
-     logical                                    :: l_qact
-     logical                                    :: op_JiJj
-     character (len = Name_longlen) :: routine_name='write_keo_mctdh_form_old'
-
-
-     ndim_sum = size(keo%sum_prod_op1d)
-     write(i_out, '(A)')  "Op_DEFINE-SECTION"
-     write(i_out, '(2x,A)')  "title"
-     if(present(title)) then
-       write(i_out, '(4x, A)')  trim(title)
-     else
-       write(i_out, '(4x, A)')  "No title"
-     endif
-     write(i_out, '(2x,A)')  "end-title"
-     write(i_out, '(A)')  "END-Op_DEFINE-SECTION"
-     write(i_out, *)
-     write(i_out, '(A)')  "PARAMETER-SECTION"
-     ndim_sum = size(keo%sum_prod_op1d)
-     allocate(l_op_out(ndim_sum))
-     allocate(l_JJ(ndim_sum))
-     allocate(l_qJ(ndim_sum))
-     allocate(l_Jz(ndim_sum))
-     allocate(l_Jy(ndim_sum))
-     allocate(list(size(mole%name_Qdyn)))
-    l_op_out = .true.
-    l_qJ = .false.
-    l_JJ = .false.
-    l_Jz = .false.
-    l_Jy = .false.
-    if(param_JJ /=1) then
-      do i = 1, ndim_sum
-         do j = 1, size(keo%sum_prod_op1d(i)%prod_op1d)
-           if(.not.l_op_out(i)) exit
-           do k = 1, size(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel)
-             if(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 9 &
-                &.or. keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 10 &
-                &.or. keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 11) then
-                l_op_out(i) = .false.
-                exit
-             end if
-           end do
-         end do
-       end do
-     else
-      do i = 1, ndim_sum
-         do j = 1, size(keo%sum_prod_op1d(i)%prod_op1d)
-           do k = 1, size(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel)
-             if(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 9 .or. &
-               keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 10 .or. &
-               keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 11) then
-                l_JJ(i) = .true.
-              if( keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 10) l_Jy(i) = .true.
-              !  l_Jy(i) = .true.
-              !else if( keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf == 11) then
-              !  l_JJ(i) = .true.
-              !  l_Jz(i) = .true.
-                do j1 = 1, size(keo%sum_prod_op1d(i)%prod_op1d)
-                  do l = 1, size(keo%sum_prod_op1d(i)%prod_op1d(j1)%prod_opel)
-                    if(keo%sum_prod_op1d(i)%prod_op1d(j1)%prod_opel(l)%idf == 4) then
-                      !&.and. .not.l_Jy(i)) then
-                      l_qJ(i) = .true.
-                      exit
-                    end if
-                  end do
-                end do
-             end if
-           end do
-           if(l_qJ(i)) then
-              l_JJ(i) = .false.
-             exit
-           end if
-         end do
-       end do
-     end if
-
-     n = 0
-     do i = 1, ndim_sum
-       if(L_op_out(i)) n = n+1
-     end do
-     allocate(C(n))
-     n = 0
-     do i = 1, ndim_sum
-       if(L_op_out(i)) then
-         n = n+1
-         C(n) = 'C_' // TO_string(n)
-       !  write(i_out, '(2x, A,1x,A 3x,(F20.14))') (C(n)),"=", -keo%Cn(n)*CHALF
-       end if
-     end do
-     write(i_out, *)
-     write(i_out, '(A)')  "END-PARAMETER-SECTION"
-      write(i_out, *)
-      write(i_out, *)
-     write(i_out, '(A)')  "HAMILTONIAN-SECTION"
-     write(i_out,'(A)',advance='no') &
-     '--------------------------------------------------------------------'
-     write(i_out,'(A)',advance='yes') &
-     '--------------------------------------------------------------------'
-     write(i_out,'(A)',advance='no') 'modes  '
-     do i=1,mole%nb_act
-         write(i_out,'(2A)',advance='no') ' | ', trim(tab_Qname(i))
-     end do
-     if(param_JJ ==1) then
-       write(i_out,'(2A)',advance='no') ' | k'  !Add k=Jz
-     end if
-     write(i_out,'(a)',advance='yes')
-     write(i_out,'(A)',advance='no') &
-     '--------------------------------------------------------------------'
-     write(i_out,'(A)',advance='yes') &
-     '--------------------------------------------------------------------'
-     write(i_out,'(a)',advance='yes')
-      n = 0
-
-
-     do i = 1,ndim_sum
-       Cn = real(keo%Cn(i),kind=Rkind)
-       IF (aimag(keo%Cn(i)) /= ZERO) STOP 'Cn is complex'
-
-       if(L_op_out(i)) then
-         n = n+1
-         ndim_nd = size(keo%sum_prod_op1d(i)%prod_op1d)
-       !  write(i_out, '( 2A)', advance='no') trim(C(n)), "      "
-         if(l_JJ(i) .and. .not.l_Jy(i)) then
-         !if(l_JJ(i)) then
-           write(i_out, '((F20.14), A)', advance='no') Cn*half, "      "
-           !write(*,*) 'i, L_JJ', i, l_JJ(i)
-           !write(*,*) 'i, L_qJ', i, l_qJ(i)
-         else
-           write(i_out, '((F20.14), A)', advance='no') -Cn*half, "      "
-         end if
-
-          op_name_J = "                 "
-          op_JiJj = .false.
-         do j = 1, ndim_nd
-           l_qact = .TRUE.
-           if(l_qact) then
-             ndim_1d = size(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel)
-             m = keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%indexq
-            ! m= list(m)          !DEBUG for MCTDH
-             idf = keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%idf
-             if (idf==10) then
-               m = m-1
-             else if (idf==11) then
-               m = m-2
-             end if
-             alfa = keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%alfa
-             if( .not.l_qJ(i) .and. idf>=9 .and. alfa==1) then
-               op_JiJj = .true.
-               op_name_tmp = trim(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%opname)
-               call export_mctdh_name(op_name_tmp, alfa)
-               if(len(trim(op_name_J)) /=0) then
-                 op_name_J = trim(op_name_J)//'*'//op_name_tmp
-               else
-                 op_name_J = op_name_tmp
-               end if
-               ! write(i_out, '((A, I1, 2x, A, A))', advance='no')  '|', m, &
-               ! &  trim(op_name_1d), "     "
-             else
-               op_name_tmp = trim(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%opname)
-               if(idf /=1) then
-                 if(l_qJ(i) .and. .not.l_Jy(i))then
-                   call export_mctdh_name(op_name_tmp, alfa, l_qJ(i))
-                 else
-                   call export_mctdh_name(op_name_tmp, alfa)
-                 end if
-                 op_name_1d = trim(op_name_tmp)
-               else
-                 op_name_1d = "              "
-               end if
-               do k = 2, ndim_1d
-                 idf = keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%idf
-                 op_name_tmp = trim(keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%opname)
-                 alfa = keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(k)%alfa
-                 if(idf /=1) then
-                   if(l_qJ(i) .and. .not.l_Jy(i))then
-                     call export_mctdh_name(op_name_tmp, alfa, l_qJ(i))
-                   else
-                     call export_mctdh_name(op_name_tmp, alfa)
-                   end if
-                   !call export_mctdh_name(op_name_tmp, alfa)
-                   op_name_1d = trim(op_name_1d)//'*'//op_name_tmp
-                 end if
-               end do
-               if(m < 10  .and. m >= 0) then
-                 write(i_out, '((A, I1, 2x, A, A))', advance='no')  '|', m, &
-                 &  trim(op_name_1d),"     "
-               else
-                 write(i_out, '((A, I2, 2x, A, A))', advance='no')  '|', m, &
-                 &  trim(op_name_1d),"     "
-               end if
-              end if
-             else if(ndim_nd ==1 .and. &
-               & keo%sum_prod_op1d(i)%prod_op1d(j)%prod_opel(1)%idf==1) then
-               op_name_1d = "1"
-               write(i_out, '((A, A, 2x, A, A))', advance='no')  '|', ' ', &
-               &  trim(op_name_1d),"     "
-             end if
-         end do
-         if(op_JiJj) then
-           write(i_out, '((A, I1, 2x, A, A))', advance='no')  '|', m, &
-           &  trim(op_name_J), "     "
-         end if
-         write(i_out, '(2A)', advance='yes')
-       end if
-     end do
-     write(i_out, '(A)')  "end-hamiltonian-section"
-     write(i_out, '(A)')  "end-operator"
-      write(i_out, *)
-     deallocate(C)
-     deallocate(l_op_out)
-     deallocate(l_JJ)
-     deallocate(l_qJ)
-     deallocate(list)
-
-   END SUBROUTINE write_keo_mctdh_form_old
-
-
    !! @description: Export local name of an elementary operator to
    !!               corresponding operator name in MCTDH,
    !! @param:       opname        The defined local name
