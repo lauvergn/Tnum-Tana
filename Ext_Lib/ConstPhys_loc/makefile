@@ -171,7 +171,7 @@ $(OBJ_DIR)/%.o: %.f90
 	$(FFC) $(FFLAGS) -o $@ -c $<
 #===============================================
 #================ cleaning =====================
-.PHONY: clean cleanall
+.PHONY: clean cleanall cleanlocextlib
 clean: clean_UT
 	rm -f $(OBJ_DIR)/*/*.o $(OBJ_DIR)/*.o
 	rm -f *.log TESTS/Xres_UT_PhysConst
@@ -185,6 +185,9 @@ cleanall : clean
 	cd $(MAIN_path)/Ext_Lib ; ./cleanlib
 	rm -f TESTS/res* TESTS/*log
 	@echo "  done all cleaning"
+cleanlocextlib: cleanall
+	cd $(MAIN_path)/Ext_Lib ; rm -rf *_loc
+	@echo "  done remove all local library directories (..._loc)"
 #===============================================
 #================ zip and copy the directory ===
 ExtLibSAVEDIR := /Users/lauvergn/git/Ext_Lib

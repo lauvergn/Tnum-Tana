@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #remove the links
-rm -f QDUtilLib AD_dnSVM EVRT_dnSVM nDindex 
+rm -fr QDUtilLib AD_dnSVM EVRT_dnSVM nDindex 
 
 for dirlib in *_loc
 do
