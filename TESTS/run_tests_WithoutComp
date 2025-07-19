@@ -2,9 +2,13 @@
 
 ./clean
 
+LIST=`ls dat*`
+
+#LIST=dat_jacobiOH2_RRu
+
 
 i=0
-for dat in dat*
+for dat in $LIST
 do
 #  echo Tnum test: $dat
   ./$dat | LANG=c awk -f err_ana.awk >> err_Tnum

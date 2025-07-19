@@ -2,10 +2,6 @@
 here=`pwd`
 DIR_PROG=$here/..
 
-cd $DIR_PROG
-#make tnum-dist
-cd $here
-
 $DIR_PROG/Tnum90.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3  /
  &Coord_transfo name_transfo='zmat' nat=3 /
