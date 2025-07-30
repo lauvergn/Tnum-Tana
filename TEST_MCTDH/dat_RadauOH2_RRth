@@ -5,7 +5,7 @@ DIR_EVRT=$here/..
 ./comp
 
 $DIR_EVRT/Tnum90_MCTDH.exe << ** > res
- &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t FortranForm=t MCTDHForm=t nrho=2 /
+ &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t Write_QMotions=t nrho=2 /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=1 inTOout=f /
 O  H  H   GOH1 (O H H)
 
@@ -21,7 +21,6 @@ O  H  H   GOH1 (O H H)
  &minimum  /
 ROH 1. angs
 ROH 1. angs
-cosA   0.5
+A   100. °
 
- &calculation calc_Tnum=f calc_gG=t nderivGg=0 /
 **

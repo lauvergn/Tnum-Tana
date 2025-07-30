@@ -8,18 +8,18 @@ DIR_EVRT=$here/..
 $DIR_EVRT/Tnum90_MCTDH.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t  Write_QMotions=t /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=1 inTOout=f /
-O  H  H 
+O  H  H   GOH1
 
- &dummyX tab_At_TO_X=1, 2,3 type_dummyX='Radau' /
+ &dummyX tab_At_TO_X=1, 2 type_dummyX='COM' /
 
  &Coord_transfo name_transfo='poly' cos_th=t /
-     &vector nb_vect=1 Frame=t iAtA=4 iAtB=2 / : R1 (O-H1)
-       &vector                 iAtA=4 iAtB=3 / : R2 (G-H2)
+     &vector nb_vect=1 Frame=t iAtA=1 iAtB=2 /
+       &vector                 iAtA=4 iAtB=3 / 
 
  &Coord_transfo name_transfo='active' /
 1 1 1
 
-&minimum read_xyz0=t read_xyz0_with_dummy=f unit='angs' /
+ &minimum read_xyz0=t read_xyz0_with_dummy=f unit='angs' /
       8     0.000000    0.000000    0.127160
       1     0.000000    0.758081   -0.508642
       1     0.000000   -0.758081   -0.508642

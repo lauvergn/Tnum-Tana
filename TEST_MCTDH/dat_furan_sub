@@ -1,0 +1,39 @@
+here=`pwd`
+DIR_EVRT=$here/..
+
+./comp
+
+$DIR_EVRT/Tnum90_MCTDH.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=3  Tana=t  Write_QMotions=t /
+ &Coord_transfo name_transfo='bunch_poly' nat=9 nb_X=3 inTOout=f /
+O C C C C H H H H
+
+&dummyX tab_At_TO_X=2,4 type_dummyX='COM' /
+&dummyX tab_At_TO_X=3,5 type_dummyX='COM' /
+&dummyX tab_At_TO_X=2,4,3,5 type_dummyX='COM' /
+
+
+ &Coord_transfo name_transfo='poly' cos_th=t /
+    &vector nb_vect=3      iAtA=10 iAtB=11 Frame=t /
+       &vector             iAtA=12 iAtB=1 /
+       &vector nb_vect=2   iAtA=4  iAtB=2 Frame=t /
+         &vector           iAtA=4  iAtB=8 /
+         &vector           iAtA=2  iAtB=6 /
+       &vector nb_vect=2   iAtA=5  iAtB=3 Frame=t /
+         &vector           iAtA=5  iAtB=9 /
+         &vector           iAtA=3  iAtB=7 /
+
+ &Coord_transfo name_transfo='active' /
+1 1 1   1 1 1   1 1 1   1 1 1   1 1 1   1 1 1   1 1 1
+
+ &minimum read_xyz0=t read_xyz0_with_dummy=f unit='angs' /
+8        0.000000    0.000000    1.169994
+6        0.000000    1.094421    0.336796
+6        0.000000   -1.094421    0.336796
+6        0.000000    0.722289   -0.950050
+6        0.000000   -0.722289   -0.950050
+1        0.000000    2.065649    0.813863
+1        0.000000   -2.065649    0.813863
+1        0.000000    1.365721   -1.814317
+1        0.000000   -1.365721   -1.814317
+**

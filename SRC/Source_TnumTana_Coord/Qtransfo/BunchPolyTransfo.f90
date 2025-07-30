@@ -3291,7 +3291,7 @@
 
           BunchTransfo%masses_OF_At(i_at)  = at
           BunchTransfo%masses(icf+0:icf+2) = at
-          !write(out_unit,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
+          write(out_unit,*) 'atom:',i_at,BunchTransfo%Z(i_at),at
           Mtot = Mtot + at
           IF (at == ZERO) THEN
             write(out_unit,*) ' ERROR in ',name_sub

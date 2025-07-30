@@ -8,5 +8,5 @@ if [ -e Tnum90_MCTDH.exe ]
 then
     echo "Executable Tnum90_MCTDH.exe exists"
 else
-    make FC=gfortran LAPACK=1 OPT=0 INT=4 Tnum_MCTDH &> $here/comp.log
+    make FC=gfortran LAPACK=0 OPT=0 INT=4 Tnum_MCTDH &> $here/comp.log
 fi

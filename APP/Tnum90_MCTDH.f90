@@ -68,7 +68,7 @@
 !===========================================================
       !para_mem%mem_debug = .TRUE.
       CALL TnumTana_version(.TRUE.)
-      CALL set_print_level(2)
+      CALL set_print_level(0)
 
       !-----------------------------------------------------------------
       !     - read the coordinate transformations :
