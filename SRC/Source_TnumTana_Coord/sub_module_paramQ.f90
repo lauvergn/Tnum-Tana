@@ -1425,8 +1425,26 @@ CONTAINS
 
       DO iQ=1,mole%nb_var
 
+        ! for valence angle (or u) close to 0 or pi (1 or -1), the step could be too large.
+        ! There we ar going to test the coodiante type (3 or -3)
         Qact = mole%ActiveTransfo%Qact0
-        Qact(iQ) = Qact(iQ) + ONETENTH
+        IF (debug) write(out_unit,*) 'in ',name_sub,':',iQ,mole%tab_Qtransfo(mole%nb_QTransfo)%type_Qin(iQ),Qact(iQ)
+        SELECT CASE(mole%tab_Qtransfo(mole%nb_QTransfo)%type_Qin(iQ))
+        CASE (-3)
+          IF (Qact(iQ) < ZERO) THEN
+            Qact(iQ) = Qact(iQ) + ONETENTH
+          ELSE
+            Qact(iQ) = Qact(iQ) - ONETENTH
+          END IF
+        CASE(3)
+          IF (Qact(iQ) < PI/TWO) THEN
+            Qact(iQ) = Qact(iQ) + ONETENTH
+          ELSE
+            Qact(iQ) = Qact(iQ) - ONETENTH
+          END IF
+        CASE default
+          Qact(iQ) = Qact(iQ) + ONETENTH
+        END SELECT
         IF (debug) write(out_unit,*) iQ,'Qact',Qact(:)
         CALL sub_QactTOdnx(Qact,dnx,mole,0,Gcenter=.TRUE.)
         IF (debug) write(out_unit,*) iQ,'d0x', dnx%d0
