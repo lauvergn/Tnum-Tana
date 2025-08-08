@@ -323,6 +323,7 @@ cleanall : clean clean_extlib
 	rm -f *.exe
 	cd TESTS ; ./clean
 	cd TEST_MCTDH ; ./clean
+	cd DOC/data ; ./clean
 	@echo "  done all cleaning"
 #
 cleanlocextlib: cleanall

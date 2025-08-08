@@ -1,0 +1,31 @@
+
+here=`pwd`
+DIR_EVRT=../..
+
+cd $DIR_EVRT
+ make tnum-dist OPT=0
+cd $here
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=3 Tana=t LatexForm=t FortranForm=t MCTDHForm=t nrho=2 KEOExportVersion=1 /
+
+ &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=1 inTOout=f /
+N      N     He   G (N2)
+1      2     3    4
+
+ &dummyX tab_At_TO_X=1,2 type_dummyX='COM' /
+
+ &Coord_transfo name_transfo='poly' cos_th=f /
+     &vector nb_vect=1 Frame=t iAtA=1 iAtB=2 / : R1 (N-N)
+       &vector                 iAtA=4 iAtB=3 / : R2 (G-He)
+
+ &Coord_transfo name_transfo='active' /
+1 1 1
+
+ &minimum  /
+RNN  1.0977 angs
+RGHe 2.     angs
+cosA 0.5
+
+ &calculation calc_Tnum=f calc_GG=t /
+**

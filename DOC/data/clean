@@ -1,0 +1,3 @@
+rm -f res* *.log err_Tnum freq.xyz
+rm -f keo.op  TanaF2F1Vep.f90 Eq_KEO.tex
+rm -f Taylor*.keo

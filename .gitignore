@@ -23,3 +23,7 @@ TESTS/*/freq.xyz
 TESTS/*/keo.op
 TESTS/*/TanaF2F1Vep.f90
 KEO_Tana_school-main
+DOC/data/keo.op
+DOC/data/Eq_KEO.tex
+DOC/data/freq.xyz
+DOC/data/res
