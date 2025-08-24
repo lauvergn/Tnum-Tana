@@ -1,5 +1,9 @@
 name = "FOR_EVRT"
-
+version = "1.0"
+license = "MIT"
+author = "David Lauvergnat"
+maintainer = "david.lauvergnat@universite-paris-saclay.fr"
+copyright = "2025 David Lauvergnat"
 
 [library]
 source-dir="SRC"
