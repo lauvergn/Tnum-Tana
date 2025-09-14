@@ -44,7 +44,11 @@ PROGRAM test
 
   nderiv = 1
 
+    CALL version_EVRT_dnSVM(Print_Version=.TRUE.)
+
+
   CALL Initialize_Test(test_var,test_name='mod_dnSVM')
+
   CALL Append_Test(test_var,'== TESTING mod_dnSVM with nderiv= ' // int_TO_char(nderiv))
 
   !====================================================================

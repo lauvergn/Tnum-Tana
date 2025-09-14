@@ -15,6 +15,12 @@ LAPACK = 1
 ## force the default integer (without kind) during the compillation.
 ## default 4: , INT=8 (for kind=8)
 INT = 4
+## change the real kind
+## default real64: , possibilities, real32, real64, real128
+RKIND = real64
+# For some compilers (like lfortran), real128 (quadruple precision) is not implemented
+# WITHRK16 = 1 (0) compilation with (without) real128
+WITHRK16 = 
 #
 ## how to get external libraries;  "loc" (default): from local zip file, Empty or something else (v0.5): from github
 EXTLIB_TYPE = loc
@@ -30,15 +36,59 @@ ifeq ($(OPT),)
 else
   OOPT      := $(OPT)
 endif
+ifneq ($(OOPT),$(filter $(OOPT),0 1))
+  $(info *********** OPT (optimisation):        $(OOPT))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
 ifeq ($(OMP),)
   OOMP      := 1
 else
   OOMP      := $(OMP)
 endif
+ifneq ($(OOMP),$(filter $(OOMP),0 1))
+  $(info *********** OMP (openmp):        $(OOMP))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
 ifeq ($(LAPACK),)
   LLAPACK      := 1
 else
   LLAPACK      := $(LAPACK)
+endif
+ifneq ($(LLAPACK),$(filter $(LLAPACK),0 1))
+  $(info *********** LAPACK:        $(LLAPACK))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
+ifeq ($(WITHRK16),)
+  WWITHRK16      :=$(shell $(FFC) -o scripts/testreal128.exe scripts/testreal128.f90 &>comp.log ; ./scripts/testreal128.exe ; rm scripts/testreal128.exe)
+else
+  WWITHRK16      := $(WITHRK16)
+endif
+ifneq ($(WWITHRK16),$(filter $(WWITHRK16),0 1))
+  $(info *********** WITHRK16 (compilation with real128):        $(WWITHRK16))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
+ifneq ($(INT),$(filter $(INT),4 8))
+  $(info *********** INT (change default integer):        $(INT))
+  $(info Possible values: 4, 8)
+  $(error ERROR: Incompatible options)
+endif
+ifneq ($(RKIND),$(filter $(RKIND),real32 real64 real128))
+  $(info *********** RKIND (select the real kind):        $(RKIND))
+  $(info Possible values (case sensitive): real32 real64 real128)
+  $(error ERROR: Incompatible options)
+endif
+#=================================================================================
+ifeq ($(RKIND),real128)
+  ifeq ($(WWITHRK16),0)
+    $(info "Incompatible options:")
+    $(info ***********RKIND:        $(RKIND))
+    $(info ***********WITHRK16:     $(WWITHRK16))
+    $(error ERROR: Incompatible options)
+  endif
 endif
 #===============================================================================
 # setup for mpifort
@@ -56,22 +106,30 @@ OS :=$(shell uname)
 MAIN_path:= $(shell pwd)
 
 # Extension for the object directory and the library
-ext_obj:=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+ext_obj    :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
 ifeq ($(FFC),mpifort)
-  extlibwi_obj:=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+  extlibwi_obj    :=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
+  extlibwiold_obj :=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 else
-  extlibwi_obj:=$(ext_obj)
+  extlibwi_obj    :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
+  extlibwiold_obj :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 endif
 
 
 
-OBJ_DIR = obj/obj$(extlibwi_obj)
+OBJ_DIR    := obj/obj$(extlibwi_obj)
+OBJOLD_DIR := obj/obj$(extlibwiold_obj)
 $(info ***********OBJ_DIR:            $(OBJ_DIR))
+$(info ***********OBJOLD_DIR:         $(OBJOLD_DIR))
 $(shell [ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR))
 MOD_DIR=$(OBJ_DIR)
 #
 # library name
-LIBA=libPhysConst$(extlibwi_obj).a
+LIBA      := libPhysConst$(extlibwi_obj).a
+LIBAOLD   := libPhysConst$(extlibwiold_obj).a
+$(info ***********LIBA:         $(LIBA))
+$(info ***********LIBAOLD:      $(LIBAOLD))
+
 #===============================================================================
 #
 #=================================================================================
@@ -87,6 +145,12 @@ QDLIBA            = $(QD_DIR)/libQD$(ext_obj).a
 #===============================================================================
 EXTLib     = $(QDLIBA)
 EXTMod     = -I$(QDMOD_DIR)
+
+
+CPPSHELL    = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
+              -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
+              -D__RKIND="$(RKIND)" -D__WITHRK16="$(WWITHRK16)" \
+              -D__LAPACK="$(LLAPACK)"
 #===============================================================================
 #=================================================================================
 # To deal with external compilers.mk file
@@ -101,17 +165,25 @@ FFLAGS += -D__PHYSCTEPATH="'$(MAIN_path)'"
 #===============================================================================
 #===============================================================================
 $(info ************************************************************************)
-$(info ***********OS:               $(OS))
-$(info ***********COMPILER:         $(FFC))
-$(info ***********OPTIMIZATION:     $(OOPT))
-$(info ***********COMPILER VERSION: $(FC_VER))
+$(info ***********OS:           $(OS))
+$(info ***********COMPILER:     $(FFC))
+$(info ***********COMPILER_VER: $(FC_VER))
+$(info ***********OPTIMIZATION: $(OOPT))
 ifeq ($(FFC),mpifort)
 $(info ***********COMPILED with:    $(MPICORE))
 endif
-$(info ***********OpenMP:           $(OOMP))
-$(info ***********Lapack:           $(LLAPACK))
-$(info ***********EXTLib:           $(EXTLib))
-$(info ***********LIBA:             $(LIBA))
+$(info ***********OpenMP:       $(OOMP))
+$(info ***********INT:          $(INT))
+$(info ***********RKIND:        $(RKIND))
+$(info ***********WITHRK16:     $(WWITHRK16))
+$(info ***********LAPACK:       $(LLAPACK))
+#$(info ***********AD_VERSION:   $(AD_VERSION))
+$(info ***********FFLAGS:       $(FFLAGS))
+$(info ***********FLIB:         $(FLIB))
+$(info ***********ext_obj:      $(extlibwi_obj))
+$(info ***********QD_DIR:       $(QD_DIR))
+$(info ***********EXTLib:       $(EXTLib))
+$(info ***********LIBA:         $(LIBA))
 $(info ************************************************************************)
 $(info ************************************************************************)
 
@@ -161,6 +233,11 @@ lib: $(LIBA)
 
 $(LIBA): $(OBJ)
 	ar -cr $(LIBA) $(OBJ)
+	rm -f  $(OBJOLD_DIR)
+	cd obj ; ln -s obj$(extlibwi_obj) obj$(extlibwiold_obj)
+	rm -f  $(LIBAOLD)
+	ln -s  $(LIBA) $(LIBAOLD)
+	@echo "  done Library: "$(LIBAOLD)
 	@echo "  done Library: "$(LIBA)
 #
 #===============================================
@@ -173,31 +250,21 @@ $(OBJ_DIR)/%.o: %.f90
 #================ cleaning =====================
 .PHONY: clean cleanall cleanlocextlib
 clean: clean_UT
-	rm -f $(OBJ_DIR)/*/*.o $(OBJ_DIR)/*.o
+	cd $(OBJ_DIR) ; rm -f *.o *.mod *.MOD
+	rm -fr build
 	rm -f *.log TESTS/Xres_UT_PhysConst
 	rm -f res*
 	@echo "  done cleaning"
-
 cleanall : clean
-	rm -fr OBJ/obj* OBJ/*mod build
+	rm -rf obj
 	rm -f lib*.a
 	rm -f *.exe
 	cd $(MAIN_path)/Ext_Lib ; ./cleanlib
-	rm -f TESTS/res* TESTS/*log
 	@echo "  done all cleaning"
 cleanlocextlib: cleanall
 	cd $(MAIN_path)/Ext_Lib ; rm -rf *_loc
 	@echo "  done remove all local library directories (..._loc)"
 #===============================================
-#================ zip and copy the directory ===
-ExtLibSAVEDIR := /Users/lauvergn/git/Ext_Lib
-BaseName := ConstPhys
-.PHONY: zip
-zip: cleanall
-	test -d $(ExtLibSAVEDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	$(ExtLibSAVEDIR)/makezip.sh $(BaseName)
-	cd $(ExtLibSAVEDIR) ; ./cp_ConstPhys.sh
-	@echo "  done zip"
 #===============================================
 #===============================================
 #== external libraries
@@ -207,7 +274,7 @@ getlib:
 	cd $(ExtLibDIR) ; ./get_Lib.sh QDUtilLib $(DEV)
 #
 $(QDLIBA): getlib
-	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) CompilersDIR=$(CompilersDIR)
+	cd $(ExtLibDIR)/QDUtilLib ; make lib FC=$(FFC) OPT=$(OOPT) OMP=$(OOMP) LAPACK=$(LLAPACK) INT=$(INT) ExtLibDIR=$(ExtLibDIR) RKIND=$(RKIND) WITHRK16=$(WWITHRK16) CompilersDIR=$(CompilersDIR)
 	@test -f $(QDLIBA) || (echo $(QDLIBA) "does not exist" ; exit 1)
 	@echo "  done " $(QDLIBA)
 #

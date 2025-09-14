@@ -5,12 +5,13 @@
 Make with optional options:
 
 ```bash
-make FC=ifort OMP=0 OPT=0 LAPACK=0 INT=4
+make FC=ifort OMP=0 OPT=0 LAPACK=0 INT=4 REAL=real64
   # FC=ifort to change the compiller to ifort
   # OMP=0/1 to turn off/on the OpenMP fortran flag.
   # OPT=0/1 to turn off/on the fortran optimization.
   # LAPACK=0/1 to turn off/on the lapack use
-  # INT=4/8 to change the default integer
+  # INT=4/8 to change the compiler default integer
+  # RKIND=real32/real64/real128 to change the real kind
 ```
 
 It will run the test as well

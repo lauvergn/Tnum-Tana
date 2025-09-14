@@ -15,6 +15,12 @@ LAPACK = 1
 ## force the default integer (without kind) during the compillation.
 ## default 4: , INT=8 (for kind=8)
 INT = 4
+## change the real kind
+## default real64: , possibilities, real32, real64, real128
+RKIND = real64
+# For some compilers (like lfortran), real128 (quadruple precision) is not implemented
+# WITHRK16 = 1 (0) compilation with (without) real128
+WITHRK16 = 
 #
 ## how to get external libraries;  "loc" (default): from local zip file, Empty or something else (v0.5): from github
 EXTLIB_TYPE = loc
@@ -30,15 +36,59 @@ ifeq ($(OPT),)
 else
   OOPT      := $(OPT)
 endif
+ifneq ($(OOPT),$(filter $(OOPT),0 1))
+  $(info *********** OPT (optimisation):        $(OOPT))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
 ifeq ($(OMP),)
   OOMP      := 1
 else
   OOMP      := $(OMP)
 endif
+ifneq ($(OOMP),$(filter $(OOMP),0 1))
+  $(info *********** OMP (openmp):        $(OOMP))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
 ifeq ($(LAPACK),)
   LLAPACK      := 1
 else
   LLAPACK      := $(LAPACK)
+endif
+ifneq ($(LLAPACK),$(filter $(LLAPACK),0 1))
+  $(info *********** LAPACK:        $(LLAPACK))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
+ifeq ($(WITHRK16),)
+  WWITHRK16      :=$(shell $(FFC) -o scripts/testreal128.exe scripts/testreal128.f90 &>comp.log ; ./scripts/testreal128.exe ; rm scripts/testreal128.exe)
+else
+  WWITHRK16      := $(WITHRK16)
+endif
+ifneq ($(WWITHRK16),$(filter $(WWITHRK16),0 1))
+  $(info *********** WITHRK16 (compilation with real128):        $(WWITHRK16))
+  $(info Possible values: 0, 1)
+  $(error ERROR: Incompatible options)
+endif
+ifneq ($(INT),$(filter $(INT),4 8))
+  $(info *********** INT (change default integer):        $(INT))
+  $(info Possible values: 4, 8)
+  $(error ERROR: Incompatible options)
+endif
+ifneq ($(RKIND),$(filter $(RKIND),real32 real64 real128))
+  $(info *********** RKIND (select the real kind):        $(RKIND))
+  $(info Possible values (case sensitive): real32 real64 real128)
+  $(error ERROR: Incompatible options)
+endif
+#=================================================================================
+ifeq ($(RKIND),real128)
+  ifeq ($(WWITHRK16),0)
+    $(info "Incompatible options:")
+    $(info ***********RKIND:        $(RKIND))
+    $(info ***********WITHRK16:     $(WWITHRK16))
+    $(error ERROR: Incompatible options)
+  endif
 endif
 #===============================================================================
 # setup for mpifort
@@ -56,21 +106,24 @@ OS :=$(shell uname)
 MAIN_path:= $(shell pwd)
 
 # Extension for the object directory and the library
-ext_obj=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+ext_obj    :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
 ifeq ($(FFC),mpifort)
-  extlibwi_obj:=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
+  extlibwi_obj    :=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
+  extlibwiold_obj :=_$(FFC)_$(MPICORE)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 else
-  extlibwi_obj:= $(ext_obj)
+  extlibwi_obj    :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
+  extlibwiold_obj :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)
 endif
 
-
-OBJ_DIR = obj/obj$(extlibwi_obj)
+OBJ_DIR    := OBJ/obj$(extlibwi_obj)
+OBJOLD_DIR := OBJ/obj$(extlibwiold_obj)
 $(info ***********OBJ_DIR:            $(OBJ_DIR))
 $(shell [ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR))
 MOD_DIR=$(OBJ_DIR)
 #
 # library name
-LIBA=libnDindex$(extlibwi_obj).a
+LIBA   =libnDindex$(extlibwi_obj).a
+LIBAOLD=libnDindex$(extlibwiold_obj).a
 #=================================================================================
 #
 #===============================================================================
@@ -96,10 +149,11 @@ ifeq ($(CompilersDIR),)
 else
   include $(CompilersDIR)/compilers.mk
 endif
-# cpp preprocessing
-#FFLAGS +=  -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
-           -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
-           -D__EVRTPATH="'$(MAIN_path)'"
+
+CPPSHELL    = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
+              -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
+              -D__RKIND="$(RKIND)" -D__WITHRK16="$(WWITHRK16)" \
+              -D__LAPACK="$(LLAPACK)"
 #=================================================================================
 #===============================================================================
 #===============================================================================
@@ -112,6 +166,9 @@ ifeq ($(FFC),mpifort)
 $(info ***********COMPILED with:    $(MPICORE))
 endif
 $(info ***********OpenMP:           $(OOMP))
+$(info ***********INT:              $(INT))
+$(info ***********RKIND:            $(RKIND))
+$(info ***********WITHRK16:         $(WWITHRK16))
 $(info ***********Lapack:           $(LLAPACK))
 $(info ************************************************************************)
 $(info ************************************************************************)
@@ -151,6 +208,11 @@ lib: $(LIBA)
 
 $(LIBA): $(OBJ)
 	ar -cr $(LIBA) $(OBJ)
+	rm -f  $(OBJOLD_DIR)
+	cd OBJ ; ln -s obj$(extlibwi_obj) obj$(extlibwiold_obj)
+	rm -f  $(LIBAOLD)
+	ln -s  $(LIBA) $(LIBAOLD)
+	@echo "  done Library: "$(LIBAOLD)
 	@echo "  done Library: "$(LIBA)
 #
 #===============================================
@@ -169,7 +231,7 @@ clean:
 	@echo "  done cleaning"
 
 cleanall : clean clean_extlib
-	rm -fr obj/* build
+	rm -fr OBJ/* build
 	rm -f *.a
 	rm -f *.exe
 	rm -f TESTS/res* TESTS/*log
@@ -177,16 +239,6 @@ cleanall : clean clean_extlib
 cleanlocextlib: cleanall
 	cd $(MAIN_path)/Ext_Lib ; rm -rf *_loc
 	@echo "  done remove all local library directories (..._loc)"
-#===============================================
-#================ zip and copy the directory ===
-ExtLibSAVEDIR := /Users/lauvergn/git/Ext_Lib
-BaseName := nDindex
-.PHONY: zip
-zip: cleanall
-	test -d $(ExtLibSAVEDIR) || (echo $(ExtLibDIR) "does not exist" ; exit 1)
-	$(ExtLibSAVEDIR)/makezip.sh $(BaseName)
-	cd $(ExtLibSAVEDIR) ; ./cp_nDindex.sh
-	@echo "  done zip"
 #===============================================
 #=== Add links to directories for fpm ==========
 #===============================================
@@ -216,6 +268,6 @@ clean_extlib:
 #=======================================================================================
 #=======================================================================================
 #add dependence for parallelization
-$(OBJ): $(QDLIBA)
+$(OBJ): | $(QDLIBA)
 
 $(OBJ_DIR)/sub_module_nDindex.o:      $(OBJ_DIR)/sub_module_DInd.o

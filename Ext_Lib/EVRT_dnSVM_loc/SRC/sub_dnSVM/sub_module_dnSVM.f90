@@ -27,13 +27,62 @@
 !===============================================================================
 !===============================================================================
 MODULE mod_dnSVM
-      USE mod_dnS
-      USE mod_VecOFdnS
-      USE mod_MatOFdnS
-      USE mod_dnV
-      USE mod_dnM
+#ifndef __LIB_VER
+#define __LIB_VER 'unknown: -D__LIB_VER=?'
+#endif
+#ifndef __COMPILE_DATE
+#define __COMPILE_DATE 'unknown: -D__COMPILE_DATE=?'
+#endif
+#ifndef __COMPILE_HOST
+#define __COMPILE_HOST 'unknown: -D__COMPILE_HOST=?'
+#endif
+  USE mod_dnS
+  USE mod_VecOFdnS
+  USE mod_MatOFdnS
+  USE mod_dnV
+  USE mod_dnM
+  IMPLICIT NONE
 
-      IMPLICIT NONE
+  PUBLIC
 
+  character (len=*), parameter :: EVRT_dnSVM_version = __LIB_VER
+  character (len=*), parameter :: compile_date = __COMPILE_DATE
+  character (len=*), parameter :: compile_host = __COMPILE_HOST
+
+  logical, private :: Print_Version_done = .FALSE.
+
+CONTAINS
+
+  SUBROUTINE version_EVRT_dnSVM(Print_Version,nio)
+    USE iso_fortran_env, ONLY : compiler_version,compiler_options
+    USE QDUtil_m
+    IMPLICIT NONE
+
+    logical,           intent(in)    :: Print_Version
+    integer, optional, intent(in)    :: nio
+
+    integer :: nio_loc
+
+    IF (present(nio)) THEN
+      nio_loc = nio
+    ELSE
+      nio_loc = out_unit
+    END IF
+
+    IF (Print_Version) THEN
+      Print_Version_done = .TRUE.
+      write(nio_loc,*) '================================================='
+      write(nio_loc,*) '================================================='
+      write(nio_loc,*) '== EVRT_dnSVM ==================================='
+      write(nio_loc,*) '== version:       ',EVRT_dnSVM_version
+      write(nio_loc,*) '-------------------------------------------------'
+      write(nio_loc,*) '== Compiled on       "',compile_host, '" the ',compile_date
+      write(nio_loc,*) '== Compiler:         ',compiler_version()
+      write(nio_loc,*) '== Compiler options: ',compiler_options()
+      write(nio_loc,*) '-------------------------------------------------'
+      write(nio_loc,*) '================================================='
+    END IF
+    
+  END SUBROUTINE version_EVRT_dnSVM
 END MODULE mod_dnSVM
 

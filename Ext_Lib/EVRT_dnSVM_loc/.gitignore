@@ -1,5 +1,7 @@
-.DS_Store */.DS_Store */*/.DS_Store
-obj/*
+.DS_Store 
+*/.DS_Store 
+*/*/.DS_Store
+OBJ/*
 *.exe
 *.a 
 *.log
