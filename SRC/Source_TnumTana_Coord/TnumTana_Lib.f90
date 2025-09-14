@@ -809,6 +809,7 @@ SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c(Qact0,nb_act) BIND(C, name="get_Qact0_
   integer (kind=C_INT), intent(in)     :: nb_act
   real (kind=C_DOUBLE), intent(inout)  :: Qact0(nb_act)
 
+  real (kind=Rkind)                    :: Qact0_Rkind(nb_act)
   character (len=*), parameter :: name_sub='get_Qact0_TnumTanaDriver_FOR_c'
 
 
@@ -824,6 +825,7 @@ SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c(Qact0,nb_act) BIND(C, name="get_Qact0_
      STOP
   END IF
 
-  CALL get_Qact0(Qact0,mole%ActiveTransfo)
+  CALL get_Qact0(Qact0_Rkind,mole%ActiveTransfo)
+  Qact0 = Qact0_Rkind
 
 END SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c
