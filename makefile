@@ -131,9 +131,9 @@ $(shell [ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR))
 MOD_DIR=$(OBJ_DIR)
 #
 # library name
-LIBA      := libFOR_EVRT$(extlibwi_obj).a
-LIBAOLD   := libFOR_EVRT$(extlibwiold_obj).a
-LIBAF     := libTnumTanaFull$(extlibwi_obj).a
+LIBA      := libTnum-Tana$(extlibwi_obj).a
+LIBAOLD   := libTnum-Tana$(extlibwiold_obj).a
+LIBAF     := libTnum-TanaFull$(extlibwi_obj).a
 $(info ***********LIBA:         $(LIBA))
 $(info ***********LIBAOLD:      $(LIBAOLD))
 $(info ***********LIBAF:        $(LIBAF))
