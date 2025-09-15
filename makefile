@@ -108,10 +108,9 @@ OS :=$(shell uname)
 
 # about EVRT, path, versions ...:
 MAIN_path:=$(shell pwd)
-TNUM_ver:=$(shell awk '/Tnum/ {print $$3}' $(MAIN_path)/version-TT)
-TANA_ver:=$(shell awk '/Tana/ {print $$3}' $(MAIN_path)/version-TT)
-
-# Extension for the object directory and the library
+#
+T_ver=$(shell awk '/version/ {print $$3}' fpm.toml | head -1)
+#
 # Extension for the object directory and the library
 ext_obj    :=_$(FFC)_opt$(OOPT)_omp$(OOMP)_lapack$(LLAPACK)_int$(INT)_$(RKIND)
 ifeq ($(FFC),mpifort)
@@ -155,7 +154,7 @@ ADMOD_DIR = $(AD_DIR)/OBJ/obj$(ext_obj)
 ADLIBA    = $(AD_DIR)/libAD_dnSVM$(ext_obj).a
 
 CONSTPHYS_DIR    = $(ExtLibDIR)/ConstPhys
-CONSTPHYSMOD_DIR = $(CONSTPHYS_DIR)/obj/obj$(extlibwi_obj)
+CONSTPHYSMOD_DIR = $(CONSTPHYS_DIR)/OBJ/obj$(extlibwi_obj)
 CONSTPHYSLIBA    = $(CONSTPHYS_DIR)/libPhysConst$(extlibwi_obj).a
 
 QML_DIR    = $(ExtLibDIR)/QuantumModelLib
@@ -163,15 +162,15 @@ QMLMOD_DIR = $(QML_DIR)/OBJ/obj$(ext_obj)
 QMLLIBA    = $(QML_DIR)/libQMLib$(ext_obj).a
 
 nDindex_DIR    = $(ExtLibDIR)/nDindex
-nDindexMOD_DIR = $(nDindex_DIR)/obj/obj$(ext_obj)
+nDindexMOD_DIR = $(nDindex_DIR)/OBJ/obj$(ext_obj)
 nDindexLIBA    = $(nDindex_DIR)/libnDindex$(ext_obj).a
 
 EVRTdnSVM_DIR    = $(ExtLibDIR)/EVRT_dnSVM
-EVRTdnSVMMOD_DIR = $(EVRTdnSVM_DIR)/obj/obj$(ext_obj)
+EVRTdnSVMMOD_DIR = $(EVRTdnSVM_DIR)/OBJ/obj$(ext_obj)
 EVRTdnSVMLIBA    = $(EVRTdnSVM_DIR)/libEVRT_dnSVM$(ext_obj).a
 
 FOREVRT_DIR    = $(ExtLibDIR)/FOR_EVRT
-FOREVRTMOD_DIR = $(FOREVRT_DIR)/obj/obj$(extlibwi_obj)
+FOREVRTMOD_DIR = $(FOREVRT_DIR)/OBJ/obj$(extlibwi_obj)
 FOREVRTLIBA    = $(FOREVRT_DIR)/libFOR_EVRT$(extlibwi_obj).a
 
 EXTLib     = $(FOREVRTLIBA) $(CONSTPHYSLIBA) $(EVRTdnSVMLIBA) $(nDindexLIBA) $(QMLLIBA) $(ADLIBA) $(QDLIBA)
@@ -190,15 +189,13 @@ endif
 # cpp preprocessing
 CPPSHELL    = -D__COMPILE_DATE="\"$(shell date +"%a %e %b %Y - %H:%M:%S")\"" \
               -D__COMPILE_HOST="\"$(shell hostname -s)\"" \
-              -D__TNUM_VER="'$(TNUM_ver)'" \
-              -D__TANA_VER="'$(TANA_ver)'" \
+              -D__TNUM_VER="'$(T_ver)'" \
               -D__RKIND="$(RKIND)" -D__WITHRK16="$(WWITHRK16)" \
               -D__LAPACK="$(LLAPACK)"
 #===============================================================================
 #===============================================================================
 $(info ************************************************************************)
-$(info ***************** TNUM_ver: $(TNUM_ver))
-$(info ***************** TANA_ver: $(TANA_ver))
+$(info ***************** T_ver:     $(T_ver))
 $(info ************************************************************************)
 $(info ************************************************************************)
 $(info ***********OS:               $(OS))

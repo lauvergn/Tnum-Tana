@@ -54,11 +54,11 @@ The following parameters can be use to modify some physical constants (to reprod
 
    From the ConstPhys directory, when make is executated, the **libPhysConst_XXX_optx_ompy_lapakz.a** must be created (ex: **libPhysConst_gfortran_opt1_omp1_lapack1**).
    **XXX** is the compiler name and **x**, **y** and **z** are 0/1 when flags are turn off/on. 
-   They correspond to OPT (compiler optimzation), OpenMP and Lapack/blas, respectively.
+   They correspond to OPT (compiler optimization), OpenMP and Lapack/blas, respectively.
 
 ```
    This version works with:
-       gfortran 9.0 (linux and macOS)
+       gfortran 11, 12, 13, 14, 14 (linux and macOS)
        ifort/ifx
 ```
 

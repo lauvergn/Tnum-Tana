@@ -78,15 +78,9 @@ CONTAINS
 
 
 #if defined(__TNUM_VER)
-    character (len=*), parameter :: Tnum_version = __TNUM_VER
+    character (len=*), parameter :: T_version = __TNUM_VER
 #else
-    character (len=*), parameter :: Tnum_version = "unknown: -D__TNUM_VER=?"
-#endif
-
-#if defined(__TANA_VER)
-    character (len=*), parameter :: Tana_version = __TANA_VER
-#else
-    character (len=*), parameter :: Tana_version = "unknown: -D__TANA_VER=?"
+    character (len=*), parameter :: T_version = "unknown: -D__TNUM_VER=?"
 #endif
 
 #if defined(__COMPILE_DATE)
@@ -108,8 +102,7 @@ CONTAINS
       write(out_unit,*) '==============================================='
       write(out_unit,*) '==============================================='
       write(out_unit,*) 'Working with ',                             &
-                 Tnum_name,trim(adjustl(Tnum_version)),'-',           &
-                 Tana_name,trim(adjustl(Tana_version))
+                 Tnum_name,"-",Tana_name,"_",trim(adjustl(T_version))
 
       write(out_unit,*) 'Compiled on "',trim(compile_host), '" the ',trim(compile_date)
       write(out_unit,*) 'Compiler:         ',compiler_version()

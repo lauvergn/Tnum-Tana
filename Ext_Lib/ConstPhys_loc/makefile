@@ -117,8 +117,8 @@ endif
 
 
 
-OBJ_DIR    := obj/obj$(extlibwi_obj)
-OBJOLD_DIR := obj/obj$(extlibwiold_obj)
+OBJ_DIR    := OBJ/obj$(extlibwi_obj)
+OBJOLD_DIR := OBJ/obj$(extlibwiold_obj)
 $(info ***********OBJ_DIR:            $(OBJ_DIR))
 $(info ***********OBJOLD_DIR:         $(OBJOLD_DIR))
 $(shell [ -d $(OBJ_DIR) ] || mkdir -p $(OBJ_DIR))
@@ -234,7 +234,7 @@ lib: $(LIBA)
 $(LIBA): $(OBJ)
 	ar -cr $(LIBA) $(OBJ)
 	rm -f  $(OBJOLD_DIR)
-	cd obj ; ln -s obj$(extlibwi_obj) obj$(extlibwiold_obj)
+	cd OBJ ; ln -s obj$(extlibwi_obj) obj$(extlibwiold_obj)
 	rm -f  $(LIBAOLD)
 	ln -s  $(LIBA) $(LIBAOLD)
 	@echo "  done Library: "$(LIBAOLD)
@@ -256,7 +256,7 @@ clean: clean_UT
 	rm -f res*
 	@echo "  done cleaning"
 cleanall : clean
-	rm -rf obj
+	rm -rf OBJ
 	rm -f lib*.a
 	rm -f *.exe
 	cd $(MAIN_path)/Ext_Lib ; ./cleanlib
