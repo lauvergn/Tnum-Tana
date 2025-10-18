@@ -2,9 +2,8 @@
 here=`pwd`
 DIR_EVRT=$here/..
 
-
 $DIR_EVRT/Tnum90.exe << ** > res
- &variables Old_Qtransfo=f nb_Qtransfo=3  /
+ &variables Old_Qtransfo=f nb_Qtransfo=3 Cart_Type='LF' /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=0 inTOout=f /
 8. 1. 1.  (O H H)
 

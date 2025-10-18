@@ -307,7 +307,6 @@ $(LIBA): $(OBJ)
 	@echo "  done Library: "$(LIBA)
 #
 $(LIBAF): $(OBJ) $(EXT_OBJ)
-	@echo "coucou"
 	ar -cr $(LIBAF) $(OBJ) $(EXT_OBJ) $(EXTLibOBJ)
 	rm -f $(LIBAFshort)
 	ln -s $(LIBAF) $(LIBAFshort)

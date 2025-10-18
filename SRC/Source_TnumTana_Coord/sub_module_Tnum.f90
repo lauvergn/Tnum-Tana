@@ -150,6 +150,7 @@ MODULE mod_Tnum
           logical                          :: Without_Rot         = .FALSE.
           logical                          :: Centered_ON_CoM     = .TRUE.
           logical                          :: With_VecCOM         = .FALSE.
+          character (len=:), allocatable   :: Cart_Type
 
           logical                          :: Old_Qtransfo        = .FALSE.
           logical                          :: Cart_transfo        = .FALSE.
@@ -161,9 +162,9 @@ MODULE mod_Tnum
           integer                          :: opt_param           =  0
           integer, allocatable             :: opt_Qdyn(:)
 
-          integer                            :: itPrim               = -1
-          integer                            :: itNM                 = -1
-          integer                            :: itRPH                = -1
+          integer                          :: itPrim               = -1
+          integer                          :: itNM                 = -1
+          integer                          :: itRPH                = -1
           TYPE (Type_ActiveTransfo), pointer, public :: ActiveTransfo=> null() ! it'll point on tab_Qtransfo
           TYPE (Type_NMTransfo),     pointer :: NMTransfo            => null() ! it'll point on tab_Qtransfo
           TYPE (Type_RPHTransfo),    pointer :: RPHTransfo           => null() ! it'll point on tab_Qtransfo
@@ -370,6 +371,12 @@ MODULE mod_Tnum
         write(out_unit,*) 'Without_Rot:      ',mole%Without_Rot
         write(out_unit,*) 'Centered_ON_CoM   ',mole%Centered_ON_CoM
         write(out_unit,*) 'Cart_transfo:     ',mole%Cart_transfo
+        IF (allocated(mole%Cart_Type)) THEN 
+          write(out_unit,*) 'Cart_Type:     ',mole%Cart_Type
+        ELSE
+          write(out_unit,*) 'WARNING Cart_Type is not allocated'
+          write(out_unit,*) "It assumes, Cart_Type='BF'"
+        END IF
         write(out_unit,*) 'stepQ,num_x:      ',mole%stepQ,mole%num_x
         write(out_unit,*) 'Parameter(s) to be optimized?:     ',mole%opt_param
         write(out_unit,*) 'Coordinates Qdyn to be optimized?: ',mole%opt_Qdyn(:)
@@ -535,6 +542,7 @@ MODULE mod_Tnum
         mole%Without_Rot     = .FALSE.
         mole%Centered_ON_CoM = .TRUE.
         mole%cos_th          = .FALSE.
+        IF (allocated(mole%Cart_Type)) deallocate(mole%Cart_Type)
 
         mole%Old_Qtransfo    = .FALSE.
         mole%Cart_transfo    = .FALSE.
@@ -697,6 +705,7 @@ MODULE mod_Tnum
 !     - for Tnum or Tana ----------------------------------------------
       integer           :: nrho,vep_type,NonGcteRange(2)
       logical           :: num_GG,num_g,num_x,Gdiago,Gcte,With_VecCOM,Write_QMotions
+      character (len=Name_len)  :: Cart_Type
       logical           :: QMLib_G
       logical           :: With_Tab_dnQflex,QMLib,f2f1_ana
 
@@ -718,7 +727,7 @@ MODULE mod_Tnum
 
       NAMELIST /variables/nat,zmat,bunch,cos_th,                                &
                      Without_Rot,Centered_ON_CoM,JJ,                            &
-                     New_Orient,vAt1,vAt2,vAt3,With_VecCOM,                     &
+                     New_Orient,vAt1,vAt2,vAt3,With_VecCOM,Cart_Type,           &
                      nb_var,nb_act,With_Tab_dnQflex,QMLib,nb_extra_Coord,       &
                      Old_Qtransfo,nb_Qtransfo,Cart_transfo,                     &
                      Rot_Dip_with_EC,sym,check_sym,                             &
@@ -788,6 +797,7 @@ MODULE mod_Tnum
       With_VecCOM          = .FALSE.
       Without_Rot          = .FALSE.
       Centered_ON_CoM      = .TRUE.
+      Cart_Type            = 'BF'
       JJ                   = 0
       New_Orient           = .FALSE.
       vAt1(:)              = ZERO
@@ -954,10 +964,20 @@ MODULE mod_Tnum
       mole%stepQ        = stepT
       mole%num_x        = num_x
 
+      SELECT CASE (TO_lowercase(Cart_Type))
+      CASE ('bf','sf','lf')
+        CONTINUE
+      CASE default
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) " The Cart_Type is Wrong: '",trim(adjustl(Cart_Type)),"'"
+        write(out_unit,*) " The possibility are: 'BF', 'SF', 'LF' "
+        STOP ' ERROR in Read_CoordType: Wrong Cart_Type'
+      END SELECT
 
       mole%Old_Qtransfo    = Old_Qtransfo
       mole%nb_Qtransfo     = nb_Qtransfo
       mole%Cart_transfo    = Cart_transfo
+      mole%Cart_Type       = Cart_Type
       mole%Rot_Dip_with_EC = Rot_Dip_with_EC
       mole%Without_Rot     = Without_Rot
       mole%Centered_ON_CoM = Centered_ON_CoM
@@ -1688,7 +1708,7 @@ MODULE mod_Tnum
       mole1%Without_Rot     = mole2%Without_Rot
       mole1%Centered_ON_CoM = mole2%Centered_ON_CoM
       mole1%cos_th          = mole2%cos_th
-
+      IF (allocated(mole2%Cart_Type)) mole1%Cart_Type       = mole2%Cart_Type
 
       mole1%Old_Qtransfo     = mole2%Old_Qtransfo
       mole1%Cart_transfo     = mole2%Cart_transfo

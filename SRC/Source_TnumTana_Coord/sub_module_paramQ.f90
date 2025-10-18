@@ -56,7 +56,7 @@ MODULE mod_paramQ
     MODULE PROCEDURE sub_QactTOdnx_CoordType
   END INTERFACE
   INTERFACE sub_QactTOd0x
-    MODULE PROCEDURE sub_QactTOd0x_CoordType
+    MODULE PROCEDURE sub_QactTOd0xBF_CoordType
   END INTERFACE
 
   INTERFACE Write_Cartg98
@@ -79,307 +79,292 @@ MODULE mod_paramQ
   PUBLIC :: Set_paramQ_FOR_optimization
 
 CONTAINS
+  !=======================================================================================
+  !      Read reference geometry
+  !=======================================================================================
+  SUBROUTINE read_RefGeom_CoordType(mole,para_Tnum)
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    IMPLICIT NONE
 
-!=======================================================================================
-!      Read reference geometry
-!=======================================================================================
-      SUBROUTINE read_RefGeom_CoordType(mole,para_Tnum)
-      
-      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
-      IMPLICIT NONE
+    !----- for the CoordType and Tnum --------------------------------------
+    TYPE (CoordType)   :: mole
+    TYPE (Tnum)        :: para_Tnum
 
-!----- for the CoordType and Tnum --------------------------------------
-      TYPE (CoordType)   :: mole
-      TYPE (Tnum)        :: para_Tnum
-
-      logical            :: read_Qact0,read_Qdyn0,read_Qsym0
-      logical            :: read_xyz0,read_xyz0_with_dummy
-      logical            :: read_nameQ
-      integer            :: read_itQ0transfo,read_itQtransfo_OF_Qin0
-      character (len=Name_len) :: name,unit
-      character (len=Name_len) :: name_transfo
+    logical            :: read_Qact0,read_Qdyn0,read_Qsym0
+    logical            :: read_xyz0,read_xyz0_with_dummy
+    logical            :: read_nameQ
+    integer            :: read_itQ0transfo,read_itQtransfo_OF_Qin0
+    character (len=Name_len) :: name,unit
+    character (len=Name_len) :: name_transfo
 
 
 
-!----- The coordinates which are read --------------------------------
-      character (len=Name_len), pointer :: QnameRead(:)
-      real(kind=Rkind), allocatable     :: Qread(:)
-      real(kind=Rkind)                  :: Qact(mole%nb_var)
-      real(kind=Rkind)                  :: Qdyn(mole%nb_var)
+    !----- The coordinates which are read --------------------------------
+    character (len=Name_len), pointer :: QnameRead(:)
+    real(kind=Rkind), allocatable     :: Qread(:)
+    real(kind=Rkind)                  :: Qact(mole%nb_var)
+    real(kind=Rkind)                  :: Qdyn(mole%nb_var)
 
 
-      logical           :: opt,pot_act,pot_cart,HarD,pot_cplx,OnTheFly
-      TYPE(Type_dnVec)  :: dnx
+    logical           :: opt,pot_act,pot_cart,HarD,pot_cplx,OnTheFly
+    TYPE(Type_dnVec)  :: dnx
 
-      integer           :: pot_itQtransfo
-      !real (kind=Rkind) :: pot0
-      TYPE (REAL_WU)    :: pot0
+    integer           :: pot_itQtransfo
+    TYPE (REAL_WU)    :: pot0
 
-      integer           :: nb_elec,nb_scalar_Op,nb_CAP
+    integer           :: nb_elec,nb_scalar_Op,nb_CAP
 
-      logical                  :: deriv_WITH_FiniteDiff  = .FALSE.
-      logical                  :: nDfit_Op               = .FALSE.
-      logical                  :: QMLib                  = .FALSE.
-      character (len=Line_len) :: BaseName_nDfit_file
+    logical                  :: deriv_WITH_FiniteDiff  = .FALSE.
+    logical                  :: nDfit_Op               = .FALSE.
+    logical                  :: QMLib                  = .FALSE.
+    character (len=Line_len) :: BaseName_nDfit_file
 
-      real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
-      real (kind=Rkind) :: VG(3)
-
-
-      integer           :: iref,i,nb_t,type_Qin,type_Qread,nc1,nc2,nc3
-      character (len=Line_len) :: info_Qread
-
-      !-----------------------------------------------------------------
-
-      NAMELIST /minimum/ read_itQ0transfo,read_Qsym0,read_Qdyn0,read_xyz0, &
-                         read_nameQ,unit,read_xyz0_with_dummy,read_Qact0,  &
-                         pot0,pot_act,pot_cart,pot_itQtransfo,pot_cplx,    &
-                         HarD,nb_elec,nb_scalar_Op,nb_CAP,                 &
-                         OnTheFly,nDfit_Op,QMLib,BaseName_nDfit_file,      &
-                         deriv_WITH_FiniteDiff,                            &
-                         opt
-
-      !-----------------------------------------------------------------
-      integer :: err_mem,memory,err_io
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='read_RefGeom'
-      !-----------------------------------------------------------------
+    real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
+    real (kind=Rkind) :: VG(3)
 
 
-      write(out_unit,*) 'BEGINNING ',name_sub
+    integer           :: iref,i,nb_t,type_Qin,type_Qread,nc1,nc2,nc3
+    character (len=Line_len) :: info_Qread
 
-!------- allocation of Q... -----------------------------------------
+    !-----------------------------------------------------------------
+
+    NAMELIST /minimum/ read_itQ0transfo,read_Qsym0,read_Qdyn0,read_xyz0, &
+                       read_nameQ,unit,read_xyz0_with_dummy,read_Qact0,  &
+                       pot0,pot_act,pot_cart,pot_itQtransfo,pot_cplx,    &
+                       HarD,nb_elec,nb_scalar_Op,nb_CAP,                 &
+                       OnTheFly,nDfit_Op,QMLib,BaseName_nDfit_file,      &
+                       deriv_WITH_FiniteDiff,                            &
+                       opt
+
+    !-----------------------------------------------------------------
+    integer :: err_mem,memory,err_io
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='read_RefGeom'
+    !-----------------------------------------------------------------
+
+    write(out_unit,*) 'BEGINNING ',name_sub
+
+    IF (.NOT. associated(mole%name_Qdyn))  THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole%name_Qdyn is not associated in mole!!'
+      write(out_unit,*) ' Check the source !'
+      STOP 'ERROR in read_RefGeom. Fortran error: mole%name_Qdyn is not associated'
+    END IF
+
+    IF (print_level > 1) THEN
+      write(out_unit,*) '===================================='
+      write(out_unit,*) 'nb_var',mole%nb_var
+    END IF
+
+    !------- read the namelist minimum -----------------------------
+    read_Qsym0           = .FALSE.
+    read_Qdyn0           = .FALSE.
+    read_Qact0           = .FALSE.
+    read_xyz0            = .FALSE.
+    read_xyz0_with_dummy = .TRUE.
+    read_nameQ           = .FALSE.
+    read_itQ0transfo     = -1
+    unit                 = 'au'
 
 
-      IF (.NOT. associated(mole%name_Qdyn))  THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' mole%name_Qdyn is not associated in mole!!'
-        write(out_unit,*) ' Check the source !'
-        STOP
-      END IF
+    nb_scalar_Op = 0
+    nb_CAP       = 0
+    pot_cplx     = .FALSE.
+    nb_elec      = 0
 
-      IF (print_level > 1) THEN
-        write(out_unit,*) '===================================='
-        write(out_unit,*) 'nb_var',mole%nb_var
-      END IF
+    pot_act              = .FALSE.
+    pot_cart             = .FALSE.
+    pot_itQtransfo       = -1
+    IF (associated(mole%RPHTransfo)) THEN
+      HarD               = .FALSE.
+    ELSE
+      HarD               = .TRUE.
+    END IF
+    pot0                 = REAL_WU(ZERO,'au','E')
 
-!------- read the namelist minimum -----------------------------
-      read_Qsym0           = .FALSE.
-      read_Qdyn0           = .FALSE.
-      read_Qact0           = .FALSE.
-      read_xyz0            = .FALSE.
-      read_xyz0_with_dummy = .TRUE.
-      read_nameQ           = .FALSE.
-      read_itQ0transfo     = -1
-      unit                 = 'au'
+    nDfit_Op             = .FALSE.
+    BaseName_nDfit_file  = ""
+    OnTheFly             = .FALSE.
+    QMLib                = para_Tnum%para_PES_FromTnum%QMLib
+
+    deriv_WITH_FiniteDiff = .FALSE.
+    opt                   = .FALSE.
+
+    read(in_unit,minimum,IOSTAT=err_io)
+    IF (err_io < 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Probably, you have forgotten the namelist ...'
+      write(out_unit,*) ' Check your data !!'
+      STOP 'ERROR in read_RefGeom. End of file or end of record while reading the namelist'
+    END IF
+    IF (err_io > 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+      write(out_unit,*) ' Check your data !!'
+      STOP 'ERROR in read_RefGeom. error (wrong argument) while reading the namelist'
+    END IF
+    IF (print_level > 1) write(out_unit,minimum)
+
+    CALL string_uppercase_TO_lowercase(unit)
+
+    IF (unit /= 'au' .AND. unit /= 'bohr' .AND. unit /= 'angs') THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "minimum"'
+      write(out_unit,*) '  The unit is wrong, unit: "',trim(unit),'"'
+      write(out_unit,*) '  The possible values are: "au" or "bohr" or "angs"'
+      write(out_unit,*) ' Check your data !!'
+      STOP 'ERROR in read_RefGeom. Wrong unit'
+    END IF
 
 
-      nb_scalar_Op = 0
-      nb_CAP       = 0
-      pot_cplx     = .FALSE.
-      nb_elec      = 0
+    IF (.NOT. allocated(mole%opt_Qdyn)) THEN
+      CALL alloc_NParray(mole%opt_Qdyn,[mole%nb_var],'mole%opt_Qdyn',name_sub)
+    END IF
+    mole%opt_Qdyn(:) = 0
+    IF (opt) THEN
+       DO i=1,mole%nb_var
+        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == 1) THEN
+          mole%opt_Qdyn(i) = 1
+        END IF
+      END DO
+    END IF
 
-      pot_act              = .FALSE.
-      pot_cart             = .FALSE.
-      pot_itQtransfo       = -1
-      IF (associated(mole%RPHTransfo)) THEN
-        HarD               = .FALSE.
+    IF(MPI_id==0) THEN
+      write(out_unit,*)  '------------------------------------------------------'
+      write(out_unit,*)  '--- Coordinates used for the operators ---------------'
+      write(out_unit,*)  '------------------------------------------------------'
+    ENDIF
+
+    IF (mole%nb_Qtransfo == -1) THEN
+      pot_itQtransfo = 0
+      pot_cart       = .FALSE.
+      pot_act        = .FALSE.
+    END IF
+
+    IF ( (pot_act  .AND. pot_cart) .OR.                               &
+         (pot_act  .AND. pot_itQtransfo /= -1) .OR.                   &
+         (pot_cart .AND. pot_itQtransfo /= -1) ) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '(pot_act=t and pot_cart=t) .OR. ...'
+      write(out_unit,*) 'pot_act',pot_act
+      write(out_unit,*) 'pot_cart',pot_cart
+      write(out_unit,*) 'pot_itQtransfo ',pot_itQtransfo
+      write(out_unit,*) ' You have to chose between these options'
+      write(out_unit,*) ' Check your data !'
+      STOP 'ERROR in read_RefGeom. Incompatible options: pot_act,pot_cart or pot_itQtransfo'
+    END IF
+    IF (OnTheFly) pot_itQtransfo = 0 ! cart
+
+    IF(pot_itQtransfo == -1) THEN
+      IF (pot_cart) THEN
+        pot_itQtransfo = 0                      ! Qcart
+      ELSE IF (pot_act) THEN
+        pot_itQtransfo = mole%nb_Qtransfo       ! Qact
       ELSE
-        HarD               = .TRUE.
+        pot_itQtransfo = mole%nb_Qtransfo-1     ! Qdyn
       END IF
-      pot0                 = REAL_WU(ZERO,'au','E')
+    END IF
+    IF (pot_itQtransfo < 0 .OR. pot_itQtransfo > mole%nb_Qtransfo) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,'(a,i0,a)') ' pot_itQtransfo is out of the range [0:',mole%nb_Qtransfo,']'
+      write(out_unit,*) ' Check your data !'
+      STOP
+    END IF
 
-      nDfit_Op             = .FALSE.
-      BaseName_nDfit_file  = ""
-      OnTheFly             = .FALSE.
-      QMLib                = para_Tnum%para_PES_FromTnum%QMLib
+    IF (nb_elec < 1 .AND. .NOT. QMLib) nb_elec = 1
+    para_Tnum%para_PES_FromTnum%opt            = opt
+    para_Tnum%para_PES_FromTnum%pot0           = convRWU_TO_R_WITH_WorkingUnit(pot0)
+    para_Tnum%para_PES_FromTnum%HarD           = HarD
+    para_Tnum%para_PES_FromTnum%nb_elec        = nb_elec
+    para_Tnum%para_PES_FromTnum%pot_cplx       = pot_cplx
+    para_Tnum%para_PES_FromTnum%OnTheFly       = OnTheFly
+    para_Tnum%para_PES_FromTnum%pot_itQtransfo = pot_itQtransfo
+    para_Tnum%para_PES_FromTnum%nb_scalar_Op   = nb_scalar_Op
+    para_Tnum%para_PES_FromTnum%nb_CAP         = nb_CAP
 
-      deriv_WITH_FiniteDiff = .FALSE.
-      opt                   = .FALSE.
+    ! We need that deriv_WITH_FiniteDiff=.TRUE. otherwise the derivative are not correct
+    IF (QMLib) THEN
+      IF (pot_itQtransfo > 0 .AND. pot_itQtransfo < mole%nb_Qtransfo-1) deriv_WITH_FiniteDiff = .TRUE.
+    END IF
+    para_Tnum%para_PES_FromTnum%deriv_WITH_FiniteDiff  = deriv_WITH_FiniteDiff
 
-      read(in_unit,minimum,IOSTAT=err_io)
-      IF (err_io < 0) THEN
+    para_Tnum%para_PES_FromTnum%nDfit_Op = nDfit_Op
+    IF (nDfit_Op) THEN
+      write(out_unit,*)  'BaseName_nDfit_file: ',trim(adjustl(BaseName_nDfit_file))
+
+      para_Tnum%para_PES_FromTnum%BaseName_nDfit_file = BaseName_nDfit_file
+      IF (len_trim(BaseName_nDfit_file) == 0) THEN
         write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  while reading the namelist "minimum"'
-        write(out_unit,*) ' end of file or end of record'
-        write(out_unit,*) ' Probably, you have forgotten the namelist ...'
-        write(out_unit,*) ' Check your data !!'
-        STOP
-      END IF
-      IF (err_io > 0) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  while reading the namelist "minimum"'
-        write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
-        write(out_unit,*) ' Check your data !!'
-        STOP
-      END IF
-      IF (print_level > 1) write(out_unit,minimum)
-
-      CALL string_uppercase_TO_lowercase(unit)
-
-      IF (unit /= 'au' .AND. unit /= 'bohr' .AND. unit /= 'angs') THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  while reading the namelist "minimum"'
-        write(out_unit,*) '  The unit is wrong, unit: "',trim(unit),'"'
-        write(out_unit,*) '  The possible values are: "au" or "bohr" or "angs"'
-        write(out_unit,*) ' Check your data !!'
-        STOP
-      END IF
-
-
-      IF (.NOT. allocated(mole%opt_Qdyn)) THEN
-        CALL alloc_NParray(mole%opt_Qdyn,[mole%nb_var],'mole%opt_Qdyn',name_sub)
-      END IF
-      mole%opt_Qdyn(:) = 0
-      IF (opt) THEN
-         DO i=1,mole%nb_var
-          IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == 1) THEN
-            mole%opt_Qdyn(i) = 1
-          END IF
-        END DO
-      END IF
-
-      IF(MPI_id==0) THEN
-        write(out_unit,*)  '------------------------------------------------------'
-        write(out_unit,*)  '--- Coordinates used for the operators ---------------'
-        write(out_unit,*)  '------------------------------------------------------'
-      ENDIF
-
-      IF (mole%nb_Qtransfo == -1) THEN
-        pot_itQtransfo = 0
-        pot_cart       = .FALSE.
-        pot_act        = .FALSE.
-      END IF
-
-      IF ( (pot_act  .AND. pot_cart) .OR.                               &
-           (pot_act  .AND. pot_itQtransfo /= -1) .OR.                   &
-           (pot_cart .AND. pot_itQtransfo /= -1) ) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '(pot_act=t and pot_cart=t) .OR. ...'
-        write(out_unit,*) 'pot_act',pot_act
-        write(out_unit,*) 'pot_cart',pot_cart
-        write(out_unit,*) 'pot_itQtransfo ',pot_itQtransfo
-        write(out_unit,*) ' You have to chose between these options'
+        write(out_unit,*) ' nDfit_Op=.TRUE. and BaseName_nDfit_file is empty'
         write(out_unit,*) ' Check your data !'
         STOP
       END IF
-      IF (OnTheFly) pot_itQtransfo = 0 ! cart
+      para_Tnum%para_PES_FromTnum%nDFit_V_name_Fit =                   &
+                          trim(adjustl(BaseName_nDfit_file)) // "-col1"
+      allocate(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit(nb_scalar_Op))
+      DO i=1,nb_scalar_Op
+        para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit(i) =      &
+           trim(adjustl(BaseName_nDfit_file)) // "-col" // TO_string(i)
+      END DO
+    END IF
 
-      IF(pot_itQtransfo == -1) THEN
-        IF (pot_cart) THEN
-          pot_itQtransfo = 0                      ! Qcart
-        ELSE IF (pot_act) THEN
-          pot_itQtransfo = mole%nb_Qtransfo       ! Qact
-        ELSE
-          pot_itQtransfo = mole%nb_Qtransfo-1     ! Qdyn
-        END IF
+    para_Tnum%para_PES_FromTnum%QMLib              = QMLib
 
+    IF(MPI_id==0) THEN
+      write(out_unit,*) 'nb_scalar_Op',nb_scalar_Op
+      write(out_unit,*) 'nb_CAP',nb_CAP
+      write(out_unit,*) 'pot_itQtransfo',pot_itQtransfo
+
+      IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 0) THEN
+        write(out_unit,*) 'Operators (pot...) with Cartesian coordinates'
+      ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 1) THEN
+        write(out_unit,*) 'Operators (pot...) with primitive (zmat...) coordinates'
+      ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo-1) THEN
+        write(out_unit,*) 'Operators (pot...) with Qdyn coordinates'
+      ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo) THEN
+        write(out_unit,*) 'Operators (pot...) with Qact coordinates'
       END IF
-      IF (pot_itQtransfo < 0 .OR. pot_itQtransfo > mole%nb_Qtransfo) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,'(a,i0,a)') ' pot_itQtransfo is out of the range [0:',mole%nb_Qtransfo,']'
-        write(out_unit,*) ' Check your data !'
-        STOP
+      IF (QMLib .AND. para_Tnum%para_PES_FromTnum%pot_itQtransfo /= mole%nb_Qtransfo-1) THEN
+        write(out_unit,*)  ' WARNING QMLib=.TRUE. and its coordinates are not Qdyn!!'
       END IF
+      write(out_unit,*)  '------------------------------------------------------'
+    ENDIF
 
-      IF (nb_elec < 1 .AND. .NOT. QMLib) nb_elec = 1
-      para_Tnum%para_PES_FromTnum%opt            = opt
-      para_Tnum%para_PES_FromTnum%pot0           = convRWU_TO_R_WITH_WorkingUnit(pot0)
-      para_Tnum%para_PES_FromTnum%HarD           = HarD
-      para_Tnum%para_PES_FromTnum%nb_elec        = nb_elec
-      para_Tnum%para_PES_FromTnum%pot_cplx       = pot_cplx
-      para_Tnum%para_PES_FromTnum%OnTheFly       = OnTheFly
-      para_Tnum%para_PES_FromTnum%pot_itQtransfo = pot_itQtransfo
-      para_Tnum%para_PES_FromTnum%nb_scalar_Op   = nb_scalar_Op
-      para_Tnum%para_PES_FromTnum%nb_CAP         = nb_CAP
+    !=================================================================
+    !=================================================================
+    IF(MPI_id==0) THEN
+      write(out_unit,*)  '------------------------------------------------------'
+      write(out_unit,*)  '--- Coordinates used for the reference geometry ------'
+      write(out_unit,*)  '------------------------------------------------------'
+    ENDIF
 
-      ! We need that deriv_WITH_FiniteDiff otherwise the derivative are not correct
-      IF (QMLib) THEN
-        IF (pot_itQtransfo > 0 .AND. pot_itQtransfo < mole%nb_Qtransfo-1) deriv_WITH_FiniteDiff = .TRUE.
-      END IF
-      para_Tnum%para_PES_FromTnum%deriv_WITH_FiniteDiff  = deriv_WITH_FiniteDiff
+    ! first defined how to read the reference geometry:
+    ! - with read_itQ0transfo    or
+    ! - with read_Qsym0, read_xyz0, ...
+    IF (read_Qsym0) read_Qdyn0 = .TRUE.
 
-      para_Tnum%para_PES_FromTnum%nDfit_Op = nDfit_Op
-      IF (nDfit_Op) THEN
-       !STOP 'nDfit_Op is not possible anymore!!'
-       write(out_unit,*)  'BaseName_nDfit_file: ',trim(adjustl(BaseName_nDfit_file))
+    IF ( (read_Qdyn0 .AND. read_Qact0) .OR.                           &
+         (read_Qdyn0 .AND. read_xyz0) .OR.                            &
+         (read_Qdyn0 .AND. read_itQ0transfo /= -1) .OR.               &
+         (read_Qact0 .AND. read_xyz0) .OR.                            &
+         (read_Qact0 .AND. read_itQ0transfo /= -1) .OR.               &
+         (read_xyz0  .AND. read_itQ0transfo /= -1)) THEN
 
-       para_Tnum%para_PES_FromTnum%BaseName_nDfit_file = BaseName_nDfit_file
-       IF (len_trim(BaseName_nDfit_file) == 0) THEN
-         write(out_unit,*) ' ERROR in ',name_sub
-         write(out_unit,*) ' nDfit_Op=.TRUE. and BaseName_nDfit_file is empty'
-         write(out_unit,*) ' Check your data !'
-         STOP
-       END IF
-       para_Tnum%para_PES_FromTnum%nDFit_V_name_Fit =                   &
-                           trim(adjustl(BaseName_nDfit_file)) // "-col1"
-
-       allocate(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit(nb_scalar_Op))
-       DO i=1,nb_scalar_Op
-         para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit(i) =      &
-            trim(adjustl(BaseName_nDfit_file)) // "-col" // TO_string(i)
-       END DO
-      END IF
-
-      para_Tnum%para_PES_FromTnum%QMLib              = QMLib
-
-      IF(MPI_id==0) THEN
-        write(out_unit,*) 'nb_scalar_Op',nb_scalar_Op
-        write(out_unit,*) 'nb_CAP',nb_CAP
-        write(out_unit,*) 'pot_itQtransfo',pot_itQtransfo
-
-        IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 0) THEN
-          write(out_unit,*) 'Operators (pot...) with Cartesian coordinates'
-        ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == 1) THEN
-          write(out_unit,*) 'Operators (pot...) with primitive (zmat...) coordinates'
-        ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo-1) THEN
-          write(out_unit,*) 'Operators (pot...) with Qdyn coordinates'
-        ELSE IF (para_Tnum%para_PES_FromTnum%pot_itQtransfo == mole%nb_Qtransfo) THEN
-          write(out_unit,*) 'Operators (pot...) with Qact coordinates'
-        END IF
-
-        IF (QMLib .AND. para_Tnum%para_PES_FromTnum%pot_itQtransfo /= mole%nb_Qtransfo-1) THEN
-          write(out_unit,*)  ' WARNING QMLib=.TRUE. and its coordinates are not Qdyn!!'
-        END IF
-
-        write(out_unit,*)  '------------------------------------------------------'
-      ENDIF
-
-      !=================================================================
-      !=================================================================
-      !=================================================================
-      IF(MPI_id==0) THEN
-        write(out_unit,*)  '------------------------------------------------------'
-        write(out_unit,*)  '--- Coordinates used for the reference geometry ------'
-        write(out_unit,*)  '------------------------------------------------------'
-      ENDIF
-
-      ! first defined how to read the reference geometry:
-      ! - with read_itQ0transfo    or
-      ! - with read_Qsym0, read_xyz0, ...
-      IF (read_Qsym0) read_Qdyn0 = .TRUE.
-
-      IF ( (read_Qdyn0 .AND. read_Qact0) .OR.                           &
-           (read_Qdyn0 .AND. read_xyz0) .OR.                            &
-           (read_Qdyn0 .AND. read_itQ0transfo /= -1) .OR.               &
-           (read_Qact0 .AND. read_xyz0) .OR.                            &
-           (read_Qact0 .AND. read_itQ0transfo /= -1) .OR.               &
-           (read_xyz0  .AND. read_itQ0transfo /= -1)) THEN
-
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
-        write(out_unit,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
-        write(out_unit,*) 'read_Qact0',read_Qact0
-        write(out_unit,*) 'read_xyz0 ',read_xyz0
-        write(out_unit,*) 'read_itQ0transfo ',read_itQ0transfo
-        write(out_unit,*) ' You have to chose between these options'
-        write(out_unit,*) ' Check your data !'
-        STOP
-      END IF
-
-
-      read_itQtransfo_OF_Qin0 = read_itQ0transfo
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '(read_Qdyn0=t and read_xyz0=t) .OR. ...'
+      write(out_unit,*) 'read_Qdyn0 .OR. read_Qsym0',read_Qdyn0
+      write(out_unit,*) 'read_Qact0',read_Qact0
+      write(out_unit,*) 'read_xyz0 ',read_xyz0
+      write(out_unit,*) 'read_itQ0transfo ',read_itQ0transfo
+      write(out_unit,*) ' You have to chose between these options'
+      write(out_unit,*) ' Check your data !'
+      STOP 'ERROR in read_RefGeom. Incompatible options: read_Qact0, read_Qdyn0, read_xyz0 or read_itQ0transfo'
+    END IF
+    read_itQtransfo_OF_Qin0 = read_itQ0transfo
 
       IF (read_itQtransfo_OF_Qin0 == -1) THEN ! old way with read_Qsym0 or read_xyz0 ....
         IF (read_Qdyn0) THEN
@@ -395,7 +380,6 @@ CONTAINS
           IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qdyn0 coordinates:'
           read_itQtransfo_OF_Qin0 = mole%nb_Qtransfo-1
         END IF
-
           !IF (print_level > 1 .OR. debug) write(out_unit,*) ' Read Qprim0 (zmat, ...) coordinates:'
           !read_itQtransfo_OF_Qin0 = mole%itPrim
       END IF
@@ -503,10 +487,9 @@ CONTAINS
       !=================================================================
       !=================================================================
 
-
-!======================================================================
-!     IF Cart_transfo=t
-!======================================================================
+      !     IF Cart_transfo=t
+      !======================================================================
+      !======================================================================
       IF (get_name_Qtransfo(mole%tab_Qtransfo(1)) == 'zmat'  .AND. &
               mole%tab_Qtransfo(1)%ZmatTransfo%New_Orient .AND.         &
          sum(abs(mole%tab_Qtransfo(1)%ZmatTransfo%vAt1)) == ZERO .AND.  &
@@ -594,366 +577,337 @@ CONTAINS
 
         IF (debug) CALL Write_CartesianTransfo(mole%tab_Cart_transfo(1)%CartesianTransfo)
 
-      END IF
-!======================================================================
-!     END Cart_transfo=t
-!======================================================================
+    END IF
+    !     END Cart_transfo=t
+    !======================================================================
+    !======================================================================
 
-      IF(MPI_id==0) THEN
-        IF (print_level > 1)                                              &
-            write(out_unit,*) '===================================='
-        write(out_unit,*) 'END ',name_sub
-      ENDIF
+    IF(MPI_id==0) THEN
+      IF (print_level > 1) write(out_unit,*) '===================================='
+      write(out_unit,*) 'END ',name_sub
+    ENDIF
 
-      CALL dealloc_NParray(QRead,"QRead",name_sub)
+    CALL dealloc_NParray(QRead,"QRead",name_sub)
 
-      END SUBROUTINE read_RefGeom_CoordType
-!=======================================================================================
+  END SUBROUTINE read_RefGeom_CoordType
 
-      SUBROUTINE sub_QactTOQit(Qact,Qit,it_QTransfo,mole,print_Qtransfo)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
-      USE mod_Tnum
-      IMPLICIT NONE
+  ! coordinates transformation form Qact(:) to a specified index (it_QTransfo) coordinates (Qit(:))
+  SUBROUTINE sub_QactTOQit(Qact,Qit,it_QTransfo,mole,print_Qtransfo)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    TYPE (CoordType),  intent(in)                 :: mole
+    integer,           intent(in)                 :: it_QTransfo
+    real (kind=Rkind), intent(in)                 :: Qact(:)
+    real (kind=Rkind), intent(inout), allocatable :: Qit(:)
+    logical,           intent(in),    optional    :: print_Qtransfo
+
+    !- working variables -------------------------
+    integer           :: it,nderiv
+    TYPE (Type_dnVec) :: dnQin,dnQout,dnx
+    logical           :: print_Qtransfo_loc,Cart_transfo
+
+    !-----------------------------------------------------------------
+    integer :: err_mem,memory
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QactTOQit'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'it_QTransfo',it_QTransfo
+      !write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      !CALL Write_mole(mole)
+      write(out_unit,*)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
 
-      TYPE (CoordType), intent(in)                  :: mole
-      integer, intent(in)                           :: it_QTransfo
-      real (kind=Rkind), intent(in)                 :: Qact(:)
-      real (kind=Rkind), intent(inout), allocatable :: Qit(:)
+    IF (allocated(Qit)) CALL dealloc_NParray(Qit,'Qit',name_sub)
 
-      logical, intent(in), optional                 :: print_Qtransfo
+    IF (it_QTransfo < 0 .OR. it_QTransfo > mole%nb_Qtransfo) THEN
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' it_QTransfo has a wrong value: ',it_QTransfo
+      write(out_unit,'(a,i0,a)') ' it must be between [0:',mole%nb_Qtransfo,']'
+      write(out_unit,*) ' Check the Frantran source!!'
+      STOP 'ERROR in sub_QactTOQit: it_QTransfo has a wrong value'
+    END IF
+
+    nderiv = 0
+    print_Qtransfo_loc = .FALSE.
+    IF (present(print_Qtransfo)) print_Qtransfo_loc = print_Qtransfo
+    print_Qtransfo_loc = print_Qtransfo_loc .OR. debug
 
 
-!     - working variables -------------------------
-      integer           :: it,nderiv
-      TYPE (Type_dnVec) :: dnQin,dnQout,dnx
-      logical           :: print_Qtransfo_loc,Cart_transfo
+    IF (it_QTransfo == 0) THEN ! Qcart ! (special case for Cart_transfo)
 
-!     -----------------------------------------------------------------
-      integer :: err_mem,memory
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='sub_QactTOQit'
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'it_QTransfo',it_QTransfo
-        !write(out_unit,*) 'Qact =',Qact
-        write(out_unit,*)
-        !CALL Write_mole(mole)
-        write(out_unit,*)
+      CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
+
+      Cart_transfo = mole%Cart_transfo
+      IF (mole%Rot_Dip_with_EC) Cart_transfo = .FALSE.
+
+      CALL sub_QactTOdnx(Qact,dnx,mole,nderiv=0,Gcenter=.FALSE.,Cart_Transfo=Cart_transfo)
+
+      CALL alloc_NParray(Qit,[mole%ncart],'Qit',name_sub)
+      Qit(:) = dnx%d0(1:mole%ncart)
+
+      IF (print_Qtransfo_loc .OR. debug) THEN
+        CALL Write_d0Q(it,'Qin (Qact)',Qact,6)
+        CALL Write_d0Q(0, 'Qit (Cart)',Qit,3)
         flush(out_unit)
       END IF
-!     -----------------------------------------------------------------
-!      IF (size(Qact) == 0) THEN
-!        write(out_unit,*) 'ERROR in ',name_sub
-!        write(out_unit,*) ' the size of Qact(:) is zero!'
-!        write(out_unit,*) ' Check the Frantran source!!'
-!        STOP
-!      END IF
 
-      IF (allocated(Qit)) CALL dealloc_NParray(Qit,'Qit',name_sub)
+      CALL dealloc_dnSVM(dnx)
 
-      IF (it_QTransfo < 0 .OR. it_QTransfo > mole%nb_Qtransfo) THEN
-        write(out_unit,*) 'ERROR in ',name_sub
-        write(out_unit,*) ' it_QTransfo has a wrong value: ',it_QTransfo
-        write(out_unit,'(a,i0,a)') ' it must be between [0:',mole%nb_Qtransfo,']'
-        write(out_unit,*) ' Check the Frantran source!!'
-        STOP
+
+    ELSE IF (it_QTransfo == mole%nb_Qtransfo) THEN    ! Qact only
+      ! it enables to add the constraints (rigid, flexible)
+
+      it=mole%nb_Qtransfo
+      CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
+      dnQin%d0(:) = Qact(:)
+
+
+      CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
+
+      CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
+
+      IF (print_Qtransfo_loc .OR. debug) THEN
+        write(out_unit,*) '-----------------------------------------'
+        write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
+        CALL Write_d0Q(it,'Qin  (Qact)',dnQin%d0 ,6)
+        CALL Write_d0Q(it,'Qout (Qdyn)',dnQout%d0,6)
+        flush(out_unit)
       END IF
 
-      nderiv = 0
-      print_Qtransfo_loc = .FALSE.
-      IF (present(print_Qtransfo)) print_Qtransfo_loc = print_Qtransfo
-      print_Qtransfo_loc = print_Qtransfo_loc .OR. debug
+      ! Here we have to use dnQin, because we want to set-up Qact (with the constraints)
+      CALL alloc_NParray(Qit,[dnQin%nb_var_vec],'Qit',name_sub)
+      Qit(:) = dnQin%d0(:)
 
+      CALL dealloc_dnSVM(dnQin)
+      CALL dealloc_dnSVM(dnQout)
 
-      IF (it_QTransfo == 0) THEN ! Qcart ! (special case for Cart_transfo)
+    ELSE
 
-        CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
+      CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(mole%nb_Qtransfo)%nb_Qout,mole%nb_act,nderiv)
+      dnQin%d0(:) = Qact(:)
 
-        Cart_transfo = mole%Cart_transfo
-        IF (mole%Rot_Dip_with_EC) Cart_transfo = .FALSE.
+      DO it=mole%nb_Qtransfo,it_QTransfo+1,-1 ! we add 1 to it_QTransfo,
+        ! because it_QTransfo is set for Qin and at a given iteration we get Qout
 
-        CALL sub_QactTOdnx(Qact,dnx,mole,nderiv=0,Gcenter=.FALSE.,      &
-                                              Cart_Transfo=Cart_transfo)
-
-        CALL alloc_NParray(Qit,[mole%ncart],'Qit',name_sub)
-        Qit(:) = dnx%d0(1:mole%ncart)
-
-        IF (print_Qtransfo_loc .OR. debug) THEN
-          CALL Write_d0Q(it,'Qin (Qact)',Qact,6)
-          CALL Write_d0Q(0, 'Qit (Cart)',Qit,3)
-          flush(out_unit)
-        END IF
-
-        CALL dealloc_dnSVM(dnx)
-
-
-      ELSE IF (it_QTransfo == mole%nb_Qtransfo) THEN    ! Qact only
-        ! it enables to add the constraints (rigid, flexible)
-
-        it=mole%nb_Qtransfo
-        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
-        dnQin%d0(:) = Qact(:)
-
+        IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
 
         CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
 
         CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
 
         IF (print_Qtransfo_loc .OR. debug) THEN
-
           write(out_unit,*) '-----------------------------------------'
           write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
-
-          CALL Write_d0Q(it,'Qin  (Qact)',dnQin%d0 ,6)
-          CALL Write_d0Q(it,'Qout (Qdyn)',dnQout%d0,6)
+          CALL Write_d0Q(it,'Qin ',dnQin%d0 ,6)
+          CALL Write_d0Q(it,'Qout',dnQout%d0,6)
           flush(out_unit)
-
         END IF
 
-        ! Here we have to use dnQin, because we want to set-up Qact (with the constraints)
-        CALL alloc_NParray(Qit,[dnQin%nb_var_vec],'Qit',name_sub)
-        Qit(:) = dnQin%d0(:)
-
         CALL dealloc_dnSVM(dnQin)
+        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
+        CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin)
         CALL dealloc_dnSVM(dnQout)
 
+      END DO
 
-      ELSE
+      ! Here we have to use dnQin, because dnQout is transferred in dnQin and then it is deallocated.
+      CALL alloc_NParray(Qit,[dnQin%nb_var_vec],'Qit',name_sub)
+      Qit(:) = dnQin%d0(:)
 
-        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(mole%nb_Qtransfo)%nb_Qout,mole%nb_act,nderiv)
-        dnQin%d0(:) = Qact(:)
+      CALL dealloc_dnSVM(dnQin)
 
-        DO it=mole%nb_Qtransfo,it_QTransfo+1,-1 ! we add 1 to it_QTransfo,
-                ! because it_QTransfo is set for Qin and at a given iteration we get Qout
+    END IF
 
-          IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
-
-          CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
-
-          CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
-
-          IF (print_Qtransfo_loc .OR. debug) THEN
-            write(out_unit,*) '-----------------------------------------'
-            write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
-            CALL Write_d0Q(it,'Qin ',dnQin%d0 ,6)
-            CALL Write_d0Q(it,'Qout',dnQout%d0,6)
-            flush(out_unit)
-
-          END IF
-
-          CALL dealloc_dnSVM(dnQin)
-          CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,mole%nb_act,nderiv)
-          CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin)
-          CALL dealloc_dnSVM(dnQout)
-
-        END DO
-
-        ! Here we have to use dnQin, because dnQout is transferred in dnQin and then it is deallocated.
-        CALL alloc_NParray(Qit,[dnQin%nb_var_vec],'Qit',name_sub)
-        Qit(:) = dnQin%d0(:)
-
-
-        CALL dealloc_dnSVM(dnQin)
-
-
-      END IF
-
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'END ',name_sub
-        write(out_unit,*)
-        flush(out_unit)
-      END IF
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE sub_QactTOQit
-
-      SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
-      USE mod_Tnum
-      IMPLICIT NONE
-
-
-      integer           :: it_QinRead
-      TYPE (CoordType)  :: mole
-      real (kind=Rkind) :: Qread(:)
-      real (kind=Rkind) :: Qact(:)
-
-      real (kind=Rkind) :: Rot_initial(3,3),Qat1(3)
-
-
-      !- working variables -------------------------
-      integer :: it,nb_act,i,ic1,ic
-      integer :: it_QoutRead
-
-      TYPE (Type_dnVec) :: dnQin,dnQout
-
-      !-----------------------------------------------------------------
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='sub_QinRead_TO_Qact'
-      !-----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'it_QinRead,mole%nb_Qtransfo',it_QinRead,mole%nb_Qtransfo
-        write(out_unit,*) 'Qread =',Qread
-        write(out_unit,*)
-        !CALL Write_mole(mole)
-        write(out_unit,*)
-      END IF
-      !-----------------------------------------------------------------
-
-      ! since it is going from out to in, it is better to use it_QoutRead (= it_QinRead+1)
-      it_QoutRead = it_QinRead + 1
-
-      IF (it_QoutRead == mole%nb_Qtransfo+1) THEN ! read_Qact0
-        Qact(:) = Qread(:)
-      ELSE
-        it = it_QoutRead
-        nb_act = mole%tab_Qtransfo(it_QoutRead)%nb_act
-
-        CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,nb_act,0)
-
-        dnQout%d0(1:size(Qread)) = Qread(:)
-
-        DO it=it_QoutRead,mole%nb_Qtransfo
-          IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
-
-          CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
-
-          IF (debug) THEN
-            CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
-            write(out_unit,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
-            flush(out_unit)
-          END IF
-
-          CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
-
-          IF (debug) THEN
-            CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
-            flush(out_unit)
-          END IF
-
-          CALL dealloc_dnSVM(dnQout)
-          CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
-
-          CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv=0)
-          CALL dealloc_dnSVM(dnQin)
-
-        END DO
-
-        Qact(:) = dnQout%d0(1:size(Qact))
-        CALL dealloc_dnSVM(dnQout)
-      END IF
-
-
-
-      !-----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'Qact',Qact(:)
-        write(out_unit,*) 'END ',name_sub
-        write(out_unit,*)
-      END IF
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
       flush(out_unit)
-      !-----------------------------------------------------------------
+    END IF
+    !-----------------------------------------------------------------
 
-      END SUBROUTINE sub_QinRead_TO_Qact
+  END SUBROUTINE sub_QactTOQit
 
-      SUBROUTINE Set_NewOrient_CartesianTransfo(mole)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Tnum
-      IMPLICIT NONE
+  SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
 
-      TYPE (CoordType),   intent(inout)      :: mole
-
-
-
-!     - working variables -------------------------
-      integer           :: iref,iat
-      real (kind=Rkind) :: Qxyz(mole%ncart)
-      logical           :: vAti_EQ_ZERO
+    integer,            intent(in)    :: it_QinRead
+    TYPE (CoordType),   intent(in)    :: mole
+    real (kind=Rkind),  intent(in)    :: Qread(:)
+    real (kind=Rkind),  intent(inout) :: Qact(:)
 
 
-!     -----------------------------------------------------------------
-      !logical, parameter :: debug = .FALSE.
-      logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='Set_NewOrient_CartesianTransfo'
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-      END IF
-!     -----------------------------------------------------------------
+    !- working variables -------------------------
+    integer :: it,it_QoutRead,nb_act
+    TYPE (Type_dnVec) :: dnQin,dnQout
 
-      vAti_EQ_ZERO = all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1 == ZERO) .AND. &
-                     all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt2 == ZERO) .AND. &
-                     all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt3 == ZERO)
+    !-----------------------------------------------------------------
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QinRead_TO_Qact'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'it_QinRead,mole%nb_Qtransfo',it_QinRead,mole%nb_Qtransfo
+      write(out_unit,*) 'Qread =',Qread
+      write(out_unit,*)
+      !CALL Write_mole(mole)
+      write(out_unit,*)
+    END IF
+    !-----------------------------------------------------------------
 
-      IF (.NOT. vAti_EQ_ZERO) THEN
+    ! since it is going from out to in, it is better to use it_QoutRead (= it_QinRead+1)
+    it_QoutRead = it_QinRead + 1
 
-        CALL sub_vAtiTOexeyez(mole%tab_Cart_transfo(1)%CartesianTransfo%TransVect(:,1),mole)
+    IF (it_QoutRead == mole%nb_Qtransfo+1) THEN ! read_Qact0
+      Qact(:) = Qread(:)
+    ELSE
+      it = it_QoutRead
+      nb_act = mole%tab_Qtransfo(it_QoutRead)%nb_act
 
-        mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,:)   = ZERO
-        mole%tab_Cart_transfo(1)%CartesianTransfo%MWQxyz(:,:,:) = ZERO
+      CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,nb_act,0)
 
-      ELSE
+      dnQout%d0(1:size(Qread)) = Qread(:)
 
-        IF (mole%ncart /= mole%ncart_act+3) THEN
-          write(out_unit,*) 'ERROR in ',name_sub
-          write(out_unit,*) '  ncart /= ncart_act+3',mole%ncart,mole%ncart_act
-          write(out_unit,*) ' => dummy atoms are present. It is not possible with this option.'
-          write(out_unit,*) ' => Choose New_Orient with vAt1,vAt3,vAt3. '
-          write(out_unit,*) '  CHECK your data!!'
-          STOP
+      DO it=it_QoutRead,mole%nb_Qtransfo
+        IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
+
+        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
+
+        IF (debug) THEN
+          CALL Write_d0Q(it,'Qout ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,6)
+          write(out_unit,*) 'Qout ',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0
+          flush(out_unit)
+        END IF
+        CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),0,inTOout=.FALSE.)
+
+        IF (debug) THEN
+          CALL Write_d0Q(it,'Qin  ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQin%d0,6)
+          flush(out_unit)
         END IF
 
-        DO iref=1,mole%tab_Cart_transfo(1)%CartesianTransfo%nb_RefGeometry
+        CALL dealloc_dnSVM(dnQout)
+        CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
-          Qxyz(1:mole%ncart_act) = reshape(mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,iref), shape=[mole%ncart_act])
+        CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv=0)
+        CALL dealloc_dnSVM(dnQin)
 
-          CALL sub_QxyzTOexeyez(Qxyz,mole%tab_Cart_transfo(1)%CartesianTransfo%TransVect(:,iref),mole)
+      END DO
 
-          mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,iref) = reshape(Qxyz(1:mole%ncart_act), shape=[3,mole%nat_act])
+      Qact(:) = dnQout%d0(1:size(Qact))
+      CALL dealloc_dnSVM(dnQout)
+    END IF
 
-          DO iat=1,mole%tab_Cart_transfo(1)%CartesianTransfo%nat_act
-            mole%tab_Cart_transfo(1)%CartesianTransfo%MWQxyz(:,iat,iref) = &
-             mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,iat,iref) *  &
-               sqrt(mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at(iat))
-          END DO
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Qact',Qact(:)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+    END IF
+    flush(out_unit)
+    !-----------------------------------------------------------------
 
+  END SUBROUTINE sub_QinRead_TO_Qact
+
+  SUBROUTINE Set_NewOrient_CartesianTransfo(mole)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    TYPE (CoordType),   intent(inout)      :: mole
+
+    !- working variables -------------------------
+    integer           :: iref,iat
+    real (kind=Rkind) :: Qxyz(mole%ncart)
+    logical           :: vAti_EQ_ZERO
+
+
+    !-----------------------------------------------------------------
+    !logical, parameter :: debug = .FALSE.
+    logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='Set_NewOrient_CartesianTransfo'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+    END IF
+    !-----------------------------------------------------------------
+
+    vAti_EQ_ZERO = all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt1 == ZERO) .AND. &
+                   all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt2 == ZERO) .AND. &
+                   all(mole%tab_Cart_transfo(1)%CartesianTransfo%vAt3 == ZERO)
+
+    IF (.NOT. vAti_EQ_ZERO) THEN
+
+      CALL sub_vAtiTOexeyez(mole%tab_Cart_transfo(1)%CartesianTransfo%TransVect(:,1),mole)
+
+      mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,:)   = ZERO
+      mole%tab_Cart_transfo(1)%CartesianTransfo%MWQxyz(:,:,:) = ZERO
+
+    ELSE
+
+      IF (mole%ncart /= mole%ncart_act+3) THEN
+        write(out_unit,*) 'ERROR in ',name_sub
+        write(out_unit,*) '  ncart /= ncart_act+3',mole%ncart,mole%ncart_act
+        write(out_unit,*) ' => dummy atoms are present. It is not possible with this option.'
+        write(out_unit,*) ' => Choose New_Orient with vAt1,vAt3,vAt3. '
+        write(out_unit,*) '  CHECK your data!!'
+        STOP
+      END IF
+
+      DO iref=1,mole%tab_Cart_transfo(1)%CartesianTransfo%nb_RefGeometry
+
+        Qxyz(1:mole%ncart_act) = reshape(mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,iref), shape=[mole%ncart_act])
+
+        CALL sub_QxyzTOexeyez(Qxyz,mole%tab_Cart_transfo(1)%CartesianTransfo%TransVect(:,iref),mole)
+
+        mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,:,iref) = reshape(Qxyz(1:mole%ncart_act), shape=[3,mole%nat_act])
+
+        DO iat=1,mole%tab_Cart_transfo(1)%CartesianTransfo%nat_act
+          mole%tab_Cart_transfo(1)%CartesianTransfo%MWQxyz(:,iat,iref) = &
+           mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz(:,iat,iref) *  &
+             sqrt(mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at(iat))
         END DO
-      END IF
 
-      IF (debug) THEN
-        write(out_unit,*) 'END ',name_sub
-        write(out_unit,*)
-      END IF
+      END DO
+    END IF
+
+    IF (debug) THEN
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
       flush(out_unit)
+    END IF
 
-      END SUBROUTINE Set_NewOrient_CartesianTransfo
+  END SUBROUTINE Set_NewOrient_CartesianTransfo
 
-      SUBROUTINE sub_QxyzTOexeyez(Qxyz,VT,mole)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
-      USE mod_Tnum
-      IMPLICIT NONE
+  SUBROUTINE sub_QxyzTOexeyez(Qxyz,VT,mole)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
 
-
-      TYPE (CoordType)  :: mole
-      real (kind=Rkind) :: Qxyz(:),VT(:)
-
-
+    real (kind=Rkind), intent(inout) :: Qxyz(:)
+    real (kind=Rkind), intent(inout) :: VT(:)
+    TYPE (CoordType),  intent(inout) :: mole
 
 !     - working variables -------------------------
       logical           :: case1
@@ -1073,30 +1027,24 @@ CONTAINS
         STOP
       END SELECT
 
-      mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,1) = ex(:)
-      mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,2) = ey(:)
-      mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,3) = ez(:)
+    mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,1) = ex(:)
+    mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,2) = ey(:)
+    mole%tab_Cart_transfo(1)%CartesianTransfo%Rot_initial(:,3) = ez(:)
 
-!=================================================
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'ex',ex(:)
+      write(out_unit,*) 'ey',ey(:)
+      write(out_unit,*) 'ez',ez(:)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+    END IF
+    flush(out_unit)
+    !-----------------------------------------------------------------
 
-
-!=================================================
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'ex',ex(:)
-        write(out_unit,*) 'ey',ey(:)
-        write(out_unit,*) 'ez',ez(:)
-        write(out_unit,*) 'END ',name_sub
-        write(out_unit,*)
-      END IF
-      flush(out_unit)
-
-!     -----------------------------------------------------------------
-!=================================================
-
-      END SUBROUTINE sub_QxyzTOexeyez
+  END SUBROUTINE sub_QxyzTOexeyez
       !Initial rotation with vAt1, vAt2, vAt3
-      SUBROUTINE sub_vAtiTOexeyez(VT,mole)
+  SUBROUTINE sub_vAtiTOexeyez(VT,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
@@ -1215,8 +1163,8 @@ CONTAINS
 !     -----------------------------------------------------------------
 !=================================================
 
-      END SUBROUTINE sub_vAtiTOexeyez
-      SUBROUTINE sub_Qxyz0TORot(Qxyz,Rot_initial,mole)
+  END SUBROUTINE sub_vAtiTOexeyez
+  SUBROUTINE sub_Qxyz0TORot(Qxyz,Rot_initial,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
@@ -1346,10 +1294,10 @@ CONTAINS
 !     -----------------------------------------------------------------
 !=================================================
 
-      END SUBROUTINE sub_Qxyz0TORot
+  END SUBROUTINE sub_Qxyz0TORot
 
 
-      SUBROUTINE sub_QplusDQ_TO_Cart(Qact,mole)
+  SUBROUTINE sub_QplusDQ_TO_Cart(Qact,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Tnum
@@ -1479,80 +1427,529 @@ CONTAINS
         write(out_unit,*) 'END ',name_sub
       END IF
       !-----------------------------------------------------------------
-      END SUBROUTINE sub_QplusDQ_TO_Cart
+  END SUBROUTINE sub_QplusDQ_TO_Cart
 
-!================================================================
-!       conversion d0Q (zmat,poly, bunch ...) => d0x (mass weighted)
-!================================================================
-      SUBROUTINE sub_QactTOdnMWx(Qact,dnMWx,mole,nderiv,Gcenter,Cart_Transfo,WriteCC)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Tnum
-      IMPLICIT NONE
+  !================================================================
+  !       conversion d0Q (zmat,poly, bunch ...) => d0x (mass weighted)
+  ! This subroutine is called to get the metric tensor.
+  !================================================================
+  SUBROUTINE sub_QactTOdnMWx(Qact,dnMWx,mole,nderiv,Gcenter,Cart_Transfo,WriteCC)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Tnum
+    IMPLICIT NONE
 
-
-      real (kind=Rkind), intent(in)             :: Qact(:)
-      TYPE (CoordType),  intent(in)             :: mole
-      TYPE (Type_dnVec), intent(inout)          :: dnMWx
-      integer,           intent(in)             :: nderiv
-      logical,           intent(in)             :: Gcenter
-      logical,           intent(in),   optional :: Cart_Transfo,WriteCC
-
-
-!     - working variables -------------------------
-      logical           :: Cart_Transfo_loc,WriteCC_loc
+    real (kind=Rkind), intent(in)             :: Qact(:)
+    TYPE (CoordType),  intent(in)             :: mole
+    TYPE (Type_dnVec), intent(inout)          :: dnMWx
+    integer,           intent(in)             :: nderiv
+    logical,           intent(in)             :: Gcenter
+    logical,           intent(in),   optional :: Cart_Transfo,WriteCC
 
 
-!     -----------------------------------------------------------------
-      integer :: nderiv_debug = 1
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='sub_QactTOdnMWx'
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'nderiv',nderiv
-        write(out_unit,*) 'ncart',mole%ncart
-        write(out_unit,*) 'Qact =',Qact
-        write(out_unit,*)
-        !CALL Write_CoordType(mole)
-        write(out_unit,*)
-        CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
+    !- working variables -------------------------
+    logical           :: Cart_Transfo_loc,WriteCC_loc
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 1
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QactTOdnMWx'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'ncart',mole%ncart
+      write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      !CALL Write_CoordType(mole)
+      write(out_unit,*)
+      CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    IF (present(WriteCC)) THEN
+      WriteCC_loc = WriteCC
+    ELSE
+      WriteCC_loc = mole%WriteCC
+    END IF
+
+    IF (present(Cart_Transfo)) THEN
+      Cart_Transfo_loc = Cart_Transfo
+    ELSE
+      Cart_Transfo_loc = mole%Cart_transfo
+    END IF
+
+    CALL sub_QactTOdnx(Qact,dnMWx,mole,nderiv,Gcenter,Cart_Transfo_loc,WriteCC_loc)
+
+    CALL sub_dnxMassWeight(dnMWx,mole%d0sm,mole%ncart,mole%ncart_act,nderiv)
+
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Mass Weighted Cartessian coordinates'
+      CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+  
+  END SUBROUTINE sub_QactTOdnMWx
+  !================================================================
+  !    Get the cartesian coordinates in different frames (with derivatives) from Qact(:) coordinates
+  !
+  !    It could obtained without recenter with respect to the COM (Gcenter=F) or
+  !    or witout Cartesian transformation (Cart_Transfo=f): without fixed Euler or Eckart rotation
+  !================================================================
+  SUBROUTINE sub_QactTOdnx_CoordType(Qact,dnx,mole,       &
+                                     nderiv,Gcenter,Cart_Transfo,WriteCC)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    real (kind=Rkind), intent(in)           :: Qact(:)
+    TYPE (CoordType),  intent(in)           :: mole
+    TYPE (Type_dnVec), intent(inout)        :: dnx
+    integer,           intent(in)           :: nderiv
+    logical,           intent(in)           :: Gcenter
+    logical,           intent(in), optional :: Cart_Transfo,WriteCC
+
+    !- working variables -------------------------
+    TYPE (Type_dnVec) :: dnQin,dnQout
+    real (kind=Rkind) :: Qacti,Qactj
+    real (kind=Rkind) :: step2,step24,stepp
+    integer           :: i,j
+    integer           :: it,ic,icG,nb_act,iii
+    logical           :: Gcenter_loc,Cart_Transfo_loc,GCenter_done,WriteCC_loc
+    real (kind=Rkind) :: Qact_loc(size(Qact))
+
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 1
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QactTOdnx_CoordType'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      IF (allocated(mole%Cart_Type)) write(out_unit,*) 'Cart_Type: ',mole%Cart_Type
+      write(out_unit,*) 'Gcenter,Centered_ON_CoM',Gcenter,mole%Centered_ON_CoM
+      IF (present(Cart_Transfo)) write(out_unit,*) 'Cart_Transfo',Cart_Transfo
+      write(out_unit,*) 'mole%Cart_transfo',mole%Cart_transfo
+      write(out_unit,*) 'ncart',mole%ncart
+      write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      !CALL Write_CoordType(mole)
+      write(out_unit,*)
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    IF (size(Qact) /= mole%nb_var .AND. size(Qact) /= mole%nb_act) THEN
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_var or '
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_act!'
+      write(out_unit,*) ' the size of Qact(:): ',size(Qact)
+      write(out_unit,*) ' mole%nb_var:         ',mole%nb_var
+      write(out_unit,*) ' mole%nb_act:         ',mole%nb_act
+      write(out_unit,*) ' Check the Fortran source!!'
+      STOP 'ERROR in sub_QactTOdnx_CoordType: wrong Qact size'
+    END IF
+
+    IF (present(WriteCC)) THEN
+      WriteCC_loc = WriteCC
+    ELSE
+      WriteCC_loc = mole%WriteCC
+    END IF
+
+    IF (present(Cart_Transfo)) THEN
+      Cart_Transfo_loc = Cart_Transfo
+    ELSE
+      Cart_Transfo_loc = mole%Cart_transfo
+    END IF
+
+    IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
+
+   IF (mole%num_x .AND. nderiv > 0) THEN
+      step2 = ONE/(mole%stepQ*mole%stepQ)
+      step24 = step2/FOUR
+      stepp = ONE/(mole%stepQ+mole%stepQ)
+      IF (nderiv >= 3) THEN
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' nderiv > 2 is impossible with numerical derivatives'
+        write(out_unit,*) ' nderiv: ',nderiv
+        STOP
       END IF
-!     -----------------------------------------------------------------
+      IF (nderiv >= 1) THEN ! first and second (diagonal terms) derivatives
 
-      IF (present(WriteCC)) THEN
-        WriteCC_loc = WriteCC
-      ELSE
-        WriteCC_loc = mole%WriteCC
+        Qact_loc(:) = Qact(:)
+
+        DO i=1,mole%nb_act
+
+          Qacti = Qact_loc(i)
+
+          Qact_loc(i) = Qacti + mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d1(:,i) = dnx%d0(:)
+          IF (nderiv == 2) dnx%d2(:,i,i) = dnx%d0(:)
+
+          Qact_loc(i) = Qacti - mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d1(:,i) = (dnx%d1(:,i) - dnx%d0(:)) * stepp
+          IF (nderiv == 2) dnx%d2(:,i,i) = dnx%d2(:,i,i) + dnx%d0
+
+          Qact_loc(i) = Qacti
+
+        END DO ! end first and second (diagonal terms) derivatives
       END IF
 
-      IF (present(Cart_Transfo)) THEN
-        Cart_Transfo_loc = Cart_Transfo
-      ELSE
-        Cart_Transfo_loc = mole%Cart_transfo
+      IF (nderiv == 2) THEN ! second derivatives (crossing terms)
+        DO i=1,mole%nb_act
+        DO j=i+1,mole%nb_act
+
+          Qacti = Qact_loc(i)
+          Qactj = Qact_loc(j)
+
+          Qact_loc(i) = Qacti + mole%stepQ
+          Qact_loc(j) = Qactj + mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d2(:,i,j) = dnx%d0(:)
+
+          Qact_loc(i) = Qacti - mole%stepQ
+          Qact_loc(j) = Qactj - mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d2(:,i,j) = dnx%d2(:,i,j) + dnx%d0(:)
+
+          Qact_loc(i) = Qacti - mole%stepQ
+          Qact_loc(j) = Qactj + mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d2(:,i,j) = dnx%d2(:,i,j) - dnx%d0(:)
+
+          Qact_loc(i) = Qacti - mole%stepQ
+          Qact_loc(j) = Qactj - mole%stepQ
+          CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=.FALSE.)
+          dnx%d2(:,i,j) = dnx%d2(:,i,j) - dnx%d0(:)
+
+          dnx%d2(:,i,j) = dnx%d2(:,i,j) * step24
+          dnx%d2(:,j,i) = dnx%d2(:,i,j)
+
+          Qact_loc(i) = Qacti
+          Qact_loc(j) = Qactj
+
+        END DO
+        END DO
+      END IF ! end second derivatives (crossing terms)
+
+      ! no derivative values
+      CALL sub_QactTOdnx_ana_CoordType(Qact_loc,dnx,mole,0,Gcenter,Cart_Transfo_loc,WriteCC=WriteCC_loc)
+
+      IF (nderiv == 2) THEN
+        DO i=1,mole%nb_act
+          dnx%d2(:,i,i) = ( dnx%d2(:,i,i) - TWO*dnx%d0(:) ) * step2
+        END DO
       END IF
 
-      CALL sub_QactTOdnx(Qact,dnMWx,mole,nderiv,Gcenter,Cart_Transfo_loc,WriteCC_loc)
+    ELSE
+      CALL sub_QactTOdnx_ana_CoordType(Qact,dnx,mole,nderiv,Gcenter,Cart_Transfo_loc,WriteCC=WriteCC_loc)
+    END IF
 
-      CALL sub_dnxMassWeight(dnMWx,mole%d0sm,mole%ncart,mole%ncart_act,nderiv)
+
+    !=================================================
+    ! for partial hessian (pvscf)
+    DO ic=1,mole%ncart_act,3
+      IF (mole%active_masses(ic) == 0) CALL sub3_dnx_AT1(dnx,ic,nderiv)
+    END DO
+    !=================================================
 
 
-      !-----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'Mass Weighted Cartessian coordinates'
-        CALL write_dnx(1,mole%ncart,dnMWx,nderiv_debug)
-        write(out_unit,*) 'END ',name_sub
-        write(out_unit,*)
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Cartessian coordinates (au)'
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE sub_QactTOdnx_CoordType
+  SUBROUTINE sub_QactTOdnx_ana_CoordType(Qact,dnx,mole,       &
+                                         nderiv,Gcenter,Cart_Transfo,WriteCC)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    real (kind=Rkind), intent(in)           :: Qact(:)
+    TYPE (CoordType),  intent(in)           :: mole
+    TYPE (Type_dnVec), intent(inout)        :: dnx
+    integer,           intent(in)           :: nderiv
+    logical,           intent(in)           :: Gcenter
+    logical,           intent(in), optional :: Cart_Transfo,WriteCC
+
+    !- working variables -------------------------
+    logical           :: Cart_Transfo_loc,WriteCC_loc
+
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 1
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QactTOdnx_ana_CoordType'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'ncart',mole%ncart
+      write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      !CALL Write_CoordType(mole)
+      write(out_unit,*)
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    IF (size(Qact) /= mole%nb_var .AND. size(Qact) /= mole%nb_act) THEN
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_var or '
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_act!'
+      write(out_unit,*) ' the size of Qact(:): ',size(Qact)
+      write(out_unit,*) ' mole%nb_var:         ',mole%nb_var
+      write(out_unit,*) ' mole%nb_act:         ',mole%nb_act
+      write(out_unit,*) ' Check the Fortran source!!'
+      STOP 'ERROR in sub_QactTOdnx_ana_CoordType: wrong Qact size'
+    END IF
+
+    IF (present(WriteCC)) THEN
+      WriteCC_loc = WriteCC
+    ELSE
+      WriteCC_loc = mole%WriteCC
+    END IF
+
+    IF (present(Cart_Transfo)) THEN
+      Cart_Transfo_loc = Cart_Transfo
+    ELSE
+      Cart_Transfo_loc = mole%Cart_transfo
+    END IF
+
+    IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
+
+    IF (mole%num_x .AND. nderiv > 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole%num_x:',mole%num_x
+      write(out_unit,*) ' nderiv:    ',nderiv
+      STOP 'ERROR in sub_QactTOdnx_ana_CoordType: Only for the analytical or no derivatives'
+    END IF
+
+    IF (.NOT. allocated(mole%Cart_Type)) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole%Cart_Type is not allocated'
+      write(out_unit,*) ' CHECK the Fortran!'
+      STOP 'ERROR in sub_QactTOdnx_ana_CoordType: mole%Cart_Type is not allocated'
+    END IF
+
+    SELECT CASE (TO_lowercase(mole%Cart_Type))
+    CASE ('bf')
+      CALL sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
+                                       nderiv,Gcenter,Cart_Transfo_loc,WriteCC_loc)
+    CASE('sf')
+      STOP 'STOP in sub_QactTOdnx_ana_CoordType: Cartesian coordinates in SF, not yet'
+    CASE('lf')
+      STOP 'STOP in sub_QactTOdnx_ana_CoordType: Cartesian coordinates in LF, not yet'
+    CASE Default
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' Not default for mole%Cart_Type'
+      write(out_unit,*) ' CHECK the Fortran!'
+      STOP 'ERROR in sub_QactTOdnx_ana_CoordType: Not default for mole%Cart_Type'
+    END SELECT
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Cartessian coordinates (au)'
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE sub_QactTOdnx_ana_CoordType
+  SUBROUTINE sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
+                                     nderiv,Gcenter,Cart_Transfo,WriteCC)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    real (kind=Rkind), intent(in)           :: Qact(:)
+    TYPE (CoordType),  intent(in)           :: mole
+    TYPE (Type_dnVec), intent(inout)        :: dnx
+    integer,           intent(in)           :: nderiv
+    logical,           intent(in)           :: Gcenter
+    logical,           intent(in), optional :: Cart_Transfo,WriteCC
+
+    !- working variables -------------------------
+    TYPE (Type_dnVec) :: dnQin,dnQout
+    integer           :: it,ic,icG,nb_act
+    logical           :: Cart_Transfo_loc,WriteCC_loc
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 1
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='sub_QactTOdnxBF_ana_CoordType'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'Gcenter,Centered_ON_CoM',Gcenter,mole%Centered_ON_CoM
+      IF (present(Cart_Transfo)) write(out_unit,*) 'Cart_Transfo',Cart_Transfo
+      write(out_unit,*) 'mole%Cart_transfo',mole%Cart_transfo
+      write(out_unit,*) 'ncart',mole%ncart
+      write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      !CALL Write_CoordType(mole)
+      write(out_unit,*)
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    IF (size(Qact) /= mole%nb_var .AND. size(Qact) /= mole%nb_act) THEN
+      write(out_unit,*) 'ERROR in ',name_sub
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_var or '
+      write(out_unit,*) ' the size of Qact(:) is not mole%nb_act!'
+      write(out_unit,*) ' the size of Qact(:): ',size(Qact)
+      write(out_unit,*) ' mole%nb_var:         ',mole%nb_var
+      write(out_unit,*) ' mole%nb_act:         ',mole%nb_act
+      write(out_unit,*) ' Check the Fortran source!!'
+      STOP 'ERROR in sub_QactTOdnxBF_ana_CoordType: wrong Qact size'
+    END IF
+
+    IF (present(WriteCC)) THEN
+      WriteCC_loc = WriteCC
+    ELSE
+      WriteCC_loc = mole%WriteCC
+    END IF
+
+    IF (present(Cart_Transfo)) THEN
+      Cart_Transfo_loc = Cart_Transfo
+    ELSE
+      Cart_Transfo_loc = mole%Cart_transfo
+    END IF
+
+    IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
+
+    IF (mole%num_x .AND. nderiv > 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole%num_x:',mole%num_x
+      write(out_unit,*) ' nderiv:    ',nderiv
+      STOP 'ERROR in sub_QactTOdnxBF_ana_CoordType: Only for the analytical or no derivatives'
+    END IF
+
+
+      it = mole%nb_Qtransfo
+      nb_act = mole%tab_Qtransfo(mole%nb_Qtransfo)%nb_act
+
+      IF (WriteCC_loc .OR. debug) THEN
+        CALL Write_d0Q(it,'Qact',Qact(1:mole%nb_act),6)
       END IF
-      !-----------------------------------------------------------------
 
-      END SUBROUTINE sub_QactTOdnMWx
-!================================================================
-!       conversion d0Q (zmat,poly, bunch ...) => d0x (not mass weighted)
-!================================================================
-      RECURSIVE SUBROUTINE sub_QactTOdnx_CoordType(Qact,dnx,mole,       &
+      CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,nb_act,nderiv)
+      dnQin%d0(1:size(Qact)) = Qact(:)
+      IF (WriteCC_loc .OR. debug) CALL Write_d0Q(it,'Qin (Qact)',dnQin%d0,6)
+
+      DO it=mole%nb_Qtransfo,1,-1
+        IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
+
+        IF (WriteCC_loc .OR. debug) THEN 
+          write(out_unit,*) 'name_transfo',it,' ',get_name_Qtransfo(mole%tab_Qtransfo(it))
+          CALL Write_d0Q(it,'Qin ',dnQin%d0,6)
+          flush(out_unit)
+        END IF
+
+        CALL calc_Qtransfo(dnQin,dnQout,mole%tab_Qtransfo(it),nderiv,.TRUE.)
+
+        IF (WriteCC_loc .OR. debug) THEN
+          IF (it == 1) THEN
+            CALL Write_d0Q(it,'Qxyz',dnQout%d0,3)
+          ELSE
+            CALL Write_d0Q(it,'Qout',dnQout%d0,6)
+          END IF
+          flush(out_unit)
+        END IF
+
+        CALL dealloc_dnSVM(dnQin)
+        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,nb_act,nderiv)
+        CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin)
+        CALL dealloc_dnSVM(dnQout)
+
+      END DO
+
+      it = 0
+      CALL sub_dnVec1_TO_dnVec2(dnQin,dnx)
+      CALL dealloc_dnSVM(dnQin)
+
+      !=================================================
+      IF((WriteCC_loc .OR. debug) .AND. MPI_id==0) THEN
+        write(out_unit,*) ' Cartesian coordinates without the Cartesian Transformation (au):'
+        CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+        write(out_unit,*) ' Cartesian coordinates without the Cartesian Transformation (ang):'
+        CALL Write_Cartg98(dnx%d0,mole)
+        flush(out_unit)
+      END IF
+      !=================================================
+
+
+      !=================================================
+      IF (Cart_Transfo_loc) THEN
+
+        IF (debug) write(out_unit,*) ' calc_CartesianTransfo_new?',Cart_Transfo_loc
+
+        CALL calc_CartesianTransfo_new(dnx,dnx,                        &
+                            mole%tab_Cart_transfo(1)%CartesianTransfo, &
+                            Qact,nderiv,.TRUE.)
+
+        IF((WriteCC_loc .OR. debug) .AND. MPI_id==0)THEN
+          write(out_unit,*) ' Cartesian coordinates after the Cartesian Transformation (au):'
+          CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+          write(out_unit,*) ' Cartesian coordinates after the Cartesian Transformation (ang):'
+          CALL Write_Cartg98(dnx%d0,mole)
+          flush(out_unit)
+        END IF
+      END IF
+
+      !=================================================
+      IF (Gcenter .AND. mole%Centered_ON_CoM) THEN
+        icG = mole%ncart-2
+        CALL sub3_dncentre_masse(mole%ncart_act,mole%nb_act,mole%ncart, &
+                                 dnx,mole%masses,mole%Mtot_inv,icG,nderiv)
+      END IF
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Cartessian coordinates (au)'
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE sub_QactTOdnxBF_ana_CoordType
+  RECURSIVE SUBROUTINE sub_QactTOdnxBF_CoordType(Qact,dnx,mole,       &
                                      nderiv,Gcenter,Cart_Transfo,WriteCC)
       USE TnumTana_system_m
       USE mod_dnSVM
@@ -1581,12 +1978,14 @@ CONTAINS
       integer :: nderiv_debug = 1
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='sub_QactTOdnx'
+      character (len=*), parameter :: name_sub='sub_QactTOdnxBF_CoordType'
 !     -----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*) 'nderiv',nderiv
+        write(out_unit,*) 'Gcenter',Gcenter
+        IF (present(Cart_Transfo)) write(out_unit,*) 'Cart_Transfo',Cart_Transfo
         write(out_unit,*) 'ncart',mole%ncart
         write(out_unit,*) 'Qact =',Qact
         write(out_unit,*)
@@ -1595,6 +1994,8 @@ CONTAINS
         CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
       END IF
 !     -----------------------------------------------------------------
+      write(out_unit,*) 'The sub_QactTOdnxBF_CoordType subroutine should not be used'
+      STOP 'ERROR in sub_QactTOdnxBF_CoordType: it should not be used'
 
       IF (size(Qact) /= mole%nb_var .AND. size(Qact) /= mole%nb_act) THEN
         write(out_unit,*) 'ERROR in ',name_sub
@@ -1802,71 +2203,57 @@ CONTAINS
 !     -----------------------------------------------------------------
 !=================================================
 
-      END SUBROUTINE sub_QactTOdnx_CoordType
+  END SUBROUTINE sub_QactTOdnxBF_CoordType
+  SUBROUTINE sub_QactTOd0xBF_CoordType(Qxyz,Qact,mole,Gcenter)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    IMPLICIT NONE
 
-      SUBROUTINE sub_QactTOd0x_CoordType(Qxyz,Qact,mole,Gcenter)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      IMPLICIT NONE
+    TYPE (CoordType),   intent(in)     :: mole
+    real (kind=Rkind),  intent(in)     :: Qact(:)
+    real (kind=Rkind),  intent(inout)  :: Qxyz(mole%ncart_act)
+    logical,            intent(in)     :: Gcenter
 
-      TYPE (CoordType),   intent(in)     :: mole
-      real (kind=Rkind),  intent(in)     :: Qact(:)
-      real (kind=Rkind),  intent(inout)  :: Qxyz(mole%ncart_act)
-      logical,            intent(in)     :: Gcenter
+    TYPE (Type_dnVec) :: dnx
+    integer :: nderiv
 
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 0
+    !logical, parameter :: debug=.FALSE.
+    logical, parameter :: debug=.TRUE.
+    !-----------------------------------------------------------------
+    nderiv = 0
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING sub_QactTOd0xBF_CoordType'
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'ncart',mole%ncart
+      write(out_unit,*) 'Qact =',Qact
+      write(out_unit,*)
+      CALL Write_CoordType(mole)
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
-      TYPE (Type_dnVec) :: dnx
-      integer :: nderiv
+    CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
+    CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,Gcenter)
 
-!     -----------------------------------------------------------------
-      integer :: nderiv_debug = 0
-      logical, parameter :: debug=.FALSE.
-!     logical, parameter :: debug=.TRUE.
-!     -----------------------------------------------------------------
-      nderiv = 0
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING sub_QactTOd0x'
-        write(out_unit,*) 'nderiv',nderiv
-        write(out_unit,*) 'ncart',mole%ncart
-        write(out_unit,*) 'Qact =',Qact
-        write(out_unit,*)
-        CALL Write_CoordType(mole)
-        write(out_unit,*)
-      END IF
-!     -----------------------------------------------------------------
+    Qxyz(:) = dnx%d0(1:mole%ncart_act)
 
+    !=================================================
+    IF (debug) THEN
+      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      write(out_unit,*) 'END sub_QactTOd0xBF_CoordType'
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !=================================================
+    CALL dealloc_dnSVM(dnx)
 
-      CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
+  END SUBROUTINE sub_QactTOd0xBF_CoordType
 
-      CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,Gcenter)
-
-
-!=================================================
-!=================================================
-!     d0x => Qxyz
-
-      Qxyz(:) = dnx%d0(1:mole%ncart_act)
-!=================================================
-!=================================================
-
-
-
-!=================================================
-!=================================================
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-       CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
-       write(out_unit,*) 'END QTOd0x'
-       write(out_unit,*)
-      END IF
-!     -----------------------------------------------------------------
-!=================================================
-      CALL dealloc_dnSVM(dnx)
-
-      END SUBROUTINE sub_QactTOd0x_CoordType
-
-      SUBROUTINE sub_d0xTOQact(Qxyz,Qact,mole)
+  SUBROUTINE sub_d0xTOQact(Qxyz,Qact,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Qtransfo,         ONLY : get_name_Qtransfo
@@ -1954,9 +2341,9 @@ CONTAINS
       flush(out_unit)
       !-----------------------------------------------------------------
 
-      END SUBROUTINE sub_d0xTOQact
+  END SUBROUTINE sub_d0xTOQact
 
-      SUBROUTINE Write_d0Q(it,name_info,d0Q,iblock)
+  SUBROUTINE Write_d0Q(it,name_info,d0Q,iblock)
       USE TnumTana_system_m
       IMPLICIT NONE
 
@@ -1997,10 +2384,9 @@ CONTAINS
       END IF
       !-----------------------------------------------------------------
 
-      END SUBROUTINE Write_d0Q
+  END SUBROUTINE Write_d0Q
 
-!=======================================================================================
-      SUBROUTINE Write_Q_WU(Q,name_Q,type_Q,info)
+  SUBROUTINE Write_Q_WU(Q,name_Q,type_Q,info)
       USE TnumTana_system_m
       IMPLICIT NONE
 
@@ -2059,10 +2445,9 @@ CONTAINS
       END IF
       !-----------------------------------------------------------------
 
-      END SUBROUTINE Write_Q_WU
-!=======================================================================================
+  END SUBROUTINE Write_Q_WU
 
-      SUBROUTINE Get_Qread(Q,name_Q,type_Q,read_nameQ,unit,read_xyz0,info)
+  SUBROUTINE Get_Qread(Q,name_Q,type_Q,read_nameQ,unit,read_xyz0,info)
       USE TnumTana_system_m
       IMPLICIT NONE
 
@@ -2268,13 +2653,12 @@ CONTAINS
       END IF
       !-----------------------------------------------------------------
 
-      END SUBROUTINE Get_Qread
+  END SUBROUTINE Get_Qread
 
-
-!================================================================
-!       Write Cartesian coordinates (for gaussian)
-!================================================================
-      SUBROUTINE Write_Cartg98_CoordType(d0x,mole)
+  !================================================================
+  !       Write Cartesian coordinates (for gaussian)
+  !================================================================
+  SUBROUTINE Write_Cartg98_CoordType(d0x,mole)
       USE TnumTana_system_m
       IMPLICIT NONE
 
@@ -2327,12 +2711,12 @@ CONTAINS
       write(out_unit,*) '= END XYZ format ============================='
       write(out_unit,*) '=============================================='
 
-      END SUBROUTINE Write_Cartg98_CoordType
+  END SUBROUTINE Write_Cartg98_CoordType
 
-!================================================================
-!       Write Cartesian coordinates (xyz format)
-!================================================================
-      SUBROUTINE Write_XYZ(d0x,mole,unit,io_unit)
+  !================================================================
+  !       Write Cartesian coordinates (xyz format)
+  !================================================================
+  SUBROUTINE Write_XYZ(d0x,mole,unit,io_unit)
       USE TnumTana_system_m
       IMPLICIT NONE
 
@@ -2386,9 +2770,9 @@ CONTAINS
       write(io_unit_loc,*) '= END XYZ format ============================='
       write(io_unit_loc,*) '=============================================='
 
-      END SUBROUTINE Write_XYZ
+  END SUBROUTINE Write_XYZ
 
-      SUBROUTINE analyze_dnx_CoordType(dnx,Qact,mole)
+  SUBROUTINE analyze_dnx_CoordType(dnx,Qact,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
@@ -2456,10 +2840,8 @@ CONTAINS
 
         write(out_unit,*) 'END ',name_sub
 
-      END SUBROUTINE analyze_dnx_CoordType
-
-
-      SUBROUTINE sub_dnFCC_TO_dnFcurvi(Qact,dnFCC,dnFcurvi,mole)
+  END SUBROUTINE analyze_dnx_CoordType
+  SUBROUTINE sub_dnFCC_TO_dnFcurvi(Qact,dnFCC,dnFcurvi,mole)
 
       USE TnumTana_system_m
       USE mod_dnSVM
