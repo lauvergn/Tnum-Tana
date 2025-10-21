@@ -1679,12 +1679,12 @@ CONTAINS
       CALL flush_perso(out_unit)
     END IF
     !-----------------------------------------------------------------
-
   END SUBROUTINE sub_QactTOdnx_CoordType
   SUBROUTINE sub_QactTOdnx_ana_CoordType(Qact,dnx,mole,       &
                                          nderiv,Gcenter,Cart_Transfo,WriteCC)
     USE TnumTana_system_m
     USE mod_dnSVM
+    USE ADdnSVM_m
     USE mod_Qtransfo,         ONLY : get_name_Qtransfo
     USE mod_Tnum
     IMPLICIT NONE
@@ -1698,6 +1698,12 @@ CONTAINS
 
     !- working variables -------------------------
     logical           :: Cart_Transfo_loc,WriteCC_loc
+    integer           :: i,ix,ibeta
+
+    TYPE (dnS_t), allocatable  :: dnCart_OF_dnSt(:,:)
+    TYPE (dnS_t), allocatable  :: dnCOM_OF_dnSt(:)
+    TYPE (dnS_t)               :: dnAlpha,dnTBeta,dnGamma
+    logical                    :: euler(3)
 
 
     !-----------------------------------------------------------------
@@ -1764,9 +1770,140 @@ CONTAINS
       CALL sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
                                        nderiv,Gcenter,Cart_Transfo_loc,WriteCC_loc)
     CASE('sf')
-      STOP 'STOP in sub_QactTOdnx_ana_CoordType: Cartesian coordinates in SF, not yet'
+     CALL sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
+                                         nderiv,Gcenter=.TRUE.,Cart_Transfo=.TRUE.,WriteCC=WriteCC_loc)
+
+      IF (debug) write(out_unit,*) ' dnXBF+euler'
+      allocate(dnCart_OF_dnSt(3,mole%nat0))
+      ix = 0
+      DO i=1,mole%nat0
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(1,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(1,i),info=('dnX_' // i))
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(2,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(2,i),info=('dnY_' // i))
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(3,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(3,i),info=('dnZ_' // i))
+      END DO
+
+      ! BF => SF (Euler)
+      IF (mole%tab_Qtransfo(1)%BunchTransfo%nb_ExtraLFSF == 6) THEN
+        euler(:) = [.TRUE.,.TRUE.,.TRUE.]
+      ELSE
+        euler(:) = [.TRUE.,.TRUE.,.FALSE.]
+      END IF
+      IF (euler(3)) THEN
+        CALL sub_dnVec_TO_dnSt(dnX,dnGamma,dnx%nb_var_vec-0)
+        CALL sub_dnVec_TO_dnSt(dnX,dnTBeta,dnx%nb_var_vec-1)
+        CALL sub_dnVec_TO_dnSt(dnX,dnAlpha,dnx%nb_var_vec-2)
+        IF (debug) THEN
+          CALL Write_dnS(dnAlpha,info='dnAlpha')
+          CALL Write_dnS(dnTBeta,info='dnTBeta')
+          CALL Write_dnS(dnGamma,info='dnGamma')
+        END IF
+        ibeta = dnx%nb_var_vec-4
+      ELSE
+        CALL sub_dnVec_TO_dnSt(dnX,dnTBeta,dnx%nb_var_vec-0)
+        CALL sub_dnVec_TO_dnSt(dnX,dnAlpha,dnx%nb_var_vec-1)
+        IF (debug) THEN
+          CALL Write_dnS(dnAlpha,info='dnAlpha')
+          CALL Write_dnS(dnTBeta,info='dnTBeta')
+        END IF
+        ibeta = dnx%nb_var_vec-3
+      END IF
+      IF (debug) write(6,*) 'coucou euler',euler
+      IF (debug) write(6,*) 'coucou ibeta',ibeta
+      IF (debug) write(6,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
+
+      ix = 0
+      DO i=1,mole%nat0
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(1,i),dnX,ix)
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(2,i),dnX,ix)
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(3,i),dnX,ix)
+      END DO
     CASE('lf')
-      STOP 'STOP in sub_QactTOdnx_ana_CoordType: Cartesian coordinates in LF, not yet'
+      CALL sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
+                                         nderiv,Gcenter=.TRUE.,Cart_Transfo=.TRUE.,WriteCC=WriteCC_loc)
+
+      IF (debug) write(out_unit,*) ' dnXBF+euler+COM'
+      allocate(dnCart_OF_dnSt(3,mole%nat0))
+      ix = 0
+      DO i=1,mole%nat0
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(1,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(1,i),info=('dnX_' // i))
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(2,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(2,i),info=('dnY_' // i))
+        ix = ix + 1
+        CALL sub_dnVec_TO_dnSt(dnX,dnCart_OF_dnSt(3,i),ix)
+        IF (debug) CALL Write_dnS(dnCart_OF_dnSt(3,i),info=('dnZ_' // i))
+      END DO
+
+      allocate(dnCOM_OF_dnSt(3))
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(3),dnx%nb_var_vec-0)
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(2),dnx%nb_var_vec-1)
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(1),dnx%nb_var_vec-2)
+
+      IF (debug) THEN
+        write(out_unit,*) ' dnCOM'
+        CALL Write_dnS(dnCOM_OF_dnSt(1),info='dnCOMx')
+        CALL Write_dnS(dnCOM_OF_dnSt(2),info='dnCOMy')
+        CALL Write_dnS(dnCOM_OF_dnSt(3),info='dnCOMz')
+      END IF
+
+      ! BF => SF (Euler)
+      IF (mole%tab_Qtransfo(1)%BunchTransfo%nb_ExtraLFSF == 6) THEN
+        euler(:) = [.TRUE.,.TRUE.,.TRUE.]
+      ELSE
+        euler(:) = [.TRUE.,.TRUE.,.FALSE.]
+      END IF
+      IF (euler(3)) THEN
+        CALL sub_dnVec_TO_dnSt(dnX,dnGamma,dnx%nb_var_vec-3)
+        CALL sub_dnVec_TO_dnSt(dnX,dnTBeta,dnx%nb_var_vec-4)
+        CALL sub_dnVec_TO_dnSt(dnX,dnAlpha,dnx%nb_var_vec-5)
+        IF (debug) THEN
+          CALL Write_dnS(dnAlpha,info='dnAlpha')
+          CALL Write_dnS(dnTBeta,info='dnTBeta')
+          CALL Write_dnS(dnGamma,info='dnGamma')
+        END IF
+        ibeta = dnx%nb_var_vec-4
+      ELSE
+        CALL sub_dnVec_TO_dnSt(dnX,dnTBeta,dnx%nb_var_vec-3)
+        CALL sub_dnVec_TO_dnSt(dnX,dnAlpha,dnx%nb_var_vec-4)
+        IF (debug) THEN
+          CALL Write_dnS(dnAlpha,info='dnAlpha')
+          CALL Write_dnS(dnTBeta,info='dnTBeta')
+        END IF
+        ibeta = dnx%nb_var_vec-3
+      END IF
+      IF (debug) write(6,*) 'coucou euler',euler
+      IF (debug) write(6,*) 'coucou ibeta',ibeta
+      IF (debug) write(6,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
+
+      ! SF => LF (COM)
+      DO i=1,mole%nat0
+        dnCart_OF_dnSt(1,i) = dnCart_OF_dnSt(1,i) + dnCOM_OF_dnSt(1)
+        dnCart_OF_dnSt(2,i) = dnCart_OF_dnSt(2,i) + dnCOM_OF_dnSt(2)
+        dnCart_OF_dnSt(3,i) = dnCart_OF_dnSt(3,i) + dnCOM_OF_dnSt(3)
+      END DO
+
+      ix = 0
+      DO i=1,mole%nat0
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(1,i),dnX,ix)
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(2,i),dnX,ix)
+        ix = ix + 1
+        CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(3,i),dnX,ix)
+      END DO
     CASE Default
       write(out_unit,*) ' ERROR in ',name_sub
       write(out_unit,*) ' Not default for mole%Cart_Type'
@@ -1782,8 +1919,118 @@ CONTAINS
       CALL flush_perso(out_unit)
     END IF
     !-----------------------------------------------------------------
-
   END SUBROUTINE sub_QactTOdnx_ana_CoordType
+  SUBROUTINE dnxBF_TO_dnxSF(dnCart,dnAlpha,dnTBeta,dnGamma,BetaType,euler)
+    USE TnumTana_system_m
+    USE ADdnSVM_m
+    USE mod_Tnum
+    IMPLICIT NONE
+
+    TYPE (dnS_t),      intent(inout)        :: dnCart(:,:)
+    TYPE (dnS_t),      intent(in)           :: dnAlpha,dnTBeta,dnGamma
+    integer,           intent(in)           :: BetaType
+    logical,           intent(in)           :: euler(3)
+
+    !- working variables -------------------------
+    TYPE (dnS_t)        :: Rot(3,3),dnCos,dnSin
+    integer :: iat,i,j
+
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 1
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='dnxBF_TO_dnxSF'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+       DO iat=1,size(dnCart,dim=2)
+        CALL Write_dnS(dnCart(1,iat),info=('dnXBF_' // iat))
+        CALL Write_dnS(dnCart(2,iat),info=('dnYBF_' // iat))
+        CALL Write_dnS(dnCart(3,iat),info=('dnZBF_' // iat))
+      END DO
+      write(out_unit,*) 'euler(:)',euler(:)
+      write(out_unit,*) 'BetaType',BetaType
+      IF (euler(1)) CALL Write_dnS(dnAlpha,info='dnAlpha')
+      IF (euler(2)) CALL Write_dnS(dnTBeta,info='dnTBeta')
+      IF (euler(3)) CALL Write_dnS(dnGamma,info='dnGamma')
+    END IF
+    !-----------------------------------------------------------------
+
+    ! rotation about z with gamma
+    IF (euler(3)) THEN
+      dnCos = cos(dnGamma)
+      dnSin = sin(dnGamma)
+      IF (debug) CALL Write_dnS(dnCos,info='dnCosGamma')
+      IF (debug) CALL Write_dnS(dnSin,info='dnSinGamma')
+      Rot(1,1) =  dnCos ; Rot(1,2) = -dnSin ; Rot(1,3) = ZERO
+      Rot(2,1) =  dnSin ; Rot(2,2) =  dnCos ; Rot(2,3) = ZERO
+      Rot(3,1) =  ZERO  ; Rot(3,2) =  ZERO  ; Rot(3,3) = ONE
+
+      DO iat=1,size(dnCart,dim=2)
+        dnCart(:,iat) = matmul(Rot,dnCart(:,iat))
+      END DO
+      IF (debug) THEN
+         DO iat=1,size(dnCart,dim=2)
+          CALL Write_dnS(dnCart(1,iat),info=('dnXrotG_' // iat))
+          CALL Write_dnS(dnCart(2,iat),info=('dnYrotG_' // iat))
+          CALL Write_dnS(dnCart(3,iat),info=('dnZrotG_' // iat))
+        END DO
+      END IF
+    END IF
+
+    IF (euler(2)) THEN
+      IF (BetaType == 3) THEN
+        dnCos = cos(dnTBeta)
+        dnSin = sin(dnTBeta)
+      ELSE
+        dnCos = dnTBeta
+        dnSin = sqrt(ONE-dnTBeta*dnTBeta)
+      END IF
+      IF (debug) CALL Write_dnS(dnCos,info='dnCosBeta')
+      IF (debug) CALL Write_dnS(dnSin,info='dnSinBeta')
+      Rot(1,1) =  dnCos ; Rot(1,2) = ZERO ; Rot(1,3) = -dnSin
+      Rot(2,1) =  ZERO  ; Rot(2,2) = ONE  ; Rot(2,3) =  ZERO
+      Rot(3,1) =  dnSin ; Rot(3,2) = ZERO ; Rot(3,3) =  dnCos
+
+      DO iat=1,size(dnCart,dim=2)
+        dnCart(:,iat) = matmul(Rot,dnCart(:,iat))
+      END DO
+      IF (debug) THEN
+         DO iat=1,size(dnCart,dim=2)
+          CALL Write_dnS(dnCart(1,iat),info=('dnXrotB_' // iat))
+          CALL Write_dnS(dnCart(2,iat),info=('dnYrotB_' // iat))
+          CALL Write_dnS(dnCart(3,iat),info=('dnZrotB_' // iat))
+        END DO
+      END IF
+    END IF
+
+    IF (euler(1)) THEN
+      dnCos = cos(dnAlpha)
+      dnSin = sin(dnAlpha)
+      IF (debug) CALL Write_dnS(dnCos,info='dnCosAlpha')
+      IF (debug) CALL Write_dnS(dnSin,info='dnSinAlpha')
+      Rot(1,1) =  dnCos ; Rot(1,2) = -dnSin ; Rot(1,3) = ZERO
+      Rot(2,1) =  dnSin ; Rot(2,2) =  dnCos ; Rot(2,3) = ZERO
+      Rot(3,1) =  ZERO  ; Rot(3,2) =  ZERO  ; Rot(3,3) = ONE
+
+      DO iat=1,size(dnCart,dim=2)
+        dnCart(:,iat) = matmul(Rot,dnCart(:,iat))
+      END DO
+    END IF
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+       DO iat=1,size(dnCart,dim=2)
+        CALL Write_dnS(dnCart(1,iat),info=('dnXSF_' // iat))
+        CALL Write_dnS(dnCart(2,iat),info=('dnYSF_' // iat))
+        CALL Write_dnS(dnCart(3,iat),info=('dnZSF_' // iat))
+      END DO
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      CALL flush_perso(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+  END SUBROUTINE dnxBF_TO_dnxSF
   SUBROUTINE sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
                                      nderiv,Gcenter,Cart_Transfo,WriteCC)
     USE TnumTana_system_m
@@ -1849,6 +2096,7 @@ CONTAINS
     ELSE
       Cart_Transfo_loc = mole%Cart_transfo
     END IF
+    IF (.NOT. associated(mole%tab_Cart_transfo)) Cart_Transfo_loc = .FALSE.
 
     IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
 
@@ -1891,15 +2139,14 @@ CONTAINS
           flush(out_unit)
         END IF
 
-        CALL dealloc_dnSVM(dnQin)
-        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qout,nb_act,nderiv)
-        CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin)
+        !transfert from dnQout to dnQin for the next iteration
+        dnQin = dnQout
         CALL dealloc_dnSVM(dnQout)
 
       END DO
 
       it = 0
-      CALL sub_dnVec1_TO_dnVec2(dnQin,dnx)
+      dnx = dnQin
       CALL dealloc_dnSVM(dnQin)
 
       !=================================================
@@ -2670,8 +2917,7 @@ CONTAINS
 
       integer       :: i,iZ,ncart
 
-      ncart = size(d0x)
-
+      ncart = 3*mole%nat
 
       Z_act(:) = -1
       iZ = 0

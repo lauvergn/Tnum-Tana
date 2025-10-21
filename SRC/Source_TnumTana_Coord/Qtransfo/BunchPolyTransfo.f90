@@ -53,6 +53,7 @@
           integer                    :: nat0=0,nat=0,nat_act=0
           integer                    :: nb_var=0,nb_vect=0
 
+          integer                    :: nb_ExtraLFSF = 0
 
           integer, pointer           :: ind_vect(:,:) => null()
 
@@ -826,12 +827,13 @@
       !!@description: TODO
       !!@param: TODO
       RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,BunchTransfo,    &
-                                             num_Frame_in_Container)
+                                             num_Frame_in_Container,Cart_type)
 
       TYPE (Type_BFTransfo),intent(inout)    :: BFTransfo
       TYPE (Type_BunchTransfo),intent(inout) :: BunchTransfo
 
       integer, intent(inout)                 :: num_Frame_in_Container
+      character (len=*),    intent(in)       :: Cart_Type
 
 
       integer :: nb_vect,nb_var,iv,num_Frame_in_Container_rec,Frame_type
@@ -897,10 +899,11 @@
         nb_Qin = size(BFTransfo%type_Qin)
         CALL alloc_array(BFTransfo%list_Qpoly_TO_Qprim,[nb_Qin],      &
                         "BFTransfo%list_Qpoly_TO_Qprim",name_sub)
-        BFTransfo%list_Qpoly_TO_Qprim(:) = 0
+        BFTransfo%list_Qpoly_TO_Qprim(:) = [(i,i=1,nb_Qin)]
 
         CALL alloc_array(BFTransfo%list_Qprim_TO_Qpoly,[nb_Qin],      &
                         "BFTransfo%list_Qprim_TO_Qpoly",name_sub)
+        BFTransfo%list_Qprim_TO_Qpoly(:) = [(i,i=1,nb_Qin)]
       END IF
 
       ! initialization for the namelist "vector"
@@ -1190,7 +1193,7 @@
 
             CALL RecRead_BFTransfo(BFTransfo%tab_BFTransfo(iv),         &
                                    BunchTransfo,                        &
-                                   num_Frame_in_Container_rec)
+                                   num_Frame_in_Container_rec,Cart_type)
             ! The next two lines HAVE to be after the "CALL RecRead_BFTransfo".
             BFTransfo%nb_vect_tot = BFTransfo%nb_vect_tot +             &
                                 BFTransfo%tab_BFTransfo(iv)%nb_vect_tot
@@ -1404,6 +1407,35 @@
 
 
       IF (rec_level == 0) THEN
+        IF (TO_lowercase(Cart_Type) == 'sf' .OR. TO_lowercase(Cart_Type) == 'lf') THEN
+          i_Qpoly = i_Qpoly + 1
+          BFTransfo%type_Qin(i_Qpoly) = 4 ! dih
+          BFTransfo%name_Qin(i_Qpoly) = "alphaBF"
+          i_Qpoly = i_Qpoly + 1
+          IF (cos_th) THEN
+            BFTransfo%type_Qin(i_Qpoly) = -3 ! cos(beta)
+            BFTransfo%name_Qin(i_Qpoly) = "ubetaBF"
+          ELSE
+            BFTransfo%type_Qin(i_Qpoly) = 3 ! beta
+            BFTransfo%name_Qin(i_Qpoly) = "betaBF"
+          END IF
+          IF (BunchTransfo%nb_vect > 1) THEN ! because it is a diatomic molecule
+            i_Qpoly = i_Qpoly + 1
+            BFTransfo%type_Qin(i_Qpoly) = 4 ! dih
+            BFTransfo%name_Qin(i_Qpoly) = "gammaBF"
+          END IF
+        END IF
+        IF (TO_lowercase(Cart_Type) == 'lf') THEN
+          i_Qpoly = i_Qpoly + 1
+          BFTransfo%type_Qin(i_Qpoly) = 1 ! xCOM
+          BFTransfo%name_Qin(i_Qpoly) = "xCOM"
+          i_Qpoly = i_Qpoly + 1
+          BFTransfo%type_Qin(i_Qpoly) = 1 ! yCOM
+          BFTransfo%name_Qin(i_Qpoly) = "yCOM"
+          i_Qpoly = i_Qpoly + 1
+          BFTransfo%type_Qin(i_Qpoly) = 1 ! yCOM
+          BFTransfo%name_Qin(i_Qpoly) = "zCOM"
+        END IF
 
         BFTransfo%QEuler(1) = set_opel(idf=1, idq=6, alfa=1, indexq=BFTransfo%nb_var+1, coeff=CONE) ! alpha (true Euler)
         IF (cos_th) THEN
@@ -1519,14 +1551,14 @@
       TYPE (Type_dnS)   :: dnf1,dnf2,dnf3,dnfx,dnfy,dnfz
       TYPE (Type_dnS)   :: dna,dnCa,dnSa
 
-      integer :: i_q,iv,liv,uiv,ieuler,i_Qprim,dnErr
+      integer :: i_q,i_qv,iv,liv,uiv,ieuler,i_Qprim,dnErr
       logical :: check
       integer :: nb_var_deriv
 
 !      -----------------------------------------------------------------
       integer :: nderiv_debug = 0
       logical, parameter :: debug = .FALSE.
-!      logical, parameter :: debug = .TRUE.
+      !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='calc_PolyTransfo'
 !      -----------------------------------------------------------------
       IF (debug) THEN
@@ -1861,6 +1893,15 @@
         DO iv=1,BFTransfo%nb_vect_tot
           IF (debug) CALL write_dnx(1,3,tab_dnXVect(iv),nderiv_debug)
           CALL sub3_dnVec_TOxf(dnQout,3*iv-2,tab_dnXVect(iv),nderiv)
+        END DO
+
+        ! for extra coordinates (true euler angles and COM)
+        i_qv = BFTransfo%nb_vect_tot*3
+        DO i_q=i_Qpoly+1,dnQin%nb_var_vec
+          i_qv = i_qv + 1
+          IF (debug) write(out_unit,*) 'add coord',i_q,i_qv
+          CALL sub_dnVec_TO_dnS(dnQin,dnd,i_q)
+          CALL sub_dnS_TO_dnVec(dnd,dnQout,i_qv)
         END DO
       END IF
 
@@ -2826,7 +2867,7 @@
        BunchTransfo%nat_act   = 0
        BunchTransfo%nb_var    = 0
        BunchTransfo%nb_vect   = 0
-
+       BunchTransfo%nb_ExtraLFSF = 0
 
        nullify(BunchTransfo%type_Qin) ! TRUE pointer
        nullify(BunchTransfo%name_Qin) ! TRUE pointer
@@ -2884,19 +2925,17 @@
       write(out_unit,*) '  nat',BunchTransfo%nat
 
 
-      BunchTransfo%type_Qin(:) = 1
 
       BunchTransfo%nat_act = BunchTransfo%nb_vect + 1
       CALL alloc_BunchTransfo(BunchTransfo)
+      BunchTransfo%type_Qin(:) = 1
 
       nullify(tab_iAtTOiCart)
-      CALL alloc_array(tab_iAtTOiCart,[BunchTransfo%nat],             &
-                      "tab_iAtTOiCart",name_sub)
+      CALL alloc_array(tab_iAtTOiCart,[BunchTransfo%nat],"tab_iAtTOiCart",name_sub)
       tab_iAtTOiCart(:) = 0
 
       nullify(weight_vect)
-      CALL alloc_array(weight_vect,[BunchTransfo%nb_vect],            &
-                      "weight_vect",name_sub)
+      CALL alloc_array(weight_vect,[BunchTransfo%nb_vect],"weight_vect",name_sub)
       weight_vect(:) = ZERO
 
       !--------------------------------------------------------
@@ -3249,16 +3288,16 @@
         write(out_unit,*) 'BEGINNING ',name_sub
       END IF
       !--------------------------------------------------------
-        write(out_unit,*) '  Read the atoms'
-        write(out_unit,*) '  nb_vect',BunchTransfo%nb_vect
-        write(out_unit,*) '  nat',BunchTransfo%nat
+      write(out_unit,*) '  Read the atoms'
+      write(out_unit,*) '  nb_vect',BunchTransfo%nb_vect
+      write(out_unit,*) '  nat',BunchTransfo%nat
 
-        ! allocation of the variables:
-        CALL alloc_BunchTransfo(BunchTransfo)
+      ! allocation of the variables:
+      CALL alloc_BunchTransfo(BunchTransfo)
 
-        BunchTransfo%type_Qin(:) = 1
+      BunchTransfo%type_Qin(:) = 1
 
-        !--------------------------------------------------------
+      !--------------------------------------------------------
         ! first read the atoms (not dummy)
         !--------------------------------------------------------
         BunchTransfo%Mat_At_TO_centers(:,:) = ZERO
@@ -3295,7 +3334,7 @@
           Mtot = Mtot + at
           IF (at == ZERO) THEN
             write(out_unit,*) ' ERROR in ',name_sub
-            write(out_unit,*) ' The readed atom cannot be dummy !'
+            write(out_unit,*) ' The read atom cannot be dummy !'
             write(out_unit,*) 'atom:',i_at,icf,BunchTransfo%Z(i_at),at
             STOP
           END IF
@@ -3624,8 +3663,8 @@
       !--------------------------------------------------------
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub = "get_Mass"
-      !logical, parameter :: debug=.FALSE.
-      logical, parameter :: debug=.TRUE.
+      logical, parameter :: debug=.FALSE.
+      !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING ',name_sub
@@ -3801,7 +3840,7 @@
 
       write(out_unit,*) 'nb_var',BunchTransfo%nb_var
       write(out_unit,*) 'nb_vect',BunchTransfo%nb_vect
-
+      write(out_unit,*) 'nb_ExtraLFSF',BunchTransfo%nb_ExtraLFSF
 
      write(out_unit,*) 'A(iv,iat): Xat=>Vect'
      CALL Write_Mat_MPI(BunchTransfo%A,out_unit,5)
@@ -3830,7 +3869,7 @@
       logical, intent(in)                 :: inTOout
 
 
-      integer           ::iv,ivect_iv,i,i_at,ivect_at
+      integer           ::iv,ivect_iv,i,i_at,ivect_at,nb_ExtraLFSF
       integer           :: iG,ixyz_G,ixyz_At,j,jat
       real(kind=Rkind)  :: weight,MtotG
 
@@ -3854,10 +3893,13 @@
         write(out_unit,*) 'nderiv',nderiv
         write(out_unit,*)
         CALL Write_BunchTransfo(BunchTransfo)
-        write(out_unit,*) 'dnx: '
-        CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unit,*) 'dnQvect: '
-        CALL Write_dnSVM(dnQvect,nderiv_debug)
+        IF (inTOout) THEN
+          write(out_unit,*) 'dnQvect: '
+          CALL Write_dnSVM(dnQvect,nderiv_debug)
+        ELSE
+          write(out_unit,*) 'dnx: '
+          CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
+        END IF
         flush(out_unit)
       END IF
       !--------------------------------------------------------
@@ -3880,7 +3922,12 @@
             !write(out_unit,*) 'i_at,iv,A_inv',i_at,iv,weight
           END DO
         END DO
-
+        ! Add the extra-coordinates (true euler angles + com)
+        nb_ExtraLFSF = BunchTransfo%nb_ExtraLFSF
+        IF (BunchTransfo%nb_ExtraLFSF > 0) THEN
+          CALL sub_PartdnVec1_TO_PartdnVec2(dnQvect,3*BunchTransfo%nb_vect+1, &
+                         dnx,dnx%nb_var_vec-nb_ExtraLFSF+1,ndim=nb_ExtraLFSF)
+        END IF
       ELSE
 
         ! Xat => Xvect
@@ -3900,13 +3947,22 @@
             END IF
           END DO
         END DO
+        ! Add the extra-coordinates (true euler angles + com)
+        nb_ExtraLFSF = BunchTransfo%nb_ExtraLFSF
+        IF (nb_ExtraLFSF > 0) THEN
+          CALL sub_PartdnVec1_TO_PartdnVec2(dnx,dnx%nb_var_vec-nb_ExtraLFSF+1, &
+                          dnQvect,3*BunchTransfo%nb_vect+1,ndim=nb_ExtraLFSF)
+        END IF
       END IF
       !--------------------------------------------------------
       IF (debug) THEN
-        write(out_unit,*) 'dnx: '
-        CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-        write(out_unit,*) 'dnQvect: '
-        CALL Write_dnSVM(dnQvect,nderiv_debug)
+        IF (inTOout) THEN
+          write(out_unit,*) 'dnx: '
+          CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
+        ELSE
+          write(out_unit,*) 'dnQvect: '
+          CALL Write_dnSVM(dnQvect,nderiv_debug)
+        END IF
         write(out_unit,*) 'END ',name_sub
         write(out_unit,*)
         flush(out_unit)

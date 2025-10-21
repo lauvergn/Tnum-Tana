@@ -364,138 +364,132 @@ MODULE mod_Tnum
       END IF
       print_CoordType_done = .TRUE. ! from sub_module_system
 
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING Write_CoordType'
-        write(out_unit,*)
-        write(out_unit,*)
-        write(out_unit,*) 'Without_Rot:      ',mole%Without_Rot
-        write(out_unit,*) 'Centered_ON_CoM   ',mole%Centered_ON_CoM
-        write(out_unit,*) 'Cart_transfo:     ',mole%Cart_transfo
-        IF (allocated(mole%Cart_Type)) THEN 
-          write(out_unit,*) 'Cart_Type:     ',mole%Cart_Type
-        ELSE
-          write(out_unit,*) 'WARNING Cart_Type is not allocated'
-          write(out_unit,*) "It assumes, Cart_Type='BF'"
-        END IF
-        write(out_unit,*) 'stepQ,num_x:      ',mole%stepQ,mole%num_x
-        write(out_unit,*) 'Parameter(s) to be optimized?:     ',mole%opt_param
-        write(out_unit,*) 'Coordinates Qdyn to be optimized?: ',mole%opt_Qdyn(:)
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING Write_CoordType'
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) 'Without_Rot:      ',mole%Without_Rot
+      write(out_unit,*) 'Centered_ON_CoM   ',mole%Centered_ON_CoM
+      write(out_unit,*) 'Cart_transfo:     ',mole%Cart_transfo
+      IF (allocated(mole%Cart_Type)) THEN 
+        write(out_unit,*) 'Cart_Type:     ',mole%Cart_Type
+      ELSE
+        write(out_unit,*) 'WARNING Cart_Type is not allocated'
+        write(out_unit,*) "It assumes, Cart_Type='BF'"
+      END IF
+      write(out_unit,*) 'stepQ,num_x:      ',mole%stepQ,mole%num_x
+      write(out_unit,*) 'Parameter(s) to be optimized?:     ',mole%opt_param
+      write(out_unit,*) 'Coordinates Qdyn to be optimized?: ',mole%opt_Qdyn(:)
 
-!       -------------------------------------------------------
-!       -------------------------------------------------------
-        write(out_unit,*)
-        write(out_unit,*) '------------------------------------------'
-        write(out_unit,*) '--- Number of variables ------------------'
-        write(out_unit,*)
-        write(out_unit,*) 'nb_act,nb_var',mole%nb_act,mole%nb_var
-        write(out_unit,*) 'nb_extra_Coord',mole%nb_extra_Coord
-        write(out_unit,*) 'Number of variables of type...'
-        write(out_unit,*) 'type  1: active                       (nb_act1):',  &
-                    mole%nb_act1
-        write(out_unit,*) 'type 31: for gaussian WP           (nb_inact31):',  &
-                    mole%nb_inact31
-        write(out_unit,*) 'type 21: inactive harmonic         (nb_inact21):',  &
-                    mole%nb_inact21
-        write(out_unit,*) 'type 22: inactive non harmonic     (nb_inact22):',  &
-                    mole%nb_inact22
-        write(out_unit,*) 'type 20: adiabatically constrained (nb_inact20):',  &
-                    mole%nb_inact20
-        write(out_unit,*) 'type  0: rigid                      (nb_rigid0):',  &
-                    mole%nb_rigid0
-        write(out_unit,*) 'type100: rigid                    (nb_rigid100):',  &
-                    mole%nb_rigid100
-        write(out_unit,*)
-        write(out_unit,*) 'nb_inact2n = nb_inact21 + nb_inact22  :',   &
-                    mole%nb_inact2n
-        write(out_unit,*) 'nb_act= nb_act1+nb_inact31+nb_inact2n :',   &
-                    mole%nb_act
-        write(out_unit,*) 'nb_inact   = nb_inact20 + nb_inact2n  :',   &
-                    mole%nb_inact
-        write(out_unit,*) 'nb_rigid   = nb_rigid0 + nb_rigid100  :',   &
-                    mole%nb_rigid
-        write(out_unit,*) '------------------------------------------'
-        write(out_unit,*) 'ndimG = nb_act+6 + nb_act+3 or nb_act :',   &
-                    mole%ndimG
-        write(out_unit,*) '------------------------------------------'
-        write(out_unit,*)
-        write(out_unit,*)
-        write(out_unit,*) '------------------------------------------'
-        write(out_unit,*) '------------------------------------------'
-        write(out_unit,*) 'tab_Qtransfo'
-        write(out_unit,*) '  itPrim: ',mole%itPrim
-        write(out_unit,*) '  itNM:   ',mole%itNM
-        write(out_unit,*) '  itRPH:  ',mole%itRPH
+      write(out_unit,*)
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) '--- Number of variables ------------------'
+      write(out_unit,*)
+      write(out_unit,*) 'nb_act,nb_var',mole%nb_act,mole%nb_var
+      write(out_unit,*) 'nb_extra_Coord',mole%nb_extra_Coord
+      write(out_unit,*) 'Number of variables of type...'
+      write(out_unit,*) 'type  1: active                       (nb_act1):',  &
+                  mole%nb_act1
+      write(out_unit,*) 'type 31: for gaussian WP           (nb_inact31):',  &
+                  mole%nb_inact31
+      write(out_unit,*) 'type 21: inactive harmonic         (nb_inact21):',  &
+                  mole%nb_inact21
+      write(out_unit,*) 'type 22: inactive non harmonic     (nb_inact22):',  &
+                  mole%nb_inact22
+      write(out_unit,*) 'type 20: adiabatically constrained (nb_inact20):',  &
+                  mole%nb_inact20
+      write(out_unit,*) 'type  0: rigid                      (nb_rigid0):',  &
+                  mole%nb_rigid0
+      write(out_unit,*) 'type100: rigid                    (nb_rigid100):',  &
+                  mole%nb_rigid100
+      write(out_unit,*)
+      write(out_unit,*) 'nb_inact2n = nb_inact21 + nb_inact22  :',   &
+                  mole%nb_inact2n
+      write(out_unit,*) 'nb_act= nb_act1+nb_inact31+nb_inact2n :',   &
+                  mole%nb_act
+      write(out_unit,*) 'nb_inact   = nb_inact20 + nb_inact2n  :',   &
+                  mole%nb_inact
+      write(out_unit,*) 'nb_rigid   = nb_rigid0 + nb_rigid100  :',   &
+                  mole%nb_rigid
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) 'ndimG = nb_act+6 + nb_act+3 or nb_act :',   &
+                  mole%ndimG
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*)
+      write(out_unit,*)
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) 'tab_Qtransfo'
+      write(out_unit,*) '  itPrim: ',mole%itPrim
+      write(out_unit,*) '  itNM:   ',mole%itNM
+      write(out_unit,*) '  itRPH:  ',mole%itRPH
 
+      write(out_unit,*) '------------------------------------------'
+      DO it=1,mole%nb_Qtransfo
+        CALL Write_Qtransfo(mole%tab_Qtransfo(it))
+      END DO
+      write(out_unit,*) '------------------------------------------'
+
+      IF (associated(mole%tab_Cart_transfo)) THEN
         write(out_unit,*) '------------------------------------------'
-        DO it=1,mole%nb_Qtransfo
-          CALL Write_Qtransfo(mole%tab_Qtransfo(it))
+        write(out_unit,*) '------------------------------------------'
+        write(out_unit,*) 'tab_Cart_transfo'
+        write(out_unit,*) '------------------------------------------'
+        DO it=1,size(mole%tab_Cart_transfo)
+          CALL Write_Qtransfo(mole%tab_Cart_transfo(it))
         END DO
         write(out_unit,*) '------------------------------------------'
+      END IF
 
-        IF (associated(mole%tab_Cart_transfo)) THEN
-          write(out_unit,*) '------------------------------------------'
-          write(out_unit,*) '------------------------------------------'
-          write(out_unit,*) 'tab_Cart_transfo'
-          write(out_unit,*) '------------------------------------------'
-          DO it=1,size(mole%tab_Cart_transfo)
-            CALL Write_Qtransfo(mole%tab_Cart_transfo(it))
-          END DO
-          write(out_unit,*) '------------------------------------------'
-        END IF
+      !-------------------------------------------------------
+      write(out_unit,*) 'ActiveTransfo from mole'
+      write(out_unit,*) 'asso mole%ActiveTransfo:',associated(mole%ActiveTransfo)
+      IF (associated(mole%ActiveTransfo)) THEN
+        CALL Write_ActiveTransfo(mole%ActiveTransfo)
+      ELSE
+        write(out_unit,*) 'WARNING: mole%ActiveTransfo is NOT associated!!'
+      END IF
 
-!       -------------------------------------------------------
-        write(out_unit,*) 'ActiveTransfo from mole'
-        write(out_unit,*) 'asso mole%ActiveTransfo:',associated(mole%ActiveTransfo)
-        IF (associated(mole%ActiveTransfo)) THEN
-          CALL Write_ActiveTransfo(mole%ActiveTransfo)
-        ELSE
-          write(out_unit,*) 'WARNING: mole%ActiveTransfo is NOT associated!!'
-        END IF
+      write(out_unit,*) 'nrho_OF_Qdyn',mole%nrho_OF_Qdyn
+      write(out_unit,*) 'nrho_OF_Qact',mole%nrho_OF_Qact
 
-        write(out_unit,*) 'nrho_OF_Qdyn',mole%nrho_OF_Qdyn
-        write(out_unit,*) 'nrho_OF_Qact',mole%nrho_OF_Qact
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*)
+     !-------------------------------------------------------
 
+      IF (associated(mole%RPHTransfo_inact2n)) THEN
         write(out_unit,*) '------------------------------------------'
         write(out_unit,*) '------------------------------------------'
-        write(out_unit,*)
-!       -------------------------------------------------------
-
-        IF (associated(mole%RPHTransfo_inact2n)) THEN
-          write(out_unit,*) '------------------------------------------'
-          write(out_unit,*) '------------------------------------------'
-          write(out_unit,*) '----------- RPHTransfo_inact2n -----------'
-
-          CALL Write_RPHTransfo(mole%RPHTransfo_inact2n)
-
-          write(out_unit,*) '------------------------------------------'
-          write(out_unit,*) '------------------------------------------'
-        END IF
-
-
-!       -------------------------------------------------------
-!       Mtot_inv and sqrt(masses(i)) masses(i)
-!       -------------------------------------------------------
-        write(out_unit,*)
+        write(out_unit,*) '----------- RPHTransfo_inact2n -----------'
+        CALL Write_RPHTransfo(mole%RPHTransfo_inact2n)
         write(out_unit,*) '------------------------------------------'
-        write(out_unit,*) '--- Masses ... ---------------------------'
-        write(out_unit,*)
-        write(out_unit,*) 'ncart,ncart_act',mole%ncart,mole%ncart_act
-        write(out_unit,*) 'ATOM  mass    sqrt(mass) ...'
-        DO i=1,mole%ncart_act,3
-
-          write(out_unit,91) i,mole%masses(i),mole%d0sm(i)
- 91       format('at: ',i3,f18.6,f15.6)
-
-        END DO
-        IF (mole%Mtot_inv /= ZERO)                                      &
-             write(out_unit,*) 'Mtot_inv,Mtot',mole%Mtot_inv,ONE/mole%Mtot_inv
         write(out_unit,*) '------------------------------------------'
-        write(out_unit,*)
-!       -------------------------------------------------------
-!       -------------------------------------------------------
+      END IF
+      !-------------------------------------------------------
 
-        write(out_unit,*) 'END Write_CoordType'
-        flush(out_unit)
+
+      !-------------------------------------------------------
+      !Mtot_inv and sqrt(masses(i)) masses(i)
+      !-------------------------------------------------------
+      write(out_unit,*)
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*) '--- Masses ... ---------------------------'
+      write(out_unit,*)
+      write(out_unit,*) 'ncart,ncart_act',mole%ncart,mole%ncart_act
+      write(out_unit,*) 'ATOM  mass    sqrt(mass) ...'
+      DO i=1,mole%ncart_act,3
+        write(out_unit,"('at: ',i0,' ',f18.6,f15.6)") i,mole%masses(i),mole%d0sm(i)
+      END DO
+      IF (mole%Mtot_inv /= ZERO)                                      &
+           write(out_unit,*) 'Mtot_inv,Mtot',mole%Mtot_inv,ONE/mole%Mtot_inv
+      write(out_unit,*) '------------------------------------------'
+      write(out_unit,*)
+      !-------------------------------------------------------
+      !-------------------------------------------------------
+
+    write(out_unit,*) 'END Write_CoordType'
+    flush(out_unit)
 
 
   END SUBROUTINE Write_CoordType
@@ -638,56 +632,55 @@ MODULE mod_Tnum
     
     IMPLICIT NONE
 
-!----- for the CoordType and Tnum --------------------------------------
+      !----- for the CoordType and Tnum --------------------------------------
       TYPE (CoordType), intent(inout)   :: mole
       TYPE (Tnum),      intent(inout)   :: para_Tnum
       TYPE (constant),  intent(inout)   :: const_phys
 
 
-!----- physical and mathematical constants ----------------------------
-!      - for the definition of d0d1d2d3_Qeq -------------
+      !----- physical and mathematical constants ----------------------------
+      !      - for the definition of d0d1d2d3_Qeq -------------
       logical :: Qeq_sym,Q0_sym
 
-!-------------------------------------------------------
+      !-------------------------------------------------------
       logical :: WriteCC ! write cartesian coordinates
       logical :: WriteT  ! write T, GG, g
 
-!-------------------------------------------------------
-!     - for the CoordType --------------------------------
+      !-------------------------------------------------------
+      !     - for the CoordType --------------------------------
       logical :: zmat,bunch,cart,cos_th
 
       integer :: nb_act,nb_extra_Coord
       integer :: nat,nb_var
 
-!     - for Q_transfo ----------------------------------
+      !     - for Q_transfo ----------------------------------
       logical :: Old_Qtransfo,Cart_transfo,Rot_Dip_with_EC
       integer :: nb_Qtransfo,nb_Qin
       character (len=:), allocatable :: name_transfo
 
-!     - for NM_TO_sym ----------------------------------
+      !     - for NM_TO_sym ----------------------------------
       logical :: NM,NM_TO_sym,hessian_old,hessian_cart,hessian_onthefly
       logical :: purify_hess,k_Half
       character (len=Name_len)      :: file_hessian
 
-!     - for rotational constraints ---------------------
-!     Without_Rot = .TRUE. => calculation without rotation (constraints on the rotation)
+      !     - for rotational constraints ---------------------
+      !     Without_Rot = .TRUE. => calculation without rotation (constraints on the rotation)
       logical :: Without_Rot
-!     Centered_ON_CoM = .TRUE. => the molecule is recentered on the center of mass
+      !     Centered_ON_CoM = .TRUE. => the molecule is recentered on the center of mass
       logical :: Centered_ON_CoM
       integer :: JJ  ! JJ=0, the rotation is not printed. JJ>0 the rotation is printed
 
-!     - for new orientation (for zmat only) ---------------------
+      !     - for new orientation (for zmat only) ---------------------
       logical :: New_Orient
       real (kind=Rkind) :: vAt1(3),vAt2(3),vAt3(3)
 
-!     - To be abble to check is Tana is possible ---------------------
+      !     - To be able to check is Tana is possible ---------------------
       logical :: Tana_Is_Possible
 
-!     - for the symmetry -------------------------------
-!     sym : .TRUE. if we use the symmetry
+      !     - for the symmetry -------------------------------
       logical :: sym,check_sym
 
-!     - for the molecule -------------------------------
+      !     - for the molecule -------------------------------
       integer :: charge,multiplicity
       logical :: header,footer
       character (len=Name_len)      :: file_name_OTF,file_name_fchk
@@ -702,7 +695,7 @@ MODULE mod_Tnum
       integer :: nio
 
 
-!     - for Tnum or Tana ----------------------------------------------
+      !     - for Tnum or Tana ----------------------------------------------
       integer           :: nrho,vep_type,NonGcteRange(2)
       logical           :: num_GG,num_g,num_x,Gdiago,Gcte,With_VecCOM,Write_QMotions
       character (len=Name_len)  :: Cart_Type
@@ -719,10 +712,10 @@ MODULE mod_Tnum
       integer           :: KEO_TalyorOFQinact2n ! taylor epxansion along coordinate 2n (21) types
       integer           :: GTaylor_Order    ! taylor epxansion of G
       integer           :: vepTaylor_Order  ! taylor epxansion of the vep
-!     - end for the CoordType ----------------------------
+      !     - end for the CoordType ----------------------------
 
 
-!     - divers ------------------------------------------
+      !     - divers ------------------------------------------
       integer :: i,n,it,iat,i_Q,iQout,iQin
 
       NAMELIST /variables/nat,zmat,bunch,cos_th,                                &
@@ -748,22 +741,22 @@ MODULE mod_Tnum
                      ab_initio_methDip,ab_initio_basisDip,                      &
                      WriteCC,WriteT,Write_QMotions
 
-!----- for debuging --------------------------------------------------
+      !----- for debuging --------------------------------------------------
       integer :: err_read
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub='Read_CoordType'
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
-!-----------------------------------------------------------
+      !-----------------------------------------------------------
       !IF (debug) THEN
         write(out_unit,*) '================================================='
         write(out_unit,*) '================================================='
         write(out_unit,*) 'BEGINNING ',name_sub
       !END IF
 
-!-------------------------------------------------------
-!     initializations
-!-------------------------------------------------------
+      !-------------------------------------------------------
+      !     initializations
+      !-------------------------------------------------------
       IF (.NOT. const_phys%constant_done) THEN
         CALL sub_constantes(const_phys,Read_Namelist=.FALSE.)
       END IF
@@ -985,9 +978,9 @@ MODULE mod_Tnum
 
       mole%nb_extra_Coord  = nb_extra_Coord
 
-!=======================================================================
-!===== New Coordinate transformations ==================================
-!=======================================================================
+      !=======================================================================
+      !===== New Coordinate transformations ==================================
+      !=======================================================================
       IF (mole%nb_Qtransfo > 1) THEN
         IF(MPI_id==0) THEN
           write(out_unit,*) '================================================='
@@ -1026,7 +1019,7 @@ MODULE mod_Tnum
 
           CALL read_Qtransfo(mole%tab_Qtransfo(it),nb_Qin,mole%nb_extra_Coord,  &
                              With_Tab_dnQflex,QMLib,const_phys%mendeleev,       &
-                             Tana_Is_Possible)
+                             Tana_Is_Possible,mole%Cart_Type)
           mole%tab_Qtransfo(it)%BeforeActive = (it == nb_Qtransfo-1)
 
           mole%opt_param = mole%opt_param + mole%tab_Qtransfo(it)%opt_param
@@ -1091,7 +1084,24 @@ MODULE mod_Tnum
             CONTINUE
           END SELECT
 
-          IF (debug) write(out_unit,*) 'END: New Qtransfo',it
+          IF (debug) THEN
+            write(out_unit,*) 'nb_Qout',mole%tab_Qtransfo(it)%nb_Qout
+            write(out_unit,*) 'nb_Qin ',mole%tab_Qtransfo(it)%nb_Qin
+            write(out_unit,*) 'END: New Qtransfo',it
+          END IF
+          write(out_unit,*) '================================================='
+          write(out_unit,*) 'it',it,' name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
+          IF (associated(mole%tab_Qtransfo(it)%type_Qout)) THEN
+            write(out_unit,*) 'type_Qout',mole%tab_Qtransfo(it)%type_Qout
+          ELSE
+            write(out_unit,*) 'type_Qout: not associated'
+          END IF
+          IF (associated(mole%tab_Qtransfo(it)%type_Qin)) THEN
+            write(out_unit,*) 'type_Qin ',mole%tab_Qtransfo(it)%type_Qin
+          ELSE
+            write(out_unit,*) 'type_Qin: not associated'
+          END IF
+          write(out_unit,*) '================================================='
           flush(out_unit)
         END DO
         para_Tnum%Tana = para_Tnum%Tana .AND. Tana_Is_Possible
@@ -1106,11 +1116,11 @@ MODULE mod_Tnum
         IF (name_transfo /= 'zmat'  .AND. name_transfo /= 'bunch' .AND. &
             name_transfo /= 'bunch_poly' .AND.                          &
             name_transfo /= 'qtox_ana') THEN
-           write(out_unit,*) ' ERROR in ',name_sub
-           write(out_unit,*) ' The first transfortmation MUST be ',    &
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The first transfortmation MUST be ',    &
                       '"zmat" or "bunch" or "bunch_poly" or "QTOX_ana".'
-           write(out_unit,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(1))
-           STOP
+          write(out_unit,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(1))
+          STOP
         END IF
         !=======================================================================
 
@@ -1119,10 +1129,10 @@ MODULE mod_Tnum
         name_transfo = get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo))
 
         IF (name_transfo /= 'active') THEN
-           write(out_unit,*) ' ERROR in ',name_sub
-           write(out_unit,*) ' The last transfortmation MUST be "active".'
-           write(out_unit,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo))
-           STOP
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' The last transfortmation MUST be "active".'
+          write(out_unit,*) 'name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(nb_Qtransfo))
+          STOP
         END IF
         !=======================================================================
 
@@ -1134,11 +1144,9 @@ MODULE mod_Tnum
 
         mole%name_Qdyn        => mole%tab_Qtransfo(nb_Qtransfo)%name_Qout
 
-        CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],             &
-                        "mole%nrho_OF_Qact",name_sub)
+        CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
-        CALL alloc_array(mole%nrho_OF_Qdyn,[mole%nb_var],             &
-                        "mole%nrho_OF_Qdyn",name_sub)
+        CALL alloc_array(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
         mole%nrho_OF_Qdyn(:) = 0
 
         IF (mole%tab_Qtransfo(nb_Qtransfo)%nb_Qin /= mole%nb_var) THEN
@@ -1174,14 +1182,14 @@ MODULE mod_Tnum
           END DO
         END IF
 
-        IF(MPI_id==0) THEN
+        IF (MPI_id==0) THEN
           write(out_unit,*) '================================================='
           write(out_unit,*) '================================================='
           write(out_unit,*) 'END New Coordinates transformation'
           write(out_unit,*) '================================================='
           write(out_unit,*) '================================================='
           flush(out_unit)
-        ENDIF
+        END IF
 !=======================================================================
 !===== Old Coordinates transformation ==================================
 !=======================================================================
@@ -1501,7 +1509,7 @@ MODULE mod_Tnum
         mole%tab_Cart_transfo(1)%num_transfo = 1
         CALL read_Qtransfo(mole%tab_Cart_transfo(1),mole%ncart_act,             &
                            mole%nb_extra_Coord,With_Tab_dnQflex,QMLib,          &
-                           const_phys%mendeleev,Tana_Is_Possible)
+                           const_phys%mendeleev,Tana_Is_Possible,mole%Cart_Type)
 
         IF (print_level > 1) CALL Write_CartesianTransfo(mole%tab_Cart_transfo(1)%CartesianTransfo)
 
@@ -1613,12 +1621,9 @@ MODULE mod_Tnum
                             associated(mole%tab_Qtransfo(it)%type_Qout)
            IF (associated(mole%tab_Qtransfo(it)%name_Qout) .AND.        &
                        associated(mole%tab_Qtransfo(it)%type_Qout)) THEN
-             DO i_Q=1,mole%tab_Qtransfo(it)%nb_Qout
-               write(out_unit,*) 'i_Q,name_Qout,type_Qout',i_Q," ",    &
-                           trim(mole%tab_Qtransfo(it)%name_Qout(i_Q)),  &
-                                    mole%tab_Qtransfo(it)%type_Qout(i_Q)
-               flush(out_unit)
-             END DO
+            write(out_unit,*) 'type_Qout',mole%tab_Qtransfo(it)%type_Qout
+            write(out_unit,*) 'name_Qout',mole%tab_Qtransfo(it)%name_Qout
+            flush(out_unit)
            END IF
 
            write(out_unit,*) 'asso name_Qin and type_Qin',             &
@@ -1626,12 +1631,9 @@ MODULE mod_Tnum
                             associated(mole%tab_Qtransfo(it)%type_Qin)
            IF (associated(mole%tab_Qtransfo(it)%name_Qin) .AND.         &
                        associated(mole%tab_Qtransfo(it)%type_Qin)) THEN
-             DO i_Q=1,mole%tab_Qtransfo(it)%nb_Qin
-               write(out_unit,*) 'i_Q,name_Qin,type_Qin',i_Q," ",      &
-                           trim(mole%tab_Qtransfo(it)%name_Qin(i_Q)),   &
-                                    mole%tab_Qtransfo(it)%type_Qin(i_Q)
-               flush(out_unit)
-             END DO
+            write(out_unit,*) 'type_Qin',mole%tab_Qtransfo(it)%type_Qin
+            write(out_unit,*) 'name_Qin',mole%tab_Qtransfo(it)%name_Qin
+            flush(out_unit)
            END IF
 
            write(out_unit,*) '========================='
@@ -2095,10 +2097,15 @@ MODULE mod_Tnum
       mole%nb_inact   = mole%nb_inact20 + mole%nb_inact2n
       mole%nb_rigid   = mole%nb_rigid0  + mole%nb_rigid100
 
-      mole%ndimG      = mole%nb_act     + 3
-      IF (mole%With_VecCOM) mole%ndimG = mole%ndimG + 3 ! with the COM
-      IF (mole%Without_Rot) mole%ndimG  = mole%nb_act
-
+      SELECT CASE(TO_lowercase(mole%Cart_Type))
+      CASE ('lf','sf')
+        mole%ndimG = mole%nb_act ! because in nb_act coordinates, there is the vibration, the rotation and the COM (for lf)
+        mole%Without_Rot = .TRUE.
+      CASE DEFAULT
+        mole%ndimG      = mole%nb_act     + 3
+        IF (mole%With_VecCOM) mole%ndimG = mole%ndimG + 3 ! with the COM
+        IF (mole%Without_Rot) mole%ndimG  = mole%nb_act
+      END SELECT
 
       nb_Qtransfo = mole%nb_Qtransfo
       mole%ActiveTransfo%nb_var      = mole%nb_var

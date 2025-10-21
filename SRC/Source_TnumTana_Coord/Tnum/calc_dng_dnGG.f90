@@ -1282,6 +1282,11 @@ MODULE mod_dnGG_dng
       CALL sub_QactTOdnMWx(Qact,dnMWx,mole,nderivX,Gcenter,             &
                                Cart_Transfo=para_Tnum%With_Cart_Transfo)
 
+      IF (debug) THEN
+        write(out_unit,*) 'dnMWx'
+        CALL write_dnx(1,mole%ncart,dnMWx,nderivX)
+      END IF
+
       IF (nderivA >= 0) THEN
         CALL sub_d0A(dnA%d0,dnMWx%d0,dnMWx%d1,                          &
                      mole%nb_act,mole%nat_act,mole%ncart,               &
@@ -1513,7 +1518,6 @@ MODULE mod_dnGG_dng
 !    Calcul de la matrice A
 !
 !================================================================
-
       SUBROUTINE sub_d0A(A,d0x,d1x,                                     &
                          nb_act,nat_act,ncart,ncart_act,ndimA,          &
                          Without_Rot,With_VecCOM,Mtot)
@@ -1523,8 +1527,8 @@ MODULE mod_dnGG_dng
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: A(ndimA,ndimA),Mtot
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
 
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
@@ -1543,7 +1547,11 @@ MODULE mod_dnGG_dng
          write(out_unit,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
                      nb_act,nat_act,ncart,ncart_act,ndimA
          write(out_unit,*) 'Without_Rot',Without_Rot
+
          CALL Write_d0Q(0,'d0x',d0x,3)
+         DO i=1,nb_act
+            CALL Write_d0Q(0,'d1x',d1x(:,i),3)
+         END DO
          write(out_unit,*)
        END IF
 !-----------------------------------------------------------
@@ -1682,9 +1690,9 @@ MODULE mod_dnGG_dng
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: d1A(ndimA,ndimA,nb_act)
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
-       real (kind=Rkind) :: d2x(ncart,nb_act,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
+       real (kind=Rkind) :: d2x(:,:,:)
 
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
@@ -1829,10 +1837,10 @@ END SUBROUTINE sub_d1A
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: d2A(ndimA,ndimA,nb_act,nb_act)
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
-       real (kind=Rkind) :: d2x(ncart,nb_act,nb_act)
-       real (kind=Rkind) :: d3x(ncart,nb_act,nb_act,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
+       real (kind=Rkind) :: d2x(:,:,:)
+       real (kind=Rkind) :: d3x(:,:,:,:)
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
 
