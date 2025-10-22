@@ -1087,11 +1087,15 @@ MODULE mod_Qtransfo
       ! for type_Qout and name_Qout, it will be done after (from another type_Qin, name_Qin)
       ! except for num_transfo=1 (first transfo)
       IF (Qtransfo2%num_transfo == 1) THEN
-        CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
-        Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
+        IF (associated(Qtransfo1%type_Qout)) THEN
+          CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
+          Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
+        END IF
 
-        CALL alloc_array(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
-        Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
+        IF (associated(Qtransfo1%name_Qout)) THEN
+          CALL alloc_array(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
+          Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
+        END IF
       END IF
 
       SELECT CASE (name_transfo)

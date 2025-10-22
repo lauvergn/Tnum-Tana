@@ -245,7 +245,8 @@
 
         CALL dealloc_array(freq,"freq",name_sub)
 
-        CALL sub_QplusDQ_TO_Cart(Qact,mole)
+       !CALL sub_QplusDQ_TO_Cart_old(Qact,mole)
+        CALL sub_QplusDQ_TO_Cart(mole)
 
         write(out_unit,*) "======================================"
         write(out_unit,*) "======================================"
