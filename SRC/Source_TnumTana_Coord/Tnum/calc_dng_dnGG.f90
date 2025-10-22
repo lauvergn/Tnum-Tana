@@ -657,23 +657,24 @@ MODULE mod_dnGG_dng
           IF (mole100%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
                            mole100%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
-        mole100%nb_act      = mole%nb_act  + mole%nb_rigid100
-        mole100%nb_act1     = mole%nb_act1 + mole%nb_rigid100
-        mole100%ndimG       = mole%ndimG   + mole%nb_rigid100
-        mole100%nb_rigid100 = 0
-        mole100%nb_rigid    = mole100%nb_rigid - mole%nb_rigid100
+        mole100%nb_act          = mole%nb_act  + mole%nb_rigid100
+        mole100%nb_act1         = mole%nb_act1 + mole%nb_rigid100
+        mole100%ndimG           = mole%ndimG   + mole%nb_rigid100
+        mole100%nb_rigid100     = 0
+        mole100%nb_rigid        = mole%nb_rigid - mole%nb_rigid100
 
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 
         IF (debug) THEN
           write(out_unit,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
           write(out_unit,*)
+          write(out_unit,*) 'mole100 parameters'
           CALL Write_CoordType(mole100)
+          flush(out_unit)
         END IF
 
         CALL alloc_dnSVM(dnGG100,mole100%ndimG,mole100%ndimG,mole100%nb_act,nderiv)
         CALL get_dnGG(Qact,dnGG100,nderiv,para_Tnum,mole100)
-
         IF (para_Tnum%vep_type == 100 .AND. dnGG100%nderiv == 2) THEN
           CALL Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG100,mole,para_Tnum)
           vep_done = .TRUE.
@@ -682,6 +683,7 @@ MODULE mod_dnGG_dng
         IF (debug) THEN
           write(out_unit,*) 'dnGG100'
           CALL Write_dnSVM(dnGG100)
+          flush(out_unit)
         END IF
       END IF
       !-----------------------------------------------------------------
@@ -770,7 +772,7 @@ MODULE mod_dnGG_dng
         mole100%nb_act1     = mole%nb_act1 + mole%nb_rigid100
         mole100%ndimG       = mole%ndimG   + mole%nb_rigid100
         mole100%nb_rigid100 = 0
-        mole100%nb_rigid    = mole100%nb_rigid - mole%nb_rigid100
+        mole100%nb_rigid    = mole%nb_rigid - mole%nb_rigid100
 
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 

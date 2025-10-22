@@ -70,10 +70,6 @@
           real (kind=Rkind), pointer :: A_inv(:,:)             => null() ! Relations between the vectors and the X
           real (kind=Rkind), pointer :: M_Tana(:,:)            => null() ! M for analytical KEO
 
-
-
-          integer, pointer                  :: type_Qin(:)   => null() ! TRUE pointer
-          character (len=Name_len), pointer :: name_Qin(:)   => null() ! TRUE pointer
           integer, pointer                  :: Z(:)          => null()
           character (len=Name_len),pointer  :: symbole(:)    => null()
 
@@ -1407,35 +1403,6 @@
 
 
       IF (rec_level == 0) THEN
-        IF (TO_lowercase(Cart_Type) == 'sf' .OR. TO_lowercase(Cart_Type) == 'lf') THEN
-          i_Qpoly = i_Qpoly + 1
-          BFTransfo%type_Qin(i_Qpoly) = 4 ! dih
-          BFTransfo%name_Qin(i_Qpoly) = "alphaBF"
-          i_Qpoly = i_Qpoly + 1
-          IF (cos_th) THEN
-            BFTransfo%type_Qin(i_Qpoly) = -3 ! cos(beta)
-            BFTransfo%name_Qin(i_Qpoly) = "ubetaBF"
-          ELSE
-            BFTransfo%type_Qin(i_Qpoly) = 3 ! beta
-            BFTransfo%name_Qin(i_Qpoly) = "betaBF"
-          END IF
-          IF (BunchTransfo%nb_vect > 1) THEN ! because it is a diatomic molecule
-            i_Qpoly = i_Qpoly + 1
-            BFTransfo%type_Qin(i_Qpoly) = 4 ! dih
-            BFTransfo%name_Qin(i_Qpoly) = "gammaBF"
-          END IF
-        END IF
-        IF (TO_lowercase(Cart_Type) == 'lf') THEN
-          i_Qpoly = i_Qpoly + 1
-          BFTransfo%type_Qin(i_Qpoly) = 1 ! xCOM
-          BFTransfo%name_Qin(i_Qpoly) = "xCOM"
-          i_Qpoly = i_Qpoly + 1
-          BFTransfo%type_Qin(i_Qpoly) = 1 ! yCOM
-          BFTransfo%name_Qin(i_Qpoly) = "yCOM"
-          i_Qpoly = i_Qpoly + 1
-          BFTransfo%type_Qin(i_Qpoly) = 1 ! yCOM
-          BFTransfo%name_Qin(i_Qpoly) = "zCOM"
-        END IF
 
         BFTransfo%QEuler(1) = set_opel(idf=1, idq=6, alfa=1, indexq=BFTransfo%nb_var+1, coeff=CONE) ! alpha (true Euler)
         IF (cos_th) THEN
@@ -2860,18 +2827,14 @@
                            "BunchTransfo%masses_OF_At",name_sub)
        END IF
 
-       BunchTransfo%ncart     = 0
-       BunchTransfo%ncart_act = 0
-       BunchTransfo%nat0      = 0
-       BunchTransfo%nat       = 0
-       BunchTransfo%nat_act   = 0
-       BunchTransfo%nb_var    = 0
-       BunchTransfo%nb_vect   = 0
+       BunchTransfo%ncart        = 0
+       BunchTransfo%ncart_act    = 0
+       BunchTransfo%nat0         = 0
+       BunchTransfo%nat          = 0
+       BunchTransfo%nat_act      = 0
+       BunchTransfo%nb_var       = 0
+       BunchTransfo%nb_vect      = 0
        BunchTransfo%nb_ExtraLFSF = 0
-
-       nullify(BunchTransfo%type_Qin) ! TRUE pointer
-       nullify(BunchTransfo%name_Qin) ! TRUE pointer
-
 
        deallocate(BunchTransfo,stat=err_mem)
        memory = 1
@@ -2928,7 +2891,6 @@
 
       BunchTransfo%nat_act = BunchTransfo%nb_vect + 1
       CALL alloc_BunchTransfo(BunchTransfo)
-      BunchTransfo%type_Qin(:) = 1
 
       nullify(tab_iAtTOiCart)
       CALL alloc_array(tab_iAtTOiCart,[BunchTransfo%nat],"tab_iAtTOiCart",name_sub)
@@ -2996,12 +2958,8 @@
 
       i_at = 1
       DO i=1,nb_vect
-        CALL make_nameQ(BunchTransfo%name_Qin(3*i-2),"Xbunch",i)
-        CALL make_nameQ(BunchTransfo%name_Qin(3*i-1),"Ybunch",i)
-        CALL make_nameQ(BunchTransfo%name_Qin(3*i-0),"Zbunch",i)
         read(in_unit,*,IOSTAT=err_io) BunchTransfo%ind_vect(1,i),iat1, &
                                        weight_vect(i),name1_at,name2_at
-
         IF (err_io /= 0) THEN
           write(out_unit,*) ' ERROR in ',name_sub
           write(out_unit,*) '  while the vector definition (bunch)'
@@ -3291,11 +3249,10 @@
       write(out_unit,*) '  Read the atoms'
       write(out_unit,*) '  nb_vect',BunchTransfo%nb_vect
       write(out_unit,*) '  nat',BunchTransfo%nat
+      flush(out_unit)
 
       ! allocation of the variables:
       CALL alloc_BunchTransfo(BunchTransfo)
-
-      BunchTransfo%type_Qin(:) = 1
 
       !--------------------------------------------------------
         ! first read the atoms (not dummy)
@@ -3482,6 +3439,7 @@
 
       !--------------------------------------------------------
       IF (debug) write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
       !--------------------------------------------------------
       END SUBROUTINE Read2_BunchTransfo
 
@@ -4002,11 +3960,12 @@
       BunchTransfo2%nat       = BunchTransfo1%nat
       BunchTransfo2%nat_act   = BunchTransfo1%nat_act
 
-      BunchTransfo2%nb_var    = BunchTransfo1%nb_var
+      BunchTransfo2%nb_var       = BunchTransfo1%nb_var
+      BunchTransfo2%nb_ExtraLFSF = BunchTransfo1%nb_ExtraLFSF
 
-      BunchTransfo2%nb_vect   = BunchTransfo1%nb_vect
-      BunchTransfo2%nb_G      = BunchTransfo1%nb_G
-      BunchTransfo2%nb_X      = BunchTransfo1%nb_X
+      BunchTransfo2%nb_vect      = BunchTransfo1%nb_vect
+      BunchTransfo2%nb_G         = BunchTransfo1%nb_G
+      BunchTransfo2%nb_X         = BunchTransfo1%nb_X
 
       CALL alloc_BunchTransfo(BunchTransfo2)
 

@@ -1316,12 +1316,12 @@ CONTAINS
       TYPE (File_t) :: file_freq
 
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       integer :: nderiv_debug = 0
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='sub_QplusDQ_TO_Cart'
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
@@ -1329,9 +1329,9 @@ CONTAINS
       END IF
       !-----------------------------------------------------------------
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       ! Some initializations
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       Z_act(:) = -1
       iZ = 0
       DO i=1,mole%nat
@@ -1341,8 +1341,8 @@ CONTAINS
         END IF
       END DO
       a0 = get_Conv_au_TO_unit("L","Angs")
-!     -----------------------------------------------------------------
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
+      !-----------------------------------------------------------------
 
 
       CALL alloc_dnSVM(dnx0,mole%ncart,mole%nb_act,0)
@@ -1374,7 +1374,7 @@ CONTAINS
       DO iQ=1,mole%nb_var
 
         ! for valence angle (or u) close to 0 or pi (1 or -1), the step could be too large.
-        ! There we ar going to test the coodiante type (3 or -3)
+        ! There we are going to test the coordinate type (3 or -3)
         Qact = mole%ActiveTransfo%Qact0
         IF (debug) write(out_unit,*) 'in ',name_sub,':',iQ,mole%tab_Qtransfo(mole%nb_QTransfo)%type_Qin(iQ),Qact(iQ)
         SELECT CASE(mole%tab_Qtransfo(mole%nb_QTransfo)%type_Qin(iQ))
@@ -1685,7 +1685,7 @@ CONTAINS
     USE TnumTana_system_m
     USE mod_dnSVM
     USE ADdnSVM_m
-    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo,get_nb_ExtraLFSF
     USE mod_Tnum
     IMPLICIT NONE
 
@@ -1718,10 +1718,11 @@ CONTAINS
       write(out_unit,*) 'nderiv',nderiv
       write(out_unit,*) 'ncart',mole%ncart
       write(out_unit,*) 'Qact =',Qact
+      IF (allocated(mole%Cart_type)) write(out_unit,*) 'Cart_type: ',mole%Cart_type
       write(out_unit,*)
       !CALL Write_CoordType(mole)
       write(out_unit,*)
-      CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
+      !CALL write_dnx(1,mole%ncart,dnx,nderiv_debug)
       CALL flush_perso(out_unit)
     END IF
     !-----------------------------------------------------------------
@@ -1789,7 +1790,7 @@ CONTAINS
       END DO
 
       ! BF => SF (Euler)
-      IF (mole%tab_Qtransfo(1)%BunchTransfo%nb_ExtraLFSF == 6) THEN
+      IF (get_nb_ExtraLFSF(mole%tab_Qtransfo(1)) == 6) THEN
         euler(:) = [.TRUE.,.TRUE.,.TRUE.]
       ELSE
         euler(:) = [.TRUE.,.TRUE.,.FALSE.]
@@ -1828,10 +1829,11 @@ CONTAINS
         CALL sub_dnst_TO_dnVec(dnCart_OF_dnSt(3,i),dnX,ix)
       END DO
     CASE('lf')
+      IF (debug) write(out_unit,*) ' dnXBF+euler+COM' ; flush(out_unit)
+
       CALL sub_QactTOdnxBF_ana_CoordType(Qact,dnx,mole,       &
                                          nderiv,Gcenter=.TRUE.,Cart_Transfo=.TRUE.,WriteCC=WriteCC_loc)
 
-      IF (debug) write(out_unit,*) ' dnXBF+euler+COM'
       allocate(dnCart_OF_dnSt(3,mole%nat0))
       ix = 0
       DO i=1,mole%nat0
@@ -1856,10 +1858,11 @@ CONTAINS
         CALL Write_dnS(dnCOM_OF_dnSt(1),info='dnCOMx')
         CALL Write_dnS(dnCOM_OF_dnSt(2),info='dnCOMy')
         CALL Write_dnS(dnCOM_OF_dnSt(3),info='dnCOMz')
+        flush(out_unit)
       END IF
 
       ! BF => SF (Euler)
-      IF (mole%tab_Qtransfo(1)%BunchTransfo%nb_ExtraLFSF == 6) THEN
+      IF (get_nb_ExtraLFSF(mole%tab_Qtransfo(1)) == 6) THEN
         euler(:) = [.TRUE.,.TRUE.,.TRUE.]
       ELSE
         euler(:) = [.TRUE.,.TRUE.,.FALSE.]
@@ -1872,6 +1875,7 @@ CONTAINS
           CALL Write_dnS(dnAlpha,info='dnAlpha')
           CALL Write_dnS(dnTBeta,info='dnTBeta')
           CALL Write_dnS(dnGamma,info='dnGamma')
+          flush(out_unit)
         END IF
         ibeta = dnx%nb_var_vec-4
       ELSE
@@ -1880,12 +1884,14 @@ CONTAINS
         IF (debug) THEN
           CALL Write_dnS(dnAlpha,info='dnAlpha')
           CALL Write_dnS(dnTBeta,info='dnTBeta')
+          flush(out_unit)
         END IF
         ibeta = dnx%nb_var_vec-3
       END IF
       IF (debug) write(6,*) 'coucou euler',euler
       IF (debug) write(6,*) 'coucou ibeta',ibeta
       IF (debug) write(6,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      flush(6)
       CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
 
       ! SF => LF (COM)

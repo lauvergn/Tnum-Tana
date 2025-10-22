@@ -1818,12 +1818,10 @@ MODULE mod_Tnum
       mole1%nb_rigid100      = mole2%nb_rigid100
       mole1%nb_rigid         = mole2%nb_rigid
 
-      CALL alloc_array(mole1%active_masses,[mole1%ncart],             &
-                      "mole1%active_masses",name_sub)
+      CALL alloc_array(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
       mole1%active_masses    = mole2%active_masses
 
-      CALL alloc_array(mole1%d0sm,[mole1%ncart],                      &
-                      "mole1%d0sm",name_sub)
+      CALL alloc_array(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
       mole1%d0sm             = mole2%d0sm
       mole1%Mtot             = mole2%Mtot
       mole1%Mtot_inv         = mole2%Mtot_inv

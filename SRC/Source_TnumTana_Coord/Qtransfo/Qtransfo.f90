@@ -116,7 +116,7 @@ MODULE mod_Qtransfo
       PUBLIC alloc_array,dealloc_array,dealloc_Qtransfo
       PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
       PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
-      PUBLIC set_name_Qtransfo,get_name_Qtransfo
+      PUBLIC set_name_Qtransfo,get_name_Qtransfo,get_nb_ExtraLFSF
 
       CONTAINS
 
@@ -157,7 +157,8 @@ MODULE mod_Qtransfo
         character (len=line_len)      :: file_hessian
 
         logical :: with_vectors,not_all
-        integer :: i,it,i_Q,iF_inout,iat,iQin,iQout,nb_read,nb_Qdef,nb_ExtraLFSF,nend
+        integer :: i,it,i_Q,iF_inout,iat,iQin,iQout,nb_read,nb_Qdef
+        !integer :: nb_ExtraLFSF,nend
         real (kind=Rkind) ::  at
         real (kind=Rkind), pointer ::  M_mass(:,:)
         character (len=Name_len), pointer :: name_at(:)
@@ -261,7 +262,7 @@ MODULE mod_Qtransfo
         CASE ('identity')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
           Qtransfo%nb_Qin  = nb_Qin
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qid")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qid")  ! here type_Qin(:) = 0
           Qtransfo%type_Qin(:) = Qtransfo%type_Qout(:)
           CONTINUE ! nothing !
 
@@ -269,7 +270,7 @@ MODULE mod_Qtransfo
           Tana_Is_Possible = .FALSE. ! could be changed
 
           Qtransfo%nb_Qin  = nb_Qin
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qorder")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qorder")  ! here type_Qin(:) = 0
 
           CALL alloc_array(Qtransfo%list_Qin_TO_Qout,[Qtransfo%nb_Qin],&
                           "Qtransfo%list_Qin_TO_Qout",name_sub)
@@ -308,7 +309,7 @@ MODULE mod_Qtransfo
           Qtransfo%LinearTransfo%check_LinearTransfo = check_LinearTransfo
           CALL Read_LinearTransfo(Qtransfo%LinearTransfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear") ! here type_Qin(:) = 0. It is OK
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('linear_transp')
@@ -319,7 +320,7 @@ MODULE mod_Qtransfo
           Qtransfo%LinearTransfo%check_LinearTransfo = check_LinearTransfo
           CALL Read_LinearTransfo(Qtransfo%LinearTransfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")  ! here type_Qin(:) = 0. It is OK
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('linear_inv')
@@ -329,7 +330,7 @@ MODULE mod_Qtransfo
           Qtransfo%LinearTransfo%check_LinearTransfo = check_LinearTransfo
           CALL Read_LinearTransfo(Qtransfo%LinearTransfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")  ! here type_Qin(:) = 0. It is OK
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('linear_inv_transp','linear_transp_inv')
@@ -340,7 +341,7 @@ MODULE mod_Qtransfo
           Qtransfo%LinearTransfo%check_LinearTransfo = check_LinearTransfo
           CALL Read_LinearTransfo(Qtransfo%LinearTransfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qlinear")  ! here type_Qin(:) = 0. It is OK
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('lc_projection_inv')
@@ -358,7 +359,7 @@ MODULE mod_Qtransfo
           Qtransfo%nb_transfo = nb_transfo
           CALL Read_LC_projectionTransfo(Qtransfo%LinearTransfo,        &
                                   nb_transfo,opt_transfo,not_all,nb_Qin)
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QLCproj")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QLCproj")  ! here type_Qin(:) = 0. It is OK
           CALL Sub_Check_LinearTransfo(Qtransfo)
 
         CASE ('nm')
@@ -396,7 +397,7 @@ MODULE mod_Qtransfo
           Qtransfo%NMTransfo%file_hessian%old       = hessian_old
 
           CALL Read_NMTransfo(Qtransfo%NMTransfo,nb_Qin)
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QNM")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QNM")  ! here type_Qin(:) = 0. It is OK
 
           CALL alloc_LinearTransfo(Qtransfo%LinearTransfo,nb_Qin)
 
@@ -411,8 +412,7 @@ MODULE mod_Qtransfo
           CALL alloc_array(Qtransfo%RPHTransfo,'Qtransfo%RPHTransfo',name_sub)
           CALL Read_RPHTransfo(Qtransfo%RPHTransfo,nb_Qin,Qtransfo%opt_transfo,QMLib)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPH")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPH")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('rph_qml')
           Tana_Is_Possible = .FALSE.
@@ -420,28 +420,25 @@ MODULE mod_Qtransfo
           CALL alloc_array(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
           CALL Read_RPHQMLTransfo(Qtransfo%RPHQMLTransfo,nb_Qin,Qtransfo%opt_transfo)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPHQML")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPHQML")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('project')
           Tana_Is_Possible = .FALSE.
           Qtransfo%nb_Qin  = nb_Qin
           CALL Read_ProjectTransfo(Qtransfo%ProjectTransfo,nb_Qin,Qtransfo%opt_transfo)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QProject")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QProject")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('hyperspherical')
           Tana_Is_Possible = .FALSE.
           Qtransfo%nb_Qin  = nb_Qin
           CALL Read_HyperSpheTransfo(Qtransfo%HyperSpheTransfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QhyperSphe")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QhyperSphe")  ! here type_Qin(:) = 0.
           Qtransfo%type_Qin(:) = Qtransfo%type_Qout(:)
           DO i=2,size(Qtransfo%HyperSpheTransfo%list_HyperSphe)
             Qtransfo%type_Qin(Qtransfo%HyperSpheTransfo%list_HyperSphe(i)) = 4 ! an angle
           END DO
-          !Qtransfo%type_Qin(:) = 0
 
         CASE ('oned')
           Tana_Is_Possible = .FALSE. ! could be changed
@@ -464,8 +461,7 @@ MODULE mod_Qtransfo
             END DO
           END IF
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QoneD")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"QoneD")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('infrange','infiniterange') ! it uses the OneD transfo automatically
           Tana_Is_Possible = .FALSE. ! could be changed
@@ -483,8 +479,7 @@ MODULE mod_Qtransfo
 
           CALL Read_InfiniteRange(Qtransfo%oneDTransfo,Qtransfo%type_Qout,not_all)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"InfiniteRange")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"InfiniteRange")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('twod')
           Tana_Is_Possible = .FALSE.
@@ -492,8 +487,7 @@ MODULE mod_Qtransfo
 
           CALL Read_TwoDTransfo(Qtransfo%TwoDTransfo,nb_transfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Q2D")
-          Qtransfo%type_Qin(:) =0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Q2D")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('rot2coord')
           Tana_Is_Possible = .FALSE.
@@ -502,8 +496,7 @@ MODULE mod_Qtransfo
 
           CALL Read_Rot2CoordTransfo(Qtransfo%Rot2CoordTransfo,nb_transfo,nb_Qin)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qrot2Coord")
-          Qtransfo%type_Qin(:) = 0
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qrot2Coord")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('flexible')
           Tana_Is_Possible = .FALSE.
@@ -511,7 +504,7 @@ MODULE mod_Qtransfo
           !CALL Read_FlexibleTransfo(Qtransfo%FlexibleTransfo,nb_Qin)
           CALL Qtransfo%FlexibleTransfo%QtransfoRead(nb_Qin,With_Tab_dnQflex,QMLib)
 
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qflex")
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qflex")  ! here type_Qin(:) = 0
           Qtransfo%type_Qin(:) = Qtransfo%type_Qout(:)
 
         CASE ('active') ! the last read transformation
@@ -540,18 +533,18 @@ MODULE mod_Qtransfo
           nb_Qdef = max(1,3*nat-6)
           SELECT CASE (TO_lowercase(Cart_Type))
           CASE ('bf')
-            nb_ExtraLFSF = 0
+            Qtransfo%ZmatTransfo%nb_ExtraLFSF = 0
           CASE ('sf')
             IF (nat == 2) THEN
-              nb_ExtraLFSF = 2
+              Qtransfo%ZmatTransfo%nb_ExtraLFSF = 2
             ELSE
-              nb_ExtraLFSF = 3
+              Qtransfo%ZmatTransfo%nb_ExtraLFSF = 3
             END IF
           CASE ('lf')
             IF (nat == 2) THEN
-              nb_ExtraLFSF = 2+3
+              Qtransfo%ZmatTransfo%nb_ExtraLFSF = 2+3
             ELSE
-              nb_ExtraLFSF = 3+3
+              Qtransfo%ZmatTransfo%nb_ExtraLFSF = 3+3
             END IF
           CASE Default
             write(out_unit,*) ' ERROR in ',name_sub
@@ -559,7 +552,7 @@ MODULE mod_Qtransfo
             write(out_unit,*) " The possibility are: 'BF', 'SF', 'LF' "
             STOP ' ERROR in read_Qtransfo: Wrong Cart_Type'
           END SELECT
-          Qtransfo%ZmatTransfo%nb_var = nb_Qdef + nb_extra_Coord + nb_ExtraLFSF
+          Qtransfo%ZmatTransfo%nb_var = nb_Qdef + nb_extra_Coord + Qtransfo%ZmatTransfo%nb_ExtraLFSF
 
           Qtransfo%Primitive_Coord    = .TRUE.
 
@@ -568,10 +561,18 @@ MODULE mod_Qtransfo
           Qtransfo%ZmatTransfo%nat    = nat + 1
           Qtransfo%ZmatTransfo%ncart  = 3*(nat+1)
           Qtransfo%nb_Qin             = Qtransfo%ZmatTransfo%nb_var
-          Qtransfo%nb_Qout            = 3*(nat+1) + nb_ExtraLFSF
-          IF (debug) write(out_unit,*) 'nat0,nat,nb_var,ncart',        &
-                     Qtransfo%ZmatTransfo%nat0,Qtransfo%ZmatTransfo%nat,&
-                  Qtransfo%ZmatTransfo%nb_var,Qtransfo%ZmatTransfo%ncart
+          Qtransfo%nb_Qout            = 3*(nat+1) + Qtransfo%ZmatTransfo%nb_ExtraLFSF
+          IF (debug) THEN 
+            write(out_unit,*) 'nat0,nat',Qtransfo%ZmatTransfo%nat0,Qtransfo%ZmatTransfo%nat
+            write(out_unit,*) 'ncart',Qtransfo%ZmatTransfo%ncart
+            write(out_unit,*) 
+            write(out_unit,*) 'nb_Qdef',nb_Qdef
+            write(out_unit,*) 'nb_ExtraLFSF',Qtransfo%ZmatTransfo%nb_ExtraLFSF
+            write(out_unit,*) 'nb_var',Qtransfo%ZmatTransfo%nb_var
+            write(out_unit,*) 'nb_Qin',Qtransfo%nb_Qin
+            write(out_unit,*) 'nb_Qout',Qtransfo%nb_Qout
+            flush(out_unit)                            
+          END IF
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qzmat")
           Qtransfo%ZmatTransfo%type_Qin => Qtransfo%type_Qin
@@ -580,6 +581,9 @@ MODULE mod_Qtransfo
           CALL Read_ZmatTransfo(Qtransfo%ZmatTransfo,mendeleev)
 
           Qtransfo%ncart_act = Qtransfo%ZmatTransfo%ncart_act
+
+          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_th)
+          CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
 
         CASE ('bunch','bunch_poly') ! It should one of the first transfo
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
@@ -622,6 +626,7 @@ MODULE mod_Qtransfo
             write(out_unit,*) " The possibility are: 'BF', 'SF', 'LF' "
             STOP ' ERROR in read_Qtransfo: Wrong Cart_Type'
           END SELECT
+
             IF (Qtransfo%inTOout) THEN
             Qtransfo%BunchTransfo%nb_var = nb_Qdef + nb_extra_Coord + Qtransfo%BunchTransfo%nb_ExtraLFSF
 
@@ -634,10 +639,6 @@ MODULE mod_Qtransfo
             Qtransfo%nb_Qin              = 3*nb_vect + Qtransfo%BunchTransfo%nb_ExtraLFSF
             Qtransfo%nb_Qout             = 3*(nat+1) + Qtransfo%BunchTransfo%nb_ExtraLFSF
 
-            CALL sub_Type_Name_OF_Qin(Qtransfo,"QBunch")
-            Qtransfo%BunchTransfo%type_Qin => Qtransfo%type_Qin
-            Qtransfo%BunchTransfo%name_Qin => Qtransfo%name_Qin
-
             IF (debug) THEN 
               write(out_unit,*) 'nat0,nat',Qtransfo%BunchTransfo%nat0,Qtransfo%BunchTransfo%nat
               write(out_unit,*) 'nb_vect',Qtransfo%BunchTransfo%nb_vect
@@ -649,7 +650,8 @@ MODULE mod_Qtransfo
               write(out_unit,*) 'nb_ExtraLFSF',Qtransfo%BunchTransfo%nb_ExtraLFSF
               write(out_unit,*) 'nb_var',Qtransfo%BunchTransfo%nb_var
               write(out_unit,*) 'nb_Qin',Qtransfo%nb_Qin
-              write(out_unit,*) 'nb_Qout',Qtransfo%nb_Qout                              
+              write(out_unit,*) 'nb_Qout',Qtransfo%nb_Qout
+              flush(out_unit)                            
             END IF
 
             CALL Read_BunchTransfo(Qtransfo%BunchTransfo,mendeleev)
@@ -668,9 +670,6 @@ MODULE mod_Qtransfo
             Qtransfo%nb_Qin              = 3*nb_vect + Qtransfo%BunchTransfo%nb_ExtraLFSF
             Qtransfo%nb_Qout             = 3*(nat+1) + Qtransfo%BunchTransfo%nb_ExtraLFSF
 
-            CALL sub_Type_Name_OF_Qin(Qtransfo,"QBunch")
-            Qtransfo%BunchTransfo%type_Qin => Qtransfo%type_Qin
-            Qtransfo%BunchTransfo%name_Qin => Qtransfo%name_Qin
             IF (debug) THEN 
               write(out_unit,*) 'nat0,nat',Qtransfo%BunchTransfo%nat0,Qtransfo%BunchTransfo%nat
               write(out_unit,*) 'nb_vect',Qtransfo%BunchTransfo%nb_vect
@@ -682,32 +681,19 @@ MODULE mod_Qtransfo
               write(out_unit,*) 'nb_ExtraLFSF',Qtransfo%BunchTransfo%nb_ExtraLFSF
               write(out_unit,*) 'nb_var',Qtransfo%BunchTransfo%nb_var
               write(out_unit,*) 'nb_Qin',Qtransfo%nb_Qin
-              write(out_unit,*) 'nb_Qout',Qtransfo%nb_Qout                              
+              write(out_unit,*) 'nb_Qout',Qtransfo%nb_Qout
+              flush(out_unit)                       
             END IF
 
             CALL Read2_BunchTransfo(Qtransfo%BunchTransfo,mendeleev,with_vectors)
-
             IF (with_vectors) THEN
               CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
             END IF
           END IF
           Qtransfo%ncart_act = Qtransfo%BunchTransfo%ncart_act
 
-          !modification of the type_Qin to take into account the extra coordinates (Euler + COM)
-          nend=size(Qtransfo%BunchTransfo%type_Qin)
-          IF (Qtransfo%BunchTransfo%nb_ExtraLFSF == 5) THEN
-            IF (cos_th) THEN
-              Qtransfo%BunchTransfo%type_Qin(nend-4:nend-3) = [4,-3]
-            ELSE
-              Qtransfo%BunchTransfo%type_Qin(nend-4:nend-3) = [4,+3]
-            END IF
-          ELSE IF (Qtransfo%BunchTransfo%nb_ExtraLFSF == 6) THEN
-            IF (cos_th) THEN
-              Qtransfo%BunchTransfo%type_Qin(nend-5:nend-3) = [4,-3,4]
-            ELSE
-              Qtransfo%BunchTransfo%type_Qin(nend-5:nend-3) = [4,+3,4]
-            END IF
-          END IF
+          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_th)
+          CALL Set_Type_Name_OF_Qin_Vec(Qtransfo)
 
         CASE ('poly')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
@@ -723,25 +709,24 @@ MODULE mod_Qtransfo
           nb_vect      = Qtransfo%BunchTransfo%nb_vect
 
           nb_Qdef      = max(1,3*nb_vect-3)
-          nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
 
           Qtransfo%Primitive_Coord      = .TRUE.
           Qtransfo%BFTransfo%nb_var     = nb_Qin
           Qtransfo%BFTransfo%Def_cos_th = cos_th
           Qtransfo%nb_Qin               = nb_Qin
           Qtransfo%nb_Qout              = 3*nb_vect + Qtransfo%BunchTransfo%nb_ExtraLFSF
-          CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%type_Qin",name_sub)
-          CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%name_Qin",name_sub)
 
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qpoly")
           Qtransfo%BFTransfo%type_Qin => Qtransfo%type_Qin
           Qtransfo%BFTransfo%name_Qin => Qtransfo%name_Qin
+
           Qtransfo%BFTransfo%Frame    = .TRUE.
           Qtransfo%BFTransfo%euler(:) = .FALSE.
           iF_inout = 0
           CALL RecRead_BFTransfo(Qtransfo%BFTransfo,                    &
                                  Qtransfo%BunchTransfo,iF_inout,Cart_Type)
+
+          CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
 
           IF (debug) THEN
             write(out_unit,*) ' Type and name of polyspherical coordinates'
@@ -763,13 +748,8 @@ MODULE mod_Qtransfo
           Qtransfo%Primitive_Coord    = .TRUE.
           Qtransfo%nb_Qin             = max(1,3*nat-6)+nb_extra_Coord
           Qtransfo%nb_Qout            = 3*nat+3
-          CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%type_Qin",name_sub)
-          CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%name_Qin",name_sub)
-          DO i=1,Qtransfo%nb_Qin
-            CALL make_nameQ(Qtransfo%name_Qin(i),"Qana",i,it)
-          END DO
+
+          CALL sub_Type_Name_OF_Qin(Qtransfo,"Qana")
           Qtransfo%QTOXanaTransfo%type_Qin => Qtransfo%type_Qin
 
           Qtransfo%QTOXanaTransfo%nat0      = nat
@@ -816,27 +796,6 @@ MODULE mod_Qtransfo
           CALL Write_list_Qtransfo(out_unit)
           STOP 'ERROR in read_Qtransfo: wrong coordinate transformation'
         END SELECT
-
-
-        ! for Qout type, name ....
-        IF (Qtransfo%num_transfo == 1) THEN ! cartessian coordinates (Qout)
-          CALL alloc_array(Qtransfo%type_Qout,[Qtransfo%nb_Qout],"Qtransfo%type_Qout",name_sub)
-          CALL alloc_array(Qtransfo%name_Qout,[Qtransfo%nb_Qout],"Qtransfo%name_Qout",name_sub)
-          Qtransfo%type_Qout(:) = 0
-          !Modification to take into acount nb_extraLFSF (euler, COM)
-          nb_extra_Coord = get_nb_ExtraLFSF(Qtransfo)
-          nend = Qtransfo%nb_Qout-nb_extra_Coord
-          Qtransfo%type_Qout(1:nend) = 1 ! cartesian type
-          Qtransfo%type_Qout(nend+1:) = Qtransfo%type_Qin(Qtransfo%nb_Qin-nb_extra_Coord+1:)
-          DO i=1,nend
-            iat = (i-1)/3 +1
-            IF (mod(i,3) == 1) CALL make_nameQ(Qtransfo%name_Qout(i),"X",iat,0)
-            IF (mod(i,3) == 2) CALL make_nameQ(Qtransfo%name_Qout(i),"Y",iat,0)
-            IF (mod(i,3) == 0) CALL make_nameQ(Qtransfo%name_Qout(i),"Z",iat,0)
-          END DO
-          Qtransfo%name_Qout(nend+1:) = Qtransfo%name_Qin(Qtransfo%nb_Qin-nb_extra_Coord+1:)
-        END IF
-
 
         IF (debug) CALL Write_QTransfo(Qtransfo)
         write(out_unit,*) '=========================================='
@@ -1126,8 +1085,8 @@ MODULE mod_Qtransfo
       Qtransfo2%name_Qin(:) = Qtransfo1%name_Qin(:)
 
       ! for type_Qout and name_Qout, it will be done after (from another type_Qin, name_Qin)
-      ! except for num_transfo=0
-      IF (Qtransfo2%num_transfo == 0) THEN
+      ! except for num_transfo=1 (first transfo)
+      IF (Qtransfo2%num_transfo == 1) THEN
         CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
         Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
 
@@ -1248,8 +1207,6 @@ MODULE mod_Qtransfo
       CASE ('bunch','bunch_poly')
         CALL BunchTransfo1TOBunchTransfo2(Qtransfo1%BunchTransfo,       &
                                           Qtransfo2%BunchTransfo)
-        Qtransfo2%BunchTransfo%type_Qin => Qtransfo2%type_Qin
-        Qtransfo2%BunchTransfo%name_Qin => Qtransfo2%name_Qin
 
       CASE ('poly')
         CALL Rec_BFTransfo1TOBFTransfo2(Qtransfo1%BFTransfo,            &
@@ -1737,7 +1694,7 @@ MODULE mod_Qtransfo
         write(out_unit,*) 'END ',name_sub
         flush(out_unit)
 
-      END SUBROUTINE Write_Qtransfo
+  END SUBROUTINE Write_Qtransfo
   FUNCTION get_nb_ExtraLFSF(Qtransfo)
     integer :: get_nb_ExtraLFSF
     TYPE(type_qtransfo), intent(inout) :: Qtransfo
@@ -1745,9 +1702,10 @@ MODULE mod_Qtransfo
     SELECT CASE(Qtransfo%name_transfo)
     CASE ('bunch','bunch_poly')
       get_nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
-    CASE ('zmt')
-      STOP 'STOP in get_nb_ExtraLFSF: zmat not yet'
-      !get_nb_ExtraLFSF = Qtransfo%ZmatTransfo%nb_ExtraLFSF
+   CASE ('poly') ! it is working because BunchTransfo is also linked in Qtransfo
+      get_nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
+    CASE ('zmat')
+      get_nb_ExtraLFSF = Qtransfo%ZmatTransfo%nb_ExtraLFSF
     CASE DEFAULT
       get_nb_ExtraLFSF = 0
     END SELECT
@@ -1780,7 +1738,120 @@ MODULE mod_Qtransfo
         END DO
 
   END SUBROUTINE sub_Type_Name_OF_Qin
+  SUBROUTINE Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta)
+    USE mod_Lib_QTransfo, ONLY : make_nameQ
+    IMPLICIT NONE
+    TYPE(type_qtransfo), intent(inout) :: Qtransfo
+    logical,             intent(in)    :: cos_beta
 
+    integer :: i,iat,nend,nb_ExtraLFSF
+    integer :: type_beta
+    character(len=Name_len) :: name_beta
+
+    character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qout_XBF'
+
+    CALL alloc_array(Qtransfo%type_Qout,[Qtransfo%nb_Qout],"Qtransfo%type_Qout",name_sub)
+    CALL alloc_array(Qtransfo%name_Qout,[Qtransfo%nb_Qout],"Qtransfo%name_Qout",name_sub)
+    Qtransfo%type_Qout(:) = 0
+
+    !Modification to take into acount nb_extraLFSF (euler, COM)
+    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
+    nend = Qtransfo%nb_Qout-nb_ExtraLFSF
+    Qtransfo%type_Qout(1:nend) = 1 ! cartesian type
+    DO i=1,nend
+      iat = (i-1)/3 +1
+
+      IF (mod(i,3) == 1) Qtransfo%name_Qout(i) = "XBF_" // iat
+      IF (mod(i,3) == 2) Qtransfo%name_Qout(i) = "YBF_" // iat
+      IF (mod(i,3) == 0) Qtransfo%name_Qout(i) = "ZBF_" // iat
+    END DO
+
+    IF (cos_beta) THEN 
+      type_beta = -3
+      name_beta = 'ubetaBF'
+    ELSE
+      type_beta = 3
+      name_beta = 'betaBF'
+    END IF
+
+    SELECT CASE (nb_ExtraLFSF)
+    CASE (2)
+      Qtransfo%type_Qout(nend+1:) = [4,type_beta]
+      Qtransfo%name_Qout(nend+1)  = "alphaBF"
+      Qtransfo%name_Qout(nend+2)  = name_beta
+    CASE (3)
+      Qtransfo%type_Qout(nend+1:) = [4,type_beta,4]
+      Qtransfo%name_Qout(nend+1)  = "alphaBF"
+      Qtransfo%name_Qout(nend+2)  = name_beta
+      Qtransfo%name_Qout(nend+3)  = "gammaBF"
+    CASE (5)
+      Qtransfo%type_Qout(nend+1:) = [4,type_beta,1,1,1]
+      Qtransfo%name_Qout(nend+1)  = "alphaBF"
+      Qtransfo%name_Qout(nend+2)  = name_beta
+      Qtransfo%name_Qout(nend+3)  = "xCOM"
+      Qtransfo%name_Qout(nend+4)  = "yCOM"
+      Qtransfo%name_Qout(nend+5)  = "zCOM"
+    CASE (6)
+      Qtransfo%type_Qout(nend+1:) = [4,type_beta,4,1,1,1]
+      Qtransfo%name_Qout(nend+1)  = "alphaBF"
+      Qtransfo%name_Qout(nend+2)  = name_beta
+      Qtransfo%name_Qout(nend+3)  = "gammaBF"
+      Qtransfo%name_Qout(nend+4)  = "xCOM"
+      Qtransfo%name_Qout(nend+5)  = "yCOM"
+      Qtransfo%name_Qout(nend+6)  = "zCOM"
+    END SELECT
+
+  END SUBROUTINE Set_Type_Name_OF_Qout_XBF
+  SUBROUTINE Set_Type_Name_OF_Qin_Vec(Qtransfo)
+    USE mod_Lib_QTransfo, ONLY : make_nameQ
+    IMPLICIT NONE
+    TYPE(type_qtransfo), intent(inout) :: Qtransfo
+
+    integer :: i,iV,nend_Qin,nend_Qout,nb_ExtraLFSF
+
+    character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qin_Vec'
+
+    CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],"Qtransfo%type_Qin",name_sub)
+    CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],"Qtransfo%name_Qin",name_sub)
+    Qtransfo%type_Qin(:) = 0
+
+    !Modification to take into acount nb_extraLFSF (euler, COM)
+    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
+    nend_Qout = Qtransfo%nb_Qout - nb_ExtraLFSF
+    nend_Qin  = Qtransfo%nb_Qin  - nb_ExtraLFSF
+
+    Qtransfo%type_Qin(1:nend_Qin) = 1 ! cartesian type
+    DO i=1,nend_Qin
+      iV = (i-1)/3 +1
+      IF (mod(i,3) == 1) Qtransfo%name_Qin(i) = "VecX_" // iV
+      IF (mod(i,3) == 2) Qtransfo%name_Qin(i) = "VecY_" // iV
+      IF (mod(i,3) == 0) Qtransfo%name_Qin(i) = "VecZ_" // iV
+    END DO
+
+    Qtransfo%type_Qin(nend_Qin+1:) = Qtransfo%type_Qout(nend_Qout+1:)
+    Qtransfo%name_Qin(nend_Qin+1:) = Qtransfo%name_Qout(nend_Qout+1:)
+
+  END SUBROUTINE Set_Type_Name_OF_Qin_Vec
+  SUBROUTINE Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
+    USE mod_Lib_QTransfo, ONLY : make_nameQ
+    IMPLICIT NONE
+    TYPE(type_qtransfo), intent(inout) :: Qtransfo
+
+    integer :: i,iV,nend_Qin,nend_Qout,nb_ExtraLFSF
+
+    character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qin_extraLFSF'
+
+    !Modification to take into acount nb_extraLFSF (euler, COM)
+    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
+    nend_Qout = Qtransfo%nb_Qout - nb_ExtraLFSF
+    nend_Qin  = Qtransfo%nb_Qin  - nb_ExtraLFSF
+
+    write(6,*) 'coucou nb_ExtraLFSF',nb_ExtraLFSF
+    write(6,*) 'coucou end extra Qout',Qtransfo%type_Qout(nend_Qout+1:)
+    Qtransfo%type_Qin(nend_Qin+1:) = Qtransfo%type_Qout(nend_Qout+1:)
+    Qtransfo%name_Qin(nend_Qin+1:) = Qtransfo%name_Qout(nend_Qout+1:)
+
+  END SUBROUTINE Set_Type_Name_OF_Qin_extraLFSF
   SUBROUTINE Sub_Check_LinearTransfo(Qtransfo)
     TYPE (Type_Qtransfo), intent(inout) :: Qtransfo
 

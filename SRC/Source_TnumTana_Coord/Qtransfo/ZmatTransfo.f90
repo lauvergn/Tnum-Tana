@@ -47,7 +47,8 @@
 
         integer           :: ncart=0,ncart_act=0
         integer           :: nat0=0,nat=0,nat_act=0
-        integer           :: nb_var=0
+        integer           :: nb_var = 0
+        integer           :: nb_ExtraLFSF = 0
         integer, pointer  :: ind2_zmat(:,:) => null()
         integer, pointer  :: ind_zmat(:,:) => null()
         logical           :: New_Orient = .FALSE. ! (F) T => Can use different orientation for the z-matrix
@@ -185,13 +186,14 @@
                            "ZmatTransfo%symbole","dealloc_ZmatTransfo")
        END IF
 
-        ZmatTransfo%ncart     = 0
-        ZmatTransfo%ncart_act = 0
-        ZmatTransfo%nat0      = 0
-        ZmatTransfo%nat       = 0
-        ZmatTransfo%nat_act   = 0
-        ZmatTransfo%nb_var    = 0
-
+        ZmatTransfo%ncart        = 0
+        ZmatTransfo%ncart_act    = 0
+        ZmatTransfo%nat0         = 0
+        ZmatTransfo%nat          = 0
+        ZmatTransfo%nat_act      = 0
+        ZmatTransfo%nb_var       = 0
+        ZmatTransfo%nb_ExtraLFSF = 0
+        
         ZmatTransfo%New_Orient  = .FALSE.
         ZmatTransfo%vAt1(:)     = ZERO
         ZmatTransfo%vAt2(:)     = ZERO
@@ -574,7 +576,7 @@
        integer :: ic,ic1,ic2,ic3,icf,icG
        integer :: i_q
        integer :: i
-       integer :: nb_act
+       integer :: nb_act,nb_ExtraLFSF,nend_Qin,nend_Qout    
 
        logical :: check
 
@@ -920,6 +922,13 @@
         END IF
         !=================================================
 
+        ! Add the extra-coordinates (true euler angles + com)
+        nb_ExtraLFSF = ZmatTransfo%nb_ExtraLFSF
+        nend_Qin     = dnQzmat%nb_var_vec - nb_ExtraLFSF
+        nend_Qout    = dnx%nb_var_vec     - nb_ExtraLFSF
+        IF (ZmatTransfo%nb_ExtraLFSF > 0) THEN
+          CALL sub_PartdnVec1_TO_PartdnVec2(dnQzmat,nend_Qin+1,dnx,nend_Qout+1,ndim=nb_ExtraLFSF)
+        END IF
 
         !=================================================
         !-----------------------------------------------------------------
@@ -1207,6 +1216,7 @@
       ZmatTransfo2%nat0         = ZmatTransfo1%nat0
       ZmatTransfo2%nat_act      = ZmatTransfo1%nat_act
       ZmatTransfo2%nb_var       = ZmatTransfo1%nb_var
+      ZmatTransfo2%nb_ExtraLFSF = ZmatTransfo1%nb_ExtraLFSF
 
       IF (.NOT. associated(ZmatTransfo1%ind2_zmat) .OR.                 &
           .NOT. associated(ZmatTransfo1%ind_zmat) ) THEN
