@@ -65,6 +65,7 @@ MODULE mod_Qtransfo
           logical                           :: inTOout         = .TRUE.
           integer                           :: nb_var          = 0
           integer                           :: nb_act          = 0
+          integer                           :: nb_ExtraLFSF    = 0
           integer                           :: ncart_act       = 0
           integer                           :: nb_transfo      = 0
           integer                           :: opt_transfo     = 0 ! option for the transformation
@@ -116,7 +117,7 @@ MODULE mod_Qtransfo
       PUBLIC alloc_array,dealloc_array,dealloc_Qtransfo
       PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
       PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
-      PUBLIC set_name_Qtransfo,get_name_Qtransfo,get_nb_ExtraLFSF
+      PUBLIC set_name_Qtransfo,get_name_Qtransfo
 
       CONTAINS
 
@@ -580,7 +581,8 @@ MODULE mod_Qtransfo
 
           CALL Read_ZmatTransfo(Qtransfo%ZmatTransfo,mendeleev)
 
-          Qtransfo%ncart_act = Qtransfo%ZmatTransfo%ncart_act
+          Qtransfo%ncart_act    = Qtransfo%ZmatTransfo%ncart_act
+          Qtransfo%nb_ExtraLFSF = Qtransfo%ZmatTransfo%nb_ExtraLFSF
 
           CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_beta)
           CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
@@ -690,7 +692,8 @@ MODULE mod_Qtransfo
               CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
             END IF
           END IF
-          Qtransfo%ncart_act = Qtransfo%BunchTransfo%ncart_act
+          Qtransfo%ncart_act    = Qtransfo%BunchTransfo%ncart_act
+          Qtransfo%nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
 
           CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_beta)
           CALL Set_Type_Name_OF_Qin_Vec(Qtransfo)
@@ -741,6 +744,7 @@ MODULE mod_Qtransfo
           IF (count(Qtransfo%BunchTransfo%M_Tana /= ZERO) == 0) THEN
             CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
           END IF
+          nullify(Qtransfo%BunchTransfo)
 
         CASE ('qtox_ana')
           Tana_Is_Possible            = .FALSE.
@@ -874,6 +878,7 @@ MODULE mod_Qtransfo
         Qtransfo%opt_transfo     = 0
         Qtransfo%nb_var          = 0
         Qtransfo%nb_act          = 0
+        Qtransfo%nb_ExtraLFSF    = 0
         Qtransfo%ncart_act       = 0
         Qtransfo%nb_transfo      = 0
         Qtransfo%skip_transfo    = .FALSE.
@@ -927,10 +932,10 @@ MODULE mod_Qtransfo
         CALL dealloc_ZmatTransfo(Qtransfo%ZmatTransfo)
         ! ==== RectilinearNM_Transfo ================
         CALL dealloc_RectilinearNM_Transfo(Qtransfo%RectilinearNM_Transfo)
-        ! ==== BunchTransfo ========================
-        CALL dealloc_BunchTransfo(Qtransfo%BunchTransfo)
         ! ==== BFTransfo ===========================
         CALL dealloc_BFTransfo(Qtransfo%BFTransfo)
+        ! ==== BunchTransfo ========================
+        CALL dealloc_BunchTransfo(Qtransfo%BunchTransfo)
         ! ==== QTOXanaTransfoTransfo ===============
         CALL dealloc_QTOXanaTransfo(Qtransfo%QTOXanaTransfo)
 
@@ -950,8 +955,8 @@ MODULE mod_Qtransfo
 
 
         ! ==== Coordinates ========================
-        Qtransfo%nb_Qin  = 0
-        Qtransfo%nb_Qout = 0
+        Qtransfo%nb_Qin       = 0
+        Qtransfo%nb_Qout      = 0
 
         IF (associated(Qtransfo%type_Qin) ) THEN
           CALL dealloc_array(Qtransfo%type_Qin,"Qtransfo%type_Qin",name_sub)
@@ -1061,6 +1066,7 @@ MODULE mod_Qtransfo
 
       Qtransfo2%nb_var          = Qtransfo1%nb_var
       Qtransfo2%nb_act          = Qtransfo1%nb_act
+      Qtransfo2%nb_ExtraLFSF    = Qtransfo1%nb_ExtraLFSF
       Qtransfo2%ncart_act       = Qtransfo1%ncart_act
       Qtransfo2%nb_transfo      = Qtransfo1%nb_transfo
 
@@ -1449,9 +1455,8 @@ MODULE mod_Qtransfo
         ELSE
           CALL calc_PolyTransfo_outTOin(dnQin,dnQout,Qtransfo%BFTransfo,nderiv)
           ! finalization : add the extra coordinates (Euler + COM) from dnQout to dnQin
-          nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
-          nend_Qout    = dnQout%nb_var_vec - nb_ExtraLFSF
-          nend_Qin     = dnQin%nb_var_vec  - nb_ExtraLFSF
+          nend_Qout    = dnQout%nb_var_vec - Qtransfo%nb_ExtraLFSF
+          nend_Qin     = dnQin%nb_var_vec  - Qtransfo%nb_ExtraLFSF
 
           IF (nb_ExtraLFSF > 0) THEN
               dnQin%d0(nend_Qin+1:) = dnQout%d0(nend_Qout+1:)
@@ -1552,6 +1557,7 @@ MODULE mod_Qtransfo
           write(out_unit,*) ' Parameter(s) to be optimized?: ',Qtransfo%opt_param
 
           write(out_unit,*) 'nb_var,nb_act',Qtransfo%nb_var,Qtransfo%nb_act
+          write(out_unit,*) 'nb_ExtraLFSF',Qtransfo%nb_ExtraLFSF
           write(out_unit,*) 'ncart_act',Qtransfo%ncart_act
           write(out_unit,*) 'nb_Qin,nb_Qout',Qtransfo%nb_Qin,Qtransfo%nb_Qout
 
@@ -1714,8 +1720,6 @@ MODULE mod_Qtransfo
     SELECT CASE(Qtransfo%name_transfo)
     CASE ('bunch','bunch_poly')
       get_nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
-   CASE ('poly') ! it is working because BunchTransfo is also linked in Qtransfo
-      get_nb_ExtraLFSF = Qtransfo%BunchTransfo%nb_ExtraLFSF
     CASE ('zmat')
       get_nb_ExtraLFSF = Qtransfo%ZmatTransfo%nb_ExtraLFSF
     CASE DEFAULT
@@ -1767,7 +1771,7 @@ MODULE mod_Qtransfo
     Qtransfo%type_Qout(:) = 0
 
     !Modification to take into acount nb_extraLFSF (euler, COM)
-    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
+    nb_ExtraLFSF = Qtransfo%nb_ExtraLFSF
     nend = Qtransfo%nb_Qout-nb_ExtraLFSF
     Qtransfo%type_Qout(1:nend) = 1 ! cartesian type
     DO i=1,nend
@@ -1819,7 +1823,7 @@ MODULE mod_Qtransfo
     IMPLICIT NONE
     TYPE(type_qtransfo), intent(inout) :: Qtransfo
 
-    integer :: i,iV,nend_Qin,nend_Qout,nb_ExtraLFSF
+    integer :: i,iV,nend_Qin,nend_Qout
 
     character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qin_Vec'
 
@@ -1828,9 +1832,8 @@ MODULE mod_Qtransfo
     Qtransfo%type_Qin(:) = 0
 
     !Modification to take into acount nb_extraLFSF (euler, COM)
-    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
-    nend_Qout = Qtransfo%nb_Qout - nb_ExtraLFSF
-    nend_Qin  = Qtransfo%nb_Qin  - nb_ExtraLFSF
+    nend_Qout = Qtransfo%nb_Qout - Qtransfo%nb_ExtraLFSF
+    nend_Qin  = Qtransfo%nb_Qin  - Qtransfo%nb_ExtraLFSF
 
     Qtransfo%type_Qin(1:nend_Qin) = 1 ! cartesian type
     DO i=1,nend_Qin
@@ -1849,14 +1852,13 @@ MODULE mod_Qtransfo
     IMPLICIT NONE
     TYPE(type_qtransfo), intent(inout) :: Qtransfo
 
-    integer :: i,iV,nend_Qin,nend_Qout,nb_ExtraLFSF
+    integer :: i,iV,nend_Qin,nend_Qout
 
     character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qin_extraLFSF'
 
     !Modification to take into acount nb_extraLFSF (euler, COM)
-    nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
-    nend_Qout = Qtransfo%nb_Qout - nb_ExtraLFSF
-    nend_Qin  = Qtransfo%nb_Qin  - nb_ExtraLFSF
+    nend_Qout = Qtransfo%nb_Qout - Qtransfo%nb_ExtraLFSF
+    nend_Qin  = Qtransfo%nb_Qin  - Qtransfo%nb_ExtraLFSF
 
     Qtransfo%type_Qin(nend_Qin+1:) = Qtransfo%type_Qout(nend_Qout+1:)
     Qtransfo%name_Qin(nend_Qin+1:) = Qtransfo%name_Qout(nend_Qout+1:)

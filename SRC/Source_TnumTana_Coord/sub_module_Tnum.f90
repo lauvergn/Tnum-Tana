@@ -1032,13 +1032,6 @@ MODULE mod_Tnum
             ! because we need BunchTransfo for Poly transfo
             mole%tab_Qtransfo(it+1)%BunchTransfo => mole%tab_Qtransfo(it)%BunchTransfo
 
-          CASE ('poly')
-            IF (.NOT. associated(mole%tab_Qtransfo(it)%BunchTransfo)) THEN
-              write(out_unit,*) ' ERROR in ',name_sub
-              write(out_unit,*) '  BunchTransfo MUST be associated in tab_Qtransfo(it) of "poly" transformation'
-              write(out_unit,*) ' Check the Fortran!!'
-              STOP
-            END IF
           CASE ("nm")
             mole%itNM  = it
             IF (associated(mole%NMTransfo)) THEN

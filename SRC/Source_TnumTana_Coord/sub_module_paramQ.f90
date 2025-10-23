@@ -743,7 +743,7 @@ CONTAINS
   SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
     USE TnumTana_system_m
     USE mod_dnSVM
-    USE mod_Qtransfo,         ONLY : get_name_Qtransfo, get_nb_ExtraLFSF
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
     USE mod_Tnum
     IMPLICIT NONE
 
@@ -789,7 +789,7 @@ CONTAINS
       IF (it_QinRead == 0) THEN 
         CALL get_COMEuler(Qread,COM,Alpha,tBeta,Gamma,mole)
 
-        nb_ExtraLFSF = get_nb_ExtraLFSF(mole%tab_Qtransfo(1))
+        nb_ExtraLFSF = mole%tab_Qtransfo(1)%nb_ExtraLFSF
         nend = size(dnQout%d0) - nb_ExtraLFSF
         IF (nb_ExtraLFSF == 2) THEN
           dnQout%d0(nend+1:) = [Alpha,tBeta]
@@ -1334,7 +1334,7 @@ CONTAINS
   SUBROUTINE get_COMEuler(Qxyz,COM,Alpha,tBeta,Gamma,mole)
       USE TnumTana_system_m
       USE mod_dnSVM
-      USE mod_Qtransfo,         ONLY : get_name_Qtransfo,get_nb_ExtraLFSF
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo
       USE mod_Tnum
       IMPLICIT NONE
 
@@ -1372,7 +1372,7 @@ CONTAINS
       IF (debug) CALL Write_Mat(Rot, out_unit, 3)
 
       !get type_beta: -3 or 3 (cos_beta or beta)
-      nb_ExtraLFSF = get_nb_ExtraLFSF(mole%tab_Qtransfo(1))
+      nb_ExtraLFSF = mole%tab_Qtransfo(1)%nb_ExtraLFSF
       nend = size(mole%tab_Qtransfo(1)%type_Qout)
       SELECT CASE (nb_ExtraLFSF)
       CASE (2)
@@ -1914,7 +1914,7 @@ CONTAINS
     USE TnumTana_system_m
     USE mod_dnSVM
     USE ADdnSVM_m
-    USE mod_Qtransfo,         ONLY : get_name_Qtransfo,get_nb_ExtraLFSF
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
     USE mod_Tnum
     IMPLICIT NONE
 
@@ -2019,7 +2019,7 @@ CONTAINS
       END DO
 
       ! BF => SF (Euler)
-      IF (get_nb_ExtraLFSF(mole%tab_Qtransfo(1)) == 6) THEN
+      IF (mole%tab_Qtransfo(1)%nb_ExtraLFSF == 6) THEN
         euler(:) = [.TRUE.,.TRUE.,.TRUE.]
       ELSE
         euler(:) = [.TRUE.,.TRUE.,.FALSE.]
@@ -2091,7 +2091,7 @@ CONTAINS
       END IF
 
       ! BF => SF (Euler)
-      IF (get_nb_ExtraLFSF(mole%tab_Qtransfo(1)) == 6) THEN
+      IF (mole%tab_Qtransfo(1)%nb_ExtraLFSF == 6) THEN
         euler(:) = [.TRUE.,.TRUE.,.TRUE.]
       ELSE
         euler(:) = [.TRUE.,.TRUE.,.FALSE.]

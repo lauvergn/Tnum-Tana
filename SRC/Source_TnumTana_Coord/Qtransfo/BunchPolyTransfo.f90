@@ -128,8 +128,6 @@
 
           TYPE (Type_BFTransfo), pointer    :: tab_BFTransfo(:) => null() ! dim: nb_vect
 
-          !TYPE (Type_BunchTransfo), pointer :: BunchTransfo ! true link
-
           ! variables use for the calculation (Tana)
           ! They are defined here, because of the recursive structure
           type(opel)                     :: Qvec(3)   ! R,theta or u_theta, phi   or x,y,z
