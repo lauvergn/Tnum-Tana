@@ -4,23 +4,22 @@ DIR_EVRT=$here/..
 
 $DIR_EVRT/Tnum90.exe << ** > res
  &variables Old_Qtransfo=f nb_Qtransfo=3 Cart_Type='LF' /
- &Coord_transfo name_transfo='bunch_poly' nb_vect=2 nb_X=0 inTOout=f cos_beta=t /
-8. 1. 1.  (O H H)
+ &Coord_transfo name_transfo='bunch_poly' nb_vect=1 inTOout=f cos_beta=t /
+1. 1.  (H H)
 
- &Coord_transfo name_transfo='poly' cos_th=t /
-     &vector nb_vect=1 Frame=t iAtA=1 iAtB=2 / : R1 (OH1)
-       &vector                 iAtA=1 iAtB=3 / : R2 (OH2)
+ &Coord_transfo name_transfo='poly' /
+     &vector nb_vect=0 Frame=t iAtA=1 iAtB=2 /
 
  &Coord_transfo name_transfo='active' /
-1 1 1   1 1 1     1 1 1
+1   1 1     1 1 1
 
- &minimum  /
-ROH 1. angs
-ROH 1. angs
-cosA   0.5
+ &minimum  read_xyz0=t unit='angs' /
+     -1           0.996639173           1.153113648           1.437531625
+     -1           0.061715244           0.963595185           1.737531625
+
+RHH 1. angs
 alpha  0.2
 ubeta  0.3
-gamma  0.4
 xCOM   1.
 yCOM   2.
 zCOM   3.

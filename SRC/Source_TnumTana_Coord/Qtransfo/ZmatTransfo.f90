@@ -966,96 +966,187 @@
       END SUBROUTINE calc_ZmatTransfo
 
 
-      SUBROUTINE calc_ZmatTransfo_outTOin(dnQzmat,dnx,ZmatTransfo,nderiv)
-      IMPLICIT NONE
+  SUBROUTINE calc_ZmatTransfo_outTOin(dnQzmat,dnx,ZmatTransfo,nderiv)
+    IMPLICIT NONE
 
-      TYPE (Type_dnVec),       intent(inout) :: dnQzmat,dnx
-      TYPE (Type_ZmatTransfo), intent(in)    :: ZmatTransfo
-      integer,                 intent(in)    :: nderiv
+    TYPE (Type_dnVec),       intent(inout) :: dnQzmat,dnx
+    TYPE (Type_ZmatTransfo), intent(in)    :: ZmatTransfo
+    integer,                 intent(in)    :: nderiv
 
-       integer           :: ncart0
-       real (kind=Rkind) :: v1(3),norm1,v2(3),norm2,v3(3),norm3
-       real (kind=Rkind) :: v4(3),norm4,v5(3),norm5
-       real (kind=Rkind) :: angle_v,angle_d
-       integer           :: nc0,nc1,nc2,nc3,nc4,idum,iqz,i
+    integer           :: ncart0
+    real (kind=Rkind) :: v1(3),norm1,v2(3),norm2,v3(3),norm3
+    real (kind=Rkind) :: v4(3),norm4,v5(3),norm5
+    real (kind=Rkind) :: angle_v,angle_d
+    integer           :: nc0,nc1,nc2,nc3,nc4,idum,iqz,i
+    integer           :: nb_ExtraLFSF,nend_Qout,nend_Qin
 
-       real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
-
-
-!      -----------------------------------------------------------------
-      integer :: nderiv_debug = 0
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='calc_ZmatTransfo_outTOin'
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'nderiv',nderiv
-        write(out_unit,*)
-        CALL Write_ZmatTransfo(ZmatTransfo)
-
-        write(out_unit,*) 'Cartesian coordinates:'
-        CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
-      END IF
-      !-----------------------------------------------------------------
-      ncart0 = 3*ZmatTransfo%nat0
-
-      IF (nderiv > 0) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' nderiv > 0 is not possible'
-        write(out_unit,*) ' It should NOT append ! Check the Fortran source'
-        STOP
-      END IF
-
-      iqz = 0
-      DO i=2,ZmatTransfo%nat0
-        nc1 = ZmatTransfo%ind_zmat(1,i)
-        nc2 = ZmatTransfo%ind_zmat(2,i)
-        nc3 = abs(ZmatTransfo%ind_zmat(3,i))
-        nc4 = ZmatTransfo%ind_zmat(4,i)
-        IF (debug) write(out_unit,*) '-------------------',i
-        IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4',nc1,nc2,nc3,nc4
+    real (kind=Rkind) :: ex(3),nx,ey(3),ny,ez(3),nz
 
 
-        IF (i == 2) THEN
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 0
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='calc_ZmatTransfo_outTOin'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*)
+      CALL Write_ZmatTransfo(ZmatTransfo)
+      write(out_unit,*) 'Cartesian coordinates:'
+      CALL write_dnx(1,dnx%nb_var_vec,dnx,nderiv_debug)
+    END IF
+    !-----------------------------------------------------------------
+    ncart0 = 3*ZmatTransfo%nat0
 
-          IF (nc2==0) THEN
-            write(out_unit,*) ' ERROR in ',name_sub
-            write(out_unit,*) ' Your zmatrix are using:'
-            write(out_unit,*) ' cartesian coordinates for the 2d atom'
-            write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
-            STOP
-          END IF
+    IF (nderiv > 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' nderiv > 0 is not possible'
+      write(out_unit,*) ' It should NOT append ! Check the Fortran source'
+      STOP
+    END IF
 
+    iqz = 0
+    DO i=2,ZmatTransfo%nat0
+      nc1 = ZmatTransfo%ind_zmat(1,i)
+      nc2 = ZmatTransfo%ind_zmat(2,i)
+      nc3 = abs(ZmatTransfo%ind_zmat(3,i))
+      nc4 = ZmatTransfo%ind_zmat(4,i)
+      IF (debug) write(out_unit,*) '-------------------',i
+      IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4',nc1,nc2,nc3,nc4
+
+      IF (i == 2) THEN
+
+        IF (nc2==0) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Your zmatrix are using:'
+          write(out_unit,*) ' cartesian coordinates for the 2d atom'
+          write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
+          STOP
+        END IF
+
+        CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
+        iqz = iqz + 1
+        dnQzmat%d0(iqz) = norm1
+        ez(:) = v1(:) / norm1
+        IF (debug) write(out_unit,*) ' nc1,nc2,v1',nc1,nc2,v1(:)
+        IF (debug) write(out_unit,*) ' nc1,nc2,d',nc1,nc2,norm1
+
+      ELSE IF (i == 3) THEN
+
+        IF (nc2==0) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Your zmatrix are using:'
+          write(out_unit,*) ' cartesian coordinates for the 3d atom'
+          write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
+          STOP
+        END IF
+
+        CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
+        CALL calc_vector2(v2,norm2,nc2,nc3,dnx%d0,ncart0)
+
+
+        iqz = iqz + 1
+        dnQzmat%d0(iqz) = norm1
+
+        IF (debug) write(out_unit,*) nc1,nc2,v1,norm1
+        IF (debug) write(out_unit,*) nc3,nc2,v2,norm2
+
+        CALL calc_angle(angle_v,v1,norm1,v2,norm2)
+        IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
+          write(out_unit,*) ' WARNNING in ',name_sub
+          write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+          write(out_unit,*) ' I cannot calculate the valence angle'
+          write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
+          write(out_unit,*) ' Check your data !'
+          DO idum=1,ZmatTransfo%nat0
+            write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
+          END DO
+        END IF
+        iqz = iqz + 1
+        IF (ZmatTransfo%ind2_zmat(3,i) < 0) THEN
+            dnQzmat%d0(iqz) = cos(angle_v)
+        ELSE
+            dnQzmat%d0(iqz) = angle_v
+        END IF
+
+        ex(:) = v1(:)-ez(:)*dot_product(v1,ez)
+        ex(:) = ex(:)/sqrt(dot_product(ex,ex))
+        CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+
+        IF (debug) write(out_unit,*) ' ex(:)',ex(:)
+        IF (debug) write(out_unit,*) ' ey(:)',ey(:)
+        IF (debug) write(out_unit,*) ' ez(:)',ez(:)
+
+
+        IF (debug) write(out_unit,*) ' nc1,nc2,nc3,d,angle',nc1,nc2,nc3,norm1,dnQzmat%d0(iqz)
+
+      ELSE ! i>3
+
+        IF (nc2==0 .AND. nc3==0 .AND. nc4==0) THEN
+          nc0 = ZmatTransfo%ind_zmat(1,1) ! first atom (can be dummy)
+          CALL calc_vector2(v1,norm1,nc0,nc1,dnx%d0,ncart0)
+          IF (debug) write(out_unit,*) ' nc1,nc0,v1,norm1',nc1,nc0,v1,norm1
+
+          iqz = iqz + 1
+          dnQzmat%d0(iqz) = dot_product(v1,ex) ! x
+          iqz = iqz + 1
+          dnQzmat%d0(iqz) = dot_product(v1,ey) ! y
+          iqz = iqz + 1
+          dnQzmat%d0(iqz) = dot_product(v1,ez) ! z
+          IF (debug) write(out_unit,*) ' nc1,nc2,nc3,x,y,z',         &
+                                      nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz),sqrt(dnQzmat%d0(iqz-2:iqz)**2)
+        ELSE IF (nc2/=0 .AND. nc3==0 .AND. nc4==0) THEN
           CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
+
+          IF (debug) write(out_unit,*) ' v1,norm1',v1(:),norm1
+
           iqz = iqz + 1
           dnQzmat%d0(iqz) = norm1
-          ez(:) = v1(:) / norm1
-          IF (debug) write(out_unit,*) ' nc1,nc2,v1',nc1,nc2,v1(:)
-          IF (debug) write(out_unit,*) ' nc1,nc2,d',nc1,nc2,norm1
 
-        ELSE IF (i == 3) THEN
+          CALL calc_angle(angle_v,ez,norm2,v1,norm1)
+          IF (debug) write(out_unit,*) ' ez,norm2',ez,norm2
+          IF (debug) write(out_unit,*) ' angle_v',angle_v
 
-          IF (nc2==0) THEN
-            write(out_unit,*) ' ERROR in ',name_sub
-            write(out_unit,*) ' Your zmatrix are using:'
-            write(out_unit,*) ' cartesian coordinates for the 3d atom'
-            write(out_unit,*) 'zmat at:',i,ZmatTransfo%ind2_zmat(:,i)
-            STOP
+          IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
+            write(out_unit,*) ' WARNNING in ',name_sub
+            write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
+            write(out_unit,*) ' I cannot calculate the valence angle'
+            write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
+            write(out_unit,*) ' Check your data !'
+            DO idum=1,ZmatTransfo%nat0
+              write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
+            END DO
+          END IF
+          iqz = iqz + 1
+          IF (debug) write(out_unit,*) ' ZmatTransfo%cos_th',ZmatTransfo%cos_th
+
+          IF (ZmatTransfo%cos_th) THEN
+            dnQzmat%d0(iqz) = cos(angle_v)
+          ELSE
+            dnQzmat%d0(iqz) = angle_v
           END IF
 
+          angle_d = atan2(dot_product(v1,ey),dot_product(v1,ex))
+          CALL dihedral_range(angle_d,2) ! [0:2pi]
+
+          iqz = iqz + 1
+          dnQzmat%d0(iqz) = angle_d
+          IF (debug) write(out_unit,*) ' nc1,nc2,nc3,R,th,phi',      &
+                                        nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz)
+        ELSE
+
           CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
+
           CALL calc_vector2(v2,norm2,nc2,nc3,dnx%d0,ncart0)
-
+          CALL calc_vector2(v3,norm3,nc3,nc4,dnx%d0,ncart0)
 
           iqz = iqz + 1
           dnQzmat%d0(iqz) = norm1
 
-          IF (debug) write(out_unit,*) nc1,nc2,v1,norm1
-          IF (debug) write(out_unit,*) nc3,nc2,v2,norm2
-
-          CALL calc_angle(angle_v,v1,norm1,v2,norm2)
+          CALL calc_angle(angle_v,v2,norm2,v1,norm1)
           IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
             write(out_unit,*) ' WARNNING in ',name_sub
             write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
@@ -1068,134 +1159,44 @@
           END IF
           iqz = iqz + 1
           IF (ZmatTransfo%ind2_zmat(3,i) < 0) THEN
-              dnQzmat%d0(iqz) = cos(angle_v)
+            dnQzmat%d0(iqz) = cos(angle_v)
           ELSE
-              dnQzmat%d0(iqz) = angle_v
+            dnQzmat%d0(iqz) = angle_v
           END IF
 
-          ex(:) = v1(:)-ez(:)*dot_product(v1,ez)
-          ex(:) = ex(:)/sqrt(dot_product(ex,ex))
-          CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+          CALL calc_cross_product(v1,norm1,v2,norm2,v4,norm4)
+          CALL calc_cross_product(v3,norm3,v2,norm2,v5,norm5)
+          CALL calc_angle_d(angle_d,v4,norm4,v5,norm5,v2,norm2)
+          CALL dihedral_range(angle_d,2) ! [0:2pi]
 
-          IF (debug) write(out_unit,*) ' ex(:)',ex(:)
-          IF (debug) write(out_unit,*) ' ey(:)',ey(:)
-          IF (debug) write(out_unit,*) ' ez(:)',ez(:)
+          iqz = iqz + 1
+          dnQzmat%d0(iqz) = angle_d
 
-
-          IF (debug) write(out_unit,*) ' nc1,nc2,nc3,d,angle',         &
-                                       nc1,nc2,nc3,norm1,dnQzmat%d0(iqz)
-
-        ELSE ! i>3
-
-          IF (nc2==0 .AND. nc3==0 .AND. nc4==0) THEN
-            nc0 = ZmatTransfo%ind_zmat(1,1) ! first atom (can be dummy)
-            CALL calc_vector2(v1,norm1,nc0,nc1,dnx%d0,ncart0)
-            IF (debug) write(out_unit,*) ' nc1,nc0,v1,norm1',nc1,nc0,v1,norm1
-
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = dot_product(v1,ex) ! x
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = dot_product(v1,ey) ! y
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = dot_product(v1,ez) ! z
-            IF (debug) write(out_unit,*) ' nc1,nc2,nc3,x,y,z',         &
-                                        nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz),sqrt(dnQzmat%d0(iqz-2:iqz)**2)
-          ELSE IF (nc2/=0 .AND. nc3==0 .AND. nc4==0) THEN
-            !CALL calc_vector2(v1,norm1,nc1,nc2,dnx%d0,ncart0)
-            CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
-
-            IF (debug) write(out_unit,*) ' v1,norm1',v1(:),norm1
-
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = norm1
-
-            CALL calc_angle(angle_v,ez,norm2,v1,norm1)
-            IF (debug) write(out_unit,*) ' ez,norm2',ez,norm2
-            IF (debug) write(out_unit,*) ' angle_v',angle_v
-
-            IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
-              write(out_unit,*) ' WARNNING in ',name_sub
-              write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
-              write(out_unit,*) ' I cannot calculate the valence angle'
-              write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
-              write(out_unit,*) ' Check your data !'
-              DO idum=1,ZmatTransfo%nat0
-                write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
-              END DO
-            END IF
-            iqz = iqz + 1
-            IF (debug) write(out_unit,*) ' ZmatTransfo%cos_th',ZmatTransfo%cos_th
-
-            IF (ZmatTransfo%cos_th) THEN
-              dnQzmat%d0(iqz) = cos(angle_v)
-            ELSE
-              dnQzmat%d0(iqz) = angle_v
-            END IF
-
-            angle_d = atan2(dot_product(v1,ey),dot_product(v1,ex))
-            CALL dihedral_range(angle_d,2) ! [0:2pi]
-
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = angle_d
-            IF (debug) write(out_unit,*) ' nc1,nc2,nc3,R,th,phi',      &
-                                        nc1,nc2,nc3,dnQzmat%d0(iqz-2:iqz)
-          ELSE
-
-            CALL calc_vector2(v1,norm1,nc2,nc1,dnx%d0,ncart0)
-
-            CALL calc_vector2(v2,norm2,nc2,nc3,dnx%d0,ncart0)
-            CALL calc_vector2(v3,norm3,nc3,nc4,dnx%d0,ncart0)
-
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = norm1
-
-            CALL calc_angle(angle_v,v2,norm2,v1,norm1)
-            IF ( abs(sin(angle_v)) < ONETENTH**5 ) THEN
-              write(out_unit,*) ' WARNNING in ',name_sub
-              write(out_unit,*) ' 3 atoms are aligned!',nc1,nc2,nc3
-              write(out_unit,*) ' I cannot calculate the valence angle'
-              write(out_unit,*) ' angle,cos(angle)',angle_v,cos(angle_v)
-              write(out_unit,*) ' Check your data !'
-              DO idum=1,ZmatTransfo%nat0
-                write(out_unit,*) idum,dnx%d0(3*idum-2:3*idum)
-              END DO
-            END IF
-            iqz = iqz + 1
-            IF (ZmatTransfo%ind2_zmat(3,i) < 0) THEN
-              dnQzmat%d0(iqz) = cos(angle_v)
-            ELSE
-              dnQzmat%d0(iqz) = angle_v
-            END IF
-
-            CALL calc_cross_product(v1,norm1,v2,norm2,v4,norm4)
-            CALL calc_cross_product(v3,norm3,v2,norm2,v5,norm5)
-            CALL calc_angle_d(angle_d,v4,norm4,v5,norm5,v2,norm2)
-            CALL dihedral_range(angle_d,2) ! [0:2pi]
-
-            iqz = iqz + 1
-            dnQzmat%d0(iqz) = angle_d
-
-            IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4,d,angle,angle_d',&
+          IF (debug) write(out_unit,*) 'nc1,nc2,nc3,nc4,d,angle,angle_d',&
                            nc1,nc2,nc3,nc4,dnQzmat%d0(iqz-2:iqz)
-          END IF
-
         END IF
-      END DO
 
+      END IF
+    END DO
 
+    ! Add the extra-coordinates (true euler angles + com)
+    nb_ExtraLFSF = ZmatTransfo%nb_ExtraLFSF
+    nend_Qout    = dnx%nb_var_vec - nb_ExtraLFSF
+    nend_Qin     = iqz
+    IF (nb_ExtraLFSF > 0) THEN
+        dnQzmat%d0(nend_Qin+1:) = dnx%d0(nend_Qout+1:)
+    END IF
 
-        !=================================================
-        !-----------------------------------------------------------------
-        IF (debug) THEN
-          write(out_unit,*) 'dnQzmat'
-          CALL Write_dnSVM(dnQzmat,nderiv)
-          write(out_unit,*) 'END ',name_sub
-          write(out_unit,*)
-        END IF
-        !-----------------------------------------------------------------
-        !=================================================
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'dnQzmat'
+      CALL Write_dnSVM(dnQzmat,nderiv)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+    END IF
+    !-----------------------------------------------------------------
 
-      END SUBROUTINE calc_ZmatTransfo_outTOin
+  END SUBROUTINE calc_ZmatTransfo_outTOin
 
       !!@description: TODO
       !!@param: TODO

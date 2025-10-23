@@ -12,17 +12,14 @@ H 1 -2
  &Coord_transfo name_transfo='active' /
 1 1 100   1 1 0     1 0 1
 
- &minimum  /
-ROH 1. angs
-ROH 1. angs
-cosA   -0.5
-alpha  0.2
-ubeta  0.3
-gamma  0.4
-xCOM   1.
-yCOM   2.
-zCOM   3.
+ &minimum read_xyz0=t unit='angs' /
+      8           0.545960736           1.042501351           1.536558806 (cos_beta=t)
+      1          -0.388963193           0.852982889           1.836558806
+      1           1.180950852           1.515325595           2.147480067
 
+      8           0.499238266           1.033030238           1.547611951 (cos_beta=f)
+      1           0.209608788           0.974319436           2.502948440
+      1           1.323898374           1.544302493           1.305669010
 
  &calculation calc_Tnum=f calc_gG=t nderivGg=0 /
 **

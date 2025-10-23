@@ -142,7 +142,7 @@ MODULE mod_Qtransfo
         logical :: inTOout
  
         ! for the zmat and poly transfo
-        logical :: cos_th
+        logical :: cos_th,cos_beta
         integer :: nat
 
         ! for the bunch+poly transfo
@@ -164,20 +164,19 @@ MODULE mod_Qtransfo
         character (len=Name_len), pointer :: name_at(:)
 
 
-        namelist /Coord_transfo/ name_transfo,nat,nb_vect,cos_th,       &
-                                 nb_G,nb_X,opt_transfo,skip_transfo,    &
-                                 inTOout,with_vectors,nb_transfo,       &
-                                 hessian_ReadCoordBlocks,purify_hess,   &
-                                 eq_hess,k_Half,                        &
+        namelist /Coord_transfo/ name_transfo,nat,nb_vect,cos_th,cos_beta,  &
+                                 nb_G,nb_X,opt_transfo,skip_transfo,        &
+                                 inTOout,with_vectors,nb_transfo,           &
+                                 hessian_ReadCoordBlocks,purify_hess,       &
+                                 eq_hess,k_Half,                            &
                                  hessian_old,hessian_onthefly,hessian_cart, &
-                                 file_hessian,hessian_read,k_read,nb_read,&
-                                 d0c_read, &
-                                 not_all,check_LinearTransfo,QMLib
+                                 file_hessian,hessian_read,k_read,nb_read,  &
+                                 d0c_read,not_all,check_LinearTransfo,QMLib
       !----- for debuging --------------------------------------------------
       integer :: err_mem,memory,err_io
       character (len=*), parameter :: name_sub = "read_Qtransfo"
-      !logical, parameter :: debug=.FALSE.
-      logical, parameter :: debug=.TRUE.
+      logical, parameter :: debug=.FALSE.
+      !logical, parameter :: debug=.TRUE.
       !-----------------------------------------------------------
        IF (debug) THEN
          write(out_unit,*) 'BEGINNING ',name_sub
@@ -192,33 +191,34 @@ MODULE mod_Qtransfo
           STOP
         END IF
 
-        name_transfo     = "identity"
-        QMLib            = QMLib_in
-        it               = Qtransfo%num_transfo
-        opt_transfo      = 0
-        skip_transfo     = .FALSE.
-        inTOout          = .TRUE.
-        nat              = 0
-        nb_vect          = 0
-        nb_G             = 0
-        nb_X             = 0
-        cos_th           = .TRUE.
-        purify_hess      = .FALSE.
+        name_transfo            = "identity"
+        QMLib                   = QMLib_in
+        it                      = Qtransfo%num_transfo
+        opt_transfo             = 0
+        skip_transfo            = .FALSE.
+        inTOout                 = .TRUE.
+        nat                     = 0
+        nb_vect                 = 0
+        nb_G                    = 0
+        nb_X                    = 0
+        cos_th                  = .TRUE.
+        cos_beta                = .FALSE.
+        purify_hess             = .FALSE.
         hessian_ReadCoordBlocks = .FALSE. ! equivalent to purify_hess
-        eq_hess          = .FALSE.
-        k_Half           = .FALSE.
-        with_vectors     = .TRUE.
-        hessian_old      = .TRUE.
-        hessian_cart     = .TRUE.
-        hessian_onthefly = .FALSE.
-        file_hessian     = ''
-        hessian_read     = .FALSE.
-        k_read           = .FALSE.
-        d0c_read         = .FALSE.
-        nb_read          = 0
-        nb_transfo       = 1
-        not_all          = .FALSE.
-        check_LinearTransfo = .TRUE.
+        eq_hess                 = .FALSE.
+        k_Half                  = .FALSE.
+        with_vectors            = .TRUE.
+        hessian_old             = .TRUE.
+        hessian_cart            = .TRUE.
+        hessian_onthefly        = .FALSE.
+        file_hessian            = ''
+        hessian_read            = .FALSE.
+        k_read                  = .FALSE.
+        d0c_read                = .FALSE.
+        nb_read                 = 0
+        nb_transfo              = 1
+        not_all                 = .FALSE.
+        check_LinearTransfo     = .TRUE.
 
         read(in_unit,Coord_transfo,IOSTAT=err_io)
         err_io = 0
@@ -582,7 +582,7 @@ MODULE mod_Qtransfo
 
           Qtransfo%ncart_act = Qtransfo%ZmatTransfo%ncart_act
 
-          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_th)
+          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_beta)
           CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
 
         CASE ('bunch','bunch_poly') ! It should one of the first transfo
@@ -692,7 +692,7 @@ MODULE mod_Qtransfo
           END IF
           Qtransfo%ncart_act = Qtransfo%BunchTransfo%ncart_act
 
-          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_th)
+          CALL Set_Type_Name_OF_Qout_XBF(Qtransfo,cos_beta=cos_beta)
           CALL Set_Type_Name_OF_Qin_Vec(Qtransfo)
 
         CASE ('poly')
@@ -741,7 +741,6 @@ MODULE mod_Qtransfo
           IF (count(Qtransfo%BunchTransfo%M_Tana /= ZERO) == 0) THEN
             CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
           END IF
-          nullify(Qtransfo%BunchTransfo)
 
         CASE ('qtox_ana')
           Tana_Is_Possible            = .FALSE.
@@ -1262,6 +1261,7 @@ MODULE mod_Qtransfo
         integer           :: iv,it,i,iQ,iQin,iQout
         TYPE (Type_dnVec), pointer :: tab_dnXVect(:)   ! dim: nb_vect_tot
         character (len=:), allocatable :: name_transfo
+        integer :: nb_ExtraLFSF,nend_Qout,nend_Qin
 
       !-----------------------------------------------------------------
       integer :: nderiv_debug = 1
@@ -1448,6 +1448,14 @@ MODULE mod_Qtransfo
 
         ELSE
           CALL calc_PolyTransfo_outTOin(dnQin,dnQout,Qtransfo%BFTransfo,nderiv)
+          ! finalization : add the extra coordinates (Euler + COM) from dnQout to dnQin
+          nb_ExtraLFSF = get_nb_ExtraLFSF(Qtransfo)
+          nend_Qout    = dnQout%nb_var_vec - nb_ExtraLFSF
+          nend_Qin     = dnQin%nb_var_vec  - nb_ExtraLFSF
+
+          IF (nb_ExtraLFSF > 0) THEN
+              dnQin%d0(nend_Qin+1:) = dnQout%d0(nend_Qout+1:)
+          END IF
         END IF
 
       CASE ('qtox_ana') ! it has to be one of the last one
@@ -1701,7 +1709,7 @@ MODULE mod_Qtransfo
   END SUBROUTINE Write_Qtransfo
   FUNCTION get_nb_ExtraLFSF(Qtransfo)
     integer :: get_nb_ExtraLFSF
-    TYPE(type_qtransfo), intent(inout) :: Qtransfo
+    TYPE(type_qtransfo), intent(in) :: Qtransfo
 
     SELECT CASE(Qtransfo%name_transfo)
     CASE ('bunch','bunch_poly')
@@ -1850,8 +1858,6 @@ MODULE mod_Qtransfo
     nend_Qout = Qtransfo%nb_Qout - nb_ExtraLFSF
     nend_Qin  = Qtransfo%nb_Qin  - nb_ExtraLFSF
 
-    write(6,*) 'coucou nb_ExtraLFSF',nb_ExtraLFSF
-    write(6,*) 'coucou end extra Qout',Qtransfo%type_Qout(nend_Qout+1:)
     Qtransfo%type_Qin(nend_Qin+1:) = Qtransfo%type_Qout(nend_Qout+1:)
     Qtransfo%name_Qin(nend_Qin+1:) = Qtransfo%name_Qout(nend_Qout+1:)
 

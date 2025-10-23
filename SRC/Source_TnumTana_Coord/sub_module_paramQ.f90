@@ -743,7 +743,7 @@ CONTAINS
   SUBROUTINE sub_QinRead_TO_Qact(Qread,Qact,mole,it_QinRead)
     USE TnumTana_system_m
     USE mod_dnSVM
-    USE mod_Qtransfo,         ONLY : get_name_Qtransfo
+    USE mod_Qtransfo,         ONLY : get_name_Qtransfo, get_nb_ExtraLFSF
     USE mod_Tnum
     IMPLICIT NONE
 
@@ -754,12 +754,13 @@ CONTAINS
 
 
     !- working variables -------------------------
-    integer :: it,it_QoutRead,nb_act
+    integer           :: it,it_QoutRead,nb_act,nend,nb_ExtraLFSF
     TYPE (Type_dnVec) :: dnQin,dnQout
+    real (kind=Rkind) :: COM(3),Alpha,tBeta,Gamma
 
     !-----------------------------------------------------------------
-    logical, parameter :: debug = .FALSE.
-    !logical, parameter :: debug = .TRUE.
+    !logical, parameter :: debug = .FALSE.
+    logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub='sub_QinRead_TO_Qact'
     !-----------------------------------------------------------------
     IF (debug) THEN
@@ -779,12 +780,28 @@ CONTAINS
     IF (it_QoutRead == mole%nb_Qtransfo+1) THEN ! read_Qact0
       Qact(:) = Qread(:)
     ELSE
-      it = it_QoutRead
+     it = it_QoutRead
       nb_act = mole%tab_Qtransfo(it_QoutRead)%nb_act
 
       CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,nb_act,0)
-
       dnQout%d0(1:size(Qread)) = Qread(:)
+
+      IF (it_QinRead == 0) THEN 
+        CALL get_COMEuler(Qread,COM,Alpha,tBeta,Gamma,mole)
+
+        nb_ExtraLFSF = get_nb_ExtraLFSF(mole%tab_Qtransfo(1))
+        nend = size(dnQout%d0) - nb_ExtraLFSF
+        IF (nb_ExtraLFSF == 2) THEN
+          dnQout%d0(nend+1:) = [Alpha,tBeta]
+        ELSE IF (nb_ExtraLFSF == 3) THEN
+          dnQout%d0(nend+1:) = [Alpha,tBeta,Gamma]
+        ELSE IF (nb_ExtraLFSF == 5) THEN
+          dnQout%d0(nend+1:) = [Alpha,tBeta,COM(1),COM(2),COM(3)]
+        ELSE IF (nb_ExtraLFSF == 6) THEN
+          dnQout%d0(nend+1:) = [Alpha,tBeta,Gamma,COM(1),COM(2),COM(3)]
+        END IF
+      END IF
+
 
       DO it=it_QoutRead,mole%nb_Qtransfo
         IF (mole%tab_Qtransfo(it)%skip_transfo) CYCLE
@@ -1200,35 +1217,47 @@ CONTAINS
 
       SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(1)))
       CASE ('zmat')
-        nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
-        nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
-        nc3 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,3)
+        IF (mole%nat_act == 2) THEN
+          nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
+          nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
 
-        ez(:) = Qxyz(nc2:nc2+2)-Qxyz(nc1:nc1+2)
-        ez(:) = ez(:)/sqrt(dot_product(ez,ez))
+          ez(:) = Qxyz(nc2:nc2+2)-Qxyz(nc1:nc1+2)
+          ez(:) = ez(:)/sqrt(dot_product(ez,ez))
 
-        case1 = (mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(2,3) ==      &
-                 mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1) )
-
-        IF (case1) THEN
-          ex(:) = Qxyz(nc3:nc3+2)-Qxyz(nc1:nc1+2)
+          ex(:) = ZERO
+          ey(:) = ZERO
         ELSE
-          ex(:) = Qxyz(nc3:nc3+2)-Qxyz(nc2:nc2+2)
-        END IF
-        ex(:) = ex(:) - ez(:)*dot_product(ez,ex)
-        ex(:) = ex(:)/sqrt(dot_product(ex,ex))
 
-        CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+          nc1 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1)
+          nc2 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,2)
+          nc3 = mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,3)
+
+          ez(:) = Qxyz(nc2:nc2+2)-Qxyz(nc1:nc1+2)
+          ez(:) = ez(:)/sqrt(dot_product(ez,ez))
+
+          case1 = (mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(2,3) ==      &
+                   mole%tab_Qtransfo(1)%ZmatTransfo%ind_zmat(1,1) )
+
+          IF (case1) THEN
+            ex(:) = Qxyz(nc3:nc3+2)-Qxyz(nc1:nc1+2)
+          ELSE
+            ex(:) = Qxyz(nc3:nc3+2)-Qxyz(nc2:nc2+2)
+          END IF
+          ex(:) = ex(:) - ez(:)*dot_product(ez,ex)
+          ex(:) = ex(:)/sqrt(dot_product(ex,ex))
+
+          CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+        END IF
 
       CASE ('bunch','bunch_poly')
-
+        
         it = 1
         nb_act = mole%tab_Qtransfo(it)%nb_act
         CALL alloc_dnSVM(dnQout,mole%tab_Qtransfo(it)%nb_Qout,nb_act,0)
 
         dnQout%d0(1:size(Qxyz)) = Qxyz(:)
 
-       CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
+        CALL alloc_dnSVM(dnQin,mole%tab_Qtransfo(it)%nb_Qin,nb_act,0)
 
         IF (debug) THEN
           CALL Write_d0Q(it,'Qxyz ' // get_name_Qtransfo(mole%tab_Qtransfo(it)),dnQout%d0,3)
@@ -1242,15 +1271,22 @@ CONTAINS
                                                          dnQin%d0(i:i+2)
           END DO
         END IF
+        IF (mole%nat_act == 2) THEN
+          ez(:) = dnQin%d0(1:3)
+          ez(:) = ez(:)/sqrt(dot_product(ez,ez))
+          ex(:) = ZERO
+          ey(:) = ZERO
 
-        ez(:) = dnQin%d0(1:3)
-        ez(:) = ez(:)/sqrt(dot_product(ez,ez))
+        ELSE
+          ez(:) = dnQin%d0(1:3)
+          ez(:) = ez(:)/sqrt(dot_product(ez,ez))
 
-        ex(:) = dnQin%d0(4:6)
-        ex(:) = ex(:) - ez(:)*dot_product(ez,ex)
-        ex(:) = ex(:)/sqrt(dot_product(ex,ex))
+          ex(:) = dnQin%d0(4:6)
+          ex(:) = ex(:) - ez(:)*dot_product(ez,ex)
+          ex(:) = ex(:)/sqrt(dot_product(ex,ex))
 
-        CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+          CALL calc_cross_product(ez,nz,ex,nx,ey,ny)
+        END IF
 
         CALL dealloc_dnSVM(dnQout)
         CALL dealloc_dnSVM(dnQin)
@@ -1295,7 +1331,113 @@ CONTAINS
 !=================================================
 
   END SUBROUTINE sub_Qxyz0TORot
+  SUBROUTINE get_COMEuler(Qxyz,COM,Alpha,tBeta,Gamma,mole)
+      USE TnumTana_system_m
+      USE mod_dnSVM
+      USE mod_Qtransfo,         ONLY : get_name_Qtransfo,get_nb_ExtraLFSF
+      USE mod_Tnum
+      IMPLICIT NONE
 
+
+      TYPE (CoordType),  intent(in)    :: mole
+      real (kind=Rkind), intent(in)    :: Qxyz(:)
+      real (kind=Rkind), intent(inout) :: COM(3),Alpha,tBeta,Gamma
+
+      !- working variables -------------------------
+      integer           :: iat,nend,nb_ExtraLFSF,type_beta
+      real (kind=Rkind) :: Rot(3,3),ez(3),ezt(3)
+      !ex(3),nx,ey(3),ny,ez(3),nz
+
+      !-----------------------------------------------------------------
+      !logical, parameter :: debug = .FALSE.
+      logical, parameter :: debug = .TRUE.
+      character (len=*), parameter :: name_sub='get_COMEuler'
+      !-----------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unit,*)
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Qxyz =',Qxyz
+        write(out_unit,*) 'masses',mole%masses
+        write(out_unit,*) 'mole%nat_act',mole%nat_act
+      END IF
+      !-----------------------------------------------------------------
+      
+      COM(:) = ZERO
+      DO iat=0,mole%nat_act-1
+        COM(:) = COM(:) + Qxyz(iat*3+1:iat*3+3)*mole%masses(iat*3+1:iat*3+3)
+      END DO
+      COM = COM * mole%Mtot_inv
+
+      CALL sub_Qxyz0TORot(Qxyz,Rot,mole)
+      IF (debug) CALL Write_Mat(Rot, out_unit, 3)
+
+      !get type_beta: -3 or 3 (cos_beta or beta)
+      nb_ExtraLFSF = get_nb_ExtraLFSF(mole%tab_Qtransfo(1))
+      nend = size(mole%tab_Qtransfo(1)%type_Qout)
+      SELECT CASE (nb_ExtraLFSF)
+      CASE (2)
+        type_beta = mole%tab_Qtransfo(1)%type_Qout(nend-0)
+      CASE (3)
+        type_beta = mole%tab_Qtransfo(1)%type_Qout(nend-1)
+      CASE (5)
+        type_beta = mole%tab_Qtransfo(1)%type_Qout(nend-3)
+      CASE (6)
+        type_beta = mole%tab_Qtransfo(1)%type_Qout(nend-4)
+      END SELECT
+      IF (debug) write(out_unit,*) 'nend,nb_ExtraLFSF,type_beta',nend,nb_ExtraLFSF,type_beta
+
+      IF (mole%nat_act == 2) THEN ! diatomic => 2 Euler angles: Alpha (a) and Beta (b)
+       ! The 3D rotation matrix_ZYZ(a,b,g) is:
+        ! [ Cos[a] Cos[b], -Sin[a], -Cos[a] Sin[b] ]
+        ! [ Cos[b] Sin[a],  Cos[a], -Sin[a] Sin[b] ]
+        ! [ Sin[b],         0     , Cos[b] ]
+        !
+        ! Therefore 
+        !    ez(:)  = Rot(:,3) = [ -Cos[a] Sin[b], -Sin[a] Sin[b], Cos[b]]
+        ez(:)  = Rot(:,3)
+
+        Alpha = atan2(-ez(2),-ez(1))
+
+        IF (type_beta == 3) THEN
+          tBeta = acos(ez(3))
+        ELSE
+          tBeta = ez(3)
+        END IF
+        Gamma = ZERO
+      ELSE ! 3 Euler angles: Alpha (a), Beta (b) and Gamma (g)
+        ! The 3D rotation matrix_ZYZ(a,b,g) is:
+        ! [ Cos[a] Cos[b] Cos[g] - Sin[a] Sin[g], -Cos[g] Sin[a] - Cos[a] Cos[b] Sin[g], -Cos[a] Sin[b] ]
+        ! [ Cos[b] Cos[g] Sin[a] + Cos[a] Sin[g],  Cos[a] Cos[g] - Cos[b] Sin[a] Sin[g], -Sin[a] Sin[b] ]
+        ! [ Cos[g] Sin[b],                        -Sin[b] Sin[g], Cos[b] ]
+        !
+        ! Therefore 
+        !    ez(:)  = Rot(:,3) = [ -Cos[a] Sin[b], -Sin[a] Sin[b], Cos[b]]
+        !    ezt(:) = Rot(3,:) = [  Cos[g] Sin[b], -Sin[b] Sin[g], Cos[b]]
+        ez(:)  = Rot(:,3)
+        ezt(:) = Rot(3,:)
+
+        IF (type_beta == 3) THEN
+          tBeta = acos(ez(3))
+        ELSE
+          tBeta = ez(3)
+        END IF
+
+        Gamma = atan2(-ezt(2),ezt(1))
+        Alpha = atan2(-ez(2),-ez(1))
+
+      END IF
+
+      !-----------------------------------------------------------------
+      IF (debug) THEN
+        write(out_unit,*) 'Alpha,tBeta,Gamma: ',Alpha,tBeta,Gamma
+        write(out_unit,*) 'COM:               ',COM
+        write(out_unit,*) 'END ',name_sub
+        write(out_unit,*)
+      END IF
+      flush(out_unit)
+      !-----------------------------------------------------------------
+
+  END SUBROUTINE get_COMEuler
 
   SUBROUTINE sub_QplusDQ_TO_Cart(mole)
     USE TnumTana_system_m

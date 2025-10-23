@@ -3752,8 +3752,6 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
 
   IF (para_Tnum%Write_QMotions) THEN
-    !CALL get_Qact0(Qact,mole%ActiveTransfo)
-    !CALL sub_QplusDQ_TO_Cart_old(Qact,mole)
     CALL sub_QplusDQ_TO_Cart(mole)
   END IF
 

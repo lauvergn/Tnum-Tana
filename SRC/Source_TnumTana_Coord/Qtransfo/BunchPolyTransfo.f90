@@ -128,6 +128,8 @@
 
           TYPE (Type_BFTransfo), pointer    :: tab_BFTransfo(:) => null() ! dim: nb_vect
 
+          !TYPE (Type_BunchTransfo), pointer :: BunchTransfo ! true link
+
           ! variables use for the calculation (Tana)
           ! They are defined here, because of the recursive structure
           type(opel)                     :: Qvec(3)   ! R,theta or u_theta, phi   or x,y,z
@@ -1885,84 +1887,83 @@
 
       END SUBROUTINE calc_PolyTransfo
 
-      SUBROUTINE calc_PolyTransfo_outTOin(dnQin,dnQout,BFTransfo,nderiv)
+  SUBROUTINE calc_PolyTransfo_outTOin(dnQin,dnQout,BFTransfo,nderiv)
+    TYPE (Type_BFTransfo), intent(in)    :: BFTransfo
+    TYPE (Type_dnVec),     intent(in)    :: dnQout
+    TYPE (Type_dnVec),     intent(inout) :: dnQin
+    integer,               intent(in)    :: nderiv
 
-      TYPE (Type_BFTransfo), intent(in)    :: BFTransfo
-      TYPE (Type_dnVec),     intent(inout) :: dnQin,dnQout
+    TYPE (Type_dnVec) :: UnitVect_F0(3) ! unit vectors (ndim=3)
+    TYPE (Type_dnVec) :: dnVect(BFTransfo%nb_vect_tot) ! table of vectors
 
-      integer, intent(in) :: nderiv
+    integer :: iv,iv_tot,iQin
 
+    !-----------------------------------------------------------------
+    integer :: nderiv_debug = 0
+    integer :: err_mem,memory
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='calc_PolyTransfo_outTOin'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nderiv',nderiv
+      write(out_unit,*) 'dnQvect (dnQout): '
+      CALL Write_dnSVM(dnQout,nderiv_debug)
+      CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+    IF (nderiv /= 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  This subroutine cannot be use with nderiv > 0',nderiv
+      write(out_unit,*) '  Check the fortran source !!'
+      STOP
+    END IF
 
-      TYPE (Type_dnVec) :: UnitVect_F0(3) ! unit vectors (ndim=3)
-      TYPE (Type_dnVec) :: dnVect(BFTransfo%nb_vect_tot) ! table of vectors
+    CALL alloc_dnSVM(UnitVect_F0(1),nb_var_vec=3,nderiv=0)
+    UnitVect_F0(1)%d0(1) = ONE
 
+    CALL alloc_dnSVM(UnitVect_F0(2),nb_var_vec=3,nderiv=0)
+    UnitVect_F0(2)%d0(3) = ONE
 
-      integer :: iv,iv_tot,iQin
+    CALL alloc_dnSVM(UnitVect_F0(3),nb_var_vec=3,nderiv=0)
+    UnitVect_F0(3)%d0(3) = ONE
 
-!      -----------------------------------------------------------------
-      integer :: nderiv_debug = 0
-      integer :: err_mem,memory
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='calc_PolyTransfo_outTOin'
-!      -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'nderiv',nderiv
-        write(out_unit,*) 'dnQvect (dnQout): '
-        CALL Write_dnSVM(dnQout,nderiv_debug)
-        CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
-      END IF
-!      -----------------------------------------------------------------
-      IF (nderiv /= 0) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  This subroutine cannot be use with nderiv > 0',nderiv
-        write(out_unit,*) '  Check the fortran source !!'
-        STOP
-      END IF
+    DO iv=1,BFTransfo%nb_vect_tot
+      CALL alloc_dnSVM(dnVect(iv),nb_var_vec=3,nderiv=0)
+      dnVect(iv)%d0(1:3) = dnQout%d0(3*iv-2:3*iv)
+    END DO
 
+    iv_tot = 0
+    iQin   = 0
+    CALL RecGet_Vec_Fi_For_poly(dnVect,BFTransfo%nb_vect_tot,         &
+                                iv_tot,1,UnitVect_F0,                 &
+                                dnQin,iQin,BFTransfo)
+    !write(out_unit,*) 'iv_tot',iv_tot
 
-      CALL alloc_dnSVM(UnitVect_F0(1),nb_var_vec=3,nderiv=0)
-      UnitVect_F0(1)%d0(1) = ONE
+    CALL dealloc_dnSVM(UnitVect_F0(1))
+    CALL dealloc_dnSVM(UnitVect_F0(2))
+    CALL dealloc_dnSVM(UnitVect_F0(3))
 
-      CALL alloc_dnSVM(UnitVect_F0(2),nb_var_vec=3,nderiv=0)
-      UnitVect_F0(2)%d0(3) = ONE
+    ! Adding the extra coordinates (Euler + COM) from dnQout to dnQin is done in Qtransfo
 
-      CALL alloc_dnSVM(UnitVect_F0(3),nb_var_vec=3,nderiv=0)
-      UnitVect_F0(3)%d0(3) = ONE
+    !----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'dnQin (dnQpoly):'
+      CALL Write_dnSVM(dnQin,nderiv_debug)
+      write(out_unit,*)
+      write(out_unit,*) 'END ',name_sub
+      write(out_unit,*)
+      flush(out_unit)
+    END IF
+    !----------------------------------------------------------------
 
-      DO iv=1,BFTransfo%nb_vect_tot
-        CALL alloc_dnSVM(dnVect(iv),nb_var_vec=3,nderiv=0)
-        dnVect(iv)%d0(1:3) = dnQout%d0(3*iv-2:3*iv)
-      END DO
+  END SUBROUTINE calc_PolyTransfo_outTOin
 
-      iv_tot = 0
-      iQin   = 0
-      CALL RecGet_Vec_Fi_For_poly(dnVect,BFTransfo%nb_vect_tot,         &
-                                  iv_tot,1,UnitVect_F0,                 &
-                                  dnQin,iQin,BFTransfo)
-      !write(out_unit,*) 'iv_tot',iv_tot
-
-      CALL dealloc_dnSVM(UnitVect_F0(1))
-      CALL dealloc_dnSVM(UnitVect_F0(2))
-      CALL dealloc_dnSVM(UnitVect_F0(3))
-
-
-        !----------------------------------------------------------------
-        IF (debug) THEN
-          write(out_unit,*)
-          write(out_unit,*) 'dnQin (dnQpoly):'
-          CALL Write_dnSVM(dnQin,nderiv_debug)
-          write(out_unit,*)
-          write(out_unit,*) 'END ',name_sub
-          write(out_unit,*)
-        END IF
-
-
-      END SUBROUTINE calc_PolyTransfo_outTOin
-
-      RECURSIVE SUBROUTINE Export_Fortran_PolyTransfo(dnQin,i_Qpoly,dnQout,&
+  RECURSIVE SUBROUTINE Export_Fortran_PolyTransfo(dnQin,i_Qpoly,dnQout,&
                                                tab_dnXVect,iv_in,BFTransfo)
 
       TYPE (Type_BFTransfo), intent(in)     :: BFTransfo
@@ -2323,182 +2324,256 @@
 
       END SUBROUTINE Export_Fortran_PolyTransfo
 
-      RECURSIVE SUBROUTINE RecGet_Vec_Fi_For_poly(tab_Vect_Fi,          &
+  RECURSIVE SUBROUTINE RecGet_Vec_Fi_For_poly(tab_Vect_Fi,          &
                                               nb_vect_tot,iv_tot,iv_Fi, &
-                                                  UnitVect_Fi,          &
-                                               dnQpoly,iQpoly,BFTransfo)
+                                              UnitVect_Fi,          &
+                                              dnQpoly,iQpoly,BFTransfo)
 
-      integer, intent(in)    :: nb_vect_tot,iv_Fi
-      integer, intent(inout) :: iv_tot,iQpoly
-      TYPE (Type_dnVec), intent(in) :: tab_Vect_Fi(nb_vect_tot) ! table of vectors (ndim=3)
-      TYPE (Type_dnVec),     intent(inout) :: dnQpoly
-      TYPE (Type_dnVec), intent(in) :: UnitVect_Fi(3) ! unit vectors (ndim=3)
-
-      TYPE (Type_dnVec) :: UnitVect_Fij(3) ! unit vectors if frame=t (ndim=3)
-      TYPE (Type_BFTransfo), intent(in) :: BFTransfo
+    integer,               intent(in)    :: nb_vect_tot,iv_Fi
+    integer,               intent(inout) :: iv_tot,iQpoly
+    TYPE (Type_dnVec),     intent(in)    :: tab_Vect_Fi(nb_vect_tot) ! table of vectors (ndim=3)
+    TYPE (Type_dnVec),     intent(inout) :: dnQpoly
+    TYPE (Type_dnVec),     intent(in)    :: UnitVect_Fi(3) ! unit vectors (ndim=3)
+    TYPE (Type_BFTransfo), intent(in)    :: BFTransfo
 
 
-      integer :: iv_Fij,i_Qprim
+    TYPE (Type_dnVec) :: UnitVect_Fij(3) ! unit vectors if frame=t (ndim=3)
 
-      integer :: nb_vect
-      logical :: Frame,cart,cos_th
-      character (len=Name_len) :: name_d,name_th,name_dih,              &
-                                  name_x,name_y,name_z,                 &
-                                  name_alpha,name_beta,name_gamma
 
-      real (kind=Rkind) :: Riv,px,py,pz
-      real (kind=Rkind) :: alphaiv,betaiv,ubetaiv,gammaiv,sgamma,cgamma
-      real (kind=Rkind) :: uiv,thiv,phiv
+    integer :: iv_Fij,i_Qprim
 
-      real (kind=Rkind), parameter :: radTOdeg = 180._Rkind / pi
+    integer :: nb_vect
+    logical :: Frame,cart,cos_th
+    character (len=Name_len) :: name_d,name_th,name_dih,              &
+                                name_x,name_y,name_z,                 &
+                                name_alpha,name_beta,name_gamma
 
-!      -----------------------------------------------------------------
-      integer :: err_mem,memory
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='RecGet_Vec_Fi_For_poly'
-!      -----------------------------------------------------------------
+    real (kind=Rkind) :: Riv,px,py,pz
+    real (kind=Rkind) :: alphaiv,betaiv,ubetaiv,gammaiv,sgamma,cgamma
+    real (kind=Rkind) :: uiv,thiv,phiv
 
-      iv_tot = iv_tot + 1
-      !write(out_unit,*) 'RecGet_Vec_Fi: nb_vect_tot,iv_Fi,iv_tot',nb_vect_tot,iv_Fi,iv_tot
-      !write(out_unit,*) 'vect:',tab_Vect_Fi(iv_tot)%d0
+    real (kind=Rkind), parameter :: radTOdeg = 180._Rkind / pi
 
-      nb_vect = BFTransfo%nb_vect
-      Frame   = BFTransfo%Frame
+    !-----------------------------------------------------------------
+    integer :: err_mem,memory
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='RecGet_Vec_Fi_For_poly'
+    !-----------------------------------------------------------------
 
-      IF (Frame) THEN
-        IF (debug) write(out_unit,*) '============================================='
-        IF (debug) write(out_unit,*) ' Frame = T, iv_tot',iv_tot
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    iv_tot = iv_tot + 1
+    !write(out_unit,*) 'RecGet_Vec_Fi: nb_vect_tot,iv_Fi,iv_tot',nb_vect_tot,iv_Fi,iv_tot
+    !write(out_unit,*) 'vect:',tab_Vect_Fi(iv_tot)%d0
+
+    nb_vect = BFTransfo%nb_vect
+    Frame   = BFTransfo%Frame
+
+    IF (Frame) THEN
+      IF (debug) THEN 
+        write(out_unit,*) '============================================='
+        write(out_unit,*) ' Frame = T, iv_tot',iv_tot
+        flush(out_unit)
+      END IF
+      ! norm of the vector (distance)
+      Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
+
+      ! The 3 unit vectors in the new frame Fij
+      CALL alloc_dnSVM(UnitVect_Fij(1),nb_var_vec=3,nderiv=0)
+      CALL alloc_dnSVM(UnitVect_Fij(2),nb_var_vec=3,nderiv=0)
+      CALL alloc_dnSVM(UnitVect_Fij(3),nb_var_vec=3,nderiv=0)
+
+      UnitVect_Fij(3)%d0 = tab_Vect_Fi(iv_tot)%d0 / Riv ! ez_Fij
+      IF (nb_vect > 0) THEN
+        pz = dot_product(tab_Vect_Fi(iv_tot+1)%d0,UnitVect_Fij(3)%d0)
+        UnitVect_Fij(1)%d0 = tab_Vect_Fi(iv_tot+1)%d0 - pz * UnitVect_Fij(3)%d0
+        UnitVect_Fij(1)%d0 = UnitVect_Fij(1)%d0 /                     &
+             sqrt(dot_product(UnitVect_Fij(1)%d0,UnitVect_Fij(1)%d0))
+
+        UnitVect_Fij(2)%d0(1) =                                       &
+                     UnitVect_Fij(3)%d0(2) * UnitVect_Fij(1)%d0(3) -  &
+                     UnitVect_Fij(3)%d0(3) * UnitVect_Fij(1)%d0(2)
+        UnitVect_Fij(2)%d0(2) =                                       &
+                     UnitVect_Fij(3)%d0(3) * UnitVect_Fij(1)%d0(1) -  &
+                     UnitVect_Fij(3)%d0(1) * UnitVect_Fij(1)%d0(3)
+        UnitVect_Fij(2)%d0(3) =                                       &
+                     UnitVect_Fij(3)%d0(1) * UnitVect_Fij(1)%d0(2) -  &
+                     UnitVect_Fij(3)%d0(2) * UnitVect_Fij(1)%d0(1)
+        !write(out_unit,*) 'ex_Fij',UnitVect_Fij(1)%d0
+        !write(out_unit,*) 'ey_Fij',UnitVect_Fij(2)%d0
+        !write(out_unit,*) 'ez_Fij',UnitVect_Fij(3)%d0
+      END IF
+
+      ! Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0)) !already calculated
+
+      pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
+      px = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
+      py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
+
+      ubetaiv = pz / Riv  ! cos(beta)
+      betaiv = acos(ubetaiv)
+      alphaiv = atan2(py,px)
+      CALL dihedral_range(alphaiv,2) ! [0:2pi]
+
+      IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv ; flush(out_unit)
+      iQpoly  = iQpoly + 1
+      i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+      dnQpoly%d0(i_Qprim) = Riv
+
+      ! loop on the vectors in frame Fij
+      DO iv_Fij=2,nb_vect+1
+
+        !write(out_unit,*) 'iv_Fij,nb_vect+1',iv_Fij,nb_vect+1
+        !write(out_unit,*) 'shape tab_BFTransfo',shape(BFTransfo%tab_BFTransfo)
+        !write(out_unit,*) 'lbound tab_BFTransfo',lbound(BFTransfo%tab_BFTransfo)
+        !write(out_unit,*) 'ubound tab_BFTransfo',ubound(BFTransfo%tab_BFTransfo)
+
+        CALL RecGet_Vec_Fi_For_poly(tab_Vect_Fi,nb_vect_tot,          &
+                                    iv_tot,iv_Fij,UnitVect_Fij,       &
+                                    dnQpoly,iQpoly,                   &
+                                    BFTransfo%tab_BFTransfo(iv_Fij-1))
+      END DO
+
+      IF (iv_Fi == 2) THEN
+        iQpoly  = iQpoly + 1
+        IF (iQpoly <= dnQpoly%nb_var_vec) THEN
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          IF (BFTransfo%cos_th) THEN
+            dnQpoly%d0(i_Qprim) = ubetaiv
+          ELSE
+            dnQpoly%d0(i_Qprim) = betaiv
+          END IF
+          IF (debug) write(out_unit,*) 'beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
+        END IF
+      ELSE IF (iv_Fi > 2) THEN ! this condition must be added. Orthiwise the case iv_Fi=1 makes the crash
+        iQpoly  = iQpoly + 1
+        IF (iQpoly <= dnQpoly%nb_var_vec) THEN
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          dnQpoly%d0(i_Qprim) = alphaiv
+          IF (debug) write(out_unit,*) 'alpha   : ',iv_Fi,':',alphaiv*radTOdeg,alphaiv
+        END IF
+
+        iQpoly = iQpoly + 1
+        IF (iQpoly <= dnQpoly%nb_var_vec) THEN
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          IF (BFTransfo%cos_th) THEN
+            dnQpoly%d0(i_Qprim) = ubetaiv
+          ELSE
+            dnQpoly%d0(i_Qprim) = betaiv
+          END IF
+          IF (debug) write(out_unit,*) 'beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
+        END IF
+      END IF
+
+      IF (nb_vect > 0) THEN
+        ! for gamma we use ex_BF projected on the SF
+        px = dot_product(UnitVect_Fij(1)%d0,UnitVect_Fi(3)%d0)
+        py = dot_product(UnitVect_Fij(2)%d0,UnitVect_Fi(3)%d0)
+        !write(out_unit,*) 'for gamma, px,py',px,py
+        gammaiv = atan2(py,-px)
+        CALL dihedral_range(gammaiv,2) ! [0:2pi]
+
+        iQpoly = iQpoly + 1
+        IF (iQpoly <= dnQpoly%nb_var_vec) THEN
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          dnQpoly%d0(i_Qprim) = gammaiv
+          IF (debug) write(out_unit,*) 'gamma   : ',iv_Fi,':',gammaiv*radTOdeg,gammaiv
+        END IF
+      END IF
+
+      CALL dealloc_dnSVM(UnitVect_Fij(1))
+      CALL dealloc_dnSVM(UnitVect_Fij(2))
+      CALL dealloc_dnSVM(UnitVect_Fij(3))
+
+      IF (debug) THEN 
+        write(out_unit,*) '============================================='
+        flush(out_unit)
+      END IF
+    ELSE
+
+      !write(out_unit,*) 'ex_Fi',UnitVect_Fi(1)%d0
+      !write(out_unit,*) 'ey_Fi',UnitVect_Fi(2)%d0
+      !write(out_unit,*) 'ez_Fi',UnitVect_Fi(3)%d0
+
+      IF (iv_Fi == 1) THEN
+        write(out_unit,*) ' ERROR in RecGet_Vec_Fi'
+        write(out_unit,*) ' iv_Fi=1 and frame=F is NOT possible'
+        write(out_unit,*) ' check the fortran!'
+        STOP
+      ELSE IF (iv_Fi == 2) THEN
         ! norm of the vector (distance)
         Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
 
-        ! The 3 unit vectors in the new frame Fij
-
-        CALL alloc_dnSVM(UnitVect_Fij(1),nb_var_vec=3,nderiv=0)
-        CALL alloc_dnSVM(UnitVect_Fij(2),nb_var_vec=3,nderiv=0)
-        CALL alloc_dnSVM(UnitVect_Fij(3),nb_var_vec=3,nderiv=0)
-
-        UnitVect_Fij(3)%d0 = tab_Vect_Fi(iv_tot)%d0 / Riv ! ez_Fij
-        IF (nb_vect > 0) THEN
-          pz = dot_product(tab_Vect_Fi(iv_tot+1)%d0,UnitVect_Fij(3)%d0)
-          UnitVect_Fij(1)%d0 = tab_Vect_Fi(iv_tot+1)%d0 - pz * UnitVect_Fij(3)%d0
-          UnitVect_Fij(1)%d0 = UnitVect_Fij(1)%d0 /                     &
-               sqrt(dot_product(UnitVect_Fij(1)%d0,UnitVect_Fij(1)%d0))
-
-          UnitVect_Fij(2)%d0(1) =                                       &
-                       UnitVect_Fij(3)%d0(2) * UnitVect_Fij(1)%d0(3) -  &
-                       UnitVect_Fij(3)%d0(3) * UnitVect_Fij(1)%d0(2)
-          UnitVect_Fij(2)%d0(2) =                                       &
-                       UnitVect_Fij(3)%d0(3) * UnitVect_Fij(1)%d0(1) -  &
-                       UnitVect_Fij(3)%d0(1) * UnitVect_Fij(1)%d0(3)
-          UnitVect_Fij(2)%d0(3) =                                       &
-                       UnitVect_Fij(3)%d0(1) * UnitVect_Fij(1)%d0(2) -  &
-                       UnitVect_Fij(3)%d0(2) * UnitVect_Fij(1)%d0(1)
-          !write(out_unit,*) 'ex_Fij',UnitVect_Fij(1)%d0
-          !write(out_unit,*) 'ey_Fij',UnitVect_Fij(2)%d0
-          !write(out_unit,*) 'ez_Fij',UnitVect_Fij(3)%d0
-        END IF
-
-        ! Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0)) !already calculated
-
         pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
-        px = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
-        py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
+        uiv = pz / Riv  ! cos(thi)
+        thiv = acos(uiv)
 
-        ubetaiv = pz / Riv  ! cos(beta)
-        betaiv = acos(ubetaiv)
-        alphaiv = atan2(py,px)
-        CALL dihedral_range(alphaiv,2) ! [0:2pi]
-
-        IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
-        iQpoly  = iQpoly + 1
+        iQpoly = iQpoly + 1
         i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
         dnQpoly%d0(i_Qprim) = Riv
+        IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
 
-        ! loop on the vectors in frame Fij
-        DO iv_Fij=2,nb_vect+1
-!          write(out_unit,*) 'iv_Fij,nb_vect+1',iv_Fij,nb_vect+1
-!          write(out_unit,*) 'shape tab_BFTransfo',shape(BFTransfo%tab_BFTransfo)
-!          write(out_unit,*) 'lbound tab_BFTransfo',lbound(BFTransfo%tab_BFTransfo)
-!          write(out_unit,*) 'ubound tab_BFTransfo',ubound(BFTransfo%tab_BFTransfo)
+        iQpoly = iQpoly + 1
+        i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
 
-          CALL RecGet_Vec_Fi_For_poly(tab_Vect_Fi,nb_vect_tot,          &
-                                      iv_tot,iv_Fij,UnitVect_Fij,       &
-                                      dnQpoly,iQpoly,                   &
-                                      BFTransfo%tab_BFTransfo(iv_Fij-1))
-        END DO
-
-        IF (iv_Fi == 2) THEN
-          iQpoly  = iQpoly + 1
-          IF (iQpoly <= dnQpoly%nb_var_vec) THEN
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            IF (BFTransfo%cos_th) THEN
-              dnQpoly%d0(i_Qprim) = ubetaiv
-            ELSE
-              dnQpoly%d0(i_Qprim) = betaiv
-            END IF
-            IF (debug) write(out_unit,*) 'coucou beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
-          END IF
-        ELSE ! iv_Fi /= 2
-          iQpoly  = iQpoly + 1
-          IF (iQpoly <= dnQpoly%nb_var_vec) THEN
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            dnQpoly%d0(i_Qprim) = alphaiv
-            IF (debug) write(out_unit,*) 'alpha   : ',iv_Fi,':',alphaiv*radTOdeg,alphaiv
-          END IF
-
-          iQpoly = iQpoly + 1
-          IF (iQpoly <= dnQpoly%nb_var_vec) THEN
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            IF (BFTransfo%cos_th) THEN
-              dnQpoly%d0(i_Qprim) = ubetaiv
-            ELSE
-              dnQpoly%d0(i_Qprim) = betaiv
-            END IF
-            IF (debug) write(out_unit,*) 'beta (u): ',iv_Fi,':',betaiv*radTOdeg,ubetaiv
-          END IF
+        IF (BFTransfo%cos_th) THEN
+            dnQpoly%d0(i_Qprim) = uiv
+        ELSE
+            dnQpoly%d0(i_Qprim) = thiv
         END IF
+        IF (debug) write(out_unit,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
 
-        IF (nb_vect > 0) THEN
-          ! for gamma we use ex_BF projected on the SF
-          px = dot_product(UnitVect_Fij(1)%d0,UnitVect_Fi(3)%d0)
-          py = dot_product(UnitVect_Fij(2)%d0,UnitVect_Fi(3)%d0)
-          !write(out_unit,*) 'for gamma, px,py',px,py
-          gammaiv = atan2(py,-px)
-          CALL dihedral_range(gammaiv,2) ! [0:2pi]
-
-          iQpoly = iQpoly + 1
-          IF (iQpoly <= dnQpoly%nb_var_vec) THEN
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            dnQpoly%d0(i_Qprim) = gammaiv
-            IF (debug) write(out_unit,*) 'gamma   : ',iv_Fi,':',gammaiv*radTOdeg,gammaiv
-          END IF
-
-        END IF
-
-        CALL dealloc_dnSVM(UnitVect_Fij(1))
-        CALL dealloc_dnSVM(UnitVect_Fij(2))
-        CALL dealloc_dnSVM(UnitVect_Fij(3))
-
-        IF (debug) write(out_unit,*) '============================================='
       ELSE
+        IF (BFTransfo%cart) THEN
+          iQpoly = iQpoly + 1
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(1) ! wrong, it is not projected in the BF
+          dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
 
-!        write(out_unit,*) 'ex_Fi',UnitVect_Fi(1)%d0
-!        write(out_unit,*) 'ey_Fi',UnitVect_Fi(2)%d0
-!        write(out_unit,*) 'ez_Fi',UnitVect_Fi(3)%d0
+          iQpoly = iQpoly + 1
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(2)
+          dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
 
-        IF (iv_Fi == 1) THEN
-          write(out_unit,*) ' ERROR in RecGet_Vec_Fi'
-          write(out_unit,*) ' iv_Fi=1 and frame=F is NOT possible'
-          write(out_unit,*) ' check the fortran!'
-          STOP
-        ELSE IF (iv_Fi == 2) THEN
+          iQpoly = iQpoly + 1
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(3)
+          dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
+
+          IF (debug) write(out_unit,*) 'x       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(1)
+          IF (debug) write(out_unit,*) 'y       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(2)
+          IF (debug) write(out_unit,*) 'z       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(3)
+        ELSE
           ! norm of the vector (distance)
           Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
 
-          pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
+          SELECT CASE(BFTransfo%Spherical_convention)
+          CASE ('zxy')
+            pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
+            px = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
+            py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
+          CASE ('x-zy')
+            pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
+            px = -dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
+            py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
+          CASE Default
+            write(out_unit,*) ' ERROR in ',name_sub
+            write(out_unit,*) '  No default Spherical_convention'
+            write(out_unit,*) '  Check the fortran'
+            STOP
+          END SELECT
+
           uiv = pz / Riv  ! cos(thi)
           thiv = acos(uiv)
+          phiv = atan2(py,px)
+          CALL dihedral_range(phiv,2) ! [0:2pi]
 
           iQpoly = iQpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
@@ -2507,84 +2582,31 @@
 
           iQpoly = iQpoly + 1
           i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-
           IF (BFTransfo%cos_th) THEN
-              dnQpoly%d0(i_Qprim) = uiv
+            dnQpoly%d0(i_Qprim) = uiv
           ELSE
-              dnQpoly%d0(i_Qprim) = thiv
+            dnQpoly%d0(i_Qprim) = thiv
           END IF
           IF (debug) write(out_unit,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
 
-        ELSE
-          IF (BFTransfo%cart) THEN
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(1) ! wrong, it is not projected in the BF
-            dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
-
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(2)
-            dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
-
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            !dnQpoly%d0(i_Qprim) = tab_Vect_Fi(iv_tot)%d0(3)
-            dnQpoly%d0(i_Qprim) = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
-
-            IF (debug) write(out_unit,*) 'x       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(1)
-            IF (debug) write(out_unit,*) 'y       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(2)
-            IF (debug) write(out_unit,*) 'z       : ',iv_Fi,':',tab_Vect_Fi(iv_tot)%d0(3)
-          ELSE
-            ! norm of the vector (distance)
-            Riv = sqrt(dot_product(tab_Vect_Fi(iv_tot)%d0,tab_Vect_Fi(iv_tot)%d0))
-
-            SELECT CASE(BFTransfo%Spherical_convention)
-            CASE ('zxy')
-              pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
-              px = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
-              py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
-            CASE ('x-zy')
-              pz = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(1)%d0)
-              px = -dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(3)%d0)
-              py = dot_product(tab_Vect_Fi(iv_tot)%d0,UnitVect_Fi(2)%d0)
-            CASE Default
-              write(out_unit,*) ' ERROR in ',name_sub
-              write(out_unit,*) '  No default Spherical_convention'
-              write(out_unit,*) '  Check the fortran'
-              STOP
-            END SELECT
-
-            uiv = pz / Riv  ! cos(thi)
-            thiv = acos(uiv)
-            phiv = atan2(py,px)
-            CALL dihedral_range(phiv,2) ! [0:2pi]
-
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            dnQpoly%d0(i_Qprim) = Riv
-            IF (debug) write(out_unit,*) 'R       : ',iv_Fi,':',Riv,Riv
-
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            IF (BFTransfo%cos_th) THEN
-              dnQpoly%d0(i_Qprim) = uiv
-            ELSE
-              dnQpoly%d0(i_Qprim) = thiv
-            END IF
-            IF (debug) write(out_unit,*) 'th (u)  : ',iv_Fi,':',thiv*radTOdeg,uiv
-
-            iQpoly = iQpoly + 1
-            i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
-            dnQpoly%d0(i_Qprim) = phiv
-            IF (debug) write(out_unit,*) 'phi     : ',iv_Fi,':',phiv*radTOdeg,phiv
-          END IF
-
+          iQpoly = iQpoly + 1
+          i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(iQpoly)
+          dnQpoly%d0(i_Qprim) = phiv
+          IF (debug) write(out_unit,*) 'phi     : ',iv_Fi,':',phiv*radTOdeg,phiv
         END IF
 
       END IF
 
-      END SUBROUTINE RecGet_Vec_Fi_For_poly
+    END IF
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+  END SUBROUTINE RecGet_Vec_Fi_For_poly
 
 
 
