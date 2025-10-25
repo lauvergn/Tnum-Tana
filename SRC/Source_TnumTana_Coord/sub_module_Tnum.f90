@@ -174,8 +174,8 @@ MODULE mod_Tnum
 
           integer, pointer :: liste_QactTOQdyn(:) => null()   ! true pointer
           integer, pointer :: liste_QdynTOQact(:) => null()   ! true pointer
-          integer, pointer :: nrho_OF_Qact(:)     => null()   ! enables to define the volume element
-          integer, pointer :: nrho_OF_Qdyn(:)     => null()   ! enables to define the volume element
+          integer, allocatable :: nrho_OF_Qact(:)             ! enables to define the volume element
+          integer, allocatable :: nrho_OF_Qdyn(:)             ! enables to define the volume element
 
 
           integer :: nb_act1   =0
@@ -575,13 +575,11 @@ MODULE mod_Tnum
         nullify(mole%liste_QactTOQdyn)   ! true pointer
         nullify(mole%liste_QdynTOQact)   ! true pointer
 
-        IF (associated(mole%nrho_OF_Qact))  THEN
-          CALL dealloc_array(mole%nrho_OF_Qact,                         &
-                            "mole%nrho_OF_Qact",name_sub)
+        IF (allocated(mole%nrho_OF_Qact))  THEN
+          CALL dealloc_NParray(mole%nrho_OF_Qact,"mole%nrho_OF_Qact",name_sub)
         END IF
-        IF (associated(mole%nrho_OF_Qdyn))  THEN
-          CALL dealloc_array(mole%nrho_OF_Qdyn,                         &
-                            "mole%nrho_OF_Qdyn",name_sub)
+        IF (allocated(mole%nrho_OF_Qdyn))  THEN
+          CALL dealloc_NParray(mole%nrho_OF_Qdyn,"mole%nrho_OF_Qdyn",name_sub)
         END IF
 
         mole%nb_act1     = 0
@@ -1131,9 +1129,9 @@ MODULE mod_Tnum
         mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
-        CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
+        CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
-        CALL alloc_array(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
+        CALL alloc_NParray(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
         mole%nrho_OF_Qdyn(:) = 0
 
         IF (mole%tab_Qtransfo(nb_Qtransfo)%nb_Qin /= mole%nb_var) THEN
@@ -1385,12 +1383,10 @@ MODULE mod_Tnum
         mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
-        CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],             &
-                        "mole%nrho_OF_Qact",name_sub)
+        CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
 
-        CALL alloc_array(mole%nrho_OF_Qdyn,[mole%nb_var],             &
-                        "mole%nrho_OF_Qdyn",name_sub)
+        CALL alloc_NParray(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
         mole%nrho_OF_Qdyn(:) = 0
 
         CALL type_var_analysis_OF_CoordType(mole)
@@ -1775,12 +1771,10 @@ MODULE mod_Tnum
       mole1%liste_QactTOQdyn => mole1%ActiveTransfo%list_QactTOQdyn
       mole1%liste_QdynTOQact => mole1%ActiveTransfo%list_QdynTOQact
 
-      CALL alloc_array(mole1%nrho_OF_Qact,[mole1%nb_var],             &
-                      "mole1%nrho_OF_Qact",name_sub)
+      CALL alloc_NParray(mole1%nrho_OF_Qact,[mole1%nb_var],"mole1%nrho_OF_Qact",name_sub)
       mole1%nrho_OF_Qact(:)  = mole2%nrho_OF_Qact(:)
 
-      CALL alloc_array(mole1%nrho_OF_Qdyn,[mole1%nb_var],             &
-                      "mole1%nrho_OF_Qdyn",name_sub)
+      CALL alloc_NParray(mole1%nrho_OF_Qdyn,[mole1%nb_var],"mole1%nrho_OF_Qdyn",name_sub)
       mole1%nrho_OF_Qdyn(:)  = mole2%nrho_OF_Qdyn(:)
 
       mole1%nb_act1          = mole2%nb_act1

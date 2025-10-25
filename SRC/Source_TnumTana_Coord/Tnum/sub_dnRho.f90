@@ -348,15 +348,14 @@ MODULE mod_dnRho
       END IF
 !-----------------------------------------------------------
 
-       !write(out_unit,*) 'mole%nrho_OF_Qact',mole%nrho_OF_Qact
-!      - initialisation --------------------------------------------------
+       !- initialisation --------------------------------------------------
        CALL alloc_dnSVM(dntf,1,3)
 
        CALL Set_ZERO_TO_dnSVM(dnrho)
        dnrho%d0 = ONE
 
-!      - rho calculation -------------------------------------------------
-!      - diagonal terms ----
+       !- rho calculation -------------------------------------------------
+       !- diagonal terms ----
        DO iQact=1,mole%nb_act1
 
          iQact_transfo = mole%nrho_OF_Qact(iQact)
