@@ -172,8 +172,6 @@ MODULE mod_Tnum
 
           TYPE (CurviRPH_type)               :: CurviRPH
 
-          integer, pointer :: liste_QactTOQsym(:) => null()   ! true pointer
-          integer, pointer :: liste_QsymTOQact(:) => null()   ! true pointer
           integer, pointer :: liste_QactTOQdyn(:) => null()   ! true pointer
           integer, pointer :: liste_QdynTOQact(:) => null()   ! true pointer
           integer, pointer :: nrho_OF_Qact(:)     => null()   ! enables to define the volume element
@@ -574,8 +572,6 @@ MODULE mod_Tnum
                           'mole%RPHTransfo_inact2n',name_sub)
       END IF
 
-        nullify(mole%liste_QactTOQsym)   ! true pointer
-        nullify(mole%liste_QsymTOQact)   ! true pointer
         nullify(mole%liste_QactTOQdyn)   ! true pointer
         nullify(mole%liste_QdynTOQact)   ! true pointer
 
@@ -1132,9 +1128,7 @@ MODULE mod_Tnum
         !=======================================================================
 
 
-        mole%liste_QactTOQsym => mole%ActiveTransfo%list_QactTOQdyn
         mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QsymTOQact => mole%ActiveTransfo%list_QdynTOQact
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
@@ -1388,9 +1382,7 @@ MODULE mod_Tnum
         mole%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
         mole%ActiveTransfo%QMLib            = QMLib
 
-        mole%liste_QactTOQsym => mole%ActiveTransfo%list_QactTOQdyn
         mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QsymTOQact => mole%ActiveTransfo%list_QdynTOQact
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],             &
@@ -1429,9 +1421,7 @@ MODULE mod_Tnum
         allocate(mole%ActiveTransfo)
         CALL alloc_ActiveTransfo(mole%ActiveTransfo,nb_var)
 
-        mole%liste_QactTOQsym => mole%ActiveTransfo%list_QactTOQdyn
         mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QsymTOQact => mole%ActiveTransfo%list_QdynTOQact
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
         mole%ActiveTransfo%list_QactTOQdyn(:) = 1
@@ -1782,9 +1772,7 @@ MODULE mod_Tnum
       IF (.NOT. associated(mole1%ActiveTransfo%list_QdynTOQact)) &
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo%list_QdynTOQact is not associated'
 
-      mole1%liste_QactTOQsym => mole1%ActiveTransfo%list_QactTOQdyn
       mole1%liste_QactTOQdyn => mole1%ActiveTransfo%list_QactTOQdyn
-      mole1%liste_QsymTOQact => mole1%ActiveTransfo%list_QdynTOQact
       mole1%liste_QdynTOQact => mole1%ActiveTransfo%list_QdynTOQact
 
       CALL alloc_array(mole1%nrho_OF_Qact,[mole1%nb_var],             &
