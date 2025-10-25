@@ -63,11 +63,11 @@ MODULE mod_ActiveTransfo
           logical                     :: With_Tab_dnQflex    = .FALSE.
           logical                     :: QMLib               = .FALSE.
 
-          real (kind=Rkind), allocatable  :: Qdyn0(:)            ! value of rigid coordinates (Qdyn order)
-          real (kind=Rkind), allocatable  :: Qact0(:)            ! value of rigid coordinates (Qact order)
-          integer,           pointer  :: list_act_OF_Qdyn(:) => null() ! "active" transfo
-          integer,           pointer  :: list_QactTOQdyn(:)  => null() ! "active" transfo
-          integer,           pointer  :: list_QdynTOQact(:)  => null() ! "active" transfo
+          real (kind=Rkind), allocatable :: Qdyn0(:)            ! value of rigid coordinates (Qdyn order)
+          real (kind=Rkind), allocatable :: Qact0(:)            ! value of rigid coordinates (Qact order)
+          integer,           allocatable :: list_act_OF_Qdyn(:) ! "active" transfo
+          integer,           pointer     :: list_QactTOQdyn(:)  => null() ! "active" transfo
+          integer,           pointer     :: list_QdynTOQact(:)  => null() ! "active" transfo
 
           integer, allocatable :: list_QMLMapping(:) ! mapping ifunc of QML and list_act_OF_Qdyn
 
@@ -116,7 +116,7 @@ MODULE mod_ActiveTransfo
 
       ActiveTransfo%nb_var = nb_var
 
-      CALL alloc_array(ActiveTransfo%list_act_OF_Qdyn,[nb_var],"ActiveTransfo%list_act_OF_Qdyn",name_sub)
+      CALL alloc_NParray(ActiveTransfo%list_act_OF_Qdyn,[nb_var],"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       ActiveTransfo%list_act_OF_Qdyn(:) = 0
       CALL alloc_array(ActiveTransfo%list_QactTOQdyn,[nb_var],"ActiveTransfo%list_QactTOQdyn",name_sub)
       ActiveTransfo%list_QactTOQdyn(:) = 0
@@ -144,8 +144,8 @@ MODULE mod_ActiveTransfo
       character (len=*), parameter :: name_sub='dealloc_ActiveTransfo'
 
 
-      IF (associated(ActiveTransfo%list_act_OF_Qdyn)) THEN
-        CALL dealloc_array(ActiveTransfo%list_act_OF_Qdyn,"ActiveTransfo%list_act_OF_Qdyn",name_sub)
+      IF (allocated(ActiveTransfo%list_act_OF_Qdyn)) THEN
+        CALL dealloc_NParray(ActiveTransfo%list_act_OF_Qdyn,"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       END IF
       IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
         CALL dealloc_array(ActiveTransfo%list_QactTOQdyn,"ActiveTransfo%list_QactTOQdyn",name_sub)
@@ -398,10 +398,10 @@ MODULE mod_ActiveTransfo
         write(out_unit,*) 'QMLib:            ',ActiveTransfo%QMLib
 
 
-        IF (associated(ActiveTransfo%list_act_OF_Qdyn)) THEN
+        IF (allocated(ActiveTransfo%list_act_OF_Qdyn)) THEN
           write(out_unit,*) 'list_act_OF_Qdyn or type_var: ',ActiveTransfo%list_act_OF_Qdyn(:)
         ELSE
-          write(out_unit,*) 'asso list_act_OF_Qdyn?   F'
+          write(out_unit,*) 'allocated list_act_OF_Qdyn?   F'
         END IF
 
         IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
@@ -449,7 +449,6 @@ MODULE mod_ActiveTransfo
         TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo
         integer,                   intent(in)    :: nderiv
         logical,                   intent(in)    :: inTOout
-
 
         TYPE (Type_dnS)              :: dnQ
         TYPE (Type_dnS), allocatable :: tab_dnQflex(:)
@@ -828,7 +827,7 @@ END SUBROUTINE get_Qact0
 
     CALL alloc_ActiveTransfo(ActiveTransfo2,ActiveTransfo1%nb_var)
 
-    IF (associated(ActiveTransfo1%list_act_OF_Qdyn))                  &
+    IF (allocated(ActiveTransfo1%list_act_OF_Qdyn))                  &
       ActiveTransfo2%list_act_OF_Qdyn(:)  = ActiveTransfo1%list_act_OF_Qdyn(:)
 
     IF (associated(ActiveTransfo1%list_QactTOQdyn))                   &

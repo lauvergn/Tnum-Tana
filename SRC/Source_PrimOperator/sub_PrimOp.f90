@@ -937,7 +937,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             !END IF
             list_QactTOQML(iQact) = iQML
           END DO
-          !list_QactTOQML = PrimOp%Qit_TO_QQMLib(mole%liste_QactTOQdyn(1:mole%nb_act))
         ELSE IF (nderivE > 0) THEN
           STOP 'ERROR in get_dnMatOp_AT_Qact: The gradient or hessian cannot be obtained'
         END IF

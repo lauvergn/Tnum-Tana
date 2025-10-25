@@ -1760,7 +1760,7 @@ MODULE mod_Tnum
       END IF
 
 
-      ! the 6 tables are true pointers
+      ! the 2 tables are true pointers
       IF (.NOT. associated(mole1%ActiveTransfo)) &
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo is not associated'
       IF (.NOT. associated(mole1%ActiveTransfo%list_QactTOQdyn)) &
@@ -1970,7 +1970,7 @@ MODULE mod_Tnum
       IF (debug) write(out_unit,*) 'BEGINNING ',name_sub
       IF (print_loc) THEN
          write(out_unit,*) '-analysis of the variable type ---'
-         write(out_unit,*) '  mole%list_act_OF_Qdyn',                  &
+         write(out_unit,*) '  mole%ActiveTransfo%list_act_OF_Qdyn',      &
                                      mole%ActiveTransfo%list_act_OF_Qdyn
       END IF
 
