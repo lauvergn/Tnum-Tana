@@ -160,6 +160,7 @@ MODULE mod_Tnum
           integer                          :: opt_param           =  0
           integer, allocatable             :: opt_Qdyn(:)
 
+          integer                          :: itActive             = -1
           integer                          :: itPrim               = -1
           integer                          :: itNM                 = -1
           integer                          :: itRPH                = -1
@@ -416,9 +417,10 @@ MODULE mod_Tnum
       write(out_unit,*) '------------------------------------------'
       write(out_unit,*) '------------------------------------------'
       write(out_unit,*) 'tab_Qtransfo'
-      write(out_unit,*) '  itPrim: ',mole%itPrim
-      write(out_unit,*) '  itNM:   ',mole%itNM
-      write(out_unit,*) '  itRPH:  ',mole%itRPH
+      write(out_unit,*) '  itActive: ',mole%itActive
+      write(out_unit,*) '  itPrim:   ',mole%itPrim
+      write(out_unit,*) '  itNM:     ',mole%itNM
+      write(out_unit,*) '  itRPH:    ',mole%itRPH
 
       write(out_unit,*) '------------------------------------------'
       DO it=1,mole%nb_Qtransfo
@@ -536,6 +538,7 @@ MODULE mod_Tnum
         mole%Cart_transfo    = .FALSE.
 
         mole%nb_Qtransfo     = -1
+        mole%itActive        = -1
         mole%itNM            = -1
         mole%itRPH           = -1
         mole%itPrim          = -1
@@ -1066,6 +1069,7 @@ MODULE mod_Tnum
               write(out_unit,*) ' Check your data !!'
               STOP
             ELSE
+              mole%itActive      = it
               mole%ActiveTransfo => mole%tab_Qtransfo(it)%ActiveTransfo
             END IF
 
@@ -1125,9 +1129,8 @@ MODULE mod_Tnum
         END IF
         !=======================================================================
 
-
-        mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
+        mole%liste_QactTOQdyn => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
+        mole%liste_QdynTOQact => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
@@ -1369,19 +1372,18 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
 
 
-        CALL alloc_array(mole%tab_Qtransfo(it)%ActiveTransfo,           &
-                        "mole%tab_Qtransfo(it)%ActiveTransfo",name_sub)
+        CALL alloc_array(mole%tab_Qtransfo(it)%ActiveTransfo,"mole%tab_Qtransfo(it)%ActiveTransfo",name_sub)
         mole%tab_Qtransfo(it)%ActiveTransfo%QMLib            = QMLib
-        CALL Read_ActiveTransfo(mole%tab_Qtransfo(it)%ActiveTransfo,    &
-                                mole%nb_var)
+        CALL Read_ActiveTransfo(mole%tab_Qtransfo(it)%ActiveTransfo,mole%nb_var)
 
+        mole%itActive      = it
         mole%ActiveTransfo => mole%tab_Qtransfo(it)%ActiveTransfo
 
         mole%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
         mole%ActiveTransfo%QMLib            = QMLib
 
-        mole%liste_QactTOQdyn => mole%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
+        mole%liste_QactTOQdyn => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
+        mole%liste_QdynTOQact => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
@@ -1442,8 +1444,7 @@ MODULE mod_Tnum
       IF (mole%nb_Qtransfo /= -1) THEN
         CALL alloc_array(mole%d0sm,[mole%ncart],"mole%d0sm",name_sub)
 
-        CALL alloc_array(mole%active_masses,[mole%ncart],             &
-                        "mole%active_masses",name_sub)
+        CALL alloc_array(mole%active_masses,[mole%ncart],"mole%active_masses",name_sub)
         mole%active_masses(:) = 1
 
         mole%d0sm(:)   = sqrt(mole%masses(:))
@@ -1685,6 +1686,7 @@ MODULE mod_Tnum
       mole1%Old_Qtransfo     = mole2%Old_Qtransfo
       mole1%Cart_transfo     = mole2%Cart_transfo
       mole1%nb_Qtransfo      = mole2%nb_Qtransfo
+      mole1%itActive         = mole2%itActive
       mole1%itNM             = mole2%itNM
       mole1%itRPH            = mole2%itRPH
       mole1%itPrim           = mole2%itPrim
