@@ -63,9 +63,9 @@ MODULE mod_ActiveTransfo
           logical                     :: With_Tab_dnQflex    = .FALSE.
           logical                     :: QMLib               = .FALSE.
 
-          real (kind=Rkind), pointer  :: Qdyn0(:)            => null() ! value of rigid coordinates (Qdyn order)
-          real (kind=Rkind), pointer  :: Qact0(:)            => null() ! value of rigid coordinates (Qact order)
-          integer,           pointer  :: list_act_OF_Qdyn(:) => null()  ! "active" transfo
+          real (kind=Rkind), allocatable  :: Qdyn0(:)            ! value of rigid coordinates (Qdyn order)
+          real (kind=Rkind), allocatable  :: Qact0(:)            ! value of rigid coordinates (Qact order)
+          integer,           pointer  :: list_act_OF_Qdyn(:) => null() ! "active" transfo
           integer,           pointer  :: list_QactTOQdyn(:)  => null() ! "active" transfo
           integer,           pointer  :: list_QdynTOQact(:)  => null() ! "active" transfo
 
@@ -116,26 +116,20 @@ MODULE mod_ActiveTransfo
 
       ActiveTransfo%nb_var = nb_var
 
-      CALL alloc_array(ActiveTransfo%list_act_OF_Qdyn,[nb_var],       &
-                      "ActiveTransfo%list_act_OF_Qdyn",name_sub)
+      CALL alloc_array(ActiveTransfo%list_act_OF_Qdyn,[nb_var],"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       ActiveTransfo%list_act_OF_Qdyn(:) = 0
-      CALL alloc_array(ActiveTransfo%list_QactTOQdyn,[nb_var],        &
-                      "ActiveTransfo%list_QactTOQdyn",name_sub)
+      CALL alloc_array(ActiveTransfo%list_QactTOQdyn,[nb_var],"ActiveTransfo%list_QactTOQdyn",name_sub)
       ActiveTransfo%list_QactTOQdyn(:) = 0
-      CALL alloc_array(ActiveTransfo%list_QdynTOQact,[nb_var],        &
-                      "ActiveTransfo%list_QdynTOQact",name_sub)
+      CALL alloc_array(ActiveTransfo%list_QdynTOQact,[nb_var],"ActiveTransfo%list_QdynTOQact",name_sub)
       ActiveTransfo%list_QdynTOQact(:) = 0
 
-      CALL alloc_array(ActiveTransfo%Qdyn0,[nb_var],                  &
-                      "ActiveTransfo%Qdyn0",name_sub)
+      CALL alloc_NParray(ActiveTransfo%Qdyn0,[nb_var],"ActiveTransfo%Qdyn0",name_sub)
       ActiveTransfo%Qdyn0(:) = ZERO
 
-      CALL alloc_array(ActiveTransfo%Qact0,[nb_var],                  &
-                      "ActiveTransfo%Qact0",name_sub)
+      CALL alloc_NParray(ActiveTransfo%Qact0,[nb_var],"ActiveTransfo%Qact0",name_sub)
       ActiveTransfo%Qact0(:) = ZERO
 
-      CALL alloc_NParray(ActiveTransfo%list_QMLMapping,[nb_var],          &
-                        "ActiveTransfo%list_QMLMapping",name_sub)
+      CALL alloc_NParray(ActiveTransfo%list_QMLMapping,[nb_var],"ActiveTransfo%list_QMLMapping",name_sub)
       ActiveTransfo%list_QMLMapping(:) = 0
 
       END SUBROUTINE alloc_ActiveTransfo
@@ -151,31 +145,25 @@ MODULE mod_ActiveTransfo
 
 
       IF (associated(ActiveTransfo%list_act_OF_Qdyn)) THEN
-        CALL dealloc_array(ActiveTransfo%list_act_OF_Qdyn,              &
-                          "ActiveTransfo%list_act_OF_Qdyn",name_sub)
+        CALL dealloc_array(ActiveTransfo%list_act_OF_Qdyn,"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       END IF
       IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
-        CALL dealloc_array(ActiveTransfo%list_QactTOQdyn,               &
-                          "ActiveTransfo%list_QactTOQdyn",name_sub)
+        CALL dealloc_array(ActiveTransfo%list_QactTOQdyn,"ActiveTransfo%list_QactTOQdyn",name_sub)
       END IF
       IF (associated(ActiveTransfo%list_QdynTOQact)) THEN
-        CALL dealloc_array(ActiveTransfo%list_QdynTOQact,               &
-                          "ActiveTransfo%list_QdynTOQact",name_sub)
+        CALL dealloc_array(ActiveTransfo%list_QdynTOQact,"ActiveTransfo%list_QdynTOQact",name_sub)
       END IF
 
-      IF (associated(ActiveTransfo%Qdyn0))  THEN
-        CALL dealloc_array(ActiveTransfo%Qdyn0,                         &
-                          "ActiveTransfo%Qdyn0",name_sub)
+      IF (allocated(ActiveTransfo%Qdyn0))  THEN
+        CALL dealloc_NParray(ActiveTransfo%Qdyn0,"ActiveTransfo%Qdyn0",name_sub)
       END IF
 
-      IF (associated(ActiveTransfo%Qact0))  THEN
-        CALL dealloc_array(ActiveTransfo%Qact0,                         &
-                          "ActiveTransfo%Qact0",name_sub)
+      IF (allocated(ActiveTransfo%Qact0))  THEN
+        CALL dealloc_NParray(ActiveTransfo%Qact0,"ActiveTransfo%Qact0",name_sub)
       END IF
 
       IF (allocated(ActiveTransfo%list_QMLMapping) ) THEN
-        CALL dealloc_NParray(ActiveTransfo%list_QMLMapping,                 &
-                            "ActiveTransfo%list_QMLMapping",name_sub)
+        CALL dealloc_NParray(ActiveTransfo%list_QMLMapping,"ActiveTransfo%list_QMLMapping",name_sub)
       END IF
 
       ActiveTransfo%nb_var      = 0
@@ -262,8 +250,7 @@ MODULE mod_ActiveTransfo
       CALL alloc_ActiveTransfo(ActiveTransfo,nb_Qin)
 
       read(in_unit,*,IOSTAT=err) ActiveTransfo%list_act_OF_Qdyn(:)
-      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',                 &
-                                        ActiveTransfo%list_act_OF_Qdyn(:)
+      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',ActiveTransfo%list_act_OF_Qdyn(:)
       IF (err /= 0) THEN
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) '  while reading "list_act_OF_Qdyn"'
@@ -317,7 +304,7 @@ MODULE mod_ActiveTransfo
 
       character (len=Name_len) :: name_int
       integer :: i,nb_Qact
-      integer, pointer :: list_Qact(:)
+      integer, allocatable :: list_Qact(:)
 
       integer :: err_io
       character (len=*), parameter :: name_sub='Read2_ActiveTransfo'
@@ -325,8 +312,7 @@ MODULE mod_ActiveTransfo
       CALL alloc_ActiveTransfo(ActiveTransfo,nb_Qin)
 
       read(in_unit,*,IOSTAT=err_io) ActiveTransfo%list_act_OF_Qdyn(:)
-      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',                 &
-                                        ActiveTransfo%list_act_OF_Qdyn(:)
+      IF(MPI_id==0) write(out_unit,*) 'list_act_OF_Qdyn or type_var',ActiveTransfo%list_act_OF_Qdyn(:)
       IF (err_io /= 0) THEN
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) '  while reading "list_act_OF_Qdyn"'
@@ -341,8 +327,7 @@ MODULE mod_ActiveTransfo
         write(out_unit,*) 'list_act_OF_Qdyn(:)',ActiveTransfo%list_act_OF_Qdyn
       END IF
 
-      nullify(list_Qact)
-      CALL alloc_array(list_Qact,[nb_Qin],'list_Qact',name_sub)
+      CALL alloc_NParray(list_Qact,[nb_Qin],'list_Qact',name_sub)
       list_Qact(:) = 0
 
       DO i=1,nb_Qin
@@ -374,7 +359,7 @@ MODULE mod_ActiveTransfo
       END IF
 
 
-      CALL dealloc_array(list_Qact,'list_Qact',name_sub)
+      CALL dealloc_NParray(list_Qact,'list_Qact',name_sub)
 
       IF (ActiveTransfo%QMLib) THEN
           write(out_unit,*) ' ERROR in ',name_sub
@@ -390,14 +375,13 @@ MODULE mod_ActiveTransfo
       SUBROUTINE Write_ActiveTransfo(ActiveTransfo)
       
 
-      TYPE (Type_ActiveTransfo), pointer, intent(in) :: ActiveTransfo
+      TYPE (Type_ActiveTransfo), intent(in) :: ActiveTransfo
 
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub='Write_ActiveTransfo'
 
       IF(MPI_id==0) write(out_unit,*) 'BEGINNING ',name_sub
-      IF(MPI_id==0) write(out_unit,*) 'asso ActiveTransfo:',associated(ActiveTransfo)
-      IF (associated(ActiveTransfo) .AND. MPI_id==0) THEN
+      IF (MPI_id==0) THEN
         write(out_unit,*) 'nb_var:           ',ActiveTransfo%nb_var
         write(out_unit,*) 'nb_act:           ',ActiveTransfo%nb_act
         write(out_unit,*) 'nb_act1:          ',ActiveTransfo%nb_act1
@@ -432,17 +416,17 @@ MODULE mod_ActiveTransfo
           write(out_unit,*) 'asso list_QdynTOQact?   F'
         END IF
 
-        IF (associated(ActiveTransfo%Qdyn0)) THEN
+        IF (allocated(ActiveTransfo%Qdyn0)) THEN
           write(out_unit,*) ' Rigid coordinate values (Qdyn order):',  &
                                                  ActiveTransfo%Qdyn0(:)
         ELSE
-          write(out_unit,*) 'asso Qdyn0?   F'
+          write(out_unit,*) 'allocated Qdyn0?   F'
         END IF
 
-        IF (associated(ActiveTransfo%Qact0)) THEN
+        IF (allocated(ActiveTransfo%Qact0)) THEN
           write(out_unit,*) 'Qact0: ',ActiveTransfo%Qact0(:)
         ELSE
-          write(out_unit,*) 'asso Qact0?   F'
+          write(out_unit,*) 'allocated Qact0?   F'
         END IF
 
         IF (allocated(ActiveTransfo%list_QMLMapping)) THEN
@@ -482,7 +466,7 @@ MODULE mod_ActiveTransfo
          write(out_unit,*) 'nderiv',nderiv
          write(out_unit,*) 'nb_var_deriv',dnQact%nb_var_deriv
          write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
-         write(out_unit,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
+         write(out_unit,*) 'allocated Qact0 ?',allocated(ActiveTransfo%Qact0)
          IF (inTOOut) THEN
            write(out_unit,*) 'dnQact'
            CALL Write_dnSVM(dnQact)
@@ -583,112 +567,81 @@ MODULE mod_ActiveTransfo
       END IF
 !     -----------------------------------------------------------------
 
-      END SUBROUTINE calc_ActiveTransfo
+  END SUBROUTINE calc_ActiveTransfo
 
-! when With_act=t, all Qact(:) values are sets to the reference geometry ones,
-!   including the 1:nb_act active (Qact1, Qact21 ...) coordinates
-! when With_act=f, only the true inactives (rigid, flexible) coordinates are set.
-!   - for rigid values: the reference geometry ones
-!   - for flexible values: the values associated to the active ones (1:nb_act1)
-SUBROUTINE get_Qact(Qact,ActiveTransfo,With_act)
-USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_gene
-IMPLICIT NONE
+  ! when With_act=t, all Qact(:) values are sets to the reference geometry ones,
+  !   including the 1:nb_act active (Qact1, Qact21 ...) coordinates
+  ! when With_act=f, only the true inactives (rigid, flexible) coordinates are set.
+  !   - for rigid values: the reference geometry ones
+  !   - for flexible values: the values associated to the active ones (1:nb_act1)
+  SUBROUTINE get_Qact(Qact,ActiveTransfo,With_act)
+    USE mod_Lib_QTransfo, ONLY : calc_Tab_dnQflex_gene
+    IMPLICIT NONE
 
-  real (kind=Rkind),         intent(inout)        :: Qact(:)
-  TYPE (Type_ActiveTransfo), intent(in)           :: ActiveTransfo
-  logical,                   intent(in), optional :: With_act
+    real (kind=Rkind),         intent(inout)        :: Qact(:)
+    TYPE (Type_ActiveTransfo), intent(in)           :: ActiveTransfo
+    logical,                   intent(in), optional :: With_act
 
-  integer            :: typ_var_act,i_Qdyn,i_Qact,nb_act1
-  logical            :: With_act_loc
+    integer            :: typ_var_act,i_Qdyn,i_Qact,nb_act1
+    logical            :: With_act_loc
 
-  TYPE (Type_dnS), allocatable :: tab_dnQflex(:)
-  integer            :: nb_flex
+    TYPE (Type_dnS), allocatable :: tab_dnQflex(:)
+    integer            :: nb_flex
 
+    !-----------------------------------------------------------------
+    !logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    character (len=*), parameter :: name_sub='get_Qact'
+    !-----------------------------------------------------------------
 
-  !-----------------------------------------------------------------
-  !logical, parameter :: debug=.TRUE.
-  logical, parameter :: debug=.FALSE.
-  character (len=*), parameter :: name_sub='get_Qact'
-  !-----------------------------------------------------------------
+    IF (present(With_act)) THEN
+      With_act_loc = With_act
+    ELSE
+      With_act_loc = .TRUE.
+    END IF
 
-  IF (present(With_act)) THEN
-    With_act_loc = With_act
-  ELSE
-    With_act_loc = .TRUE.
-  END IF
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
+      write(out_unit,*) 'size Qact',size(Qact)
+      IF (.NOT. With_act_loc) write(out_unit,*) 'Qact (only act)',Qact(1:ActiveTransfo%nb_act)
+      write(out_unit,*)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
-  IF (debug) THEN
-     write(out_unit,*) 'BEGINNING ',name_sub
-     write(out_unit,*) 'nb_act',ActiveTransfo%nb_act
-     write(out_unit,*) 'asso Qact0 ?',associated(ActiveTransfo%Qact0)
-     write(out_unit,*) 'size Qact',size(Qact)
-     IF (.NOT. With_act_loc) write(out_unit,*) 'Qact (only act)',Qact(1:ActiveTransfo%nb_act)
-     write(out_unit,*)
-     flush(out_unit)
-  END IF
-  !-----------------------------------------------------------------
+    nb_act1          = ActiveTransfo%nb_act1
 
-  nb_act1          = ActiveTransfo%nb_act1
+    nb_flex = 0
+    DO i_Qact=1,size(Qact)
+       i_Qdyn      = ActiveTransfo%list_QactTOQdyn(i_Qact)
+       typ_var_act = ActiveTransfo%list_act_OF_Qdyn(i_Qdyn)
+       IF (typ_var_act == 20 .OR. typ_var_act == 200) nb_flex = nb_flex + 1
 
-  nb_flex = 0
-  DO i_Qact=1,size(Qact)
-     i_Qdyn      = ActiveTransfo%list_QactTOQdyn(i_Qact)
-     typ_var_act = ActiveTransfo%list_act_OF_Qdyn(i_Qdyn)
-     IF (typ_var_act == 20 .OR. typ_var_act == 200) nb_flex = nb_flex + 1
+       IF (debug) THEN
+         write(out_unit,*) 'i_Qact,i_Qdyn,typ_var_act',i_Qact,i_Qdyn,typ_var_act
+         flush(out_unit)
+       END IF
+    END DO
 
-     IF (debug) THEN
-       write(out_unit,*) 'i_Qact,i_Qdyn,typ_var_act',i_Qact,i_Qdyn,typ_var_act
-       flush(out_unit)
-     END IF
-  END DO
-
-  ! first all coordinate but the flexible ones
-  DO i_Qact=1,size(Qact)
-
-    i_Qdyn      = ActiveTransfo%list_QactTOQdyn(i_Qact)
-    typ_var_act = ActiveTransfo%list_act_OF_Qdyn(i_Qdyn)
-
-    SELECT CASE (typ_var_act)
-    CASE (1,-1,21,22,31)
-      ! active coordinate, nothing here, because it is a Qact coord
-      ! except if With_All_loc=.TRUE.
-      IF (With_act_loc) Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
-    CASE (20,200)
-      ! inactive coordinate : flexible constraints
-      CONTINUE
-    CASE (0,100)
-      ! inactive coordinate : rigid0 and rigid100
-      Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
-    CASE default
-      write(out_unit,*) ' ERROR in ',name_sub
-      write(out_unit,*) ' I do not know this variable type:',typ_var_act
-      write(out_unit,*) ' Check your data!!'
-      STOP
-    END SELECT
-
-  END DO
-
-  ! then the flexible coordinates
-  IF (nb_flex > 0) THEN
-    allocate(tab_dnQflex(ActiveTransfo%nb_var))
-    CALL calc_Tab_dnQflex_gene(Tab_dnQflex,ActiveTransfo%nb_var,                &
-                               Qact(1:nb_act1),nb_act1,0,-1,                    &
-                               ActiveTransfo%list_act_OF_Qdyn,                  &
-                               ActiveTransfo%list_QMLMapping,                   &
-                               QMlib=ActiveTransfo%QMlib,                       &
-                               With_Tab_dnQflex=ActiveTransfo%With_Tab_dnQflex)
-
+    ! first all coordinate but not the flexible ones
     DO i_Qact=1,size(Qact)
 
       i_Qdyn      = ActiveTransfo%list_QactTOQdyn(i_Qact)
       typ_var_act = ActiveTransfo%list_act_OF_Qdyn(i_Qdyn)
 
       SELECT CASE (typ_var_act)
-      CASE (1,-1,21,22,31,0,100)
-        CONTINUE
+      CASE (1,-1,21,22,31)
+        ! active coordinate, nothing here, because it is a Qact coord
+        ! except if With_All_loc=.TRUE.
+        IF (With_act_loc) Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
       CASE (20,200)
         ! inactive coordinate : flexible constraints
-        Qact(i_Qact) = tab_dnQflex(i_Qdyn)%d0
+        CONTINUE
+      CASE (0,100)
+        ! inactive coordinate : rigid0 and rigid100
+        Qact(i_Qact) = ActiveTransfo%Qact0(i_Qact)
       CASE default
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) ' I do not know this variable type:',typ_var_act
@@ -698,21 +651,51 @@ IMPLICIT NONE
 
     END DO
 
-    DO i_Qact=1,ActiveTransfo%nb_var
-      CALL dealloc_dnSVM(tab_dnQflex(i_Qact))
-    END DO
-    deallocate(tab_dnQflex)
-  END IF
+    ! then the flexible coordinates
+    IF (nb_flex > 0) THEN
+      allocate(tab_dnQflex(ActiveTransfo%nb_var))
+      CALL calc_Tab_dnQflex_gene(Tab_dnQflex,ActiveTransfo%nb_var,                &
+                                 Qact(1:nb_act1),nb_act1,0,-1,                    &
+                                 ActiveTransfo%list_act_OF_Qdyn,                  &
+                                 ActiveTransfo%list_QMLMapping,                   &
+                                 QMlib=ActiveTransfo%QMlib,                       &
+                                 With_Tab_dnQflex=ActiveTransfo%With_Tab_dnQflex)
 
-  !-----------------------------------------------------------------
-  IF (debug) THEN
-    write(out_unit,*) 'Qact (all)',Qact(:)
-    write(out_unit,*) 'END ',name_sub
-    flush(out_unit)
-  END IF
-  !-----------------------------------------------------------------
+      DO i_Qact=1,size(Qact)
 
-END SUBROUTINE get_Qact
+        i_Qdyn      = ActiveTransfo%list_QactTOQdyn(i_Qact)
+        typ_var_act = ActiveTransfo%list_act_OF_Qdyn(i_Qdyn)
+
+        SELECT CASE (typ_var_act)
+        CASE (1,-1,21,22,31,0,100)
+          CONTINUE
+        CASE (20,200)
+          ! inactive coordinate : flexible constraints
+          Qact(i_Qact) = tab_dnQflex(i_Qdyn)%d0
+        CASE default
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' I do not know this variable type:',typ_var_act
+          write(out_unit,*) ' Check your data!!'
+          STOP
+        END SELECT
+
+      END DO
+
+      DO i_Qact=1,ActiveTransfo%nb_var
+        CALL dealloc_dnSVM(tab_dnQflex(i_Qact))
+      END DO
+      deallocate(tab_dnQflex)
+    END IF
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Qact (all)',Qact(:)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE get_Qact
 SUBROUTINE Adding_InactiveCoord_TO_Qact(Qact,ActiveTransfo)
 IMPLICIT NONE
 
@@ -759,104 +742,119 @@ IMPLICIT NONE
 
 END SUBROUTINE get_Qact0
 
-      SUBROUTINE Set_AllActive(dnQact)
-      IMPLICIT NONE
+  SUBROUTINE Set_AllActive(dnQact)
+    IMPLICIT NONE
 
-        TYPE (Type_dnVec), intent(inout)        :: dnQact
+    TYPE (Type_dnVec), intent(inout)        :: dnQact
 
+    integer :: i
+    real (kind=Rkind) :: Qact(dnQact%nb_var_vec)
 
-        integer :: i
-        real (kind=Rkind) :: Qact(dnQact%nb_var_vec)
+    !-----------------------------------------------------------------
+    !logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    character (len=*), parameter :: name_sub='Set_AllActive'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'dnQact'
+      CALL Write_dnSVM(dnQact)
+      write(out_unit,*)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
+    Qact(:) = dnQact%d0(:)
 
-!      -----------------------------------------------------------------
-!       logical, parameter :: debug=.TRUE.
-       logical, parameter :: debug=.FALSE.
-       character (len=*), parameter :: name_sub='Set_AllActive'
-!      -----------------------------------------------------------------
-       IF (debug) THEN
-         write(out_unit,*) 'BEGINNING ',name_sub
-         write(out_unit,*) 'dnQact'
-         CALL Write_dnSVM(dnQact)
-         write(out_unit,*)
-       END IF
-!      -----------------------------------------------------------------
+    CALL Set_ZERO_TO_dnSVM(dnQact)
 
-       Qact(:) = dnQact%d0(:)
+    IF (dnQact%nderiv > 0) THEN
+      DO i=1,dnQact%nb_var_deriv
+        dnQact%d1(i,i) = ONE
+      END DO
+    END IF
+    dnQact%d0(:) =        Qact(:)
 
-       CALL Set_ZERO_TO_dnSVM(dnQact)
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'dnQact'
+      CALL Write_dnSVM(dnQact)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
-       IF (dnQact%nderiv > 0) THEN
-         DO i=1,dnQact%nb_var_deriv
-           dnQact%d1(i,i) = ONE
-         END DO
-       END IF
-       dnQact%d0(:) =        Qact(:)
-
-!     -----------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'dnQact'
-        CALL Write_dnSVM(dnQact)
-        write(out_unit,*) 'END ',name_sub
-      END IF
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE Set_AllActive
+  END SUBROUTINE Set_AllActive
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE ActiveTransfo1TOActiveTransfo2(ActiveTransfo1,ActiveTransfo2)
+  SUBROUTINE ActiveTransfo1TOActiveTransfo2(ActiveTransfo1,ActiveTransfo2)
+    ! for the Activerix and Tnum --------------------------------------
+    TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo1
+    TYPE (Type_ActiveTransfo), intent(inout) :: ActiveTransfo2
 
-!      for the Activerix and Tnum --------------------------------------
-      TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo1
-      TYPE (Type_ActiveTransfo), intent(inout) :: ActiveTransfo2
+    !-----------------------------------------------------------------
+    !logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    character (len=*), parameter :: name_sub = 'ActiveTransfo1TOActiveTransfo2'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      CALL Write_ActiveTransfo(ActiveTransfo1)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
-      character (len=*), parameter ::                                   &
-                             name_sub = 'ActiveTransfo1TOActiveTransfo2'
+    CALL dealloc_ActiveTransfo(ActiveTransfo2)
 
-      CALL dealloc_ActiveTransfo(ActiveTransfo2)
+    ActiveTransfo2%nb_var      = ActiveTransfo1%nb_var
+    ActiveTransfo2%nb_act      = ActiveTransfo1%nb_act
+    ActiveTransfo2%nb_act1     = ActiveTransfo1%nb_act1
+    ActiveTransfo2%nb_inact2n  = ActiveTransfo1%nb_inact2n
+    ActiveTransfo2%nb_inact21  = ActiveTransfo1%nb_inact21
+    ActiveTransfo2%nb_inact22  = ActiveTransfo1%nb_inact22
+    ActiveTransfo2%nb_inact20  = ActiveTransfo1%nb_inact20
+    ActiveTransfo2%nb_inact    = ActiveTransfo1%nb_inact
+    ActiveTransfo2%nb_inact31  = ActiveTransfo1%nb_inact31
+    ActiveTransfo2%nb_rigid0   = ActiveTransfo1%nb_rigid0
+    ActiveTransfo2%nb_rigid100 = ActiveTransfo1%nb_rigid100
+    ActiveTransfo2%nb_rigid    = ActiveTransfo1%nb_rigid
 
-      ActiveTransfo2%nb_var      = ActiveTransfo1%nb_var
-      ActiveTransfo2%nb_act      = ActiveTransfo1%nb_act
-      ActiveTransfo2%nb_act1     = ActiveTransfo1%nb_act1
-      ActiveTransfo2%nb_inact2n  = ActiveTransfo1%nb_inact2n
-      ActiveTransfo2%nb_inact21  = ActiveTransfo1%nb_inact21
-      ActiveTransfo2%nb_inact22  = ActiveTransfo1%nb_inact22
-      ActiveTransfo2%nb_inact20  = ActiveTransfo1%nb_inact20
-      ActiveTransfo2%nb_inact    = ActiveTransfo1%nb_inact
-      ActiveTransfo2%nb_inact31  = ActiveTransfo1%nb_inact31
-      ActiveTransfo2%nb_rigid0   = ActiveTransfo1%nb_rigid0
-      ActiveTransfo2%nb_rigid100 = ActiveTransfo1%nb_rigid100
-      ActiveTransfo2%nb_rigid    = ActiveTransfo1%nb_rigid
-
-      ActiveTransfo2%With_Tab_dnQflex = ActiveTransfo1%With_Tab_dnQflex
-      ActiveTransfo2%QMLib            = ActiveTransfo1%QMLib
+    ActiveTransfo2%With_Tab_dnQflex = ActiveTransfo1%With_Tab_dnQflex
+    ActiveTransfo2%QMLib            = ActiveTransfo1%QMLib
 
 
-      CALL alloc_ActiveTransfo(ActiveTransfo2,ActiveTransfo1%nb_var)
+    CALL alloc_ActiveTransfo(ActiveTransfo2,ActiveTransfo1%nb_var)
 
-      IF (associated(ActiveTransfo1%list_act_OF_Qdyn))                  &
-        ActiveTransfo2%list_act_OF_Qdyn(:)  = ActiveTransfo1%list_act_OF_Qdyn(:)
+    IF (associated(ActiveTransfo1%list_act_OF_Qdyn))                  &
+      ActiveTransfo2%list_act_OF_Qdyn(:)  = ActiveTransfo1%list_act_OF_Qdyn(:)
 
-      IF (associated(ActiveTransfo1%list_QactTOQdyn))                   &
+    IF (associated(ActiveTransfo1%list_QactTOQdyn))                   &
         ActiveTransfo2%list_QactTOQdyn(:)   = ActiveTransfo1%list_QactTOQdyn(:)
 
-      IF (associated(ActiveTransfo1%list_QdynTOQact))                   &
+    IF (associated(ActiveTransfo1%list_QdynTOQact))                   &
         ActiveTransfo2%list_QdynTOQact(:)   = ActiveTransfo1%list_QdynTOQact(:)
 
-      IF (associated(ActiveTransfo1%Qdyn0))                             &
+    IF (allocated(ActiveTransfo1%Qdyn0))                             &
         ActiveTransfo2%Qdyn0(:)   = ActiveTransfo1%Qdyn0(:)
 
-      IF (associated(ActiveTransfo1%Qact0))                              &
+    IF (allocated(ActiveTransfo1%Qact0))                              &
         ActiveTransfo2%Qact0(:)   = ActiveTransfo1%Qact0(:)
 
-      ActiveTransfo2%list_QMLMapping  = ActiveTransfo1%list_QMLMapping
+    ActiveTransfo2%list_QMLMapping  = ActiveTransfo1%list_QMLMapping
 
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      CALL Write_ActiveTransfo(ActiveTransfo2)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
 
-!     write(out_unit,*) 'END ActiveTransfo1TOActiveTransfo2'
-
-      END SUBROUTINE ActiveTransfo1TOActiveTransfo2
+  END SUBROUTINE ActiveTransfo1TOActiveTransfo2
 
 !
 !=====================================================================
@@ -866,123 +864,123 @@ END SUBROUTINE get_Qact0
 !
 !=====================================================================
 !
-      SUBROUTINE Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
-      IMPLICIT NONE
+  SUBROUTINE Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
+    IMPLICIT NONE
 
+    real (kind=Rkind), intent(in)         :: Qact(:)
+    real (kind=Rkind), intent(inout)      :: Qdyn(:)
+    TYPE (Type_ActiveTransfo), intent(in) :: ActiveTransfo
 
-      real (kind=Rkind), intent(in)         :: Qact(:)
-      real (kind=Rkind), intent(inout)      :: Qdyn(:)
+    integer :: iQact,iQdyn
 
-      TYPE (Type_ActiveTransfo), intent(in) :: ActiveTransfo
+    !---------------------------------------------------------------------
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING Qact_TO_Qdyn_FROM_ActiveTransfo'
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'size Qact',size(Qact)
+      write(out_unit,*) 'size Qdyn',size(Qdyn)
+      write(out_unit,*) 'size list_QdynTOQact',size(ActiveTransfo%list_QdynTOQact)
+      flush(out_unit)
+    END IF
+    !--------------------------------------------------------------------
 
+    Qdyn(:) = ZERO
+    DO iQact=1,size(Qact)
+      iQdyn = ActiveTransfo%list_QactTOQdyn(iQact)
+      Qdyn(iQdyn) = Qact(iQact)
+    END DO
 
-      integer :: iQact,iQdyn
-!---------------------------------------------------------------------
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'BEGINNING Qact_TO_Qdyn_FROM_ActiveTransfo'
-        write(out_unit,*) 'Qact',Qact
-        write(out_unit,*) 'size Qact',size(Qact)
-        write(out_unit,*) 'size Qdyn',size(Qdyn)
-        write(out_unit,*) 'size list_QdynTOQact',size(ActiveTransfo%list_QdynTOQact)
-        flush(out_unit)
-      END IF
-!---------------------------------------------------------------------
-      Qdyn(:) = ZERO
-      DO iQact=1,size(Qact)
-        iQdyn = ActiveTransfo%list_QactTOQdyn(iQact)
-        Qdyn(iQdyn) = Qact(iQact)
-      END DO
+    !--------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Qdyn',Qdyn
+      write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
+      flush(out_unit)
+    END IF
+    !--------------------------------------------------------------------
 
-      !Qdyn(:) = Qact(ActiveTransfo%list_QdynTOQact)
+  END SUBROUTINE Qact_TO_Qdyn_FROM_ActiveTransfo
 
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'Qdyn',Qdyn
-        write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
-        flush(out_unit)
-      END IF
-!---------------------------------------------------------------------
+  SUBROUTINE Qdyn_TO_Qact_FROM_ActiveTransfo(Qdyn,Qact,ActiveTransfo)
+    IMPLICIT NONE
 
-      END SUBROUTINE Qact_TO_Qdyn_FROM_ActiveTransfo
-      SUBROUTINE Qdyn_TO_Qact_FROM_ActiveTransfo(Qdyn,Qact,ActiveTransfo)
-      IMPLICIT NONE
+    real (kind=Rkind), intent(in)         :: Qdyn(:)
+    real (kind=Rkind), intent(inout)      :: Qact(:)
+    TYPE (Type_ActiveTransfo), intent(in) :: ActiveTransfo
 
-      real (kind=Rkind), intent(in)         :: Qdyn(:)
-      real (kind=Rkind), intent(inout)      :: Qact(:)
+    !---------------------------------------------------------------------
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING Qdyn_TO_Qact_FROM_ActiveTransfo'
+      write(out_unit,*) 'Qdyn',Qdyn
+      flush(out_unit)
+    END IF
+    !---------------------------------------------------------------------
 
-      TYPE (Type_ActiveTransfo), intent(in) :: ActiveTransfo
+    Qact(:) = Qdyn(ActiveTransfo%list_QactTOQdyn(1:size(Qact)))
 
-!---------------------------------------------------------------------
-      logical, parameter :: debug = .FALSE.
-!     logical, parameter :: debug = .TRUE.
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'BEGINNING Qdyn_TO_Qact_FROM_ActiveTransfo'
-        write(out_unit,*) 'Qdyn',Qdyn
-      END IF
-!---------------------------------------------------------------------
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
+      flush(out_unit)
+    END IF
+    !---------------------------------------------------------------------
 
-      Qact(:) = Qdyn(ActiveTransfo%list_QactTOQdyn(1:size(Qact)))
+  END SUBROUTINE Qdyn_TO_Qact_FROM_ActiveTransfo
+  SUBROUTINE Qinact2n_TO_Qact_FROM_ActiveTransfo(Qinact2n,Qact,ActiveTransfo)
+    IMPLICIT NONE
 
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'Qact',Qact
-        write(out_unit,*) 'END Qact_TO_Qdyn_FROM_ActiveTransfo'
-      END IF
-!---------------------------------------------------------------------
+    real (kind=Rkind),         intent(inout) :: Qinact2n(:)
+    real (kind=Rkind),         intent(inout) :: Qact(:)
+    TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo
 
-      END SUBROUTINE Qdyn_TO_Qact_FROM_ActiveTransfo
-      SUBROUTINE Qinact2n_TO_Qact_FROM_ActiveTransfo(Qinact2n,Qact,ActiveTransfo)
-      IMPLICIT NONE
+    integer i_Qact,i_Qdyn,i_Q2n
 
+    !---------------------------------------------------------------------
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING Qinact2n_TO_Qact_FROM_ActiveTransfo'
+      write(out_unit,*) 'Qinact2n',Qinact2n
+      write(out_unit,*) 'Qact',Qact
+      flush(out_unit)
+    END IF
+    !---------------------------------------------------------------------
 
-      real (kind=Rkind), intent(inout) :: Qinact2n(:)
-      real (kind=Rkind), intent(inout) :: Qact(:)
+    ! we use Qdyn order
+    i_Q2n = 0
+    DO i_Qdyn=1,ActiveTransfo%nb_var
+      IF (ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 21 .OR.           &
+          ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 22 .OR.           &
+          ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 31 ) THEN
 
-      TYPE (Type_ActiveTransfo), intent(in)   :: ActiveTransfo
+        i_Q2n  = i_Q2n + 1
+        i_Qact = ActiveTransfo%list_QdynTOQact(i_Qdyn)
 
-      integer i_Qact,i_Qdyn,i_Q2n
-!---------------------------------------------------------------------
-      logical, parameter :: debug = .FALSE.
-!     logical, parameter :: debug = .TRUE.
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'BEGINNING Qinact2n_TO_Qact_FROM_ActiveTransfo'
-        write(out_unit,*) 'Qinact2n',Qinact2n
-        write(out_unit,*) 'Qact',Qact
-      END IF
-!---------------------------------------------------------------------
-
-      ! we use Qdyn order because
-      i_Q2n = 0
-      DO i_Qdyn=1,ActiveTransfo%nb_var
-        IF (ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 21 .OR.           &
-            ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 22 .OR.           &
-            ActiveTransfo%list_act_OF_Qdyn(i_Qdyn) == 31 ) THEN
-
-          i_Q2n  = i_Q2n + 1
-          i_Qact = ActiveTransfo%list_QdynTOQact(i_Qdyn)
-
-          IF (i_Q2n > size(Qinact2n)) THEN
-            write(out_unit,*) ' ERROR Qinact2n_TO_Qact_FROM_ActiveTransfo'
-            write(out_unit,*) ' i_Q2n > size(Qinact2n)',i_Q2n,size(Qinact2n)
-            STOP
-          END IF
-          Qact(i_Qact) = Qinact2n(i_Q2n)
-
+        IF (i_Q2n > size(Qinact2n)) THEN
+          write(out_unit,*) ' ERROR Qinact2n_TO_Qact_FROM_ActiveTransfo'
+          write(out_unit,*) ' i_Q2n > size(Qinact2n)',i_Q2n,size(Qinact2n)
+          STOP
         END IF
-      END DO
+        Qact(i_Qact) = Qinact2n(i_Q2n)
 
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'Qact',Qact
-        write(out_unit,*) 'END Qinact2n_TO_Qact_FROM_ActiveTransfo'
       END IF
-!---------------------------------------------------------------------
+    END DO
 
-      END SUBROUTINE Qinact2n_TO_Qact_FROM_ActiveTransfo
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'Qact',Qact
+      write(out_unit,*) 'END Qinact2n_TO_Qact_FROM_ActiveTransfo'
+      flush(out_unit)
+    END IF
+   !---------------------------------------------------------------------
+
+  END SUBROUTINE Qinact2n_TO_Qact_FROM_ActiveTransfo
 
 END MODULE mod_ActiveTransfo

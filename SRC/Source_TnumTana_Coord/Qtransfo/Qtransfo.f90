@@ -1679,7 +1679,11 @@ MODULE mod_Qtransfo
                                Qtransfo%FlexibleTransfo%list_flex(:)
 
         CASE ('active')
-          CALL Write_ActiveTransfo(Qtransfo%ActiveTransfo)
+          IF (associated(Qtransfo%ActiveTransfo)) THEN 
+            CALL Write_ActiveTransfo(Qtransfo%ActiveTransfo)
+          ELSE
+            write(out_unit,*) 'Qtransfo%ActiveTransfo is not associated'
+          END IF
 
         CASE ('zmat')
           CALL Write_ZmatTransfo(Qtransfo%ZmatTransfo)
