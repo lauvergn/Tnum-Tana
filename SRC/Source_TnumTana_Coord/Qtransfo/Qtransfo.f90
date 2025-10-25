@@ -103,7 +103,7 @@ MODULE mod_Qtransfo
                                                                       ! except for the first transfo
           character (len=Name_len),     pointer :: name_Qin(:)  => null()
           character (len=Name_len),     pointer :: name_Qout(:) => null() ! true pointer (will point to the previous name_Qin)
-                                                                      ! except for the first transfo
+                                                                          ! except for the first transfo
 
         END TYPE Type_Qtransfo
 
@@ -159,7 +159,6 @@ MODULE mod_Qtransfo
 
         logical :: with_vectors,not_all
         integer :: i,it,i_Q,iF_inout,iat,iQin,iQout,nb_read,nb_Qdef
-        !integer :: nb_ExtraLFSF,nend
         real (kind=Rkind) ::  at
         real (kind=Rkind), pointer ::  M_mass(:,:)
         character (len=Name_len), pointer :: name_at(:)

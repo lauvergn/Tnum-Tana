@@ -1790,6 +1790,13 @@ MODULE mod_Tnum
 
 
       ! the 6 tables are true pointers
+      IF (.NOT. associated(mole1%ActiveTransfo)) &
+        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo is not associated'
+      IF (.NOT. associated(mole1%ActiveTransfo%list_QactTOQdyn)) &
+        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo%list_QactTOQdyn is not associated'
+      IF (.NOT. associated(mole1%ActiveTransfo%list_QdynTOQact)) &
+        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo%list_QdynTOQact is not associated'
+
       mole1%liste_QactTOQsym => mole1%ActiveTransfo%list_QactTOQdyn
       mole1%liste_QactTOQdyn => mole1%ActiveTransfo%list_QactTOQdyn
       mole1%liste_QsymTOQact => mole1%ActiveTransfo%list_QdynTOQact
