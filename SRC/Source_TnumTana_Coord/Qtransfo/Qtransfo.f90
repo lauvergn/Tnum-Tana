@@ -1127,10 +1127,10 @@ MODULE mod_Qtransfo
         IF (associated(Qtransfo1%LinearTransfo%mat)) THEN
           n = size(Qtransfo1%LinearTransfo%mat,dim=1)
           CALL alloc_LinearTransfo(Qtransfo2%LinearTransfo,n)
-          Qtransfo2%LinearTransfo%mat = Qtransfo1%LinearTransfo%mat
-          Qtransfo2%LinearTransfo%mat_inv = Qtransfo1%LinearTransfo%mat_inv
-          Qtransfo2%LinearTransfo%inv = Qtransfo1%LinearTransfo%inv
-          Qtransfo2%LinearTransfo%transp  = Qtransfo1%LinearTransfo%transp
+          Qtransfo2%LinearTransfo%mat                 = Qtransfo1%LinearTransfo%mat
+          Qtransfo2%LinearTransfo%mat_inv             = Qtransfo1%LinearTransfo%mat_inv
+          Qtransfo2%LinearTransfo%inv                 = Qtransfo1%LinearTransfo%inv
+          Qtransfo2%LinearTransfo%transp              = Qtransfo1%LinearTransfo%transp
           Qtransfo2%LinearTransfo%check_LinearTransfo = Qtransfo1%LinearTransfo%check_LinearTransfo
         END IF
         IF (associated(Qtransfo1%NMTransfo)) THEN

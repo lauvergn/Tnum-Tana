@@ -140,8 +140,6 @@ MODULE mod_Tnum
           integer                          :: nb_elec      = -1      ! here it is the number of electrons
 
           integer,                 pointer :: Z(:)         => null() ! true pointer
-          character (len=Name_len),pointer :: name_Qdyn(:) => null() ! true pointer
-          character (len=Name_len),pointer :: name_Qact(:) => null() ! true pointer
           character (len=Name_len),pointer :: symbole(:)   => null() ! true pointer
 
           logical                          :: cos_th       = .FALSE.  ! T => coordinate (valence angle) => cos(th)
@@ -527,8 +525,6 @@ MODULE mod_Tnum
         mole%multiplicity = -1
         mole%nb_elec      = -1
 
-        nullify(mole%name_Qdyn) ! true pointer
-        nullify(mole%name_Qact) ! true pointer
         nullify(mole%Z)         ! true pointer
         nullify(mole%symbole)   ! true pointer
         nullify(mole%masses)    ! true pointer
@@ -1141,8 +1137,6 @@ MODULE mod_Tnum
         mole%liste_QsymTOQact => mole%ActiveTransfo%list_QdynTOQact
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
-        mole%name_Qdyn        => mole%tab_Qtransfo(nb_Qtransfo)%name_Qout
-
         CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
         CALL alloc_array(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
@@ -1165,8 +1159,6 @@ MODULE mod_Tnum
           write(out_unit,*) ' RPHTransfo and type 21 or 22 coordinates are not compatible anymore'
           STOP
         END IF
-
-        mole%name_Qact => mole%tab_Qtransfo(nb_Qtransfo)%name_Qin
 
         IF (mole%nb_act < 1) THEN
            write(out_unit,*) ' ERROR in ',name_sub
@@ -1401,8 +1393,6 @@ MODULE mod_Tnum
         mole%liste_QsymTOQact => mole%ActiveTransfo%list_QdynTOQact
         mole%liste_QdynTOQact => mole%ActiveTransfo%list_QdynTOQact
 
-        mole%name_Qdyn        => mole%tab_Qtransfo(it)%name_Qout
-
         CALL alloc_array(mole%nrho_OF_Qact,[mole%nb_var],             &
                         "mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
@@ -1412,7 +1402,6 @@ MODULE mod_Tnum
         mole%nrho_OF_Qdyn(:) = 0
 
         CALL type_var_analysis_OF_CoordType(mole)
-        mole%name_Qact        => mole%tab_Qtransfo(it)%name_Qin
 
         flush(out_unit)
 
@@ -1447,14 +1436,10 @@ MODULE mod_Tnum
 
         mole%ActiveTransfo%list_QactTOQdyn(:) = 1
 
-        IF (.NOT. associated(mole%name_Qdyn)) THEN
-          CALL alloc_array(mole%name_Qdyn,[nb_var],"mole%name_Qdyn",name_sub)
-        END IF
-
         DO i=1,nb_var
           mole%ActiveTransfo%list_QactTOQdyn(i) = i
           mole%ActiveTransfo%list_QdynTOQact(i) = i
-          CALL make_nameQ(mole%name_Qdyn(i),'Qf2ana',i,0)
+          CALL make_nameQ(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout(i),'Qf2ana',i,0)
         END DO
 
         write(out_unit,*) '================================================='
@@ -1801,9 +1786,6 @@ MODULE mod_Tnum
       mole1%liste_QactTOQdyn => mole1%ActiveTransfo%list_QactTOQdyn
       mole1%liste_QsymTOQact => mole1%ActiveTransfo%list_QdynTOQact
       mole1%liste_QdynTOQact => mole1%ActiveTransfo%list_QdynTOQact
-
-      mole1%name_Qact        => mole1%tab_Qtransfo(mole1%nb_Qtransfo)%name_Qin
-      mole1%name_Qdyn        => mole1%tab_Qtransfo(mole1%nb_Qtransfo)%name_Qout
 
       CALL alloc_array(mole1%nrho_OF_Qact,[mole1%nb_var],             &
                       "mole1%nrho_OF_Qact",name_sub)

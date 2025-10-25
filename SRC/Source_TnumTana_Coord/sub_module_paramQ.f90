@@ -145,11 +145,11 @@ CONTAINS
 
     write(out_unit,*) 'BEGINNING ',name_sub
 
-    IF (.NOT. associated(mole%name_Qdyn))  THEN
+    IF (.NOT. associated(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout))  THEN
       write(out_unit,*) ' ERROR in ',name_sub
-      write(out_unit,*) ' mole%name_Qdyn is not associated in mole!!'
+      write(out_unit,*) ' mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not associated in mole!!'
       write(out_unit,*) ' Check the source !'
-      STOP 'ERROR in read_RefGeom. Fortran error: mole%name_Qdyn is not associated'
+      STOP 'ERROR in read_RefGeom. Fortran error: mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not associated'
     END IF
 
     IF (print_level > 1) THEN

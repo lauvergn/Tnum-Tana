@@ -792,7 +792,6 @@
     logical, allocatable                       :: l_qJ(:)
     logical, allocatable                       :: l_Jz(:)
     logical, allocatable                       :: l_Jy(:)
-    integer, allocatable                       :: list(:)
     logical                                    :: l_qact
     logical                                    :: op_JiJj
 
@@ -832,7 +831,6 @@
      allocate(l_qJ(ndim_sum))
      allocate(l_Jz(ndim_sum))
      allocate(l_Jy(ndim_sum))
-     allocate(list(size(mole%name_Qdyn)))
     l_op_out = .true.
     l_qJ = .false.
     l_JJ = .false.
@@ -1046,7 +1044,6 @@
      deallocate(l_op_out)
      deallocate(l_JJ)
      deallocate(l_qJ)
-     deallocate(list)
      CALL delete_op(TWOxKEO_MCTDH)
 
      IF (debug) THEN

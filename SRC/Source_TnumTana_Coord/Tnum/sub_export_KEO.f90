@@ -128,7 +128,7 @@ MODULE mod_export_KEO
       write(out_unit,'(a)') 'HAMILTONIAN-SECTION'
       write(out_unit,'(a)',advance='no') 'modes  '
       DO i=1,mole%nb_act
-        write(out_unit,'(2a)',advance='no') ' | ',trim(mole%name_Qact(i))
+        write(out_unit,'(2a)',advance='no') ' | ',trim(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(i))
       END DO
       write(out_unit,'(a)',advance='yes')
       write(out_unit,'(a)') '-----------------------------------------------'
@@ -268,7 +268,7 @@ MODULE mod_export_KEO
         IF (label) THEN
         write(out_unit,'(a)') '-------------------------------------------------'
           write(out_unit,'(2a)') '# G : 1D-grid along ',                       &
-                            trim(adjustl(mole%name_Qact(iQact)))
+                            trim(adjustl(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(iQact)))
         write(out_unit,'(a)') '-------------------------------------------------'
           DO i=1,mole%nb_act1
           DO j=i,mole%nb_act1
@@ -282,7 +282,7 @@ MODULE mod_export_KEO
             IF (val > epsi_MCTDH*ONETENTH) THEN
 !           write(out_unit,'(a,2(i4,x),e10.4)') '# crit: ',i,j,val
 
-              name_file = 'G' // trim(adjustl(mole%name_Qact(iQact))) //&
+              name_file = 'G' // trim(adjustl(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(iQact))) //&
                       '_' // TO_string(i) // '_' // TO_string(j)
               write(out_unit,*) trim(adjustl(name_file)),              &
                       ' = read1d{',trim(adjustl(name_file)),' ascii}'
@@ -301,7 +301,7 @@ MODULE mod_export_KEO
 
           write(out_unit,'(a)') '-------------------------------------------------'
           write(out_unit,'(2a)') '# G : 1D-grid along ',                       &
-                            trim(adjustl(mole%name_Qact(iQact)))
+                            trim(adjustl(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(iQact)))
           write(out_unit,'(a)') '-------------------------------------------------'
           DO i=1,mole%nb_act1
           DO j=i,mole%nb_act1
@@ -314,7 +314,7 @@ MODULE mod_export_KEO
 
             IF (val > epsi_MCTDH*ONETENTH) THEN
 
-              name_file = 'G' // trim(adjustl(mole%name_Qact(iQact))) //&
+              name_file = 'G' // trim(adjustl(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qin(iQact))) //&
                           '_' // TO_string(i) // '_' // TO_string(j)
 
               IF (i == j) THEN
