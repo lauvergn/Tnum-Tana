@@ -1625,8 +1625,8 @@ MODULE mod_Tnum
     USE mod_Qtransfo,         ONLY : set_name_Qtransfo,get_name_Qtransfo
 
     ! for the CoordType and Tnum --------------------------------------
-    CLASS (CoordType), intent(inout) :: mole1
-    TYPE (CoordType),  intent(in)    :: mole2
+    CLASS (CoordType), intent(inout), target :: mole1
+    TYPE (CoordType),  intent(in)            :: mole2
 
     integer :: it
 
@@ -1763,9 +1763,9 @@ MODULE mod_Tnum
       ! the 2 tables are true pointers
       IF (.NOT. associated(mole1%ActiveTransfo)) &
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo is not associated'
-      IF (.NOT. associated(mole1%ActiveTransfo%list_QactTOQdyn)) &
+      IF (.NOT. allocated(mole1%ActiveTransfo%list_QactTOQdyn)) &
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo%list_QactTOQdyn is not associated'
-      IF (.NOT. associated(mole1%ActiveTransfo%list_QdynTOQact)) &
+      IF (.NOT. allocated(mole1%ActiveTransfo%list_QdynTOQact)) &
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%ActiveTransfo%list_QdynTOQact is not associated'
 
       mole1%liste_QactTOQdyn => mole1%ActiveTransfo%list_QactTOQdyn

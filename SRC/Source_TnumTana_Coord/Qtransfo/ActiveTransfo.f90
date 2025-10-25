@@ -66,11 +66,9 @@ MODULE mod_ActiveTransfo
           real (kind=Rkind), allocatable :: Qdyn0(:)            ! value of rigid coordinates (Qdyn order)
           real (kind=Rkind), allocatable :: Qact0(:)            ! value of rigid coordinates (Qact order)
           integer,           allocatable :: list_act_OF_Qdyn(:) ! "active" transfo
-          integer,           pointer     :: list_QactTOQdyn(:)  => null() ! "active" transfo
-          integer,           pointer     :: list_QdynTOQact(:)  => null() ! "active" transfo
-
-          integer, allocatable :: list_QMLMapping(:) ! mapping ifunc of QML and list_act_OF_Qdyn
-
+          integer,           allocatable :: list_QactTOQdyn(:)  ! "active" transfo
+          integer,           allocatable :: list_QdynTOQact(:)  ! "active" transfo
+          integer,           allocatable :: list_QMLMapping(:)  ! mapping ifunc of QML and list_act_OF_Qdyn
 
       END TYPE Type_ActiveTransfo
 
@@ -118,9 +116,9 @@ MODULE mod_ActiveTransfo
 
       CALL alloc_NParray(ActiveTransfo%list_act_OF_Qdyn,[nb_var],"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       ActiveTransfo%list_act_OF_Qdyn(:) = 0
-      CALL alloc_array(ActiveTransfo%list_QactTOQdyn,[nb_var],"ActiveTransfo%list_QactTOQdyn",name_sub)
+      CALL alloc_NParray(ActiveTransfo%list_QactTOQdyn,[nb_var],"ActiveTransfo%list_QactTOQdyn",name_sub)
       ActiveTransfo%list_QactTOQdyn(:) = 0
-      CALL alloc_array(ActiveTransfo%list_QdynTOQact,[nb_var],"ActiveTransfo%list_QdynTOQact",name_sub)
+      CALL alloc_NParray(ActiveTransfo%list_QdynTOQact,[nb_var],"ActiveTransfo%list_QdynTOQact",name_sub)
       ActiveTransfo%list_QdynTOQact(:) = 0
 
       CALL alloc_NParray(ActiveTransfo%Qdyn0,[nb_var],"ActiveTransfo%Qdyn0",name_sub)
@@ -147,11 +145,11 @@ MODULE mod_ActiveTransfo
       IF (allocated(ActiveTransfo%list_act_OF_Qdyn)) THEN
         CALL dealloc_NParray(ActiveTransfo%list_act_OF_Qdyn,"ActiveTransfo%list_act_OF_Qdyn",name_sub)
       END IF
-      IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
-        CALL dealloc_array(ActiveTransfo%list_QactTOQdyn,"ActiveTransfo%list_QactTOQdyn",name_sub)
+      IF (allocated(ActiveTransfo%list_QactTOQdyn)) THEN
+        CALL dealloc_NParray(ActiveTransfo%list_QactTOQdyn,"ActiveTransfo%list_QactTOQdyn",name_sub)
       END IF
-      IF (associated(ActiveTransfo%list_QdynTOQact)) THEN
-        CALL dealloc_array(ActiveTransfo%list_QdynTOQact,"ActiveTransfo%list_QdynTOQact",name_sub)
+      IF (allocated(ActiveTransfo%list_QdynTOQact)) THEN
+        CALL dealloc_NParray(ActiveTransfo%list_QdynTOQact,"ActiveTransfo%list_QdynTOQact",name_sub)
       END IF
 
       IF (allocated(ActiveTransfo%Qdyn0))  THEN
@@ -404,16 +402,16 @@ MODULE mod_ActiveTransfo
           write(out_unit,*) 'allocated list_act_OF_Qdyn?   F'
         END IF
 
-        IF (associated(ActiveTransfo%list_QactTOQdyn)) THEN
+        IF (allocated(ActiveTransfo%list_QactTOQdyn)) THEN
           write(out_unit,*) 'list_QactTOQdyn: ',ActiveTransfo%list_QactTOQdyn(:)
         ELSE
-          write(out_unit,*) 'asso list_QactTOQdyn?   F'
+          write(out_unit,*) 'allocated list_QactTOQdyn?   F'
         END IF
 
-        IF (associated(ActiveTransfo%list_QdynTOQact)) THEN
+        IF (allocated(ActiveTransfo%list_QdynTOQact)) THEN
           write(out_unit,*) 'list_QdynTOQact: ',ActiveTransfo%list_QdynTOQact(:)
         ELSE
-          write(out_unit,*) 'asso list_QdynTOQact?   F'
+          write(out_unit,*) 'allocated list_QdynTOQact?   F'
         END IF
 
         IF (allocated(ActiveTransfo%Qdyn0)) THEN
@@ -434,10 +432,8 @@ MODULE mod_ActiveTransfo
         ELSE
           write(out_unit,*) 'allocated list_QMLMapping?   F'
         END IF
-
-
       END IF
-      write(out_unit,*) 'END ',name_sub
+      IF(MPI_id==0) write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE Write_ActiveTransfo
 
@@ -830,10 +826,10 @@ END SUBROUTINE get_Qact0
     IF (allocated(ActiveTransfo1%list_act_OF_Qdyn))                  &
       ActiveTransfo2%list_act_OF_Qdyn(:)  = ActiveTransfo1%list_act_OF_Qdyn(:)
 
-    IF (associated(ActiveTransfo1%list_QactTOQdyn))                   &
+    IF (allocated(ActiveTransfo1%list_QactTOQdyn))                   &
         ActiveTransfo2%list_QactTOQdyn(:)   = ActiveTransfo1%list_QactTOQdyn(:)
 
-    IF (associated(ActiveTransfo1%list_QdynTOQact))                   &
+    IF (allocated(ActiveTransfo1%list_QdynTOQact))                   &
         ActiveTransfo2%list_QdynTOQact(:)   = ActiveTransfo1%list_QdynTOQact(:)
 
     IF (allocated(ActiveTransfo1%Qdyn0))                             &
@@ -842,7 +838,8 @@ END SUBROUTINE get_Qact0
     IF (allocated(ActiveTransfo1%Qact0))                              &
         ActiveTransfo2%Qact0(:)   = ActiveTransfo1%Qact0(:)
 
-    ActiveTransfo2%list_QMLMapping  = ActiveTransfo1%list_QMLMapping
+    IF (allocated(ActiveTransfo1%list_QMLMapping))                    &
+      ActiveTransfo2%list_QMLMapping  = ActiveTransfo1%list_QMLMapping
 
     !-----------------------------------------------------------------
     IF (debug) THEN
