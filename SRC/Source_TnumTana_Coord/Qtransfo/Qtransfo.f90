@@ -48,7 +48,6 @@ MODULE mod_Qtransfo
       USE mod_FlexibleTransfo
       USE mod_HyperSpheTransfo
       USE mod_LinearNMTransfo
-      USE mod_ProjectTransfo
       USE mod_RPHTransfo
       USE mod_RPHQMLTransfo
       USE mod_ActiveTransfo
@@ -84,7 +83,6 @@ MODULE mod_Qtransfo
           TYPE (Type_LinearTransfo)         :: LinearTransfo
           TYPE (Type_FlexibleTransfo)       :: FlexibleTransfo
 
-          TYPE (Type_ProjectTransfo),   pointer :: ProjectTransfo      => null()
           TYPE (Type_oneDTransfo),      pointer :: oneDTransfo(:)      => null()
           TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
           TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
@@ -421,13 +419,6 @@ MODULE mod_Qtransfo
           CALL Read_RPHQMLTransfo(Qtransfo%RPHQMLTransfo,nb_Qin,Qtransfo%opt_transfo)
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPHQML")  ! here type_Qin(:) = 0. It is OK
-
-        CASE ('project')
-          Tana_Is_Possible = .FALSE.
-          Qtransfo%nb_Qin  = nb_Qin
-          CALL Read_ProjectTransfo(Qtransfo%ProjectTransfo,nb_Qin,Qtransfo%opt_transfo)
-
-          CALL sub_Type_Name_OF_Qin(Qtransfo,"QProject")  ! here type_Qin(:) = 0. It is OK
 
         CASE ('hyperspherical')
           Tana_Is_Possible = .FALSE.
@@ -893,11 +884,6 @@ MODULE mod_Qtransfo
           CALL dealloc_array(Qtransfo%NMTransfo,'Qtransfo%NMTransfo',name_sub)
         END IF
 
-        ! ==== ProjectTransfo ========================
-        IF (associated(Qtransfo%ProjectTransfo)) THEN
-          CALL dealloc_ProjectTransfo(Qtransfo%ProjectTransfo)
-        END IF
-
         ! ==== FlexibleTransfo ========================
         CALL dealloc_FlexibleTransfo(Qtransfo%FlexibleTransfo)
 
@@ -1153,13 +1139,6 @@ MODULE mod_Qtransfo
           CALL RPHQMLTransfo1TORPHQMLTransfo2(Qtransfo1%RPHQMLTransfo,Qtransfo2%RPHQMLTransfo)
         END IF
 
-      CASE ('project')
-        IF (associated(Qtransfo1%ProjectTransfo)) THEN
-          allocate(Qtransfo2%ProjectTransfo)
-          CALL ProjectTransfo1TOProjectTransfo2(Qtransfo1%ProjectTransfo,       &
-                                                Qtransfo2%ProjectTransfo)
-        END IF
-
       CASE ('hyperspherical')
         Qtransfo2%HyperSpheTransfo%nb_HyperSphe =                       &
                          Qtransfo1%HyperSpheTransfo%nb_HyperSphe
@@ -1372,9 +1351,6 @@ MODULE mod_Qtransfo
             CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
           END IF
         END IF
-
-      CASE ('project')
-        CALL calc_ProjectTransfo(dnQin,dnQout,Qtransfo%ProjectTransfo,nderiv,inTOout_loc)
 
       CASE ('hyperspherical')
         CALL calc_HyperSpheTransfo(dnQin,dnQout,Qtransfo%HyperSpheTransfo,nderiv,inTOout_loc)
@@ -1640,11 +1616,6 @@ MODULE mod_Qtransfo
         CASE ('rph_qml')
           IF (associated(Qtransfo%RPHQMLTransfo)) THEN
             CALL Write_RPHQMLTransfo(Qtransfo%RPHQMLTransfo)
-          END IF
-
-        CASE ('project')
-          IF (associated(Qtransfo%ProjectTransfo)) THEN
-            CALL Write_ProjectTransfo(Qtransfo%ProjectTransfo)
           END IF
 
         CASE ('hyperspherical')

@@ -21,7 +21,6 @@ twodtransfo_m := $(OBJ_DIR)/TwoDTransfo.o
 mod_rectilinearnm_transfo := $(OBJ_DIR)/RectilinearNM_Transfo.o
 mod_lib_qtransfo := $(OBJ_DIR)/Lib_QTransfo.o
 mod_hypersphetransfo := $(OBJ_DIR)/HyperSpheTransfo.o
-mod_projecttransfo := $(OBJ_DIR)/ProjectTransfo.o
 mod_flexibletransfo := $(OBJ_DIR)/FlexibleTransfo.o
 mod_activetransfo := $(OBJ_DIR)/ActiveTransfo.o
 rot2coordtransfo_m := $(OBJ_DIR)/Rot2CoordTransfo.o
@@ -129,7 +128,8 @@ $(OBJ_DIR)/sub_module_paramQ.o : \
           $(mod_cartesiantransfo) \
           $(mod_qtransfo) \
           $(mod_tnum) \
-          $(mod_constant)
+          $(mod_constant) \
+          $(addnsvm_m)
 #file+mod_name: SRC/Source_TnumTana_Coord/TnumTana_system_m.f90 tnumtana_system_m
 $(OBJ_DIR)/TnumTana_system_m.o : \
           $(qdutil_m) \
@@ -155,7 +155,6 @@ $(OBJ_DIR)/Qtransfo.o : \
           $(mod_flexibletransfo) \
           $(mod_hypersphetransfo) \
           $(mod_linearnmtransfo) \
-          $(mod_projecttransfo) \
           $(mod_rphtransfo) \
           $(mod_rphqmltransfo) \
           $(mod_activetransfo) \
@@ -207,10 +206,6 @@ $(OBJ_DIR)/Lib_QTransfo.o : \
           $(model_m)
 #file+mod_name: SRC/Source_TnumTana_Coord/Qtransfo/HyperSpheTransfo.f90 mod_hypersphetransfo
 $(OBJ_DIR)/HyperSpheTransfo.o : \
-          $(tnumtana_system_m) \
-          $(mod_dnsvm)
-#file+mod_name: SRC/Source_TnumTana_Coord/Qtransfo/ProjectTransfo.f90 mod_projecttransfo
-$(OBJ_DIR)/ProjectTransfo.o : \
           $(tnumtana_system_m) \
           $(mod_dnsvm)
 #file+mod_name: SRC/Source_TnumTana_Coord/Qtransfo/FlexibleTransfo.f90 mod_flexibletransfo
