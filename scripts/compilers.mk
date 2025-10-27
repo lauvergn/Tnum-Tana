@@ -76,7 +76,7 @@ ifeq ($(FFC),$(filter $(FFC),ifort ifx))
   # where to store the modules
   FFLAGS +=-module $(MOD_DIR)
 
-  # where to look .mod files (add -I$(MOD_DIR) for nagfor)
+  # where to look .mod files
   FFLAGS += -I$(MOD_DIR) $(EXTMod)
 
   # omp management

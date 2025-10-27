@@ -17,13 +17,6 @@ $DIR_EVRT/Tnum90.exe << ** > res
      -1           0.996639173           1.153113648           1.437531625
      -1           0.061715244           0.963595185           1.737531625
 
-RHH 1. angs
-alpha  0.2
-ubeta  0.3
-xCOM   1.
-yCOM   2.
-zCOM   3.
-
  &calculation calc_Tnum=f calc_gG=t test=t nderivGg=0 /
 **
 

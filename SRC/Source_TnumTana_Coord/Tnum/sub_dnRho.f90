@@ -333,6 +333,7 @@ MODULE mod_dnRho
       integer                       :: type_act,iQact_transfo
       real (kind=Rkind)             :: d0tf,d1tf,d2tf,d3tf
       TYPE (Type_dnS)               :: dntf
+      real (kind=Rkind), parameter  :: cte(20) = [(ZERO,i=1,20)]
       !-----------------------------------------------------------------
 
 !----- for debuging --------------------------------------------------
@@ -371,7 +372,7 @@ MODULE mod_dnRho
          END IF
          !write(out_unit,*) 'iQact_transfo,type_act',type_act,iQact_transfo
 
-         CALL sub_dntf(iQact_transfo,dntf,Qact(iQact),[(ZERO,i=1,20)], dnErr )
+         CALL sub_dntf(iQact_transfo,dntf,Qact(iQact),cte,dnErr )
          IF (dnErr /= 0) THEN
            write(out_unit,*) ' ERROR in ',name_sub
            write(out_unit,*) '   ERROR in the sub_dntf call for the coordinates, iQact:',iQact
