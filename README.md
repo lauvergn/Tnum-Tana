@@ -17,7 +17,12 @@ The exactness is guaranteed by the automatic differentiation procedures used for
 
 ### 1a) Installation with a makefile
 
-The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran (working with gfortran-11 and above) or ifort/ifx need to be recent.
+The installation is simple with a makefile. However, we do not have an fully automatic procedure (like configure ...). The program uses some Fortran 2003 features. Therefore, the compilers gfortran need to be recent.
+The code works with the following compilers:
+
+- gfortran-11 and above
+- ifx 
+- nagfor (nAG compiler version 7.1)
 
 For instance, main executables can be built:
 
