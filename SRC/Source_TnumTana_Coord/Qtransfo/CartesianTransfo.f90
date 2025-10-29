@@ -85,7 +85,7 @@ MODULE mod_CartesianTransfo
         real (kind=Rkind), pointer     :: Qxyz(:,:,:)    => null()  ! Qxyz(3,nat_act,nb_RefGeometry) cart. coordinates
         real (kind=Rkind), pointer     :: MWQxyz(:,:,:)  => null()  ! MWQxyz(3,nat_act,nb_RefGeometry) mass weighted cart. coordinates
         real (kind=Rkind), allocatable :: d0sm(:)                   ! sqrt of the masses
-        real (kind=Rkind), pointer     :: masses_at(:)   => null()  ! masses_at(:)
+        real (kind=Rkind), allocatable :: masses_at(:)              ! masses_at(:)
 
         integer           :: type_diago  = 4 ! enables to select diagonalization type (MatOFdnS)
         integer           :: type_cs     = 0 ! enables to select the way to calculate dnCos and dnSin
@@ -158,9 +158,9 @@ MODULE mod_CartesianTransfo
           CALL alloc_NParray(CartesianTransfo%d0sm,[ncart_act],'CartesianTransfo%d0sm',name_sub)
           CartesianTransfo%d0sm(:) = ZERO
         END IF
-        IF (.NOT. associated(CartesianTransfo%masses_at)) THEN
-          CALL alloc_array(CartesianTransfo%masses_at,[ncart_act/3],&
-                                  'CartesianTransfo%masses_at',name_sub)
+        IF (.NOT. allocated(CartesianTransfo%masses_at)) THEN
+          CALL alloc_NParray(CartesianTransfo%masses_at,[ncart_act/3],&
+                            'CartesianTransfo%masses_at',name_sub)
           CartesianTransfo%masses_at(:) = ZERO
         END IF
 
@@ -276,9 +276,9 @@ MODULE mod_CartesianTransfo
       IF (allocated(CartesianTransfo%d0sm))                            &
       CALL dealloc_NParray(CartesianTransfo%d0sm,'CartesianTransfo%d0sm',name_sub)
 
-      IF (associated(CartesianTransfo%masses_at))                       &
-      CALL dealloc_array(CartesianTransfo%masses_at,                    &
-                        'CartesianTransfo%masses_at',name_sub)
+      IF (allocated(CartesianTransfo%masses_at))                       &
+      CALL dealloc_NParray(CartesianTransfo%masses_at,                    &
+                          'CartesianTransfo%masses_at',name_sub)
 
 
       IF (associated(CartesianTransfo%list_Qact))                       &
@@ -797,7 +797,7 @@ MODULE mod_CartesianTransfo
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%masses_at)) write(out_unit,*) 'masses_at',CartesianTransfo%masses_at(:)
+      IF (allocated(CartesianTransfo%masses_at)) write(out_unit,*) 'masses_at',CartesianTransfo%masses_at(:)
 
       IF (associated(CartesianTransfo%TransVect)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry

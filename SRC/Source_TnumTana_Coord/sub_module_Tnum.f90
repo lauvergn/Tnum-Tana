@@ -139,8 +139,8 @@ MODULE mod_Tnum
           integer                          :: multiplicity = -1
           integer                          :: nb_elec      = -1      ! here it is the number of electrons
 
-          integer,                 pointer :: Z(:)         => null() ! true pointer
-          character (len=Name_len),pointer :: symbole(:)   => null() ! true pointer
+          integer,                  allocatable :: Z(:)
+          character (len=Name_len), allocatable :: symbole(:)
 
           logical                          :: cos_th       = .FALSE.  ! T => coordinate (valence angle) => cos(th)
                                                                       ! F => coordinate (valence angle) => th
@@ -186,9 +186,8 @@ MODULE mod_Tnum
           integer :: nb_rigid0 =0,nb_rigid100=0,nb_rigid=0
 
 
-          real (kind=Rkind), pointer :: masses(:)        => null() ! true pointer
-          integer,           pointer :: active_masses(:) => null() ! for partial hessian (PVSCF)
-
+          real (kind=Rkind), allocatable :: masses(:)
+          integer,           allocatable :: active_masses(:) ! for partial hessian (PVSCF)
           real (kind=Rkind), allocatable :: d0sm(:)
           real (kind=Rkind)              :: Mtot = ZERO
           real (kind=Rkind)              :: Mtot_inv = ZERO
@@ -304,9 +303,9 @@ MODULE mod_Tnum
           mole%ncart_act = Qtransfo%ZmatTransfo%ncart_act
 
 
-          mole%Z       => Qtransfo%ZmatTransfo%Z
-          mole%symbole => Qtransfo%ZmatTransfo%symbole
-          mole%masses  => Qtransfo%ZmatTransfo%masses
+          mole%Z       = Qtransfo%ZmatTransfo%Z
+          mole%symbole = Qtransfo%ZmatTransfo%symbole
+          mole%masses  = Qtransfo%ZmatTransfo%masses
 
 
         CASE ('bunch','bunch_poly') ! It should one of the first transfo
@@ -318,9 +317,9 @@ MODULE mod_Tnum
           mole%nat_act   = Qtransfo%BunchTransfo%nat_act
           mole%ncart_act = Qtransfo%BunchTransfo%ncart_act
 
-          mole%Z       => Qtransfo%BunchTransfo%Z
-          mole%symbole => Qtransfo%BunchTransfo%symbole
-          mole%masses  => Qtransfo%BunchTransfo%masses
+          mole%Z       = Qtransfo%BunchTransfo%Z
+          mole%symbole = Qtransfo%BunchTransfo%symbole
+          mole%masses  = Qtransfo%BunchTransfo%masses
 
         CASE ('qtox_ana')
 
@@ -331,9 +330,9 @@ MODULE mod_Tnum
           mole%nat_act   = Qtransfo%QTOXanaTransfo%nat_act
           mole%ncart_act = Qtransfo%QTOXanaTransfo%ncart_act
 
-          mole%Z       => Qtransfo%QTOXanaTransfo%Z
-          mole%symbole => Qtransfo%QTOXanaTransfo%symbole
-          mole%masses  => Qtransfo%QTOXanaTransfo%masses
+          mole%Z       = Qtransfo%QTOXanaTransfo%Z
+          mole%symbole = Qtransfo%QTOXanaTransfo%symbole
+          mole%masses  = Qtransfo%QTOXanaTransfo%masses
 
         END SELECT
 
@@ -525,9 +524,14 @@ MODULE mod_Tnum
         mole%multiplicity = -1
         mole%nb_elec      = -1
 
-        nullify(mole%Z)         ! true pointer
-        nullify(mole%symbole)   ! true pointer
-        nullify(mole%masses)    ! true pointer
+        IF (allocated(mole%Z)) THEN
+          CALL dealloc_NParray(mole%Z,"mole%Z",name_sub)
+        END IF
+        IF (allocated(mole%symbole)) deallocate(mole%symbole)
+
+        IF (allocated(mole%masses)) THEN
+          CALL dealloc_NParray(mole%masses,"mole%masses",name_sub)
+        END IF
 
         mole%Without_Rot     = .FALSE.
         mole%Centered_ON_CoM = .TRUE.
@@ -596,9 +600,8 @@ MODULE mod_Tnum
         mole%nb_rigid100 = 0
         mole%nb_rigid    = 0
 
-        IF (associated(mole%active_masses))  THEN
-          CALL dealloc_array(mole%active_masses,                        &
-                            "mole%active_masses",name_sub)
+        IF (allocated(mole%active_masses))  THEN
+          CALL dealloc_NParray(mole%active_masses,"mole%active_masses",name_sub)
         END IF
 
         IF (allocated(mole%d0sm))  THEN
@@ -1444,7 +1447,7 @@ MODULE mod_Tnum
       IF (mole%nb_Qtransfo /= -1) THEN
         CALL alloc_NParray(mole%d0sm,[mole%ncart],"mole%d0sm",name_sub)
 
-        CALL alloc_array(mole%active_masses,[mole%ncart],"mole%active_masses",name_sub)
+        CALL alloc_NParray(mole%active_masses,[mole%ncart],"mole%active_masses",name_sub)
         mole%active_masses(:) = 1
 
         mole%d0sm(:)   = sqrt(mole%masses(:))
@@ -1469,9 +1472,9 @@ MODULE mod_Tnum
                           "mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm",name_sub)
         mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm = mole%d0sm(1:mole%ncart_act)
 
-        CALL alloc_array(mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at,   &
+        CALL alloc_NParray(mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at,   &
                                                     [mole%nat_act], &
-                        "mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at",name_sub)
+                          "mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at",name_sub)
         mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at(:) = mole%masses(1:mole%ncart_act:3)
         mole%tab_Cart_transfo(1)%CartesianTransfo%nat_act      = mole%nat_act
 
@@ -1713,17 +1716,17 @@ MODULE mod_Tnum
         CASE ('active')
           mole1%ActiveTransfo => mole1%tab_Qtransfo(it)%ActiveTransfo
         CASE ('zmat') ! it can be one of the last one
-          mole1%Z       => mole1%tab_Qtransfo(it)%ZmatTransfo%Z
-          mole1%symbole => mole1%tab_Qtransfo(it)%ZmatTransfo%symbole
-          mole1%masses  => mole1%tab_Qtransfo(it)%ZmatTransfo%masses
+          mole1%Z       = mole1%tab_Qtransfo(it)%ZmatTransfo%Z
+          mole1%symbole = mole1%tab_Qtransfo(it)%ZmatTransfo%symbole
+          mole1%masses  = mole1%tab_Qtransfo(it)%ZmatTransfo%masses
         CASE ('bunch','bunch_poly') ! it has to be one of the last one
-          mole1%Z       => mole1%tab_Qtransfo(it)%BunchTransfo%Z
-          mole1%symbole => mole1%tab_Qtransfo(it)%BunchTransfo%symbole
-          mole1%masses  => mole1%tab_Qtransfo(it)%BunchTransfo%masses
+          mole1%Z       = mole1%tab_Qtransfo(it)%BunchTransfo%Z
+          mole1%symbole = mole1%tab_Qtransfo(it)%BunchTransfo%symbole
+          mole1%masses  = mole1%tab_Qtransfo(it)%BunchTransfo%masses
         CASE ('qtox_ana') ! it has to be one of the last one
-          mole1%Z       => mole1%tab_Qtransfo(it)%QTOXanaTransfo%Z
-          mole1%symbole => mole1%tab_Qtransfo(it)%QTOXanaTransfo%symbole
-          mole1%masses  => mole1%tab_Qtransfo(it)%QTOXanaTransfo%masses
+          mole1%Z       = mole1%tab_Qtransfo(it)%QTOXanaTransfo%Z
+          mole1%symbole = mole1%tab_Qtransfo(it)%QTOXanaTransfo%symbole
+          mole1%masses  = mole1%tab_Qtransfo(it)%QTOXanaTransfo%masses
         CASE default
           CONTINUE
         END SELECT
@@ -1789,7 +1792,7 @@ MODULE mod_Tnum
       mole1%nb_rigid100      = mole2%nb_rigid100
       mole1%nb_rigid         = mole2%nb_rigid
 
-      CALL alloc_array(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
+      CALL alloc_NParray(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
       mole1%active_masses    = mole2%active_masses
 
       CALL alloc_NParray(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
