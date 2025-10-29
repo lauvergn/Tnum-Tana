@@ -2078,9 +2078,9 @@ CONTAINS
       END DO
 
       allocate(dnCOM_OF_dnSt(3))
-      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(3),dnx%nb_var_vec-0)
-      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(2),dnx%nb_var_vec-1)
-      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(1),dnx%nb_var_vec-2)
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(3),dnx%nb_var_vec-0)  !z
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(2),dnx%nb_var_vec-1)  !y
+      CALL sub_dnVec_TO_dnSt(dnX,dnCOM_OF_dnSt(1),dnx%nb_var_vec-2)  !x
 
       IF (debug) THEN
         write(out_unit,*) ' dnCOM'

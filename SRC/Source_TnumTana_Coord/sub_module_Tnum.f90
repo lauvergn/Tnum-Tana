@@ -186,12 +186,12 @@ MODULE mod_Tnum
           integer :: nb_rigid0 =0,nb_rigid100=0,nb_rigid=0
 
 
-          real (kind=Rkind), pointer :: masses(:) => null()        ! true pointer
+          real (kind=Rkind), pointer :: masses(:)        => null() ! true pointer
           integer,           pointer :: active_masses(:) => null() ! for partial hessian (PVSCF)
 
-          real (kind=Rkind), pointer :: d0sm(:) => null()
-          real (kind=Rkind)          :: Mtot = ZERO
-          real (kind=Rkind)          :: Mtot_inv = ZERO
+          real (kind=Rkind), allocatable :: d0sm(:)
+          real (kind=Rkind)              :: Mtot = ZERO
+          real (kind=Rkind)              :: Mtot_inv = ZERO
         CONTAINS
           PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
           GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
@@ -601,8 +601,8 @@ MODULE mod_Tnum
                             "mole%active_masses",name_sub)
         END IF
 
-        IF (associated(mole%d0sm))  THEN
-          CALL dealloc_array(mole%d0sm,"mole%d0sm",name_sub)
+        IF (allocated(mole%d0sm))  THEN
+          CALL dealloc_NParray(mole%d0sm,"mole%d0sm",name_sub)
         END IF
         mole%Mtot         = ZERO
         mole%Mtot_inv     = ZERO
@@ -1442,7 +1442,7 @@ MODULE mod_Tnum
 !===== set up: Mtot, Mtot_inv, d0sm =================================
 !=======================================================================
       IF (mole%nb_Qtransfo /= -1) THEN
-        CALL alloc_array(mole%d0sm,[mole%ncart],"mole%d0sm",name_sub)
+        CALL alloc_NParray(mole%d0sm,[mole%ncart],"mole%d0sm",name_sub)
 
         CALL alloc_array(mole%active_masses,[mole%ncart],"mole%active_masses",name_sub)
         mole%active_masses(:) = 1
@@ -1462,12 +1462,11 @@ MODULE mod_Tnum
         write(out_unit,*) ' Read Cartesian transformation(s)'
         write(out_unit,*) '================================================='
 
-        CALL alloc_array(mole%tab_Cart_transfo,[1],                   &
-                        "mole%tab_Cart_transfo",name_sub)
+        CALL alloc_array(mole%tab_Cart_transfo,[1],"mole%tab_Cart_transfo",name_sub)
 
-        CALL alloc_array(mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm,&
+        CALL alloc_NParray(mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm,&
                                                     [mole%ncart_act], &
-                        "mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm",name_sub)
+                          "mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm",name_sub)
         mole%tab_Cart_transfo(1)%CartesianTransfo%d0sm = mole%d0sm(1:mole%ncart_act)
 
         CALL alloc_array(mole%tab_Cart_transfo(1)%CartesianTransfo%masses_at,   &
@@ -1793,7 +1792,7 @@ MODULE mod_Tnum
       CALL alloc_array(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
       mole1%active_masses    = mole2%active_masses
 
-      CALL alloc_array(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
+      CALL alloc_NParray(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
       mole1%d0sm             = mole2%d0sm
       mole1%Mtot             = mole2%Mtot
       mole1%Mtot_inv         = mole2%Mtot_inv
