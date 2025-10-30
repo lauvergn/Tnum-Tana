@@ -54,9 +54,9 @@ MODULE mod_ZmatTransfo
     logical              :: cos_th  = .FALSE. ! T => coordinate (valence angle) => cos(th)
                                               ! F => coordinate (valence angle) => th
     ! just for read the input data
-    real (kind=Rkind),        pointer :: masses(:)     => null()
-    integer, pointer                  :: Z(:)          => null()
-    character (len=Name_len),pointer  :: symbole(:)    => null()
+    real (kind=Rkind),        allocatable :: masses(:)
+    integer,                  allocatable :: Z(:)
+    character (len=Name_len), allocatable :: symbole(:)
 
     integer, pointer                  :: type_Qin(:)   => null() ! TRUE pointer
     character (len=Name_len), pointer :: name_Qin(:)   => null() ! TRUE pointer
@@ -104,22 +104,20 @@ CONTAINS
     CALL alloc_NParray(ZmatTransfo%ind_zmat,[5,ZmatTransfo%nat],"ZmatTransfo%ind_zmat",name_sub)
     ZmatTransfo%ind_zmat(:,:) = 0
 
-    IF (associated(ZmatTransfo%Z))  THEN
-      CALL dealloc_array(ZmatTransfo%Z,"ZmatTransfo%Z",name_sub)
+    IF (allocated(ZmatTransfo%Z))  THEN
+      CALL dealloc_NParray(ZmatTransfo%Z,"ZmatTransfo%Z",name_sub)
     END IF
-    CALL alloc_array(ZmatTransfo%Z,[ZmatTransfo%nat],"ZmatTransfo%Z",name_sub)
+    CALL alloc_NParray(ZmatTransfo%Z,[ZmatTransfo%nat],"ZmatTransfo%Z",name_sub)
     ZmatTransfo%Z(:) = 0
 
-    IF (associated(ZmatTransfo%masses))  THEN
-      CALL dealloc_array(ZmatTransfo%masses,"ZmatTransfo%masses",name_sub)
+    IF (allocated(ZmatTransfo%masses))  THEN
+      CALL dealloc_NParray(ZmatTransfo%masses,"ZmatTransfo%masses",name_sub)
     END IF
-    CALL alloc_array(ZmatTransfo%masses,[ZmatTransfo%ncart],"ZmatTransfo%masses",name_sub)
+    CALL alloc_NParray(ZmatTransfo%masses,[ZmatTransfo%ncart],"ZmatTransfo%masses",name_sub)
     ZmatTransfo%masses(:) = ZERO
 
-    IF (associated(ZmatTransfo%symbole))  THEN
-      CALL dealloc_array(ZmatTransfo%symbole,"ZmatTransfo%symbole",name_sub)
-    END IF
-    CALL alloc_array(ZmatTransfo%symbole,[ZmatTransfo%nat],"ZmatTransfo%symbole",name_sub)
+    IF (allocated(ZmatTransfo%symbole))  deallocate(ZmatTransfo%symbole)
+    allocate(ZmatTransfo%symbole(ZmatTransfo%nat))
     ZmatTransfo%symbole(:) = ""
 
     IF (debug) THEN
@@ -141,17 +139,15 @@ CONTAINS
       CALL dealloc_NParray(ZmatTransfo%ind_zmat,"ZmatTransfo%ind_zmat","dealloc_ZmatTransfo")
     END IF
 
-    IF (associated(ZmatTransfo%Z))  THEN
-      CALL dealloc_array(ZmatTransfo%Z,"ZmatTransfo%Z","dealloc_ZmatTransfo")
+    IF (allocated(ZmatTransfo%Z))  THEN
+      CALL dealloc_NParray(ZmatTransfo%Z,"ZmatTransfo%Z","dealloc_ZmatTransfo")
     END IF
 
-    IF (associated(ZmatTransfo%masses))  THEN
-      CALL dealloc_array(ZmatTransfo%masses,"ZmatTransfo%masses","dealloc_ZmatTransfo")
+    IF (allocated(ZmatTransfo%masses))  THEN
+      CALL dealloc_NParray(ZmatTransfo%masses,"ZmatTransfo%masses","dealloc_ZmatTransfo")
     END IF
 
-    IF (associated(ZmatTransfo%symbole))  THEN
-      CALL dealloc_array(ZmatTransfo%symbole,"ZmatTransfo%symbole","dealloc_ZmatTransfo")
-    END IF
+    IF (allocated(ZmatTransfo%symbole)) deallocate(ZmatTransfo%symbole)
 
     ZmatTransfo%ncart        = 0
     ZmatTransfo%ncart_act    = 0
@@ -1245,9 +1241,9 @@ CONTAINS
     write(out_unit,*) 'vAt2',ZmatTransfo%vAt2(:)
     write(out_unit,*) 'vAt3',ZmatTransfo%vAt3(:)
 
-    IF (associated(ZmatTransfo%Z))        &
+    IF (allocated(ZmatTransfo%Z))        &
       write(out_unit,*) 'Z',ZmatTransfo%Z
-    IF (associated(ZmatTransfo%masses))   &
+    IF (allocated(ZmatTransfo%masses))   &
       write(out_unit,*) 'masses',ZmatTransfo%masses
 
     IF (associated(ZmatTransfo%type_Qin)) &

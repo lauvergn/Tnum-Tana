@@ -46,32 +46,32 @@
 
       PRIVATE
 
-      !!@description: TODO
-      !!@param: TODO
       TYPE Type_BunchTransfo
-          integer                    :: ncart=0,ncart_act=0
-          integer                    :: nat0=0,nat=0,nat_act=0
-          integer                    :: nb_var=0,nb_vect=0
+          integer                              :: ncart        = 0
+          integer                              :: ncart_act    = 0
+          integer                              :: nat0         = 0
+          integer                              :: nat          = 0
+          integer                              :: nat_act      = 0
+          integer                              :: nb_var       = 0
+          integer                              :: nb_vect      = 0
+          integer                              :: nb_ExtraLFSF = 0
 
-          integer                    :: nb_ExtraLFSF = 0
+          integer, allocatable                 :: ind_vect(:,:)
 
-          integer, pointer           :: ind_vect(:,:) => null()
+          integer                               :: nb_X        = 0         ! 0 (default) dummy atoms and centers of mass
+          integer                               :: nb_G        = 0         ! 0 (default) centers of mass
 
+          real (kind=Rkind),        allocatable :: COM(:,:)                ! COM(nat_act,nb_centers) defined all centers of mass as function active atom (not dummy)
+          real (kind=Rkind),        allocatable :: Mat_At_TO_centers(:,:)  ! Mat_At_TO_centers(nat_act,nb_centers) (nb_centers=nat)
+          real (kind=Rkind),        allocatable :: masses(:)               ! masses (for the CC)
+          real (kind=Rkind),        allocatable :: masses_OF_At(:)         ! masses (for the atoms)
 
-          integer                    :: nb_X                   = 0       ! 0 (default) dummy atoms and centers of mass
-          integer                    :: nb_G                   = 0       ! 0 (default) centers of mass
+          real (kind=Rkind),        allocatable :: A(:,:)                  ! Relations between the vectors and the X
+          real (kind=Rkind),        allocatable :: A_inv(:,:)              ! Relations between the vectors and the X
+          real (kind=Rkind),        allocatable :: M_Tana(:,:)             ! M for analytical KEO
 
-          real (kind=Rkind), pointer :: COM(:,:) => null()               ! COM(nat_act,nb_centers) defined all centers of mass as function active atom (not dummy)
-          real (kind=Rkind), pointer :: Mat_At_TO_centers(:,:) => null() ! Mat_At_TO_centers(nat_act,nb_centers) (nb_centers=nat)
-          real (kind=Rkind), pointer :: masses(:)              => null() ! masses (for the CC)
-          real (kind=Rkind), pointer :: masses_OF_At(:)        => null() ! masses (for the atoms)
-
-          real (kind=Rkind), pointer :: A(:,:)                 => null() ! Relations between the vectors and the X
-          real (kind=Rkind), pointer :: A_inv(:,:)             => null() ! Relations between the vectors and the X
-          real (kind=Rkind), pointer :: M_Tana(:,:)            => null() ! M for analytical KEO
-
-          integer, pointer                  :: Z(:)          => null()
-          character (len=Name_len),pointer  :: symbole(:)    => null()
+          integer,                  allocatable :: Z(:)
+          character (len=Name_len), allocatable :: symbole(:)
 
       END TYPE Type_BunchTransfo
 
@@ -2730,57 +2730,53 @@
        END IF
 
 
-       CALL alloc_array(BunchTransfo%ind_vect,[5,BunchTransfo%nb_vect],&
-                       "BunchTransfo%ind_vect",name_sub)
+       CALL alloc_NParray(BunchTransfo%ind_vect,[5,BunchTransfo%nb_vect],&
+                         "BunchTransfo%ind_vect",name_sub)
        BunchTransfo%ind_vect(:,:) = 0
 
-       CALL alloc_array(BunchTransfo%Mat_At_TO_centers,                 &
+       CALL alloc_NParray(BunchTransfo%Mat_At_TO_centers,                 &
                            [BunchTransfo%nat_act,BunchTransfo%nat],   &
-                       "BunchTransfo%Mat_At_TO_centers",name_sub)
+                         "BunchTransfo%Mat_At_TO_centers",name_sub)
        BunchTransfo%Mat_At_TO_centers(:,:) = 0
 
-       CALL alloc_array(BunchTransfo%COM,                               &
+       CALL alloc_NParray(BunchTransfo%COM,                               &
                            [BunchTransfo%nat_act,BunchTransfo%nat],   &
                        "BunchTransfo%COM",name_sub)
        BunchTransfo%COM(:,:) = 0
 
-       CALL alloc_array(BunchTransfo%A,                                 &
+       CALL alloc_NParray(BunchTransfo%A,                                 &
                      [BunchTransfo%nb_vect+1,BunchTransfo%nb_vect+1], &
                        "BunchTransfo%A",name_sub)
        BunchTransfo%A(:,:) = ZERO
 
-       CALL alloc_array(BunchTransfo%A_inv,                             &
+       CALL alloc_NParray(BunchTransfo%A_inv,                             &
                    [BunchTransfo%nb_vect+1,BunchTransfo%nb_vect+1],   &
                        "BunchTransfo%A_inv",name_sub)
        BunchTransfo%A_inv(:,:) = ZERO
 
-       CALL alloc_array(BunchTransfo%M_Tana,                            &
+       CALL alloc_NParray(BunchTransfo%M_Tana,                            &
                        [BunchTransfo%nb_vect,BunchTransfo%nb_vect],   &
                        "BunchTransfo%M_Tana",name_sub)
        BunchTransfo%M_Tana(:,:) = ZERO
 
-       CALL alloc_array(BunchTransfo%masses,[BunchTransfo%ncart],     &
+       CALL alloc_NParray(BunchTransfo%masses,[BunchTransfo%ncart],     &
                        "BunchTransfo%masses",name_sub)
        BunchTransfo%masses(:) = ZERO
 
-       IF (associated(BunchTransfo%Z))  THEN
-         CALL dealloc_array(BunchTransfo%Z,                             &
+       IF (allocated(BunchTransfo%Z))  THEN
+         CALL dealloc_NParray(BunchTransfo%Z,                             &
                            "BunchTransfo%Z",name_sub)
        END IF
-       CALL alloc_array(BunchTransfo%Z,[BunchTransfo%nat],        &
+       CALL alloc_NParray(BunchTransfo%Z,[BunchTransfo%nat],        &
                        "BunchTransfo%Z",name_sub)
        BunchTransfo%Z(:) = 0
 
 
-       IF (associated(BunchTransfo%symbole))  THEN
-         CALL dealloc_array(BunchTransfo%symbole,                       &
-                           "BunchTransfo%symbole",name_sub)
-       END IF
-       CALL alloc_array(BunchTransfo%symbole,[BunchTransfo%nat],  &
-                       "BunchTransfo%symbole",name_sub)
+       IF (allocated(BunchTransfo%symbole)) deallocate(BunchTransfo%symbole)
+       allocate(BunchTransfo%symbole(BunchTransfo%nat))
        BunchTransfo%symbole(:) = ""
 
-       CALL alloc_array(BunchTransfo%masses_OF_At,[BunchTransfo%nat_act],&
+       CALL alloc_NParray(BunchTransfo%masses_OF_At,[BunchTransfo%nat_act],&
                        "BunchTransfo%masses_OF_At",name_sub)
        BunchTransfo%masses_OF_At(:) = ZERO
 
@@ -2801,50 +2797,44 @@
       IF (.NOT. associated(BunchTransfo)) RETURN
 
 
-       IF (associated(BunchTransfo%ind_vect)) THEN
-         CALL dealloc_array(BunchTransfo%ind_vect,                      &
+       IF (allocated(BunchTransfo%ind_vect)) THEN
+         CALL dealloc_NParray(BunchTransfo%ind_vect,                      &
                            "BunchTransfo%ind_vect",name_sub)
        END IF
 
        BunchTransfo%nb_X     = 0
-       IF (associated(BunchTransfo%Mat_At_TO_centers))      THEN
-         CALL dealloc_array(BunchTransfo%Mat_At_TO_centers,             &
+       IF (allocated(BunchTransfo%Mat_At_TO_centers))      THEN
+         CALL dealloc_NParray(BunchTransfo%Mat_At_TO_centers,             &
                            "BunchTransfo%Mat_At_TO_centers",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%COM))      THEN
-         CALL dealloc_array(BunchTransfo%COM,"BunchTransfo%COM",name_sub)
+       IF (allocated(BunchTransfo%COM))      THEN
+         CALL dealloc_NParray(BunchTransfo%COM,"BunchTransfo%COM",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%A))                THEN
-         CALL dealloc_array(BunchTransfo%A,"BunchTransfo%A",name_sub)
+       IF (allocated(BunchTransfo%A))                THEN
+         CALL dealloc_NParray(BunchTransfo%A,"BunchTransfo%A",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%A_inv))            THEN
-         CALL dealloc_array(BunchTransfo%A_inv,"BunchTransfo%A_inv",name_sub)
+       IF (allocated(BunchTransfo%A_inv))            THEN
+         CALL dealloc_NParray(BunchTransfo%A_inv,"BunchTransfo%A_inv",name_sub)
        END IF
-       IF (associated(BunchTransfo%M_Tana))           THEN
+       IF (allocated(BunchTransfo%M_Tana))           THEN
          CALL dealloc_array(BunchTransfo%M_Tana,"BunchTransfo%M_Tana",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%masses))           THEN
-         CALL dealloc_array(BunchTransfo%masses,                        &
-                           "BunchTransfo%masses",name_sub)
+       IF (allocated(BunchTransfo%masses))           THEN
+         CALL dealloc_NParray(BunchTransfo%masses,"BunchTransfo%masses",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%Z))  THEN
-         CALL dealloc_array(BunchTransfo%Z,                             &
-                           "BunchTransfo%Z",name_sub)
+       IF (allocated(BunchTransfo%Z))  THEN
+         CALL dealloc_NParray(BunchTransfo%Z,"BunchTransfo%Z",name_sub)
        END IF
 
-       IF (associated(BunchTransfo%symbole))  THEN
-         CALL dealloc_array(BunchTransfo%symbole,                       &
-                           "BunchTransfo%symbole",name_sub)
-       END IF
+       IF (allocated(BunchTransfo%symbole)) deallocate(BunchTransfo%symbole)
 
-       IF (associated(BunchTransfo%masses_OF_At))     THEN
-         CALL dealloc_array(BunchTransfo%masses_OF_At,                  &
-                           "BunchTransfo%masses_OF_At",name_sub)
+       IF (allocated(BunchTransfo%masses_OF_At))     THEN
+         CALL dealloc_NParray(BunchTransfo%masses_OF_At,"BunchTransfo%masses_OF_At",name_sub)
        END IF
 
        BunchTransfo%ncart        = 0
@@ -3716,16 +3706,10 @@
        END IF
       !--------------------------------------------------------
 
-      CALL alloc_NParray(A,[BunchTransfo%nat_act,BunchTransfo%nat_act], &
-                        "A",name_sub)
-      CALL alloc_NParray(Asave,                                         &
-                         [BunchTransfo%nat_act,BunchTransfo%nat_act], &
-                        "Asave",name_sub)
-      CALL alloc_NParray(M_Tana,                                        &
-                        [BunchTransfo%nat_act,BunchTransfo%nat_act],  &
-                        "M_Tana",name_sub)
-      CALL alloc_NParray(BB,[BunchTransfo%nat_act,BunchTransfo%nat_act],&
-                        "BB",name_sub)
+      CALL alloc_NParray(A,[BunchTransfo%nat_act,BunchTransfo%nat_act],"A",name_sub)
+      CALL alloc_NParray(Asave,[BunchTransfo%nat_act,BunchTransfo%nat_act],"Asave",name_sub)
+      CALL alloc_NParray(M_Tana,[BunchTransfo%nat_act,BunchTransfo%nat_act],"M_Tana",name_sub)
+      CALL alloc_NParray(BB,[BunchTransfo%nat_act,BunchTransfo%nat_act],"BB",name_sub)
 
       Mtot = sum(BunchTransfo%masses(1:BunchTransfo%ncart_act:3))
 
@@ -3841,13 +3825,13 @@
 
       SUBROUTINE calc_BunchTransfo(dnQvect,dnx,BunchTransfo,nderiv,inTOout)
 
-      TYPE (Type_dnVec), intent(inout)    :: dnQvect,dnx
-      TYPE (Type_BunchTransfo),pointer, intent(in) :: BunchTransfo
-      integer, intent(in)                 :: nderiv
-      logical, intent(in)                 :: inTOout
+      TYPE (Type_dnVec),                 intent(inout) :: dnQvect,dnx
+      TYPE (Type_BunchTransfo), pointer, intent(in)    :: BunchTransfo
+      integer,                           intent(in)    :: nderiv
+      logical,                           intent(in)    :: inTOout
 
 
-      integer           ::iv,ivect_iv,i,i_at,ivect_at,nb_ExtraLFSF
+      integer           :: iv,ivect_iv,i,i_at,ivect_at,nb_ExtraLFSF
       integer           :: iG,ixyz_G,ixyz_At,j,jat
       real(kind=Rkind)  :: weight,MtotG
 
@@ -3973,12 +3957,12 @@
       memory = 1
       CALL error_memo_allo(err_mem,memory,'BunchTransfo2',name_sub,'Type_BunchTransfo')
 
-      BunchTransfo2%ncart     = BunchTransfo1%ncart
-      BunchTransfo2%ncart_act = BunchTransfo1%ncart_act
+      BunchTransfo2%ncart        = BunchTransfo1%ncart
+      BunchTransfo2%ncart_act    = BunchTransfo1%ncart_act
 
-      BunchTransfo2%nat0      = BunchTransfo1%nat0
-      BunchTransfo2%nat       = BunchTransfo1%nat
-      BunchTransfo2%nat_act   = BunchTransfo1%nat_act
+      BunchTransfo2%nat0         = BunchTransfo1%nat0
+      BunchTransfo2%nat          = BunchTransfo1%nat
+      BunchTransfo2%nat_act      = BunchTransfo1%nat_act
 
       BunchTransfo2%nb_var       = BunchTransfo1%nb_var
       BunchTransfo2%nb_ExtraLFSF = BunchTransfo1%nb_ExtraLFSF
@@ -3989,30 +3973,30 @@
 
       CALL alloc_BunchTransfo(BunchTransfo2)
 
-      IF (associated(BunchTransfo1%masses)) THEN
+      IF (allocated(BunchTransfo1%masses)) THEN
         BunchTransfo2%masses(:) = BunchTransfo1%masses(:)
       END IF
-      IF (associated(BunchTransfo1%Z)) THEN
+      IF (allocated(BunchTransfo1%Z)) THEN
         BunchTransfo2%Z(:) = BunchTransfo1%Z(:)
       END IF
-      IF (associated(BunchTransfo1%symbole)) THEN
+      IF (allocated(BunchTransfo1%symbole)) THEN
         BunchTransfo2%symbole(:) = BunchTransfo1%symbole(:)
       END IF
 
-      IF (associated(BunchTransfo1%ind_vect)) THEN
+      IF (allocated(BunchTransfo1%ind_vect)) THEN
         BunchTransfo2%ind_vect(:,:) = BunchTransfo1%ind_vect(:,:)
       END IF
-      IF (associated(BunchTransfo1%M_Tana)) THEN
+      IF (allocated(BunchTransfo1%M_Tana)) THEN
         BunchTransfo2%M_Tana(:,:)       = BunchTransfo1%M_Tana(:,:)
       END IF
-      IF (associated(BunchTransfo1%A_inv)) THEN
+      IF (allocated(BunchTransfo1%A_inv)) THEN
         BunchTransfo2%A_inv(:,:)        = BunchTransfo1%A_inv(:,:)
       END IF
-      IF (associated(BunchTransfo1%A)) THEN
+      IF (allocated(BunchTransfo1%A)) THEN
         BunchTransfo2%A(:,:)            = BunchTransfo1%A(:,:)
       END IF
 
-      IF (associated(BunchTransfo1%Mat_At_TO_centers)) THEN
+      IF (allocated(BunchTransfo1%Mat_At_TO_centers)) THEN
         BunchTransfo2%Mat_At_TO_centers(:,:) = BunchTransfo1%Mat_At_TO_centers(:,:)
       END IF
 

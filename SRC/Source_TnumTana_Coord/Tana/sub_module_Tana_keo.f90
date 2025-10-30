@@ -757,8 +757,8 @@ MODULE mod_Tana_keo
    Recursive subroutine  extract_bloc_matrix(F_system, M_mass)
      USE mod_BunchPolyTransfo, only : Type_BFTransfo
 
-     type(Type_BFTransfo),                intent(inout)      :: F_system
-     real(kind = Rkind),pointer                              :: M_mass(:,:)
+     type(Type_BFTransfo),   intent(inout)      :: F_system
+     real(kind = Rkind),     intent(in)         :: M_mass(:,:)
 
      integer                         :: nvec, nvec_subsyst
      integer                         :: i, j, ivF, i_var
