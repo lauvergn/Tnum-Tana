@@ -231,8 +231,12 @@ endif
 #===============================================
 #============= Main programs: tests + example ==
 #
-.PHONY: all
+.PHONY: all Tnum_MCTDH Tnum_MidasCpp Midas midas Tnum Tana
 all: lib app
+
+Tnum_MCTDH: Tnum90_MCTDH.exe
+Tnum_MidasCpp Midas midas: Tnum90_MidasCpp.exe
+Tnum Tana: Tnum90.exe
 
 #===============================================
 #================ Example(s) ===================
