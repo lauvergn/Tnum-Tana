@@ -2417,7 +2417,7 @@ MODULE mod_Tnum
 
         DO it=1,mole%nb_Qtransfo
           IF (mole%tab_Qtransfo(it)%opt_param > 0) THEN
-            IF (associated(mole%tab_Qtransfo(it)%oneDTransfo)) THEN
+            IF (allocated(mole%tab_Qtransfo(it)%oneDTransfo)) THEN
 
               DO itone=1,mole%tab_Qtransfo(it)%nb_transfo
                 nopt = count(mole%tab_Qtransfo(it)%oneDTransfo(itone)%opt_cte /= 0)

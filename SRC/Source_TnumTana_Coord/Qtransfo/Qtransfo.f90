@@ -83,11 +83,11 @@ MODULE mod_Qtransfo
           TYPE (Type_LinearTransfo)         :: LinearTransfo
           TYPE (Type_FlexibleTransfo)       :: FlexibleTransfo
 
-          TYPE (Type_oneDTransfo),      pointer :: oneDTransfo(:)      => null()
+          TYPE (Type_oneDTransfo),      allocatable :: oneDTransfo(:)
           TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
           TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
-          TYPE (Type_HyperSpheTransfo)          :: HyperSpheTransfo
-          integer,                  allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
+          TYPE (Type_HyperSpheTransfo)              :: HyperSpheTransfo
+          integer,                      allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
 
           TYPE (Type_NMTransfo),        pointer :: NMTransfo           => null()
           TYPE (Type_RPHTransfo),       pointer :: RPHTransfo          => null()
@@ -96,13 +96,7 @@ MODULE mod_Qtransfo
 
           integer                               :: nb_Qin       = 0  ! size the input coordinates
           integer                               :: nb_Qout      = 0 ! size the output coordinates
-          !integer,                      pointer :: type_Qin(:)  => null() ! size nb_Qin
-          !integer,                      pointer :: type_Qout(:) => null() ! true pointer (will point to the previous type_Qin)
-          !                                                            ! except for the first transfo
-          !character (len=Name_len),     pointer :: name_Qin(:)  => null()
-          !character (len=Name_len),     pointer :: name_Qout(:) => null() ! true pointer (will point to the previous name_Qin)
-          !                                                                ! except for the first transfo
-
+ 
           integer,                  allocatable :: type_Qin(:)        ! size nb_Qin
           character (len=Name_len), allocatable :: name_Qin(:)        ! size nb_Qin
 
@@ -468,7 +462,7 @@ MODULE mod_Qtransfo
 
           Qtransfo%nb_Qin  = nb_Qin
 
-          CALL alloc_oneDTransfo(Qtransfo%oneDTransfo,nb_Qin)
+          CALL alloc_oneDTransfo(Qtransfo%oneDTransfo,nb_transfo=nb_Qin)
           Qtransfo%nb_transfo = nb_Qin
 
           CALL Read_InfiniteRange(Qtransfo%oneDTransfo,Qtransfo%type_Qout,not_all)
