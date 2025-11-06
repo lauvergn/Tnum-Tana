@@ -58,7 +58,7 @@ MODULE mod_Qtransfo
 
         TYPE, PUBLIC :: Type_Qtransfo
           logical                           :: print_done      = .FALSE.
-          character (len=:), allocatable, private    :: name_transfo
+          character (len=:), allocatable, private :: name_transfo
           integer                           :: num_transfo     = 0
           logical                           :: BeforeActive    = .FALSE. ! .TRUE. when it (or num_transfo) is nb_Qtransfo-1
           logical                           :: inTOout         = .TRUE.
@@ -87,7 +87,7 @@ MODULE mod_Qtransfo
           TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
           TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
           TYPE (Type_HyperSpheTransfo)          :: HyperSpheTransfo
-          integer,                      pointer :: list_Qin_TO_Qout(:) => null() ! "order" transfo
+          integer,                  allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
 
           TYPE (Type_NMTransfo),        pointer :: NMTransfo           => null()
           TYPE (Type_RPHTransfo),       pointer :: RPHTransfo          => null()
@@ -96,13 +96,18 @@ MODULE mod_Qtransfo
 
           integer                               :: nb_Qin       = 0  ! size the input coordinates
           integer                               :: nb_Qout      = 0 ! size the output coordinates
-          integer,                      pointer :: type_Qin(:)  => null() ! size nb_Qin
-          integer,                      pointer :: type_Qout(:) => null() ! true pointer (will point to the previous type_Qin)
-                                                                      ! except for the first transfo
-          character (len=Name_len),     pointer :: name_Qin(:)  => null()
-          character (len=Name_len),     pointer :: name_Qout(:) => null() ! true pointer (will point to the previous name_Qin)
-                                                                          ! except for the first transfo
+          !integer,                      pointer :: type_Qin(:)  => null() ! size nb_Qin
+          !integer,                      pointer :: type_Qout(:) => null() ! true pointer (will point to the previous type_Qin)
+          !                                                            ! except for the first transfo
+          !character (len=Name_len),     pointer :: name_Qin(:)  => null()
+          !character (len=Name_len),     pointer :: name_Qout(:) => null() ! true pointer (will point to the previous name_Qin)
+          !                                                                ! except for the first transfo
 
+          integer,                  allocatable :: type_Qin(:)        ! size nb_Qin
+          character (len=Name_len), allocatable :: name_Qin(:)        ! size nb_Qin
+
+          integer,                  allocatable :: type_Qout(:)       ! size nb_Qout
+          character (len=Name_len), allocatable :: name_Qout(:)       ! size nb_Qout
         END TYPE Type_Qtransfo
 
       INTERFACE alloc_array
@@ -270,8 +275,7 @@ MODULE mod_Qtransfo
           Qtransfo%nb_Qin  = nb_Qin
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qorder")  ! here type_Qin(:) = 0
 
-          CALL alloc_array(Qtransfo%list_Qin_TO_Qout,[Qtransfo%nb_Qin],&
-                          "Qtransfo%list_Qin_TO_Qout",name_sub)
+          CALL alloc_NParray(Qtransfo%list_Qin_TO_Qout,[Qtransfo%nb_Qin],"Qtransfo%list_Qin_TO_Qout",name_sub)
           read(in_unit,*,IOSTAT=err_io) Qtransfo%list_Qin_TO_Qout(1:nb_Qin)
           IF (err_io /= 0) THEN
              write(out_unit,*) ' ERROR in ',name_sub
@@ -285,20 +289,19 @@ MODULE mod_Qtransfo
           DO i=1,Qtransfo%nb_Qin
             i_Q = Qtransfo%list_Qin_TO_Qout(i)
             IF (i_Q < 0 .OR. i_Q > Qtransfo%nb_Qin) THEN
-              Qtransfo%type_Qin(i) = 0
+              Qtransfo%type_Qin(i) = -1
             ELSE
              Qtransfo%type_Qin(i) = Qtransfo%type_Qout(i_Q)
             END IF
           END DO
-!          IF (count(Qtransfo%type_Qin(:) == 0) > 0) THEN
-!             write(out_unit,*) ' ERROR in ',name_sub
-!             write(out_unit,*) '  type_Qin "type_Qin"',Qtransfo%type_Qin(:)
-!
-!             write(out_unit,*) '  Wrong "list_Qin_TO_Qout"',           &
-!                                        Qtransfo%list_Qin_TO_Qout(:)
-!             write(out_unit,*) ' Check your data !!'
-!             STOP
-!          END IF
+          IF (count(Qtransfo%type_Qin(:) == -1) > 0) THEN
+             write(out_unit,*) ' ERROR in ',name_sub
+             write(out_unit,*) '  type_Qin "type_Qin"',Qtransfo%type_Qin(:)
+
+             write(out_unit,*) '  Wrong "list_Qin_TO_Qout"',Qtransfo%list_Qin_TO_Qout(:)
+             write(out_unit,*) ' Check your data !!'
+             STOP 'ERROR in read_Qtransfo: Wrong "list_Qin_TO_Qout"'
+          END IF
         CASE ('linear')
           Tana_Is_Possible = .FALSE.
           Qtransfo%nb_Qin  = nb_Qin
@@ -566,10 +569,12 @@ MODULE mod_Qtransfo
           END IF
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qzmat")
-          Qtransfo%ZmatTransfo%type_Qin => Qtransfo%type_Qin
-          Qtransfo%ZmatTransfo%name_Qin => Qtransfo%name_Qin
+          !Qtransfo%ZmatTransfo%type_Qin = Qtransfo%type_Qin
+          !Qtransfo%ZmatTransfo%name_Qin = Qtransfo%name_Qin
 
           CALL Read_ZmatTransfo(Qtransfo%ZmatTransfo,mendeleev)
+Qtransfo%type_Qin = Qtransfo%ZmatTransfo%type_Qin
+Qtransfo%name_Qin = Qtransfo%ZmatTransfo%name_Qin
 
           Qtransfo%ncart_act    = Qtransfo%ZmatTransfo%ncart_act
           Qtransfo%nb_ExtraLFSF = Qtransfo%ZmatTransfo%nb_ExtraLFSF
@@ -710,15 +715,16 @@ MODULE mod_Qtransfo
           Qtransfo%nb_Qout              = 3*nb_vect + Qtransfo%BunchTransfo%nb_ExtraLFSF
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qpoly")
-          Qtransfo%BFTransfo%type_Qin => Qtransfo%type_Qin
-          Qtransfo%BFTransfo%name_Qin => Qtransfo%name_Qin
+          Qtransfo%BFTransfo%type_Qin = Qtransfo%type_Qin
+          Qtransfo%BFTransfo%name_Qin = Qtransfo%name_Qin
 
           Qtransfo%BFTransfo%Frame    = .TRUE.
           Qtransfo%BFTransfo%euler(:) = .FALSE.
           iF_inout = 0
           CALL RecRead_BFTransfo(Qtransfo%BFTransfo,                    &
                                  Qtransfo%BunchTransfo,iF_inout,Cart_Type)
-
+          Qtransfo%type_Qin = Qtransfo%BFTransfo%type_Qin
+          Qtransfo%name_Qin = Qtransfo%BFTransfo%name_Qin
           CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
 
           IF (debug) THEN
@@ -743,7 +749,7 @@ MODULE mod_Qtransfo
           Qtransfo%nb_Qout            = 3*nat+3
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qana")
-          Qtransfo%QTOXanaTransfo%type_Qin => Qtransfo%type_Qin
+          Qtransfo%QTOXanaTransfo%type_Qin = Qtransfo%type_Qin
 
           Qtransfo%QTOXanaTransfo%nat0      = nat
           Qtransfo%QTOXanaTransfo%nat       = nat + 1
@@ -767,10 +773,8 @@ MODULE mod_Qtransfo
           Tana_Is_Possible            = .FALSE.
           Qtransfo%nb_Qin             = nb_Qin ! ncart_act
           Qtransfo%nb_Qout            = nb_Qin ! ncart_act
-          CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%type_Qin",name_sub)
-          CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%name_Qin",name_sub)
+          CALL alloc_NParray(Qtransfo%type_Qin,[Qtransfo%nb_Qin],"Qtransfo%type_Qin",name_sub)
+          CALL alloc_NParray(Qtransfo%name_Qin,[Qtransfo%nb_Qin],"Qtransfo%name_Qin",name_sub)
           DO i=1,Qtransfo%nb_Qin
             CALL make_nameQ(Qtransfo%name_Qin(i),"Qxyz_transfo",i,it)
           END DO
@@ -865,12 +869,13 @@ MODULE mod_Qtransfo
         IF (allocated(Qtransfo%name_transfo)) deallocate(Qtransfo%name_transfo)
         Qtransfo%num_transfo     = 0
         Qtransfo%BeforeActive    = .FALSE.
-        Qtransfo%opt_transfo     = 0
+        Qtransfo%inTOout         = .TRUE.
         Qtransfo%nb_var          = 0
         Qtransfo%nb_act          = 0
         Qtransfo%nb_ExtraLFSF    = 0
         Qtransfo%ncart_act       = 0
         Qtransfo%nb_transfo      = 0
+        Qtransfo%opt_transfo     = 0
         Qtransfo%skip_transfo    = .FALSE.
         Qtransfo%opt_param       = 0
         Qtransfo%Primitive_Coord = .FALSE.
@@ -925,8 +930,8 @@ MODULE mod_Qtransfo
         CALL dealloc_QTOXanaTransfo(Qtransfo%QTOXanaTransfo)
 
         ! ==== orderTransfo ===========================
-        IF (associated(Qtransfo%list_Qin_TO_Qout) ) THEN
-          CALL dealloc_array(Qtransfo%list_Qin_TO_Qout,"Qtransfo%list_Qin_TO_Qout",name_sub)
+        IF (allocated(Qtransfo%list_Qin_TO_Qout) ) THEN
+          CALL dealloc_NParray(Qtransfo%list_Qin_TO_Qout,"Qtransfo%list_Qin_TO_Qout",name_sub)
         END IF
 
         ! ==== activeTransfo ===========================
@@ -943,15 +948,19 @@ MODULE mod_Qtransfo
         Qtransfo%nb_Qin       = 0
         Qtransfo%nb_Qout      = 0
 
-        IF (associated(Qtransfo%type_Qin) ) THEN
-          CALL dealloc_array(Qtransfo%type_Qin,"Qtransfo%type_Qin",name_sub)
+        IF (allocated(Qtransfo%type_Qin) ) THEN
+          CALL dealloc_NParray(Qtransfo%type_Qin,"Qtransfo%type_Qin",name_sub)
         END IF
-        nullify(Qtransfo%type_Qout) ! because it is a true pointer
+        IF (allocated(Qtransfo%type_Qout) ) THEN
+          CALL dealloc_NParray(Qtransfo%type_Qout,"Qtransfo%type_Qout",name_sub)
+        END IF
 
-        IF (associated(Qtransfo%name_Qin) ) THEN
-          CALL dealloc_array(Qtransfo%name_Qin,"Qtransfo%name_Qin",name_sub)
+        IF (allocated(Qtransfo%name_Qin) ) THEN
+          CALL dealloc_NParray(Qtransfo%name_Qin,"Qtransfo%name_Qin",name_sub)
         END IF
-        nullify(Qtransfo%name_Qout)  ! because it is a true pointer
+        IF (allocated(Qtransfo%name_Qout) ) THEN
+          CALL dealloc_NParray(Qtransfo%name_Qout,"Qtransfo%name_Qout",name_sub)
+        END IF
 
         IF (debug) THEN
           write(out_unit,*) 'END : ',name_sub,' : ',name_transfo
@@ -980,8 +989,7 @@ MODULE mod_Qtransfo
 !----- for debuging --------------------------------------------------
 
 
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+       IF (associated(tab)) CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
 
        CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
 
@@ -1045,7 +1053,7 @@ MODULE mod_Qtransfo
       Qtransfo2%print_done      = .FALSE.
 
       IF (allocated(Qtransfo1%name_transfo)) THEN
-        Qtransfo2%name_transfo    = Qtransfo1%name_transfo
+        Qtransfo2%name_transfo  = Qtransfo1%name_transfo
       END IF
       Qtransfo2%inTOout         = Qtransfo1%inTOout
 
@@ -1068,25 +1076,17 @@ MODULE mod_Qtransfo
       Qtransfo2%Primitive_Coord = Qtransfo1%Primitive_Coord
 
 
-      CALL alloc_array(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),"Qtransfo2%type_Qin",name_sub)
+      CALL alloc_NParray(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),"Qtransfo2%type_Qin",name_sub)
       Qtransfo2%type_Qin(:) = Qtransfo1%type_Qin(:)
 
-      CALL alloc_array(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),"Qtransfo2%name_Qin",name_sub)
+      CALL alloc_NParray(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),"Qtransfo2%name_Qin",name_sub)
       Qtransfo2%name_Qin(:) = Qtransfo1%name_Qin(:)
 
-      ! for type_Qout and name_Qout, it will be done after (from another type_Qin, name_Qin)
-      ! except for num_transfo=1 (first transfo)
-      IF (Qtransfo2%num_transfo == 1) THEN
-        IF (associated(Qtransfo1%type_Qout)) THEN
-          CALL alloc_array(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
-          Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
-        END IF
+      CALL alloc_NParray(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
+      Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
 
-        IF (associated(Qtransfo1%name_Qout)) THEN
-          CALL alloc_array(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
-          Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
-        END IF
-      END IF
+      CALL alloc_NParray(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
+      Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
 
       SELECT CASE (name_transfo)
       CASE ('identity')
@@ -1094,7 +1094,7 @@ MODULE mod_Qtransfo
 
       CASE ('order')
         n = size(Qtransfo1%list_Qin_TO_Qout)
-        CALL alloc_array(Qtransfo2%list_Qin_TO_Qout,                    &
+        CALL alloc_NParray(Qtransfo2%list_Qin_TO_Qout,                    &
                                      shape(Qtransfo1%list_Qin_TO_Qout), &
                         "Qtransfo2%list_Qin_TO_Qout",name_sub)
         Qtransfo2%list_Qin_TO_Qout(:) = Qtransfo1%list_Qin_TO_Qout(:)
@@ -1181,15 +1181,13 @@ MODULE mod_Qtransfo
       CASE ('zmat')
         CALL ZmatTransfo1TOZmatTransfo2(Qtransfo1%ZmatTransfo,          &
                                         Qtransfo2%ZmatTransfo)
-        Qtransfo2%ZmatTransfo%type_Qin => Qtransfo2%type_Qin
-        Qtransfo2%ZmatTransfo%name_Qin => Qtransfo2%name_Qin
 
       CASE ('rec_nm')
         CALL RectilinearNM_Transfo1TORectilinearNM_Transfo2(            &
                                        Qtransfo1%RectilinearNM_Transfo, &
                                        Qtransfo2%RectilinearNM_Transfo)
-        Qtransfo2%ZmatTransfo%type_Qin => Qtransfo2%type_Qin
-        Qtransfo2%ZmatTransfo%name_Qin => Qtransfo2%name_Qin
+        Qtransfo2%ZmatTransfo%type_Qin = Qtransfo2%type_Qin
+        Qtransfo2%ZmatTransfo%name_Qin = Qtransfo2%name_Qin
 
       CASE ('bunch','bunch_poly')
         CALL BunchTransfo1TOBunchTransfo2(Qtransfo1%BunchTransfo,       &
@@ -1198,13 +1196,10 @@ MODULE mod_Qtransfo
       CASE ('poly')
         CALL Rec_BFTransfo1TOBFTransfo2(Qtransfo1%BFTransfo,            &
                                         Qtransfo2%BFTransfo)
-        Qtransfo2%BFTransfo%type_Qin => Qtransfo2%type_Qin
-        Qtransfo2%BFTransfo%name_Qin => Qtransfo2%name_Qin
 
       CASE ('qtox_ana')
         CALL QTOXanaTransfo1TOQTOXanaTransfo2(Qtransfo1%QTOXanaTransfo, &
                                               Qtransfo2%QTOXanaTransfo)
-        Qtransfo2%QTOXanaTransfo%type_Qin => Qtransfo2%type_Qin
 
       CASE ('cartesian')
         CALL CartesianTransfo1TOCartesianTransfo2(                      &
@@ -1538,7 +1533,7 @@ MODULE mod_Qtransfo
 
           flush(out_unit)
           write(out_unit,*) '---------------------------------------'
-          IF (associated(Qtransfo%name_Qout) .AND. associated(Qtransfo%type_Qout)) THEN
+          IF (allocated(Qtransfo%name_Qout) .AND. allocated(Qtransfo%type_Qout)) THEN
             lerr = (size(Qtransfo%name_Qout) /= size(Qtransfo%type_Qout))
             lerr = lerr .OR. (Qtransfo%nb_Qout /= size(Qtransfo%type_Qout))
             lerr = lerr .OR. (size(Qtransfo%name_Qout) /= Qtransfo%nb_Qout)
@@ -1554,11 +1549,11 @@ MODULE mod_Qtransfo
               END DO
             END IF
           ELSE
-            write(out_unit,*) 'asso name_Qout and type_Qout',            &
-             associated(Qtransfo%name_Qout),associated(Qtransfo%type_Qout)
+            write(out_unit,*) 'allo name_Qout and type_Qout',            &
+             allocated(Qtransfo%name_Qout),allocated(Qtransfo%type_Qout)
           END IF
 
-          IF (associated(Qtransfo%name_Qin) .AND. associated(Qtransfo%type_Qin)) THEN
+          IF (allocated(Qtransfo%name_Qin) .AND. allocated(Qtransfo%type_Qin)) THEN
             write(out_unit,*) '---------------------------------------'
             lerr = (size(Qtransfo%name_Qin) /= size(Qtransfo%type_Qin))
             lerr = lerr .OR. (Qtransfo%nb_Qin /= size(Qtransfo%type_Qin))
@@ -1574,8 +1569,8 @@ MODULE mod_Qtransfo
               END DO
             END IF
           ELSE
-            write(out_unit,*) 'asso name_Qin and type_Qin',              &
-             associated(Qtransfo%name_Qin),associated(Qtransfo%type_Qin)
+            write(out_unit,*) 'allo name_Qin and type_Qin',              &
+             allocated(Qtransfo%name_Qin),allocated(Qtransfo%type_Qin)
           END IF
           write(out_unit,*) '---------------------------------------'
         ENDIF ! for MPI_id==0
@@ -1708,22 +1703,21 @@ MODULE mod_Qtransfo
         character (len=*),   intent(in)    :: name_coord
 
         integer :: i
-        integer :: it
+        !integer :: it
         character (len=*), parameter :: name_sub = 'sub_Type_Name_OF_Qin'
 
-        IF (.NOT. associated(Qtransfo%type_Qin)) THEN
-          CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%type_Qin",name_sub)
+        IF (.NOT. allocated(Qtransfo%type_Qin)) THEN
+          CALL alloc_NParray(Qtransfo%type_Qin,[Qtransfo%nb_Qin],"Qtransfo%type_Qin",name_sub)
         END IF
 
-        IF (.NOT. associated(Qtransfo%name_Qin)) THEN
-          CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],       &
-                          "Qtransfo%name_Qin",name_sub)
+        IF (.NOT. allocated(Qtransfo%name_Qin)) THEN
+          CALL alloc_NParray(Qtransfo%name_Qin,[Qtransfo%nb_Qin],"Qtransfo%name_Qin",name_sub)
         END IF
 
-        it = Qtransfo%num_transfo
+        !it = Qtransfo%num_transfo
         DO i=1,Qtransfo%nb_Qin
-          CALL make_nameQ(Qtransfo%name_Qin(i),trim(adjustl(name_coord)),i,it)
+          Qtransfo%name_Qin(i) = trim(adjustl(name_coord)) // "_" // TO_string(i) // "_" // TO_string(Qtransfo%num_transfo)
+          !CALL make_nameQ(Qtransfo%name_Qin(i),trim(adjustl(name_coord)),i,it)
           Qtransfo%type_Qin(i) = 0
         END DO
 
@@ -1740,8 +1734,8 @@ MODULE mod_Qtransfo
 
     character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qout_XBF'
 
-    CALL alloc_array(Qtransfo%type_Qout,[Qtransfo%nb_Qout],"Qtransfo%type_Qout",name_sub)
-    CALL alloc_array(Qtransfo%name_Qout,[Qtransfo%nb_Qout],"Qtransfo%name_Qout",name_sub)
+    CALL alloc_NParray(Qtransfo%type_Qout,[Qtransfo%nb_Qout],"Qtransfo%type_Qout",name_sub)
+    CALL alloc_NParray(Qtransfo%name_Qout,[Qtransfo%nb_Qout],"Qtransfo%name_Qout",name_sub)
     Qtransfo%type_Qout(:) = 0
 
     !Modification to take into acount nb_extraLFSF (euler, COM)
@@ -1801,8 +1795,8 @@ MODULE mod_Qtransfo
 
     character (len=*), parameter :: name_sub = 'Set_Type_Name_OF_Qin_Vec'
 
-    CALL alloc_array(Qtransfo%type_Qin,[Qtransfo%nb_Qin],"Qtransfo%type_Qin",name_sub)
-    CALL alloc_array(Qtransfo%name_Qin,[Qtransfo%nb_Qin],"Qtransfo%name_Qin",name_sub)
+    CALL alloc_NParray(Qtransfo%type_Qin,[Qtransfo%nb_Qin],"Qtransfo%type_Qin",name_sub)
+    CALL alloc_NParray(Qtransfo%name_Qin,[Qtransfo%nb_Qin],"Qtransfo%name_Qin",name_sub)
     Qtransfo%type_Qin(:) = 0
 
     !Modification to take into acount nb_extraLFSF (euler, COM)
@@ -1856,9 +1850,9 @@ MODULE mod_Qtransfo
          write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
-      IF (.NOT. associated(Qtransfo%type_Qout) ) THEN
+      IF (.NOT. allocated(Qtransfo%type_Qout) ) THEN
         write(out_unit,*) ' ERROR in name_sub'
-        write(out_unit,*) ' Qtransfo%type_Qout is not associated'
+        write(out_unit,*) ' Qtransfo%type_Qout is not allocated'
         write(out_unit,*) ' CHECK the fortran !'
         STOP
       END IF

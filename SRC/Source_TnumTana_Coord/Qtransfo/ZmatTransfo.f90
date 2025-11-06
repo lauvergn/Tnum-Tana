@@ -58,8 +58,8 @@ MODULE mod_ZmatTransfo
     integer,                  allocatable :: Z(:)
     character (len=Name_len), allocatable :: symbole(:)
 
-    integer, pointer                  :: type_Qin(:)   => null() ! TRUE pointer
-    character (len=Name_len), pointer :: name_Qin(:)   => null() ! TRUE pointer
+    integer,                  allocatable :: type_Qin(:)
+    character (len=Name_len), allocatable :: name_Qin(:)
 
   END TYPE Type_ZmatTransfo
 
@@ -78,7 +78,6 @@ CONTAINS
     !logical, parameter :: debug=.TRUE.
     character (len=*), parameter :: name_sub = 'alloc_ZmatTransfo'
 
-    ! reamrque type_Qin and name_Qin are not allocated because there true pointers
     IF (debug) THEN
       write(out_unit,*) 'BEGINNING alloc_ZmatTransfo'
       write(out_unit,*) 'nat',ZmatTransfo%nat
@@ -120,6 +119,16 @@ CONTAINS
     allocate(ZmatTransfo%symbole(ZmatTransfo%nat))
     ZmatTransfo%symbole(:) = ""
 
+    IF (allocated(ZmatTransfo%type_Qin))  THEN
+      CALL dealloc_NParray(ZmatTransfo%type_Qin,"ZmatTransfo%type_Qin",name_sub)
+    END IF
+    CALL alloc_NParray(ZmatTransfo%type_Qin,[ZmatTransfo%nb_var],"ZmatTransfo%type_Qin",name_sub)
+
+    IF (allocated(ZmatTransfo%name_Qin))  THEN
+      CALL dealloc_NParray(ZmatTransfo%name_Qin,"ZmatTransfo%name_Qin",name_sub)
+    END IF
+    CALL alloc_NParray(ZmatTransfo%name_Qin,[ZmatTransfo%nb_var],"ZmatTransfo%name_Qin",name_sub)
+
     IF (debug) THEN
       write(out_unit,*) 'END ',name_sub
       flush(out_unit)
@@ -149,6 +158,14 @@ CONTAINS
 
     IF (allocated(ZmatTransfo%symbole)) deallocate(ZmatTransfo%symbole)
 
+    IF (allocated(ZmatTransfo%type_Qin))  THEN
+      CALL dealloc_NParray(ZmatTransfo%type_Qin,"ZmatTransfo%type_Qin","dealloc_ZmatTransfo")
+    END IF
+
+    IF (allocated(ZmatTransfo%name_Qin))  THEN
+      CALL dealloc_NParray(ZmatTransfo%name_Qin,"ZmatTransfo%name_Qin","dealloc_ZmatTransfo")
+    END IF
+    
     ZmatTransfo%ncart        = 0
     ZmatTransfo%ncart_act    = 0
     ZmatTransfo%nat0         = 0
@@ -164,8 +181,6 @@ CONTAINS
 
     ZmatTransfo%cos_th      = .FALSE.
 
-    nullify(ZmatTransfo%type_Qin)
-    nullify(ZmatTransfo%name_Qin)
 
     !write(out_unit,*) 'END dealloc_ZmatTransfo'; flush(out_unit)
 
@@ -1162,7 +1177,6 @@ CONTAINS
     !logical, parameter :: debug=.TRUE.
     character (len=*), parameter :: name_sub = 'ZmatTransfo1TOZmatTransfo2'
 
-    ! reamrque type_Qin and name_Qin are not transfer here
     IF (debug) THEN
       write(out_unit,*) 'BEGINNING ',name_sub
       CALL Write_ZmatTransfo(ZmatTransfo1)
@@ -1196,6 +1210,9 @@ CONTAINS
       ZmatTransfo2%masses(:)       = ZmatTransfo1%masses
       ZmatTransfo2%Z(:)            = ZmatTransfo1%Z
       ZmatTransfo2%symbole(:)      = ZmatTransfo1%symbole
+
+      ZmatTransfo2%name_Qin(:)     = ZmatTransfo1%name_Qin
+      ZmatTransfo2%type_Qin(:)     = ZmatTransfo1%type_Qin
 
       ZmatTransfo2%New_Orient      = ZmatTransfo1%New_Orient
       ZmatTransfo2%vAt1(:)         = ZmatTransfo1%vAt1(:)
@@ -1246,9 +1263,9 @@ CONTAINS
     IF (allocated(ZmatTransfo%masses))   &
       write(out_unit,*) 'masses',ZmatTransfo%masses
 
-    IF (associated(ZmatTransfo%type_Qin)) &
+    IF (allocated(ZmatTransfo%type_Qin)) &
       write(out_unit,*) 'type_Qin',ZmatTransfo%type_Qin
-    IF (associated(ZmatTransfo%name_Qin)) &
+    IF (allocated(ZmatTransfo%name_Qin)) &
       write(out_unit,*) 'name_Qin',ZmatTransfo%name_Qin
 
     write(out_unit,*) 'END ',name_sub

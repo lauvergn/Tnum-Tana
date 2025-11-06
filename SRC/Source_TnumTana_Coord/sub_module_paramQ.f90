@@ -145,11 +145,11 @@ CONTAINS
 
     write(out_unit,*) 'BEGINNING ',name_sub
 
-    IF (.NOT. associated(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout))  THEN
+    IF (.NOT. allocated(mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout))  THEN
       write(out_unit,*) ' ERROR in ',name_sub
-      write(out_unit,*) ' mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not associated in mole!!'
+      write(out_unit,*) ' mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not allocated in mole!!'
       write(out_unit,*) ' Check the source !'
-      STOP 'ERROR in read_RefGeom. Fortran error: mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not associated'
+      STOP 'ERROR in read_RefGeom. Fortran error: mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout is not allocated'
     END IF
 
     IF (print_level > 1) THEN
@@ -2043,9 +2043,9 @@ CONTAINS
         END IF
         ibeta = dnx%nb_var_vec-3
       END IF
-      IF (debug) write(6,*) 'coucou euler',euler
-      IF (debug) write(6,*) 'coucou ibeta',ibeta
-      IF (debug) write(6,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      IF (debug) write(6,*) 'euler',euler
+      IF (debug) write(6,*) 'ibeta',ibeta
+      IF (debug) write(6,*) 'type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
       CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
 
       ix = 0

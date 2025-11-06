@@ -164,21 +164,21 @@ MODULE mod_ActiveTransfo
         CALL dealloc_NParray(ActiveTransfo%list_QMLMapping,"ActiveTransfo%list_QMLMapping",name_sub)
       END IF
 
-      ActiveTransfo%nb_var      = 0
-      ActiveTransfo%nb_act      = 0
-      ActiveTransfo%nb_act1     = 0
-      ActiveTransfo%nb_inact2n  = 0
-      ActiveTransfo%nb_inact21  = 0
-      ActiveTransfo%nb_inact22  = 0
-      ActiveTransfo%nb_inact20  = 0
-      ActiveTransfo%nb_inact    = 0
-      ActiveTransfo%nb_inact31  = 0
-      ActiveTransfo%nb_rigid0   = 0
-      ActiveTransfo%nb_rigid100 = 0
-      ActiveTransfo%nb_rigid    = 0
+      ActiveTransfo%nb_var           = 0
+      ActiveTransfo%nb_act           = 0
+      ActiveTransfo%nb_act1          = 0
+      ActiveTransfo%nb_inact2n       = 0
+      ActiveTransfo%nb_inact21       = 0
+      ActiveTransfo%nb_inact22       = 0
+      ActiveTransfo%nb_inact20       = 0
+      ActiveTransfo%nb_inact         = 0
+      ActiveTransfo%nb_inact31       = 0
+      ActiveTransfo%nb_rigid0        = 0
+      ActiveTransfo%nb_rigid100      = 0
+      ActiveTransfo%nb_rigid         = 0
 
-      ActiveTransfo%With_Tab_dnQflex    = .FALSE.
-      ActiveTransfo%QMLib               = .FALSE.
+      ActiveTransfo%With_Tab_dnQflex = .FALSE.
+      ActiveTransfo%QMLib            = .FALSE.
 
     END SUBROUTINE dealloc_ActiveTransfo
 

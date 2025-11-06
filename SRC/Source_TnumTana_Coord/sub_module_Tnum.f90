@@ -996,8 +996,8 @@ MODULE mod_Tnum
           IF (it > 0) nb_Qin = mole%nb_var
 
           IF (it > 1) THEN ! not cartessian coordinates (Qout)
-            mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
-            mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
+            mole%tab_Qtransfo(it)%type_Qout  = mole%tab_Qtransfo(it-1)%type_Qin
+            mole%tab_Qtransfo(it)%name_Qout  = mole%tab_Qtransfo(it-1)%name_Qin
             mole%tab_Qtransfo(it)%nb_Qout    = mole%tab_Qtransfo(it-1)%nb_Qin
             mole%tab_Qtransfo(it)%ncart_act  = mole%ncart_act
             IF (mole%tab_Qtransfo(it)%nb_Qout < 1) THEN
@@ -1087,15 +1087,15 @@ MODULE mod_Tnum
           END IF
           write(out_unit,*) '================================================='
           write(out_unit,*) 'it',it,' name_transfo: ',get_name_Qtransfo(mole%tab_Qtransfo(it))
-          IF (associated(mole%tab_Qtransfo(it)%type_Qout)) THEN
+          IF (allocated(mole%tab_Qtransfo(it)%type_Qout)) THEN
             write(out_unit,*) 'type_Qout',mole%tab_Qtransfo(it)%type_Qout
           ELSE
-            write(out_unit,*) 'type_Qout: not associated'
+            write(out_unit,*) 'type_Qout: not allocated'
           END IF
-          IF (associated(mole%tab_Qtransfo(it)%type_Qin)) THEN
+          IF (allocated(mole%tab_Qtransfo(it)%type_Qin)) THEN
             write(out_unit,*) 'type_Qin ',mole%tab_Qtransfo(it)%type_Qin
           ELSE
-            write(out_unit,*) 'type_Qin: not associated'
+            write(out_unit,*) 'type_Qin: not allocated'
           END IF
           write(out_unit,*) '================================================='
           flush(out_unit)
@@ -1239,8 +1239,8 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%ZmatTransfo%vAt3       = vAt3
 
         CALL sub_Type_Name_OF_Qin(mole%tab_Qtransfo(it),"Qzmat")
-        mole%tab_Qtransfo(it)%ZmatTransfo%type_Qin => mole%tab_Qtransfo(it)%type_Qin
-        mole%tab_Qtransfo(it)%ZmatTransfo%name_Qin => mole%tab_Qtransfo(it)%name_Qin
+        mole%tab_Qtransfo(it)%ZmatTransfo%type_Qin = mole%tab_Qtransfo(it)%type_Qin
+        mole%tab_Qtransfo(it)%ZmatTransfo%name_Qin = mole%tab_Qtransfo(it)%name_Qin
 
         CALL Read_ZmatTransfo(mole%tab_Qtransfo(it)%ZmatTransfo,const_phys%mendeleev)
 
@@ -1248,11 +1248,11 @@ MODULE mod_Tnum
 
 
         ! for Qout type, name ....
-        CALL alloc_array(mole%tab_Qtransfo(it)%type_Qout,[3*(nat+1)], &
-                        "mole%tab_Qtransfo(it)%type_Qout",name_sub)
+        CALL alloc_NParray(mole%tab_Qtransfo(it)%type_Qout,[3*(nat+1)], &
+                          "mole%tab_Qtransfo(it)%type_Qout",name_sub)
 
-        CALL alloc_array(mole%tab_Qtransfo(it)%name_Qout,[3*(nat+1)], &
-                        "mole%tab_Qtransfo(it)%name_Qout",name_sub)
+        CALL alloc_NParray(mole%tab_Qtransfo(it)%name_Qout,[3*(nat+1)], &
+                          "mole%tab_Qtransfo(it)%name_Qout",name_sub)
         mole%tab_Qtransfo(it)%type_Qout(:) = 1 ! cartesian type
 
         DO i=1,mole%tab_Qtransfo(it)%nb_Qout
@@ -1272,8 +1272,8 @@ MODULE mod_Tnum
           it = it + 1
 
           ! for Qout type, name ....
-          mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
-          mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
+          mole%tab_Qtransfo(it)%type_Qout = mole%tab_Qtransfo(it-1)%type_Qin
+          mole%tab_Qtransfo(it)%name_Qout = mole%tab_Qtransfo(it-1)%name_Qin
 
           CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'linear')
           mole%tab_Qtransfo(it)%inTOout      = .TRUE.
@@ -1305,8 +1305,8 @@ MODULE mod_Tnum
           mole%itNM = it
 
           ! for Qout type, name ....
-          mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
-          mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
+          mole%tab_Qtransfo(it)%type_Qout = mole%tab_Qtransfo(it-1)%type_Qin
+          mole%tab_Qtransfo(it)%name_Qout = mole%tab_Qtransfo(it-1)%name_Qin
 
           CALL set_name_Qtransfo(mole%tab_Qtransfo(it),'NM')
           mole%tab_Qtransfo(it)%inTOout      = .TRUE.
@@ -1371,8 +1371,8 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%nb_Qout = mole%nb_var
 
         ! for Qout type, name ....
-        mole%tab_Qtransfo(it)%type_Qout => mole%tab_Qtransfo(it-1)%type_Qin
-        mole%tab_Qtransfo(it)%name_Qout => mole%tab_Qtransfo(it-1)%name_Qin
+        mole%tab_Qtransfo(it)%type_Qout = mole%tab_Qtransfo(it-1)%type_Qin
+        mole%tab_Qtransfo(it)%name_Qout = mole%tab_Qtransfo(it-1)%name_Qin
 
 
         CALL alloc_array(mole%tab_Qtransfo(it)%ActiveTransfo,"mole%tab_Qtransfo(it)%ActiveTransfo",name_sub)
@@ -1589,21 +1589,21 @@ MODULE mod_Tnum
            write(out_unit,*) ' Qtransfo,name_transfo',it," : ",        &
                                 get_name_Qtransfo(mole%tab_Qtransfo(it))
 
-           write(out_unit,*) 'asso name_Qout and type_Qout',           &
-               associated(mole%tab_Qtransfo(it)%name_Qout),             &
-                            associated(mole%tab_Qtransfo(it)%type_Qout)
-           IF (associated(mole%tab_Qtransfo(it)%name_Qout) .AND.        &
-                       associated(mole%tab_Qtransfo(it)%type_Qout)) THEN
+           write(out_unit,*) 'allocated name_Qout and type_Qout?',     &
+               allocated(mole%tab_Qtransfo(it)%name_Qout),             &
+                            allocated(mole%tab_Qtransfo(it)%type_Qout)
+           IF (allocated(mole%tab_Qtransfo(it)%name_Qout) .AND.        &
+                       allocated(mole%tab_Qtransfo(it)%type_Qout)) THEN
             write(out_unit,*) 'type_Qout',mole%tab_Qtransfo(it)%type_Qout
             write(out_unit,*) 'name_Qout',mole%tab_Qtransfo(it)%name_Qout
             flush(out_unit)
            END IF
 
-           write(out_unit,*) 'asso name_Qin and type_Qin',             &
-               associated(mole%tab_Qtransfo(it)%name_Qin),              &
-                            associated(mole%tab_Qtransfo(it)%type_Qin)
-           IF (associated(mole%tab_Qtransfo(it)%name_Qin) .AND.         &
-                       associated(mole%tab_Qtransfo(it)%type_Qin)) THEN
+           write(out_unit,*) 'allocated name_Qin and type_Qin?',        &
+               allocated(mole%tab_Qtransfo(it)%name_Qin),              &
+                            allocated(mole%tab_Qtransfo(it)%type_Qin)
+           IF (allocated(mole%tab_Qtransfo(it)%name_Qin) .AND.         &
+                       allocated(mole%tab_Qtransfo(it)%type_Qin)) THEN
             write(out_unit,*) 'type_Qin',mole%tab_Qtransfo(it)%type_Qin
             write(out_unit,*) 'name_Qin',mole%tab_Qtransfo(it)%name_Qin
             flush(out_unit)
@@ -1732,8 +1732,8 @@ MODULE mod_Tnum
         END SELECT
 
         IF (it > 1) THEN
-          mole1%tab_Qtransfo(it)%type_Qout => mole1%tab_Qtransfo(it-1)%type_Qin
-          mole1%tab_Qtransfo(it)%name_Qout => mole1%tab_Qtransfo(it-1)%name_Qin
+          mole1%tab_Qtransfo(it)%type_Qout = mole1%tab_Qtransfo(it-1)%type_Qin
+          mole1%tab_Qtransfo(it)%name_Qout = mole1%tab_Qtransfo(it-1)%name_Qin
         END IF
 
       END DO

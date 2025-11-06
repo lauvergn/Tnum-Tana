@@ -120,8 +120,8 @@
           logical                  :: Def_cos_th               = .TRUE.
 
           integer                  :: iAtA=0,iAtB=0 ! enables to define the vector from 2 particles
-          integer, pointer                  :: type_Qin(:) => null() ! TRUE pointer
-          character (len=Name_len), pointer :: name_Qin(:) => null() ! TRUE pointer
+          integer,                  allocatable :: type_Qin(:)
+          character (len=Name_len), allocatable :: name_Qin(:)
           integer, pointer                  :: list_Qpoly_TO_Qprim(:) => null()
           integer, pointer                  :: list_Qprim_TO_Qpoly(:) => null()
 
@@ -671,17 +671,18 @@
 
       !write(out_unit,*) 'BEGINNING ',name_sub
 
-      ! the variables type_Qin and name_Qin are TRUE pointers.
-      ! => they cannot be deallocated, but just nullified
-      nullify(BFTransfo%type_Qin) ! true pointer
-      nullify(BFTransfo%name_Qin) ! true pointer
+      IF (allocated(BFTransfo%type_Qin))  THEN
+        CALL dealloc_NParray(BFTransfo%type_Qin,"BFTransfo%type_Qin",name_sub)
+      END IF
+      IF (allocated(BFTransfo%name_Qin))  THEN
+        CALL dealloc_NParray(BFTransfo%name_Qin,"BFTransfo%name_Qin",name_sub)
+      END IF
 
       IF (associated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,BFTransfo%nb_vect
           CALL dealloc_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
-        CALL dealloc_array(BFTransfo%tab_BFTransfo,                     &
-                          "BFTransfo%tab_BFTransfo",name_sub)
+        CALL dealloc_array(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
       END IF
 
       IF (BFTransfo%BF) THEN
@@ -1178,8 +1179,8 @@
 
             IF (iv == 1) BFTransfo%tab_BFTransfo(iv)%euler(1) = .FALSE.
 
-            BFTransfo%tab_BFTransfo(iv)%type_Qin => BFTransfo%type_Qin
-            BFTransfo%tab_BFTransfo(iv)%name_Qin => BFTransfo%name_Qin
+            BFTransfo%tab_BFTransfo(iv)%type_Qin = BFTransfo%type_Qin
+            BFTransfo%tab_BFTransfo(iv)%name_Qin = BFTransfo%name_Qin
 
             BFTransfo%tab_BFTransfo(iv)%list_Qprim_TO_Qpoly => BFTransfo%list_Qprim_TO_Qpoly
             BFTransfo%tab_BFTransfo(iv)%list_Qpoly_TO_Qprim => BFTransfo%list_Qpoly_TO_Qprim
@@ -1190,7 +1191,9 @@
             CALL RecRead_BFTransfo(BFTransfo%tab_BFTransfo(iv),         &
                                    BunchTransfo,                        &
                                    num_Frame_in_Container_rec,Cart_type)
-            ! The next two lines HAVE to be after the "CALL RecRead_BFTransfo".
+            ! The next lines HAVE to be after the "CALL RecRead_BFTransfo".
+            BFTransfo%type_Qin = BFTransfo%tab_BFTransfo(iv)%type_Qin
+            BFTransfo%name_Qin = BFTransfo%tab_BFTransfo(iv)%name_Qin
             BFTransfo%nb_vect_tot = BFTransfo%nb_vect_tot +             &
                                 BFTransfo%tab_BFTransfo(iv)%nb_vect_tot
 
@@ -1475,8 +1478,8 @@
       write(out_unit,*) ' Unit_vector:'
       CALL write_op(BFTransfo%Unit_Vector)
 
-      IF (associated(BFTransfo%type_Qin) .AND.                          &
-          associated(BFTransfo%name_Qin)  )      THEN
+      IF (allocated(BFTransfo%type_Qin) .AND.                          &
+          allocated(BFTransfo%name_Qin)  )      THEN
         write(out_unit,*) 'type_Qin',BFTransfo%type_Qin(:)
         write(out_unit,*) 'name_Qin: ',                                &
               (trim(BFTransfo%name_Qin(iq))," ",iq=1,BFTransfo%nb_var)
@@ -2676,9 +2679,8 @@
         BFTransfo2%list_Qprim_TO_Qpoly(:) = BFTransfo1%list_Qprim_TO_Qpoly(:)
       END IF
 
-      ! they are true pointers, they are linked
-      BFTransfo2%type_Qin => BFTransfo1%type_Qin
-      BFTransfo2%name_Qin => BFTransfo1%name_Qin
+      IF (allocated(BFTransfo1%type_Qin)) BFTransfo2%type_Qin = BFTransfo1%type_Qin
+      IF (allocated(BFTransfo1%name_Qin)) BFTransfo2%name_Qin = BFTransfo1%name_Qin
 
 
       IF (BFTransfo2%Frame .AND. associated(BFTransfo1%tab_BFTransfo)) THEN
@@ -2777,7 +2779,7 @@
        BunchTransfo%symbole(:) = ""
 
        CALL alloc_NParray(BunchTransfo%masses_OF_At,[BunchTransfo%nat_act],&
-                       "BunchTransfo%masses_OF_At",name_sub)
+                         "BunchTransfo%masses_OF_At",name_sub)
        BunchTransfo%masses_OF_At(:) = ZERO
 
 !      write(out_unit,*) 'END ',name_sub
@@ -2787,7 +2789,7 @@
       !!@description: TODO
       !!@param: TODO
       SUBROUTINE dealloc_BunchTransfo(BunchTransfo)
-       TYPE (Type_BunchTransfo),pointer, intent(inout) :: BunchTransfo
+       TYPE (Type_BunchTransfo), pointer, intent(inout) :: BunchTransfo
 
       integer :: err_mem,memory
        character (len=*), parameter :: name_sub='dealloc_BunchTransfo'

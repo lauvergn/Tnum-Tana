@@ -56,7 +56,7 @@
         real (kind=Rkind),        pointer :: masses(:)     => null()
         integer, pointer                  :: Z(:)          => null()
         character (len=Name_len),pointer  :: symbole(:)    => null()
-        integer, pointer                  :: type_Qin(:)   => null() ! TRUE pointer
+        integer,                  allocatable :: type_Qin(:)
 
       END TYPE Type_QTOXanaTransfo
 
@@ -95,6 +95,10 @@
                        "QTOXanaTransfo%masses",name_sub)
        QTOXanaTransfo%masses(:) = ZERO
 
+       CALL alloc_array(QTOXanaTransfo%type_Qin,[QTOXanaTransfo%nb_var], &
+                       "QTOXanaTransfo%type_Qin",name_sub)
+       QTOXanaTransfo%type_Qin(:) = -1
+
 !      write(out_unit,*) 'END ',name_sub
 
       END SUBROUTINE alloc_QTOXanaTransfo
@@ -130,7 +134,10 @@
         QTOXanaTransfo%nat_act   = 0
         QTOXanaTransfo%nb_var    = 0
 
-       nullify(QTOXanaTransfo%type_Qin)
+        IF (allocated(QTOXanaTransfo%type_Qin))  THEN
+         CALL dealloc_NParray(QTOXanaTransfo%type_Qin,                     &
+                             "QTOXanaTransfo%type_Qin","dealloc_QTOXanaTransfo")
+        END IF
 
        !write(out_unit,*) 'END dealloc_QTOXanaTransfo'; flush(out_unit)
 
@@ -230,6 +237,7 @@
       QTOXanaTransfo2%Z(:)         = QTOXanaTransfo1%Z(:)
       QTOXanaTransfo2%symbole(:)   = QTOXanaTransfo1%symbole(:)
 
+      QTOXanaTransfo2%type_Qin(:)  = QTOXanaTransfo1%type_Qin(:)
       !write(out_unit,*) 'END QTOXanaTransfo1TOQTOXanaTransfo2'
 
       END SUBROUTINE QTOXanaTransfo1TOQTOXanaTransfo2
@@ -256,6 +264,8 @@
       write(out_unit,*) 'masses : ',QTOXanaTransfo%masses(:)
       write(out_unit,*) 'Z      : ',QTOXanaTransfo%Z(:)
       write(out_unit,*) 'symbole: ',QTOXanaTransfo%symbole(:)
+
+      write(out_unit,*) 'type_Qin:',QTOXanaTransfo%type_Qin(:)
 
       write(out_unit,*) 'END ',name_sub
 
