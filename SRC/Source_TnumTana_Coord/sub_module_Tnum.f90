@@ -759,7 +759,7 @@ MODULE mod_Tnum
 
       stepOp               = ZERO
       stepT                = ONETENTH**4
-      num_GG                = .FALSE.
+      num_GG               = .FALSE.
       num_g                = .FALSE.
       num_x                = .FALSE.
       Gdiago               = .FALSE.
@@ -959,7 +959,7 @@ MODULE mod_Tnum
       CASE default
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) " The Cart_Type is Wrong: '",trim(adjustl(Cart_Type)),"'"
-        write(out_unit,*) " The possibility are: 'BF', 'SF', 'LF' "
+        write(out_unit,*) " The possibilities are: 'BF', 'SF', 'LF' "
         STOP ' ERROR in Read_CoordType: Wrong Cart_Type'
       END SELECT
 

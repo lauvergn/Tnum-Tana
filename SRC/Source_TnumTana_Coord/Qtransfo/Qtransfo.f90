@@ -94,14 +94,12 @@ MODULE mod_Qtransfo
           TYPE (Type_RPHQMLTransfo),    pointer :: RPHQMLTransfo       => null()
           TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
 
-          integer                               :: nb_Qin       = 0  ! size the input coordinates
-          integer                               :: nb_Qout      = 0 ! size the output coordinates
- 
-          integer,                  allocatable :: type_Qin(:)        ! size nb_Qin
-          character (len=Name_len), allocatable :: name_Qin(:)        ! size nb_Qin
-
-          integer,                  allocatable :: type_Qout(:)       ! size nb_Qout
-          character (len=Name_len), allocatable :: name_Qout(:)       ! size nb_Qout
+          integer                                   :: nb_Qin       = 0   ! size the input coordinates
+          integer                                   :: nb_Qout      = 0   ! size the output coordinates
+          integer,                      allocatable :: type_Qin(:)        ! size nb_Qin
+          character (len=Name_len),     allocatable :: name_Qin(:)        ! size nb_Qin
+          integer,                      allocatable :: type_Qout(:)       ! size nb_Qout
+          character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
         END TYPE Type_Qtransfo
 
       INTERFACE alloc_array
@@ -283,12 +281,12 @@ MODULE mod_Qtransfo
           DO i=1,Qtransfo%nb_Qin
             i_Q = Qtransfo%list_Qin_TO_Qout(i)
             IF (i_Q < 0 .OR. i_Q > Qtransfo%nb_Qin) THEN
-              Qtransfo%type_Qin(i) = -1
+              Qtransfo%type_Qin(i) = 0
             ELSE
              Qtransfo%type_Qin(i) = Qtransfo%type_Qout(i_Q)
             END IF
           END DO
-          IF (count(Qtransfo%type_Qin(:) == -1) > 0) THEN
+          IF (count(Qtransfo%type_Qin(:) == 0) > 0) THEN
              write(out_unit,*) ' ERROR in ',name_sub
              write(out_unit,*) '  type_Qin "type_Qin"',Qtransfo%type_Qin(:)
 
