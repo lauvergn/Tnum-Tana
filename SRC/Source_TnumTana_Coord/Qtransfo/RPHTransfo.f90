@@ -150,6 +150,15 @@
         MODULE PROCEDURE dealloc_array_OF_RPHTransfodim0
       END INTERFACE
 
+      INTERFACE alloc_NParray
+        ! for RPHTransfo
+        MODULE PROCEDURE alloc_NParray_OF_RPHTransfodim0
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        ! for RPHTransfo
+        MODULE PROCEDURE dealloc_NParray_OF_RPHTransfodim0
+      END INTERFACE
+
       INTERFACE calc_RPHTransfo
         MODULE PROCEDURE calc_RPHTransfo_gene
       END INTERFACE
@@ -168,7 +177,7 @@
                 calc_RPHTransfo_gene, calc_RPHTransfo_BeforeActive,     &
                 RPHTransfo1TORPHTransfo2
 
-      PUBLIC :: alloc_array, dealloc_array, Switch_RPH
+      PUBLIC :: alloc_array, dealloc_array, alloc_NParray, dealloc_NParray, Switch_RPH
 
 
       CONTAINS
@@ -838,6 +847,53 @@
        nullify(tab)
 
       END SUBROUTINE dealloc_array_OF_RPHTransfodim0
+    SUBROUTINE alloc_NParray_OF_RPHTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_RPHTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                      intent(in) :: name_var,name_sub
+
+      integer, parameter :: ndim=0
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_RPHTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       allocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_RPHTransfo')
+
+      END SUBROUTINE alloc_NParray_OF_RPHTransfodim0
+      SUBROUTINE dealloc_NParray_OF_RPHTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_RPHTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                   intent(in) :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_RPHTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+       IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_RPHTransfo')
+
+      END SUBROUTINE dealloc_NParray_OF_RPHTransfodim0
       SUBROUTINE Write_RPHTransfo(RPHTransfo)
       IMPLICIT NONE
 

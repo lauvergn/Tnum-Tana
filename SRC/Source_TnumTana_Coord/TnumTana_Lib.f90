@@ -473,7 +473,7 @@ SUBROUTINE Tnum_get_EigNM_ForPVSCF(EigNM,nb_NM)
     write(out_unit,*) ' nb_NM',nb_NM
     STOP 'ERROR in Tnum_get_EigNM_ForPVSCF:  Wrong nb_NM value!'
   END IF
-  IF (.NOT. associated(mole%NMTransfo%d0eh)) THEN
+  IF (.NOT. allocated(mole%NMTransfo%d0eh)) THEN
     write(out_unit,*) ' ERROR in ',name_sub
     write(out_unit,*) ' mole%NMTransfo%d0eh(:) is NOT associated!'
     write(out_unit,*) ' => You MUST call InitTnum3_NM_TO_LinearTransfo'

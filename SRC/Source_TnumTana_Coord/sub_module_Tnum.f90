@@ -43,8 +43,8 @@ MODULE mod_Tnum
                                       sub_type_name_of_qin,             &
                                       sub_check_lineartransfo,          &
                                       qtransfo1toqtransfo2
-      USE mod_LinearNMTransfo,  only: type_nmtransfo, dealloc_array,    &
-                                      alloc_array, read_lineartransfo,  &
+      USE mod_LinearNMTransfo,  only: type_nmtransfo, dealloc_NParray,  &
+                                      alloc_NParray, read_lineartransfo,&
                                       read_nmtransfo, alloc_lineartransfo
       USE mod_RPHTransfo,       only: type_rphtransfo, write_rphtransfo,&
                                       dealloc_array, alloc_array,       &
@@ -1319,8 +1319,8 @@ MODULE mod_Tnum
           mole%tab_Qtransfo(it)%LinearTransfo%inv = .FALSE.
           flush(out_unit)
 
-          CALL alloc_array(mole%tab_Qtransfo(it)%NMTransfo,             &
-                          "mole%tab_Qtransfo(it)%NMTransfo",name_sub)
+          CALL alloc_NParray(mole%tab_Qtransfo(it)%NMTransfo,             &
+                            "mole%tab_Qtransfo(it)%NMTransfo",name_sub)
           mole%NMTransfo => mole%tab_Qtransfo(it)%NMTransfo
 
           mole%tab_Qtransfo(it)%NMTransfo%ReadCoordBlocks  = purify_hess
