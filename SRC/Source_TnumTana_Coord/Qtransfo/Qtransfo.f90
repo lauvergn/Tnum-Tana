@@ -73,15 +73,15 @@ MODULE mod_Qtransfo
           logical                           :: Primitive_coord = .FALSE.
 
 
-          TYPE (Type_CartesianTransfo)      :: CartesianTransfo
-          TYPE (Type_QTOXanaTransfo)        :: QTOXanaTransfo
-          TYPE (Type_ZmatTransfo)           :: ZmatTransfo
-          TYPE (Type_RectilinearNM_Transfo) :: RectilinearNM_Transfo
-          TYPE (Type_BunchTransfo),pointer  :: BunchTransfo       => null()
-          TYPE (Type_BFTransfo)             :: BFTransfo
+          TYPE (Type_CartesianTransfo)              :: CartesianTransfo
+          TYPE (Type_QTOXanaTransfo)                :: QTOXanaTransfo
+          TYPE (Type_ZmatTransfo)                   :: ZmatTransfo
+          TYPE (Type_RectilinearNM_Transfo)         :: RectilinearNM_Transfo
+          TYPE (Type_BunchTransfo),     pointer :: BunchTransfo       => null()
+          TYPE (Type_BFTransfo)                     :: BFTransfo
 
-          TYPE (Type_LinearTransfo)         :: LinearTransfo
-          TYPE (Type_FlexibleTransfo)       :: FlexibleTransfo
+          TYPE (Type_LinearTransfo)                 :: LinearTransfo
+          TYPE (Type_FlexibleTransfo)               :: FlexibleTransfo
 
           TYPE (Type_oneDTransfo),      allocatable :: oneDTransfo(:)
           TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
@@ -92,7 +92,7 @@ MODULE mod_Qtransfo
           TYPE (Type_NMTransfo),        allocatable :: NMTransfo
           TYPE (Type_RPHTransfo),       allocatable :: RPHTransfo
           TYPE (Type_RPHQMLTransfo),    pointer :: RPHQMLTransfo       => null()
-          TYPE (Type_ActiveTransfo),    pointer :: ActiveTransfo       => null()
+          TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
 
           integer                               :: nb_Qin       = 0  ! size the input coordinates
           integer                               :: nb_Qout      = 0 ! size the output coordinates
@@ -498,7 +498,7 @@ MODULE mod_Qtransfo
         CASE ('active') ! the last read transformation
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
           Qtransfo%nb_Qin  = nb_Qin
-          CALL alloc_array(Qtransfo%ActiveTransfo,'Qtransfo%ActiveTransfo',name_sub)
+          CALL alloc_NParray(Qtransfo%ActiveTransfo,'Qtransfo%ActiveTransfo',name_sub)
           Qtransfo%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
           Qtransfo%ActiveTransfo%QMLib            = QMLib
 
@@ -927,9 +927,9 @@ MODULE mod_Qtransfo
         END IF
 
         ! ==== activeTransfo ===========================
-        IF (associated(Qtransfo%ActiveTransfo)) THEN
+        IF (allocated(Qtransfo%ActiveTransfo)) THEN
           CALL dealloc_ActiveTransfo(Qtransfo%ActiveTransfo)
-          CALL dealloc_array(Qtransfo%ActiveTransfo,'Qtransfo%ActiveTransfo',name_sub)
+          CALL dealloc_NParray(Qtransfo%ActiveTransfo,'Qtransfo%ActiveTransfo',name_sub)
         END IF
 
         ! ==== CartesianTransfo ========================
@@ -1205,11 +1205,9 @@ MODULE mod_Qtransfo
         Qtransfo2%FlexibleTransfo = Qtransfo1%FlexibleTransfo
 
       CASE ('active')
-        IF (associated(Qtransfo1%ActiveTransfo)) THEN
-          CALL alloc_array(Qtransfo2%ActiveTransfo,                     &
-                          "Qtransfo2%ActiveTransfo",name_sub)
-          CALL ActiveTransfo1TOActiveTransfo2(Qtransfo1%ActiveTransfo,  &
-                                              Qtransfo2%ActiveTransfo)
+        IF (allocated(Qtransfo1%ActiveTransfo)) THEN
+          CALL alloc_NParray(Qtransfo2%ActiveTransfo,"Qtransfo2%ActiveTransfo",name_sub)
+          Qtransfo2%ActiveTransfo = Qtransfo1%ActiveTransfo
         END IF
 
       CASE ('zmat')
@@ -1678,10 +1676,10 @@ MODULE mod_Qtransfo
                                Qtransfo%FlexibleTransfo%list_flex(:)
 
         CASE ('active')
-          IF (associated(Qtransfo%ActiveTransfo)) THEN 
+          IF (allocated(Qtransfo%ActiveTransfo)) THEN 
             CALL Write_ActiveTransfo(Qtransfo%ActiveTransfo)
           ELSE
-            write(out_unit,*) 'Qtransfo%ActiveTransfo is not associated'
+            write(out_unit,*) 'Qtransfo%ActiveTransfo is not allocated'
           END IF
 
         CASE ('zmat')

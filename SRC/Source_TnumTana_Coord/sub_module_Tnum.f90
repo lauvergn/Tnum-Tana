@@ -1375,7 +1375,7 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%name_Qout = mole%tab_Qtransfo(it-1)%name_Qin
 
 
-        CALL alloc_array(mole%tab_Qtransfo(it)%ActiveTransfo,"mole%tab_Qtransfo(it)%ActiveTransfo",name_sub)
+        CALL alloc_NParray(mole%tab_Qtransfo(it)%ActiveTransfo,"mole%tab_Qtransfo(it)%ActiveTransfo",name_sub)
         mole%tab_Qtransfo(it)%ActiveTransfo%QMLib            = QMLib
         CALL Read_ActiveTransfo(mole%tab_Qtransfo(it)%ActiveTransfo,mole%nb_var)
 

@@ -69,26 +69,32 @@ MODULE mod_ActiveTransfo
           integer,           allocatable :: list_QactTOQdyn(:)  ! "active" transfo
           integer,           allocatable :: list_QdynTOQact(:)  ! "active" transfo
           integer,           allocatable :: list_QMLMapping(:)  ! mapping ifunc of QML and list_act_OF_Qdyn
-
+      CONTAINS
+          PROCEDURE, PRIVATE, PASS(ActiveTransfo1) :: ActiveTransfo2_TO_ActiveTransfo1
+          GENERIC,   PUBLIC  :: assignment(=) => ActiveTransfo2_TO_ActiveTransfo1
       END TYPE Type_ActiveTransfo
 
       INTERFACE alloc_array
-        ! for RPHTransfo
         MODULE PROCEDURE alloc_array_OF_ActiveTransfodim0
       END INTERFACE
       INTERFACE dealloc_array
-        ! for RPHTransfo
         MODULE PROCEDURE dealloc_array_OF_ActiveTransfodim0
       END INTERFACE
+      INTERFACE alloc_NParray
+        MODULE PROCEDURE alloc_NParray_OF_ActiveTransfodim0
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        MODULE PROCEDURE dealloc_NParray_OF_ActiveTransfodim0
+      END INTERFACE
 
-      PUBLIC :: Type_ActiveTransfo, alloc_ActiveTransfo, dealloc_ActiveTransfo, ActiveTransfo1TOActiveTransfo2
-      PUBLIC :: alloc_array, dealloc_array
+      PUBLIC :: Type_ActiveTransfo, alloc_ActiveTransfo, dealloc_ActiveTransfo
+      PUBLIC :: alloc_NParray, dealloc_NParray
       PUBLIC :: Read_ActiveTransfo, Read2_ActiveTransfo, Write_ActiveTransfo
       PUBLIC :: calc_ActiveTransfo
       PUBLIC :: get_Qact,get_Qact0, Adding_InactiveCoord_TO_Qact, Set_AllActive
       PUBLIC :: Qact_TO_Qdyn_FROM_ActiveTransfo, Qdyn_TO_Qact_FROM_ActiveTransfo, Qinact2n_TO_Qact_FROM_ActiveTransfo
 
-      CONTAINS
+CONTAINS
 
 !================================================================
 !      Subroutines for the Active Transfo:
@@ -231,7 +237,53 @@ MODULE mod_ActiveTransfo
        nullify(tab)
 
       END SUBROUTINE dealloc_array_OF_ActiveTransfodim0
+    SUBROUTINE alloc_NParray_OF_ActiveTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
 
+      TYPE (Type_ActiveTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                      intent(in) :: name_var,name_sub
+
+      integer, parameter :: ndim=0
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_ActiveTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       allocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_ActiveTransfo')
+
+      END SUBROUTINE alloc_NParray_OF_ActiveTransfodim0
+      SUBROUTINE dealloc_NParray_OF_ActiveTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_ActiveTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                      intent(in) :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_ActiveTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+       IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_ActiveTransfo')
+
+      END SUBROUTINE dealloc_NParray_OF_ActiveTransfodim0
 
       !!@description: TODO
       !!@param: TODO
@@ -782,8 +834,6 @@ END SUBROUTINE get_Qact0
 
   END SUBROUTINE Set_AllActive
 
-      !!@description: TODO
-      !!@param: TODO
   SUBROUTINE ActiveTransfo1TOActiveTransfo2(ActiveTransfo1,ActiveTransfo2)
     ! for the Activerix and Tnum --------------------------------------
     TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo1
@@ -851,7 +901,72 @@ END SUBROUTINE get_Qact0
     !-----------------------------------------------------------------
 
   END SUBROUTINE ActiveTransfo1TOActiveTransfo2
+  SUBROUTINE ActiveTransfo2_TO_ActiveTransfo1(ActiveTransfo1,ActiveTransfo2)
+    CLASS(Type_ActiveTransfo), intent(inout) :: ActiveTransfo1
+    TYPE (Type_ActiveTransfo), intent(in)    :: ActiveTransfo2
 
+    !-----------------------------------------------------------------
+    !logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    character (len=*), parameter :: name_sub = 'ActiveTransfo2_TO_ActiveTransfo1'
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*)
+      CALL Write_ActiveTransfo(ActiveTransfo2)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+    CALL dealloc_ActiveTransfo(ActiveTransfo1)
+
+    ActiveTransfo1%nb_var      = ActiveTransfo2%nb_var
+    ActiveTransfo1%nb_act      = ActiveTransfo2%nb_act
+    ActiveTransfo1%nb_act1     = ActiveTransfo2%nb_act1
+    ActiveTransfo1%nb_inact2n  = ActiveTransfo2%nb_inact2n
+    ActiveTransfo1%nb_inact21  = ActiveTransfo2%nb_inact21
+    ActiveTransfo1%nb_inact22  = ActiveTransfo2%nb_inact22
+    ActiveTransfo1%nb_inact20  = ActiveTransfo2%nb_inact20
+    ActiveTransfo1%nb_inact    = ActiveTransfo2%nb_inact
+    ActiveTransfo1%nb_inact31  = ActiveTransfo2%nb_inact31
+    ActiveTransfo1%nb_rigid0   = ActiveTransfo2%nb_rigid0
+    ActiveTransfo1%nb_rigid100 = ActiveTransfo2%nb_rigid100
+    ActiveTransfo1%nb_rigid    = ActiveTransfo2%nb_rigid
+
+    ActiveTransfo1%With_Tab_dnQflex = ActiveTransfo2%With_Tab_dnQflex
+    ActiveTransfo1%QMLib            = ActiveTransfo2%QMLib
+
+
+    CALL alloc_ActiveTransfo(ActiveTransfo1,ActiveTransfo2%nb_var)
+
+    IF (allocated(ActiveTransfo2%list_act_OF_Qdyn))                  &
+      ActiveTransfo1%list_act_OF_Qdyn(:)  = ActiveTransfo2%list_act_OF_Qdyn(:)
+
+    IF (allocated(ActiveTransfo2%list_QactTOQdyn))                   &
+        ActiveTransfo1%list_QactTOQdyn(:)   = ActiveTransfo2%list_QactTOQdyn(:)
+
+    IF (allocated(ActiveTransfo2%list_QdynTOQact))                   &
+        ActiveTransfo1%list_QdynTOQact(:)   = ActiveTransfo2%list_QdynTOQact(:)
+
+    IF (allocated(ActiveTransfo2%Qdyn0))                             &
+        ActiveTransfo1%Qdyn0(:)   = ActiveTransfo2%Qdyn0(:)
+
+    IF (allocated(ActiveTransfo2%Qact0))                              &
+        ActiveTransfo1%Qact0(:)   = ActiveTransfo2%Qact0(:)
+
+    IF (allocated(ActiveTransfo2%list_QMLMapping))                    &
+      ActiveTransfo1%list_QMLMapping  = ActiveTransfo2%list_QMLMapping
+
+    !-----------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*)
+      CALL Write_ActiveTransfo(ActiveTransfo1)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
+  END SUBROUTINE ActiveTransfo2_TO_ActiveTransfo1
 !
 !=====================================================================
 !
