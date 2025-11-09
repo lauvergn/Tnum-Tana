@@ -79,6 +79,7 @@
       !!@param: TODO
       TYPE Type_BFTransfo
 
+          !TYPE (Type_BunchTransfo), allocatable :: BunchTransfo ! it will be allocated only for the first vector (true BF)
           integer                  :: nb_var                 = 0
           integer                  :: nb_var_Rot             = 0
 

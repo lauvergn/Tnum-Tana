@@ -6,7 +6,7 @@ DIR_PROG=..
 cd $DIR_PROG
  #make FC=ifort LAPACK=0 OPT=0 INT=4 tnum-dist &> $here/comp.log
  #make FC=ifort LAPACK=0 OPT=0 INT=8 tnum-dist &> $here/comp.log
- make FC=gfortran LAPACK=1 OPT=0 INT=4 app &> $here/comp.log
+#make FC=gfortran LAPACK=1 OPT=0 INT=4 app &> $here/comp.log
  make FC=gfortran LAPACK=1 OPT=0 INT=4 app &> $here/comp.log
 
  #make FC=gfortran LAPACK=1 OPT=0 INT=8 tnum-dist &> $here/comp.log

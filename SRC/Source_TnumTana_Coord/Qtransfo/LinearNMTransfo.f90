@@ -52,18 +52,18 @@
       END TYPE Type_LinearTransfo
 
       TYPE Type_NMTransfo
-        logical                    :: hessian_old      = .TRUE.
-        logical                    :: hessian_cart     = .TRUE.
-        logical                    :: hessian_onthefly = .FALSE.
-        TYPE (File_t)              :: file_hessian
-        integer                    :: nb_NM            = 0      ! nb_act
+        logical                        :: hessian_old      = .TRUE.
+        logical                        :: hessian_cart     = .TRUE.
+        logical                        :: hessian_onthefly = .FALSE.
+        TYPE (File_t)                  :: file_hessian
+        integer                        :: nb_NM            = 0      ! nb_act
 
-        integer                    :: NM_TO_sym_ver    = 4
+        integer                        :: NM_TO_sym_ver    = 4
 
-        logical                    :: d0c_read         = .FALSE.
-        logical                    :: hessian_read     = .FALSE.
-        logical                    :: k_read           = .FALSE.
-        integer                    :: nb_read          = 0
+        logical                        :: d0c_read         = .FALSE.
+        logical                        :: hessian_read     = .FALSE.
+        logical                        :: k_read           = .FALSE.
+        integer                        :: nb_read          = 0
 
         integer                        :: ncart_act    = 0
         real (kind=Rkind), allocatable :: hCC(:,:)

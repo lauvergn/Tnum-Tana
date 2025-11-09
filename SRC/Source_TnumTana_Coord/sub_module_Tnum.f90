@@ -1633,33 +1633,32 @@ MODULE mod_Tnum
 
     integer :: it
 
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
-      character (len=*), parameter :: name_sub='CoordType2_TO_CoordType1'
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
+    character (len=*), parameter :: name_sub='CoordType2_TO_CoordType1'
 
-      IF (debug) THEN
-        write(out_unit,*) 'BEGINNING ',name_sub
-        flush(out_unit)
-      END IF
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      flush(out_unit)
+    END IF
 
 
-      CALL dealloc_CoordType(mole1)
+    CALL dealloc_CoordType(mole1)
 
-      IF (mole2%nat < 3 .OR. mole2%nb_var < 1 .OR.                      &
-          mole2%nb_act < 1 .OR. mole2%ncart < 9) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' mole2 is probably not allocated !!'
-        write(out_unit,*) 'nat',mole2%nat
-        write(out_unit,*) 'nb_var',mole2%nb_var
-        write(out_unit,*) 'nb_act',mole2%nb_act
-        write(out_unit,*) 'ncart',mole2%ncart
-        write(out_unit,*) ' Check the Fortran source !!!'
-        STOP
-      END IF
+    IF (mole2%nat < 3 .OR. mole2%nb_var < 1 .OR.                      &
+        mole2%nb_act < 1 .OR. mole2%ncart < 9) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole2 is probably not allocated !!'
+      write(out_unit,*) 'nat',mole2%nat
+      write(out_unit,*) 'nb_var',mole2%nb_var
+      write(out_unit,*) 'nb_act',mole2%nb_act
+      write(out_unit,*) 'ncart',mole2%ncart
+      write(out_unit,*) ' Check the Fortran source !!!'
+      STOP
+    END IF
 
       mole1%stepQ        = mole2%stepQ
       mole1%num_x        = mole2%num_x
-
 
       mole1%nb_act          = mole2%nb_act
       mole1%nb_var          = mole2%nb_var
@@ -1695,18 +1694,17 @@ MODULE mod_Tnum
       mole1%opt_param        = mole2%opt_param
 
       IF (allocated(mole2%opt_Qdyn)) THEN
-        CALL alloc_NParray(mole1%opt_Qdyn,shape(mole2%opt_Qdyn),        &
-                          "mole1%opt_Qdyn",name_sub)
+        CALL alloc_NParray(mole1%opt_Qdyn,shape(mole2%opt_Qdyn),"mole1%opt_Qdyn",name_sub)
         mole1%opt_Qdyn(:) = mole2%opt_Qdyn(:)
       END IF
 
 
-      CALL alloc_array(mole1%tab_Qtransfo,[mole1%nb_Qtransfo],        &
-                      "mole1%tab_Qtransfo",name_sub)
+      CALL alloc_array(mole1%tab_Qtransfo,[mole1%nb_Qtransfo],"mole1%tab_Qtransfo",name_sub)
       DO it=1,mole1%nb_Qtransfo
         !write(out_unit,*) 'it',it ; flush(out_unit)
         CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),               &
                                   mole1%tab_Qtransfo(it))
+        !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
 
         SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
         CASE ("nm")
@@ -1739,7 +1737,6 @@ MODULE mod_Tnum
       END DO
 
 
-
       IF (associated(mole2%RPHTransfo_inact2n)) THEN
         CALL alloc_array(mole1%RPHTransfo_inact2n,                      &
                         'mole1%RPHTransfo_inact2n',name_sub)
@@ -1757,12 +1754,9 @@ MODULE mod_Tnum
                         "mole1%tab_Cart_transfo",name_sub)
 
         DO it=1,size(mole2%tab_Cart_transfo)
-          !write(out_unit,*) 'it',it ; flush(out_unit)
-          CALL Qtransfo1TOQtransfo2(mole2%tab_Cart_transfo(it),         &
-                                    mole1%tab_Cart_transfo(it))
+          CALL Qtransfo1TOQtransfo2(mole2%tab_Cart_transfo(it),mole1%tab_Cart_transfo(it))
         END DO
       END IF
-
 
       ! the 2 tables are true pointers
       IF (.NOT. associated(mole1%ActiveTransfo)) &

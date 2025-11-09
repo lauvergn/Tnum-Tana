@@ -895,12 +895,7 @@ MODULE mod_Qtransfo
         END IF
 
         ! ==== HyperSpheTransfo ========================
-        Qtransfo%HyperSpheTransfo%nb_HyperSphe = 0
-        IF (associated(Qtransfo%HyperSpheTransfo%list_HyperSphe) ) THEN
-          CALL dealloc_array(Qtransfo%HyperSpheTransfo%list_HyperSphe,  &
-                            "Qtransfo%HyperSpheTransfo%list_HyperSphe",name_sub)
-        END IF
-
+        CALL dealloc_HyperSpheTransfo(Qtransfo%HyperSpheTransfo)
         ! ==== oneDTransfo ========================
         CALL dealloc_oneDTransfo(Qtransfo%oneDtransfo)
         ! ==== TwoDTransfo ========================
@@ -932,7 +927,6 @@ MODULE mod_Qtransfo
 
         ! ==== CartesianTransfo ========================
         CALL dealloc_CartesianTransfo(Qtransfo%CartesianTransfo)
-
 
         ! ==== Coordinates ========================
         Qtransfo%nb_Qin       = 0
@@ -1077,27 +1071,28 @@ MODULE mod_Qtransfo
 
   END SUBROUTINE dealloc_NParray_OF_Qtransfodim1
   SUBROUTINE Qtransfo1TOQtransfo2(Qtransfo1,Qtransfo2)
-        TYPE (Type_Qtransfo), intent(in)    :: Qtransfo1
-        TYPE (Type_Qtransfo), intent(inout) :: Qtransfo2
-        integer :: it,n
-        character (len=:), allocatable :: name_transfo
+    TYPE (Type_Qtransfo), intent(in)    :: Qtransfo1
+    TYPE (Type_Qtransfo), intent(inout) :: Qtransfo2
+    integer :: it,n
+    character (len=:), allocatable :: name_transfo
 
-        !-----------------------------------------------------------------
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-      character (len=*), parameter :: name_sub='Qtransfo1TOQtransfo2'
-      !-----------------------------------------------------------------
+    !-----------------------------------------------------------------
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    character (len=*), parameter :: name_sub='Qtransfo1TOQtransfo2'
+    !-----------------------------------------------------------------
 
-      name_transfo = 'not_allocated'
-      IF (allocated(Qtransfo1%name_transfo)) name_transfo = Qtransfo1%name_transfo
-      IF (debug) THEN
-        write(out_unit,*)
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'name_transfo: ',name_transfo
-        CALL Write_Qtransfo(Qtransfo1)
-        flush(out_unit)
-      END IF
-      !-----------------------------------------------------------------
+    name_transfo = 'not_allocated'
+    IF (allocated(Qtransfo1%name_transfo)) name_transfo = Qtransfo1%name_transfo
+    IF (debug) THEN
+      write(out_unit,*)
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'name_transfo: ',name_transfo
+      CALL Write_Qtransfo(Qtransfo1)
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------------
+
       Qtransfo2%print_done      = .FALSE.
 
       IF (allocated(Qtransfo1%name_transfo)) THEN
@@ -1123,18 +1118,25 @@ MODULE mod_Qtransfo
       Qtransfo2%opt_param       = Qtransfo1%opt_param
       Qtransfo2%Primitive_Coord = Qtransfo1%Primitive_Coord
 
+      IF (allocated(Qtransfo1%type_Qin)) THEN
+        CALL alloc_NParray(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),"Qtransfo2%type_Qin",name_sub)
+        Qtransfo2%type_Qin(:) = Qtransfo1%type_Qin(:)
+      END IF
 
-      CALL alloc_NParray(Qtransfo2%type_Qin,shape(Qtransfo1%type_Qin),"Qtransfo2%type_Qin",name_sub)
-      Qtransfo2%type_Qin(:) = Qtransfo1%type_Qin(:)
+      IF (allocated(Qtransfo1%name_Qin)) THEN
+        CALL alloc_NParray(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),"Qtransfo2%name_Qin",name_sub)
+        Qtransfo2%name_Qin(:) = Qtransfo1%name_Qin(:)
+      END IF
 
-      CALL alloc_NParray(Qtransfo2%name_Qin,shape(Qtransfo1%name_Qin),"Qtransfo2%name_Qin",name_sub)
-      Qtransfo2%name_Qin(:) = Qtransfo1%name_Qin(:)
+      IF (allocated(Qtransfo1%type_Qout)) THEN
+        CALL alloc_NParray(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
+        Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
+      END IF
 
-      CALL alloc_NParray(Qtransfo2%type_Qout,shape(Qtransfo1%type_Qout),"Qtransfo2%type_Qout",name_sub)
-      Qtransfo2%type_Qout(:) = Qtransfo1%type_Qout(:)
-
-      CALL alloc_NParray(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
-      Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
+      IF (allocated(Qtransfo1%name_Qout)) THEN
+        CALL alloc_NParray(Qtransfo2%name_Qout,shape(Qtransfo1%name_Qout),"Qtransfo2%name_Qout",name_sub)
+        Qtransfo2%name_Qout(:) = Qtransfo1%name_Qout(:)
+      END IF
 
       SELECT CASE (name_transfo)
       CASE ('identity')
@@ -1172,14 +1174,7 @@ MODULE mod_Qtransfo
         END IF
 
       CASE ('hyperspherical')
-        Qtransfo2%HyperSpheTransfo%nb_HyperSphe =                       &
-                         Qtransfo1%HyperSpheTransfo%nb_HyperSphe
-
-        CALL alloc_array(Qtransfo2%HyperSpheTransfo%list_HyperSphe,     &
-                       shape(Qtransfo1%HyperSpheTransfo%list_HyperSphe),&
-                        "Qtransfo2%HyperSpheTransfo%list_HyperSphe",name_sub)
-        Qtransfo2%HyperSpheTransfo%list_HyperSphe =                     &
-                              Qtransfo1%HyperSpheTransfo%list_HyperSphe
+        Qtransfo2%HyperSpheTransfo = Qtransfo1%HyperSpheTransfo
 
       CASE ('oned','infrange','infiniterange')
         IF (Qtransfo2%nb_transfo < 1) THEN
@@ -1643,10 +1638,7 @@ MODULE mod_Qtransfo
           END IF
 
         CASE ('hyperspherical')
-          write(out_unit,*) 'nb_HyperSphe: ',                          &
-                 Qtransfo%HyperSpheTransfo%nb_HyperSphe
-          write(out_unit,*) 'list_HyperSphe: ',                        &
-                 Qtransfo%HyperSpheTransfo%list_HyperSphe(:)
+          CALL Write_HyperSpheTransfo(Qtransfo%HyperSpheTransfo)
 
         CASE ('oned','infrange','infiniterange')
           write(out_unit,*) 'oneD transfo or InfiniteRange'

@@ -2320,7 +2320,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 !     -----------------------------------------------------------------
 
       END SUBROUTINE calc3_NM_TO_sym
-      SUBROUTINE calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
+  SUBROUTINE calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
@@ -2364,22 +2364,22 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer ::i,j,iQ,jQ,i2
       real (kind=Rkind) ::  auTOcm_inv
 
-!      -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       integer :: err_mem,memory
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'calc4_NM_TO_sym'
-!      -----------------------------------------------------------------
+       !-----------------------------------------------------------------
        IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*)
         write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
-!       CALL Write_mole(mole)
-!       write(out_unit,*)
+        !CALL Write_mole(mole)
+        !write(out_unit,*)
        END IF
-
       !-----------------------------------------------------------------
+
       write(out_unit,*) '========================================='
       write(out_unit,*) '========== calc4_NM_TO_sym =============='
       write(out_unit,*) '========================================='
@@ -2803,10 +2803,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF
+     !-----------------------------------------------------------------
 
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE calc4_NM_TO_sym
+  END SUBROUTINE calc4_NM_TO_sym
       SUBROUTINE calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
       USE TnumTana_system_m
       USE mod_dnSVM
