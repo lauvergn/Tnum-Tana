@@ -499,10 +499,12 @@
               d0MatOp(iOpE)%ImVal(:,:) = mat_imV(:,:)
             END IF
 
-            DO i=1,PrimOp%nb_scalar_Op
-              iterm = d0MatOp(iOpScal-1+i)%derive_term_TO_iterm(0,0)
-              d0MatOp(iOpScal-1+i)%ReVal(:,:,iterm) = mat_ScalOp(:,:,i)
-            END DO
+            IF (PrimOp%nb_scalar_Op > 0 .AND. nb_Op > 2) THEN
+              DO i=1,PrimOp%nb_scalar_Op
+                iterm = d0MatOp(iOpScal-1+i)%derive_term_TO_iterm(0,0)
+                d0MatOp(iOpScal-1+i)%ReVal(:,:,iterm) = mat_ScalOp(:,:,i)
+              END DO
+            END IF
 
             !----------------------------------------------------------------
             DO ie=1,PrimOp%nb_elec
