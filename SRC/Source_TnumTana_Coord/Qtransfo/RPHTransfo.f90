@@ -76,8 +76,8 @@
         real (kind=Rkind), allocatable :: QoutRef(:,:)       ! QoutRef(nb_var,nb_Ref)
         real (kind=Rkind), allocatable :: CinvRef(:,:,:)     ! CinvRef(nb_var,nb_var,nb_Ref)
 
-        integer, allocatable           :: listNM_act1(:)     ! listNM_act1(nb_act1)
-        integer, allocatable           :: OrderNM_iRef(:,:)  ! OrderNM_iRef(nb_var,nb_Ref)
+        integer,           allocatable :: listNM_act1(:)     ! listNM_act1(nb_act1)
+        integer,           allocatable :: OrderNM_iRef(:,:)  ! OrderNM_iRef(nb_var,nb_Ref)
 
       END TYPE Type_RPHpara2
 

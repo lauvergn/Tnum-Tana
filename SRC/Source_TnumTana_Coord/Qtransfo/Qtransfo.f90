@@ -91,7 +91,7 @@ MODULE mod_Qtransfo
 
           TYPE (Type_NMTransfo),        allocatable :: NMTransfo
           TYPE (Type_RPHTransfo),       allocatable :: RPHTransfo
-          TYPE (Type_RPHQMLTransfo),    pointer :: RPHQMLTransfo       => null()
+          TYPE (Type_RPHQMLTransfo),    allocatable :: RPHQMLTransfo
           TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
 
           integer                                   :: nb_Qin       = 0   ! size the input coordinates
@@ -154,9 +154,7 @@ MODULE mod_Qtransfo
 
         logical :: with_vectors,not_all
         integer :: i,it,i_Q,iF_inout,iat,iQin,iQout,nb_read,nb_Qdef
-        real (kind=Rkind) ::  at
-        real (kind=Rkind), pointer ::  M_mass(:,:)
-        character (len=Name_len), pointer :: name_at(:)
+        !real (kind=Rkind) ::  at
 
 
         namelist /Coord_transfo/ name_transfo,nat,nb_vect,cos_th,cos_beta,  &
@@ -177,7 +175,6 @@ MODULE mod_Qtransfo
          write(out_unit,*) 'BEGINNING ',name_sub
        END IF
       !-----------------------------------------------------------
-       nullify(M_mass)
 
         IF (Qtransfo%num_transfo > 1 .AND. nb_Qin < 1) THEN
           write(out_unit,*) ' ERROR in ',name_sub
@@ -410,7 +407,7 @@ MODULE mod_Qtransfo
         CASE ('rph_qml')
           Tana_Is_Possible = .FALSE.
           Qtransfo%nb_Qin  = nb_Qin
-          CALL alloc_array(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
+          CALL alloc_NParray(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
           CALL Read_RPHQMLTransfo(Qtransfo%RPHQMLTransfo,nb_Qin,Qtransfo%opt_transfo)
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"QRPHQML")  ! here type_Qin(:) = 0. It is OK
@@ -889,9 +886,9 @@ MODULE mod_Qtransfo
         END IF
 
         ! ==== RPHQMLTransfo ========================
-        IF (associated(Qtransfo%RPHQMLTransfo)) THEN
+        IF (allocated(Qtransfo%RPHQMLTransfo)) THEN
           CALL dealloc_RPHQMLTransfo(Qtransfo%RPHQMLTransfo)
-          CALL dealloc_array(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
+          CALL dealloc_NParray(Qtransfo%RPHQMLTransfo,'Qtransfo%RPHQMLTransfo',name_sub)
         END IF
 
         ! ==== HyperSpheTransfo ========================
@@ -956,9 +953,9 @@ MODULE mod_Qtransfo
   SUBROUTINE alloc_array_OF_Qtransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
   IMPLICIT NONE
 
-      TYPE (Type_Qtransfo), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
+      TYPE (Type_Qtransfo), pointer, intent(inout)        :: tab(:)
+      integer,                       intent(in)           :: tab_ub(:)
+      integer,                       intent(in), optional :: tab_lb(:)
 
       character (len=*), intent(in) :: name_var,name_sub
 
@@ -993,7 +990,7 @@ MODULE mod_Qtransfo
     IMPLICIT NONE
 
       TYPE (Type_Qtransfo), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
+      character (len=*),             intent(in)    :: name_var,name_sub
 
 !----- for debuging --------------------------------------------------
       character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_Qtransfodim1'
@@ -1168,8 +1165,8 @@ MODULE mod_Qtransfo
         END IF
 
       CASE ('rph_qml')
-        IF (associated(Qtransfo1%RPHQMLTransfo)) THEN
-          CALL alloc_array(Qtransfo2%RPHQMLTransfo,'Qtransfo2%RPHQMLTransfo',name_sub)
+        IF (allocated(Qtransfo1%RPHQMLTransfo)) THEN
+          CALL alloc_NParray(Qtransfo2%RPHQMLTransfo,'Qtransfo2%RPHQMLTransfo',name_sub)
           CALL RPHQMLTransfo1TORPHQMLTransfo2(Qtransfo1%RPHQMLTransfo,Qtransfo2%RPHQMLTransfo)
         END IF
 
@@ -1362,7 +1359,7 @@ MODULE mod_Qtransfo
         END IF
 
       CASE ('rph_qml')
-        IF (associated(Qtransfo%RPHQMLTransfo)) THEN
+        IF (allocated(Qtransfo%RPHQMLTransfo)) THEN
           CALL calc_RPHQMLTransfo(dnQin,dnQout,Qtransfo%RPHQMLTransfo,nderiv,inTOout_loc)
         ELSE
           IF (inTOout_loc) THEN
@@ -1633,7 +1630,7 @@ MODULE mod_Qtransfo
           END IF
 
         CASE ('rph_qml')
-          IF (associated(Qtransfo%RPHQMLTransfo)) THEN
+          IF (allocated(Qtransfo%RPHQMLTransfo)) THEN
             CALL Write_RPHQMLTransfo(Qtransfo%RPHQMLTransfo)
           END IF
 

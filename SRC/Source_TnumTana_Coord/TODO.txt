@@ -16,8 +16,11 @@ IRC: project s on the other coordinates.
 => use dX/dq^i ???
 
 C) remove pointer in CordTransfo
+
+Qtransfo              : unfinished (pb with Bunch...Transfo)
+
 ActiveTransfo         : ok
-Bunch ...Transfo      : no
+Bunch ...Transfo      : no (complicate ...)
 CartesianTransfo      : ok
 CurviRPHTransfo       : ok
 FlexibleTransfo       : ok
@@ -25,3 +28,11 @@ LinearNMTransfo       : ok
 OneDTransfo           : ok
 QTOXanaTransfo        : ok
 RectilinearNM_Transfo : ok (unfinished)
+Rot2CoordTransfo      : ok
+RPHQMLTransfo         : ok
+TemplateTransfo       : ok (to be removed)
+TwoDTransfo           : ok
+ZmatTransfo           : ok
+
+Lib_Qtransfo : ok
+sub_freq     : ok
