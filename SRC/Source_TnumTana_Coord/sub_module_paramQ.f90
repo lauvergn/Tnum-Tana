@@ -545,7 +545,7 @@ CONTAINS
 
             ELSE
 
-              IF (.NOT. associated(mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz)) THEN
+              IF (.NOT. allocated(mole%tab_Cart_transfo(1)%CartesianTransfo%Qxyz)) THEN
                 STOP 'CartesianTransfo%Qxyz NOT allocated'
               END IF
               CALL sub_QactTOdnx(Qact,dnx,mole,0,Gcenter=.FALSE.,Cart_Transfo=.FALSE.)

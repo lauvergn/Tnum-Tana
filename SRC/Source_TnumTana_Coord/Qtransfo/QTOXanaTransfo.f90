@@ -53,9 +53,9 @@
 
         integer           :: nb_var    = 0
 
-        real (kind=Rkind),        pointer :: masses(:)     => null()
-        integer, pointer                  :: Z(:)          => null()
-        character (len=Name_len),pointer  :: symbole(:)    => null()
+        real (kind=Rkind),        allocatable :: masses(:)
+        integer,                  allocatable :: Z(:)
+        character (len=Name_len), allocatable :: symbole(:)
         integer,                  allocatable :: type_Qin(:)
 
       END TYPE Type_QTOXanaTransfo
@@ -83,19 +83,19 @@
          STOP
        END IF
 
-       CALL alloc_array(QTOXanaTransfo%Z,[QTOXanaTransfo%nat],        &
+       CALL alloc_NParray(QTOXanaTransfo%Z,[QTOXanaTransfo%nat],        &
                        "QTOXanaTransfo%Z",name_sub)
        QTOXanaTransfo%Z(:) = 0
 
-       CALL alloc_array(QTOXanaTransfo%symbole,[QTOXanaTransfo%nat],  &
+       CALL alloc_NParray(QTOXanaTransfo%symbole,[QTOXanaTransfo%nat],  &
                        "QTOXanaTransfo%symbole",name_sub)
        QTOXanaTransfo%symbole(:) = ""
 
-       CALL alloc_array(QTOXanaTransfo%masses,[QTOXanaTransfo%ncart], &
+       CALL alloc_NParray(QTOXanaTransfo%masses,[QTOXanaTransfo%ncart], &
                        "QTOXanaTransfo%masses",name_sub)
        QTOXanaTransfo%masses(:) = ZERO
 
-       CALL alloc_array(QTOXanaTransfo%type_Qin,[QTOXanaTransfo%nb_var], &
+       CALL alloc_NParray(QTOXanaTransfo%type_Qin,[QTOXanaTransfo%nb_var], &
                        "QTOXanaTransfo%type_Qin",name_sub)
        QTOXanaTransfo%type_Qin(:) = -1
 
@@ -111,19 +111,16 @@
 
        !write(out_unit,*) 'BEGINNING dealloc_QTOXanaTransfo'; flush(out_unit)
 
-       IF (associated(QTOXanaTransfo%Z))  THEN
-         CALL dealloc_array(QTOXanaTransfo%Z,                           &
-                           "QTOXanaTransfo%Z","dealloc_QTOXanaTransfo")
+       IF (allocated(QTOXanaTransfo%Z))  THEN
+         CALL dealloc_NParray(QTOXanaTransfo%Z,"QTOXanaTransfo%Z","dealloc_QTOXanaTransfo")
        END IF
 
-       IF (associated(QTOXanaTransfo%masses))  THEN
-         CALL dealloc_array(QTOXanaTransfo%masses,                      &
-                           "QTOXanaTransfo%masses","dealloc_QTOXanaTransfo")
+       IF (allocated(QTOXanaTransfo%masses))  THEN
+         CALL dealloc_NParray(QTOXanaTransfo%masses,"QTOXanaTransfo%masses","dealloc_QTOXanaTransfo")
        END IF
 
-       IF (associated(QTOXanaTransfo%symbole))  THEN
-         CALL dealloc_array(QTOXanaTransfo%symbole,                     &
-                           "QTOXanaTransfo%symbole","dealloc_QTOXanaTransfo")
+       IF (allocated(QTOXanaTransfo%symbole))  THEN
+         CALL dealloc_NParray(QTOXanaTransfo%symbole,"QTOXanaTransfo%symbole","dealloc_QTOXanaTransfo")
        END IF
 
 
@@ -135,8 +132,7 @@
         QTOXanaTransfo%nb_var    = 0
 
         IF (allocated(QTOXanaTransfo%type_Qin))  THEN
-         CALL dealloc_NParray(QTOXanaTransfo%type_Qin,                     &
-                             "QTOXanaTransfo%type_Qin","dealloc_QTOXanaTransfo")
+         CALL dealloc_NParray(QTOXanaTransfo%type_Qin,"QTOXanaTransfo%type_Qin","dealloc_QTOXanaTransfo")
         END IF
 
        !write(out_unit,*) 'END dealloc_QTOXanaTransfo'; flush(out_unit)
@@ -151,7 +147,7 @@
 
        real (kind=Rkind)        :: at
        integer :: i
-        character (len=Name_len), pointer :: name_at(:)
+        character (len=Name_len), allocatable :: name_at(:)
 
        !-----------------------------------------------------------------------
        integer :: err_mem,memory,err_io
@@ -179,8 +175,7 @@
 
           CALL alloc_QTOXanaTransfo(QTOXanaTransfo)
 
-          nullify(name_at)
-          CALL alloc_array(name_at,[QTOXanaTransfo%nat0],"name_at",name_sub)
+          allocate(name_at(QTOXanaTransfo%nat0))
           read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,QTOXanaTransfo%nat0)
           IF (err_io /= 0) THEN
             write(out_unit,*) ' ERROR in ',name_sub
@@ -206,8 +201,7 @@
 
             QTOXanaTransfo%masses( 3*i -2: 3*i -0) = at
           END DO
-          CALL dealloc_array(name_at,"name_at",name_sub)
-
+          deallocate(name_at)
       IF (print_level > 1) write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_QTOXanaTransfo
 
@@ -218,8 +212,7 @@
       TYPE (Type_QTOXanaTransfo), intent(in)    :: QTOXanaTransfo1
       TYPE (Type_QTOXanaTransfo), intent(inout) :: QTOXanaTransfo2
 
-      character (len=*), parameter ::                                   &
-                                name_sub = 'QTOXanaTransfo1TOQTOXanaTransfo2'
+      character (len=*), parameter :: name_sub = 'QTOXanaTransfo1TOQTOXanaTransfo2'
 
       CALL dealloc_QTOXanaTransfo(QTOXanaTransfo2)
 
@@ -233,7 +226,7 @@
       CALL alloc_QTOXanaTransfo(QTOXanaTransfo2)
 
 
-      QTOXanaTransfo2%masses       = QTOXanaTransfo1%masses
+      QTOXanaTransfo2%masses(:)    = QTOXanaTransfo1%masses
       QTOXanaTransfo2%Z(:)         = QTOXanaTransfo1%Z(:)
       QTOXanaTransfo2%symbole(:)   = QTOXanaTransfo1%symbole(:)
 
@@ -271,5 +264,5 @@
 
       END SUBROUTINE Write_QTOXanaTransfo
 
-      END MODULE mod_QTOXanaTransfo
+END MODULE mod_QTOXanaTransfo
 

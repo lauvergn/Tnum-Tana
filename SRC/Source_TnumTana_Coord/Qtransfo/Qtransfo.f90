@@ -1211,8 +1211,8 @@ MODULE mod_Qtransfo
         CALL RectilinearNM_Transfo1TORectilinearNM_Transfo2(            &
                                        Qtransfo1%RectilinearNM_Transfo, &
                                        Qtransfo2%RectilinearNM_Transfo)
-        Qtransfo2%ZmatTransfo%type_Qin = Qtransfo2%type_Qin
-        Qtransfo2%ZmatTransfo%name_Qin = Qtransfo2%name_Qin
+        Qtransfo2%RectilinearNM_Transfo%type_Qin = Qtransfo2%type_Qin
+        Qtransfo2%RectilinearNM_Transfo%name_Qin = Qtransfo2%name_Qin
 
       CASE ('bunch','bunch_poly')
         CALL BunchTransfo1TOBunchTransfo2(Qtransfo1%BunchTransfo,       &

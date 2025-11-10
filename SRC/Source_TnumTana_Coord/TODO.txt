@@ -14,3 +14,14 @@ A) Tana
 B) Tnum
 IRC: project s on the other coordinates.
 => use dX/dq^i ???
+
+C) remove pointer in CordTransfo
+ActiveTransfo         : ok
+Bunch ...Transfo      : no
+CartesianTransfo      : ok
+CurviRPHTransfo       : ok
+FlexibleTransfo       : ok
+LinearNMTransfo       : ok
+OneDTransfo           : ok
+QTOXanaTransfo        : ok
+RectilinearNM_Transfo : ok (unfinished)
