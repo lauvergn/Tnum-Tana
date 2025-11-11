@@ -77,7 +77,7 @@
 
       TYPE Type_BFTransfo
 
-          !TYPE (Type_BunchTransfo), allocatable :: BunchTransfo ! it will be allocated only for the first vector (true BF)
+          TYPE (Type_BunchTransfo), allocatable :: BunchTransfo ! it will be allocated only for the first vector (true BF)
           integer                  :: nb_var                 = 0
           integer                  :: nb_var_Rot             = 0
 
@@ -163,7 +163,7 @@
       PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin, Rec_BFTransfo1TOBFTransfo2
 
 
-      CONTAINS
+CONTAINS
 
       SUBROUTINE alloc_FrameType(BFTransfo,nb_vect)
       TYPE (Type_BFTransfo),intent(inout) :: BFTransfo
@@ -2758,22 +2758,16 @@
         flush(out_unit)
       END IF
 
-      END SUBROUTINE Rec_BFTransfo1TOBFTransfo2
-!=======================================================================
-!
-!     Read Bunch transfo: Bunch of vectors to x
-!
-!=======================================================================
-      !!@description: Read Bunch transfo: Bunch of vectors to x
-      !!@param: TODO
-      SUBROUTINE alloc_BunchTransfo(BunchTransfo)
+  END SUBROUTINE Rec_BFTransfo1TOBFTransfo2
+
+  SUBROUTINE alloc_BunchTransfo(BunchTransfo)
       TYPE (Type_BunchTransfo), intent(inout) :: BunchTransfo
 
        character (len=*), parameter :: name_sub = 'alloc_BunchTransfo'
 
 
-!      write(out_unit,*) 'BEGINNING ',name_sub
-!      write(out_unit,*) 'nat,nb_var,ncart',BunchTransfo%nat,BunchTransfo%nb_var,BunchTransfo%ncart
+       !write(out_unit,*) 'BEGINNING ',name_sub
+       !write(out_unit,*) 'nat,nb_var,ncart',BunchTransfo%nat,BunchTransfo%nb_var,BunchTransfo%ncart
 
        IF (BunchTransfo%nat < 3 .OR. BunchTransfo%nb_vect < 1 .OR.      &
            BunchTransfo%ncart < 9 .OR. BunchTransfo%nat_act < 2) THEN
@@ -2836,9 +2830,9 @@
                          "BunchTransfo%masses_OF_At",name_sub)
        BunchTransfo%masses_OF_At(:) = ZERO
 
-!      write(out_unit,*) 'END ',name_sub
+      !write(out_unit,*) 'END ',name_sub
 
-      END SUBROUTINE alloc_BunchTransfo
+  END SUBROUTINE alloc_BunchTransfo
 
       !!@description: TODO
       !!@param: TODO
@@ -2909,7 +2903,7 @@
 
        !write(out_unit,*) 'END dealloc_BunchTransfo'  ; flush(out_unit)
 
-      END SUBROUTINE dealloc_BunchTransfo
+  END SUBROUTINE dealloc_BunchTransfo
 
       SUBROUTINE Read_BunchTransfo(BunchTransfo,mendeleev)
 
@@ -2923,8 +2917,8 @@
       real (kind=Rkind)  :: at,Mtot
       character (len=Name_len) :: name1_at,name2_at
 
-      integer, pointer :: tab_iAtTOiCart(:)
-      real (kind=Rkind), pointer :: weight_vect(:)
+      integer,           allocatable :: tab_iAtTOiCart(:)
+      real (kind=Rkind), allocatable :: weight_vect(:)
 
       integer, parameter :: max_atG = 100
       integer :: tab_At_TO_G(max_atG),GAt
@@ -2958,12 +2952,10 @@
       BunchTransfo%nat_act = BunchTransfo%nb_vect + 1
       CALL alloc_BunchTransfo(BunchTransfo)
 
-      nullify(tab_iAtTOiCart)
-      CALL alloc_array(tab_iAtTOiCart,[BunchTransfo%nat],"tab_iAtTOiCart",name_sub)
+      CALL alloc_NParray(tab_iAtTOiCart,[BunchTransfo%nat],"tab_iAtTOiCart",name_sub)
       tab_iAtTOiCart(:) = 0
 
-      nullify(weight_vect)
-      CALL alloc_array(weight_vect,[BunchTransfo%nb_vect],"weight_vect",name_sub)
+      CALL alloc_NParray(weight_vect,[BunchTransfo%nb_vect],"weight_vect",name_sub)
       weight_vect(:) = ZERO
 
       !--------------------------------------------------------
@@ -3263,8 +3255,8 @@
       write(out_unit,*) 'M_Tana (without the center-of-mass contribution)'
       CALL Write_Mat_MPI(BunchTransfo%M_Tana,out_unit,5)
 
-      CALL dealloc_array(tab_iAtTOiCart,"tab_iAtTOiCart",name_sub)
-      CALL dealloc_array(weight_vect,   "weight_vect",   name_sub)
+      CALL dealloc_NParray(tab_iAtTOiCart,"tab_iAtTOiCart",name_sub)
+      CALL dealloc_NParray(weight_vect,   "weight_vect",   name_sub)
       CALL dealloc_NParray(M_Tana,        "M_Tana",        name_sub)
       CALL dealloc_NParray(A,             "A",             name_sub)
       CALL dealloc_NParray(B,             "B",             name_sub)
@@ -3290,7 +3282,7 @@
 
       real (kind=Rkind)  :: at,Mtot,MtotG,wX
       character (len=Name_len) :: name1_at,name2_at,type_dummyX
-      character (len=Name_len), pointer :: name_at(:)
+      character (len=Name_len), allocatable :: name_at(:)
 
 
       integer, parameter :: max_atG = 1000
@@ -3329,8 +3321,7 @@
 
         nb_at = BunchTransfo%nat_act + BunchTransfo%nb_G + BunchTransfo%nb_X
         write(out_unit,*) '  nat_act',BunchTransfo%nat_act
-        nullify(name_at)
-        CALL alloc_array(name_at,[nb_at],"name_at",name_sub)
+        CALL alloc_NParray(name_at,[nb_at],"name_at",name_sub)
 
         read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,BunchTransfo%nat_act)
 
@@ -3364,7 +3355,7 @@
 
         END DO
 
-        CALL dealloc_array(name_at,"name_at",name_sub)
+        CALL dealloc_NParray(name_at,"name_at",name_sub)
         !write(out_unit,*) 'Masses: ',BunchTransfo%masses(:)
 
         ! for the centers of mass
