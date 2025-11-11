@@ -550,7 +550,7 @@
           END IF
 
 
-          IF (PrimOp%HarD .AND. associated(mole%RPHTransfo) .AND. PrimOp%nb_elec == 1) THEN
+          IF (PrimOp%HarD .AND. mole%itRPH > 0 .AND. PrimOp%nb_elec == 1) THEN
             CALL get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
             DO ie=1,PrimOp%nb_elec
               d0MatOp(iOpE)%ReVal(ie,ie,itermE) =                               &
@@ -647,6 +647,7 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   integer, allocatable, save :: tab_iQa(:)
   logical :: Find_iQa
   integer :: numths
+  TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
   !----- for debuging --------------------------------------------------
   integer :: err_mem,memory
@@ -660,6 +661,13 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
    flush(out_unit)
   END IF
   !-----------------------------------------------------------
+  IF (mole%itRPH == -1) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' RPHTransfo is not set: itRPH=-1'
+    write(out_unit,*) ' itRPH',mole%itRPH
+    STOP ' ERROR in get_Vinact_AT_Qact_HarD: RPHTransfo is not set'
+  END IF
+  RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
 
   IF (.NOT. allocated(tab_iQa)) THEN
     numths = 1
@@ -675,16 +683,16 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
 
   ! transfert the dnQin coordinates: type21 in dnVecQin and ....
   !   the other (active, rigid ..) in dnQout
-  CALL alloc_NParray(Qact1,[mole%RPHTransfo%nb_act1],"Qact1",name_sub)
-  CALL alloc_NParray(Qinact21,[mole%RPHTransfo%nb_inact21],"Qinact21",name_sub)
+  CALL alloc_NParray(Qact1,[RPHTransfo%nb_act1],"Qact1",name_sub)
+  CALL alloc_NParray(Qinact21,[RPHTransfo%nb_inact21],"Qinact21",name_sub)
 
   iQinact21 = 0
   iQact1    = 0
   DO iQ=1,mole%nb_var
-   IF (mole%RPHTransfo%list_act_OF_Qdyn(iQ) == 21) THEN
+   IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 21) THEN
      iQinact21 = iQinact21 + 1
      Qinact21(iQinact21) = Qdyn(iQ)
-   ELSE IF (mole%RPHTransfo%list_act_OF_Qdyn(iQ) == 1) THEN
+   ELSE IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 1) THEN
      iQact1 = iQact1 + 1
      Qact1(iQact1) = Qdyn(iQ)
    END IF
@@ -698,7 +706,7 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   iQa = tab_iQa(ith)
 
   ! find the iQa from tab_RPHpara_AT_Qact1
-  Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+  Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,RPHTransfo%tab_RPHpara_AT_Qact1)
   IF (.NOT. Find_iQa) THEN
    write(out_unit,*) 'ERROR in ',name_sub
    STOP
@@ -707,18 +715,18 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
    tab_iQa(ith) = iQa
   END IF
 
-  Vinact(:) = HALF*sum(mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)*Qinact21(:)**2)
+  Vinact(:) = HALF*sum(RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)*Qinact21(:)**2)
 
   IF (debug) THEN
     write(out_unit,*) 'iQa',iQa
     write(out_unit,*) 'Qinact21',Qinact21(:)
-    write(out_unit,*) 'dnehess',mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
+    write(out_unit,*) 'dnehess',RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
     write(out_unit,*) 'Vinact',Vinact
   END IF
 
   CALL dealloc_NParray(Qact1,"Qact1",name_sub)
   CALL dealloc_NParray(Qinact21,"Qinact21",name_sub)
-
+  nullify(RPHTransfo)
   !-----------------------------------------------------------
   IF (debug) THEN
     write(out_unit,*) 'END ',name_sub
@@ -1054,7 +1062,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             END DO
             !----------------------------------------------------------------
           END IF
-          IF (PrimOp%HarD .AND. associated(mole%RPHTransfo) .AND. PrimOp%nb_elec == 1) THEN
+          IF (PrimOp%HarD .AND. mole%itRPH > 0 .AND. PrimOp%nb_elec == 1) THEN
             CALL get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
             DO ie=1,PrimOp%nb_elec
               Tab_dnMatOp(iOpE)%tab_dnMatOp(ie,ie,itermE)%d0 =                  &
@@ -3655,6 +3663,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
     integer                           :: GTaylor_Order
 
     TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
+    TYPE (Type_RPHTransfo),   pointer :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
     !----- for debuging --------------------------------------------------
     integer :: err_mem,memory
@@ -3667,6 +3676,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
     ELSE
       nullify(NMTransfo)
     END IF
+    IF (mole%itRPH > 0) THEN
+      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+    ELSE
+      nullify(RPHTransfo)
+    END IF
+
     IF (debug) THEN
       write(out_unit,*) 'BEGINNING ',name_sub
       write(out_unit,*) 'itNM  NMTransfo',mole%itNM
@@ -3747,26 +3762,26 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END IF
 
       !----- set RPH transfo of Qref -----------------------------------
-      IF (associated(mole%RPHTransfo)) THEN
+      IF (mole%itRPH > 0) THEN
 
       IF (.NOT. mole%tab_Qtransfo(mole%itRPH)%skip_transfo) THEN
 
           CALL get_Qact0(Qact,mole%ActiveTransfo)
 
           ! for tab_RPHpara_AT_Qact1(0)
-          IF (.NOT. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
-            nb_act1_RPH    = mole%RPHTransfo%nb_act1
-            nb_inact21_RPH = mole%RPHTransfo%nb_inact21
+          IF (.NOT. associated(RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
+            nb_act1_RPH    = RPHTransfo%nb_act1
+            nb_inact21_RPH = RPHTransfo%nb_inact21
             nb_pts         = nb_act1_RPH ! to be able to deal with displacment along Qact1
-            CALL alloc_array(mole%RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
-                            'mole%RPHTransfo%tab_RPHpara_AT_Qact1',             &
+            CALL alloc_array(RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
+                            'RPHTransfo%tab_RPHpara_AT_Qact1',             &
                                                          name_sub,[-nb_pts])
           END IF
-          write(out_unit,*) 'in ',name_sub,' QMLib,',mole%RPHTransfo%QMlib
+          write(out_unit,*) 'in ',name_sub,' QMLib,',RPHTransfo%QMlib
 
-          CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0),&
+          CALL Set_RPHpara_AT_Qact1(RPHTransfo%tab_RPHpara_AT_Qact1(0),&
                                     Qact,para_Tnum,mole)
-          mole%RPHTransfo%init_Qref = .TRUE.
+          RPHTransfo%init_Qref = .TRUE.
 
           CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,  &
                                                mole%ActiveTransfo%Qact0,  &
@@ -3776,20 +3791,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
           write(out_unit,*) ' Frequencies, normal modes at the reference geometry'
 
-          write(out_unit,11) Qact(1:mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
-                 mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnEHess%d0(:)*auTOcm_inv
+          write(out_unit,11) Qact(1:RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
+                 RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnEHess%d0(:)*auTOcm_inv
 11        format(' frequencies : ',30f10.4)
 
           write(out_unit,*) 'dnQopt'
-          CALL Write_dnVec(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnQopt,nderiv=0)
+          CALL Write_dnVec(RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnQopt,nderiv=0)
           write(out_unit,*) 'dnC_inv'
-          CALL Write_dnMat(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnC_inv,nderiv=0)
+          CALL Write_dnMat(RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnC_inv,nderiv=0)
           flush(out_unit)
-          IF (debug) CALL Write_RPHTransfo(mole%RPHTransfo)
+          IF (debug) CALL Write_RPHTransfo(RPHTransfo)
 
           ! DO iact=1,nb_act1_RPH ! for what for ?
           !   CALL get_Qact0(Qact,mole%ActiveTransfo)
-          !   CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
+          !   CALL Set_RPHpara_AT_Qact1(RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
           !                             Qact,para_Tnum,mole)
           ! END DO
 
@@ -3802,8 +3817,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
   !----- Gcte if needed --------------------------------------------
   Gref = .TRUE.
-  IF (associated(mole%RPHTransfo)) THEN
-    Gref = Gref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+  IF (mole%itRPH > 0) THEN
+    Gref = Gref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
   END IF
 
   IF (Gref) THEN
@@ -3922,8 +3937,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END IF
 
       Qref = .TRUE.
-      IF (associated(mole%RPHTransfo)) THEN
-        Qref = Qref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+      IF (mole%itRPH > 0) THEN
+        Qref = Qref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
       END IF
       IF (Qref) THEN
         write(out_unit,*) '================================================='
@@ -3982,6 +3997,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END IF
       para_Tnum%GTaylor_Order = GTaylor_Order
 
+      nullify(NMTransfo)
+      nullify(RPHTransfo)
 !-----------------------------------------------------------
       !IF (debug) THEN
         write(out_unit,*) 'END ',name_sub

@@ -176,7 +176,7 @@ CONTAINS
     pot_act              = .FALSE.
     pot_cart             = .FALSE.
     pot_itQtransfo       = -1
-    IF (associated(mole%RPHTransfo)) THEN
+    IF (mole%itRPH > 0) THEN
       HarD               = .FALSE.
     ELSE
       HarD               = .TRUE.

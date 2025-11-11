@@ -165,10 +165,9 @@ MODULE mod_Tnum
           integer                          :: itNM                 = -1
           integer                          :: itRPH                = -1
           TYPE (Type_ActiveTransfo), pointer, public :: ActiveTransfo=> null() ! it'll point on tab_Qtransfo
-          TYPE (Type_RPHTransfo),    pointer :: RPHTransfo           => null() ! it'll point on tab_Qtransfo
           TYPE (Type_Qtransfo),      pointer :: tab_Qtransfo(:)      => null()
           TYPE (Type_Qtransfo),      pointer :: tab_Cart_transfo(:)  => null()
-          TYPE (Type_RPHTransfo),    pointer :: RPHTransfo_inact2n   => null() ! For the inactive coordinates (type 21)
+          TYPE (Type_RPHTransfo),    allocatable :: RPHTransfo_inact2n ! For the inactive coordinates (type 21)
 
           TYPE (CurviRPH_type)               :: CurviRPH
 
@@ -454,7 +453,7 @@ MODULE mod_Tnum
       write(out_unit,*)
      !-------------------------------------------------------
 
-      IF (associated(mole%RPHTransfo_inact2n)) THEN
+      IF (allocated(mole%RPHTransfo_inact2n)) THEN
         write(out_unit,*) '------------------------------------------'
         write(out_unit,*) '------------------------------------------'
         write(out_unit,*) '----------- RPHTransfo_inact2n -----------'
@@ -492,15 +491,17 @@ MODULE mod_Tnum
 
 
   SUBROUTINE dealloc_CoordType(mole)
-  TYPE (CoordType), intent(inout) :: mole
+    USE mod_RPHTransfo
 
-       integer        :: it
+    TYPE (CoordType), intent(inout) :: mole
 
-      character (len=*), parameter :: name_sub='dealloc_CoordType'
+    integer        :: it
+
+    character (len=*), parameter :: name_sub='dealloc_CoordType'
 
 
-      !write(out_unit,*) 'BEGINNING ',name_sub
-      !flush(out_unit)
+    !write(out_unit,*) 'BEGINNING ',name_sub
+    !flush(out_unit)
 
         mole%WriteCC      = .FALSE.
 
@@ -552,7 +553,6 @@ MODULE mod_Tnum
         END IF
 
         nullify(mole%ActiveTransfo)  ! true pointer
-        nullify(mole%RPHTransfo)     ! true pointer
 
         CALL dealloc_CurviRPH(mole%CurviRPH)
 
@@ -572,9 +572,9 @@ MODULE mod_Tnum
                             "mole%tab_Cart_transfo",name_sub)
         END IF
 
-      IF (associated(mole%RPHTransfo_inact2n)) THEN
-        CALL dealloc_array(mole%RPHTransfo_inact2n,                     &
-                          'mole%RPHTransfo_inact2n',name_sub)
+      IF (allocated(mole%RPHTransfo_inact2n)) THEN
+        CALL dealloc_NParray(mole%RPHTransfo_inact2n,                     &
+                            'mole%RPHTransfo_inact2n',name_sub)
       END IF
 
         nullify(mole%liste_QactTOQdyn)   ! true pointer
@@ -1050,7 +1050,6 @@ MODULE mod_Tnum
               STOP
             ELSE
               mole%itRPH      = it
-              mole%RPHTransfo => mole%tab_Qtransfo(it)%RPHTransfo
             END IF
 
           CASE ('active')
@@ -1145,9 +1144,9 @@ MODULE mod_Tnum
 
         !=======================================================================
         !RPH transformation and type 21 or 22 coordinates are not compatible anymore.
-        IF (associated(mole%RPHTransfo) .AND. mole%nb_inact2n > 0) THEN
+        IF (mole%itRPH > 0 .AND. mole%nb_inact2n > 0) THEN
           write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) ' asso mole%RPHTransfo ',associated(mole%RPHTransfo)
+          write(out_unit,*) ' mole%itRPH ',mole%itRPH
           write(out_unit,*) ' mole%nb_inact2n      ',mole%nb_inact2n
           write(out_unit,*) ' RPHTransfo and type 21 or 22 coordinates are not compatible anymore'
           STOP
@@ -1621,6 +1620,7 @@ MODULE mod_Tnum
 !================================================================
   SUBROUTINE CoordType2_TO_CoordType1(mole1,mole2)
     USE mod_Qtransfo,         ONLY : set_name_Qtransfo,get_name_Qtransfo
+    USE mod_RPHTransfo
 
     ! for the CoordType and Tnum --------------------------------------
     CLASS (CoordType), intent(inout), target :: mole1
@@ -1702,8 +1702,6 @@ MODULE mod_Tnum
         !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
 
         SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
-        CASE ("rph")
-          mole1%RPHTransfo => mole1%tab_Qtransfo(it)%RPHTransfo
         CASE ('active')
           mole1%ActiveTransfo => mole1%tab_Qtransfo(it)%ActiveTransfo
         CASE ('zmat') ! it can be one of the last one
@@ -1730,8 +1728,8 @@ MODULE mod_Tnum
       END DO
 
 
-      IF (associated(mole2%RPHTransfo_inact2n)) THEN
-        CALL alloc_array(mole1%RPHTransfo_inact2n,                      &
+      IF (allocated(mole2%RPHTransfo_inact2n)) THEN
+        CALL alloc_NParray(mole1%RPHTransfo_inact2n,                    &
                         'mole1%RPHTransfo_inact2n',name_sub)
         CALL RPHTransfo1TORPHTransfo2(mole2%RPHTransfo_inact2n,         &
                                       mole1%RPHTransfo_inact2n)
@@ -2184,18 +2182,22 @@ MODULE mod_Tnum
   TYPE (CoordType), intent(inout) :: mole
 
       integer :: it
+      TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
-      IF (.NOT. associated(mole%RPHTransfo)) RETURN
-      mole%RPHTransfo%option = 0 ! If option/=0, we set up to option 0 to be able to perform
+      IF (.NOT. mole%itRPH > 0) RETURN
+      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+
+      RPHTransfo%option = 0 ! If option/=0, we set up to option 0 to be able to perform
                            ! the transformations Sub_paraRPH_TO_mole and Sub_mole_TO_paraRPH
 
       IF (debug) write(out_unit,*) 'BEGINNING Sub_paraRPH_TO_CoordType'
 
-      mole%ActiveTransfo%list_act_OF_Qdyn(:) = mole%RPHTransfo%list_act_OF_Qdyn(:)
-      mole%nb_act1                           = mole%RPHTransfo%nb_act1
-      mole%nb_inact21                        = mole%RPHTransfo%nb_inact21
+      mole%ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn(:)
+      mole%nb_act1                           = RPHTransfo%nb_act1
+      mole%nb_inact21                        = RPHTransfo%nb_inact21
 
 
       mole%nb_inact2n = mole%nb_inact21 + mole%nb_inact22
@@ -2235,8 +2237,8 @@ MODULE mod_Tnum
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
-      IF (.NOT. associated(mole%RPHTransfo)) RETURN
-      IF (mole%RPHTransfo%option /= 0) RETURN
+      IF (.NOT. mole%itRPH > 0) RETURN
+      IF (mole%tab_Qtransfo(mole%itRPH)%RPHTransfo%option /= 0) RETURN
       ! This transformation is done only if option==0.
       !    For option=1, everything is already done
 
@@ -2288,18 +2290,22 @@ MODULE mod_Tnum
       TYPE (CoordType) :: mole
 
       integer :: i
+     TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
-      IF (.NOT. associated(mole%RPHTransfo)) RETURN
-      IF (mole%RPHTransfo%option /= 0) RETURN
+      IF (.NOT. mole%itRPH > 0) RETURN
+      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+
+      IF (RPHTransfo%option /= 0) RETURN
       ! This transformation is done only if option==0.
       !    For option=1, everything is already done
 
       IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH_new'
 
 
-      mole%RPHTransfo%list_act_OF_Qdyn = mole%ActiveTransfo%list_act_OF_Qdyn
+      RPHTransfo%list_act_OF_Qdyn = mole%ActiveTransfo%list_act_OF_Qdyn
 
       DO i=1,mole%nb_var
         IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
@@ -2322,16 +2328,19 @@ MODULE mod_Tnum
       integer :: nb_Qtransfo,nb_Qin
       integer, allocatable :: list_flex(:)
 
+      TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+
+ 
       !----- for debuging --------------------------------------------------
       integer :: err_mem,memory
       character (len=*), parameter :: name_sub = "CoordTypeRPH_TO_CoordTypeFlex"
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
-      IF (.NOT. associated(mole%RPHTransfo)) RETURN
+      IF (.NOT. mole%itRPH > 0) RETURN
       !-----------------------------------------------------------
       IF (debug) THEN
          write(out_unit,*) 'BEGINNING ',name_sub
-         write(out_unit,*) 'RPHTransfo%QMLib',mole%RPHTransfo%QMLib
+         write(out_unit,*) 'RPHTransfo%QMLib',RPHTransfo%QMLib
       END IF
       !-----------------------------------------------------------
 
@@ -2341,16 +2350,18 @@ MODULE mod_Tnum
         write(out_unit,*) '  Check the fortran source!!'
         STOP
       END IF
+      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo     
+
       IF (debug) write(out_unit,*) 'The RPH transformation is at:',mole%itRPH
 
       nb_Qin = mole%tab_Qtransfo(mole%itRPH)%nb_Qin
 
 
       ! modification of the transformation
-      IF (debug) write(out_unit,*) 'mole%RPHTransfo%list_act_OF_Qdyn', &
-                                    mole%RPHTransfo%list_act_OF_Qdyn(:)
+      IF (debug) write(out_unit,*) 'RPHTransfo%list_act_OF_Qdyn', &
+                                    RPHTransfo%list_act_OF_Qdyn(:)
       CALL alloc_NParray(list_flex,[nb_Qin],"list_flex",name_sub)
-      list_flex = mole%RPHTransfo%list_act_OF_Qdyn(:)
+      list_flex = RPHTransfo%list_act_OF_Qdyn(:)
       WHERE (list_flex == 21)
         list_flex = 20
       END WHERE
@@ -2358,8 +2369,8 @@ MODULE mod_Tnum
       CALL set_name_Qtransfo(mole%tab_Qtransfo(mole%itRPH),'flexible')
 
       CALL Read_FlexibleTransfo(mole%tab_Qtransfo(mole%itRPH)%FlexibleTransfo,  &
-                                nb_Qin,.FALSE.,mole%RPHTransfo%QMLib,list_flex, &
-                                mole%RPHTransfo%list_QMLMapping)
+                                nb_Qin,.FALSE.,RPHTransfo%QMLib,list_flex, &
+                                RPHTransfo%list_QMLMapping)
 
       IF (debug) write(out_unit,*) 'FlexibleTransfo%QMLib',mole%tab_Qtransfo(mole%itRPH)%FlexibleTransfo%QMLib
 
@@ -2370,7 +2381,7 @@ MODULE mod_Tnum
 
       ! remove the RPH transformation and the pointer
       CALL dealloc_RPHTransfo(mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
-      nullify(mole%RPHTransfo)
+      nullify(RPHTransfo)
       mole%itRPH = -1
 
        IF (debug) THEN

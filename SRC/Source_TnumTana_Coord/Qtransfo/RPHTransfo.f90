@@ -179,8 +179,7 @@
 
       PUBLIC :: alloc_array, dealloc_array, alloc_NParray, dealloc_NParray, Switch_RPH
 
-
-      CONTAINS
+CONTAINS
 
 !=======================================================================
 !     RPH transfo
@@ -876,7 +875,7 @@
       IMPLICIT NONE
 
       TYPE (Type_RPHTransfo), allocatable, intent(inout) :: tab
-      character (len=*),                   intent(in) :: name_var,name_sub
+      character (len=*),                   intent(in)    :: name_var,name_sub
 
 !----- for debuging --------------------------------------------------
       character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_RPHTransfodim0'
