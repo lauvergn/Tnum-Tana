@@ -75,8 +75,6 @@
 
       END TYPE Type_BunchTransfo
 
-      !!@description: TODO
-      !!@param: TODO
       TYPE Type_BFTransfo
 
           !TYPE (Type_BunchTransfo), allocatable :: BunchTransfo ! it will be allocated only for the first vector (true BF)
@@ -120,7 +118,7 @@
           logical                  :: cos_th                   = .TRUE.
           logical                  :: Def_cos_th               = .TRUE.
 
-          integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 particles
+          integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 centers (atoms, COM ...)
           integer,                  allocatable :: type_Qin(:)
           character (len=Name_len), allocatable :: name_Qin(:)
           integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
@@ -131,15 +129,15 @@
 
           ! variables use for the calculation (Tana)
           ! They are defined here, because of the recursive structure
-          type(opel)                     :: Qvec(3)   ! R,theta or u_theta, phi   or x,y,z
-          type(opel)                     :: QEuler(3) ! alpha, beta or u_beta, gamma
+          type(opel)                     :: Qvec(3)        ! R,theta or u_theta, phi   or x,y,z
+          type(opel)                     :: QEuler(3)      ! alpha, beta or u_beta, gamma
           type(vec_sum_opnd)             :: Unit_Vector
 
-          type(sum_opnd), pointer        :: M_mass(:,:)=>null()    ! mass matrix
-          type(vec_sum_opnd)             :: J                      ! total angular momentum
-          type(vec_sum_opnd)             :: Jdag                   ! adjoint of J
-          integer,          pointer      :: listVFr(:) =>null()    ! index of the vector in the BF
-          type(sum_opnd)                 :: KEO                    ! Output kEO
+          type(sum_opnd),    allocatable :: M_mass(:,:)    ! mass matrix
+          type(vec_sum_opnd)             :: J              ! total angular momentum
+          type(vec_sum_opnd)             :: Jdag           ! adjoint of J
+          integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
+          type(sum_opnd)                 :: KEO            ! Output kEO
       END TYPE Type_BFTransfo
 
       INTERFACE alloc_array
@@ -148,6 +146,12 @@
       INTERFACE dealloc_array
         MODULE PROCEDURE dealloc_array_OF_BFTransfodim1
       END INTERFACE
+      INTERFACE alloc_NParray
+        MODULE PROCEDURE alloc_NParray_OF_BFTransfodim1
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        MODULE PROCEDURE dealloc_NParray_OF_BFTransfodim1
+      END INTERFACE
 
       PUBLIC :: Type_BunchTransfo, alloc_BunchTransfo, dealloc_BunchTransfo
       PUBLIC :: Read_BunchTransfo, Read2_BunchTransfo
@@ -155,7 +159,7 @@
       PUBLIC :: BunchTransfo1TOBunchTransfo2
 
       PUBLIC :: Type_BFTransfo, RecRead_BFTransfo, RecWrite_BFTransfo
-      PUBLIC :: dealloc_BFTransfo, alloc_array, dealloc_array
+      PUBLIC :: dealloc_BFTransfo, alloc_array, dealloc_array, alloc_NParray, dealloc_NParray
       PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin, Rec_BFTransfo1TOBFTransfo2
 
 
@@ -735,11 +739,12 @@
      character (len=*), parameter       :: routine_name='dealloc_TanaVar_FROM_BFTransfo'
 
 
-        IF (associated(BFTransfo%M_mass)) CALL dealloc_array(BFTransfo%M_mass,'BFTransfo%M_mass',routine_name)
+        IF (allocated(BFTransfo%M_mass))   &
+           CALL dealloc_NParray(BFTransfo%M_mass,'BFTransfo%M_mass',routine_name)
         CALL delete_op(BFTransfo%J)
         CALL delete_op(BFTransfo%Jdag)
-        IF (associated(BFTransfo%listVFr))                               &
-                   CALL dealloc_array(BFTransfo%listVFr,'listVFr',routine_name)
+        IF (allocated(BFTransfo%listVFr))                               &
+            CALL dealloc_NParray(BFTransfo%listVFr,'listVFr',routine_name)
         CALL delete_op(BFTransfo%KEO)
         CALL delete_op(BFTransfo%Unit_Vector)
 
@@ -758,10 +763,10 @@
       BFTransfo%QEuler(2) = czero
       BFTransfo%QEuler(3) = czero
 
-   END SUBROUTINE dealloc_TanaVar_FROM_BFTransfo
+  END SUBROUTINE dealloc_TanaVar_FROM_BFTransfo
 
-      SUBROUTINE alloc_array_OF_BFTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
-      IMPLICIT NONE
+  SUBROUTINE alloc_array_OF_BFTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
+    IMPLICIT NONE
 
       TYPE (Type_BFTransfo), pointer, intent(inout) :: tab(:)
       integer, intent(in) :: tab_ub(:)
@@ -796,8 +801,8 @@
        END IF
        CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_BFTransfo')
 
-      END SUBROUTINE alloc_array_OF_BFTransfodim1
-      SUBROUTINE dealloc_array_OF_BFTransfodim1(tab,name_var,name_sub)
+  END SUBROUTINE alloc_array_OF_BFTransfodim1
+  SUBROUTINE dealloc_array_OF_BFTransfodim1(tab,name_var,name_sub)
       IMPLICIT NONE
 
       TYPE (Type_BFTransfo), pointer, intent(inout) :: tab(:)
@@ -819,8 +824,64 @@
        CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_BFTransfo')
        nullify(tab)
 
-      END SUBROUTINE dealloc_array_OF_BFTransfodim1
+  END SUBROUTINE dealloc_array_OF_BFTransfodim1
+  SUBROUTINE alloc_NParray_OF_BFTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
+    IMPLICIT NONE
 
+    TYPE (Type_BFTransfo), allocatable, intent(inout)        :: tab(:)
+    integer,                            intent(in)           :: tab_ub(:)
+    integer,                            intent(in), optional :: tab_lb(:)
+
+    character (len=*), intent(in) :: name_var,name_sub
+    integer, parameter :: ndim=1
+    logical :: memory_test
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_BFTransfodim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !----- for debuging --------------------------------------------------
+
+    IF (allocated(tab))                                             &
+          CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+    CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+    IF (present(tab_lb)) THEN
+      CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+      memory = product(tab_ub(:)-tab_lb(:)+1)
+      allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
+    ELSE
+      memory = product(tab_ub(:))
+      allocate(tab(tab_ub(1)),stat=err_mem)
+    END IF
+    CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_BFTransfo')
+
+  END SUBROUTINE alloc_NParray_OF_BFTransfodim1
+  SUBROUTINE dealloc_NParray_OF_BFTransfodim1(tab,name_var,name_sub)
+    IMPLICIT NONE
+
+    TYPE (Type_BFTransfo), allocatable, intent(inout) :: tab(:)
+    character (len=*),                  intent(in)    :: name_var,name_sub
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_BFTransfodim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !---- for debuging --------------------------------------------------
+
+    !IF (.NOT. allocated(tab)) RETURN
+    IF (.NOT. allocated(tab))                                       &
+      CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+    memory = size(tab)
+    deallocate(tab,stat=err_mem)
+    CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_BFTransfo')
+
+  END SUBROUTINE dealloc_NParray_OF_BFTransfodim1
       !!@description: TODO
       !!@param: TODO
       RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,BunchTransfo,    &

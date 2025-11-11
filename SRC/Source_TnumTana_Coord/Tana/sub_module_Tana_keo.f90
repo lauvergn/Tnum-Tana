@@ -488,7 +488,7 @@ MODULE mod_Tana_keo
          if(F_system%tab_BFTransfo(i)%frame) nsub_syst = nsub_syst+1
        end do
        nvec = F_system%nb_vect-nsub_syst+1
-       CALL alloc_array(F_system%listVFr,[nvec],'F_system%listVFr',routine_name)
+       CALL alloc_NParray(F_system%listVFr,[nvec],'F_system%listVFr',routine_name)
        ivF = 1
        F_system%listVFr(ivF) = i_var
        i_var = i_var+1
@@ -767,14 +767,14 @@ MODULE mod_Tana_keo
      integer                         :: i_BF, j_BF
      character (len=*), parameter    :: routine_name='extract_bloc_matrix'
 
-     if(associated(F_system%M_mass)) then
+     if(allocated(F_system%M_mass)) then
        do iv=1, F_system%nb_vect
-         IF (associated(F_system%tab_BFTransfo(iv)%M_mass)) THEN
-           CALL dealloc_array(F_system%tab_BFTransfo(iv)%M_mass,        &
-                             'F_system%tab_BFTransfo(iv)%M_mass',routine_name)
+         IF (allocated(F_system%tab_BFTransfo(iv)%M_mass)) THEN
+           CALL dealloc_NParray(F_system%tab_BFTransfo(iv)%M_mass,        &
+                               'F_system%tab_BFTransfo(iv)%M_mass',routine_name)
          END IF
        end do
-       CALL dealloc_array(F_system%M_mass,'F_system%M_mass',routine_name)
+       CALL dealloc_NParray(F_system%M_mass,'F_system%M_mass',routine_name)
      end if
 
       if(F_system%frame) then
@@ -788,7 +788,7 @@ MODULE mod_Tana_keo
           if(F_system%euler(i)) nb_var = nb_var + 1
         end do
 
-        CALL alloc_array(F_system%M_mass,[nvec, nvec],'F_system%M_mass',routine_name)
+        CALL alloc_NParray(F_system%M_mass,[nvec, nvec],'F_system%M_mass',routine_name)
 
        do  i = 1, nvec
          i_BF = F_system%listVFr(i)
