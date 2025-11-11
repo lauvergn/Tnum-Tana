@@ -94,15 +94,15 @@
           character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
           integer, pointer         :: Tab_num_Frame(:)       => null()
 
-          logical                    :: Frame                   = .FALSE.
-          logical                    :: BF                      = .FALSE.
-          integer                    :: Frame_type              = 0
-          real (kind=Rkind), pointer :: Coef_Vect_FOR_xFrame(:) => null()
-          real (kind=Rkind), pointer :: Coef_Vect_FOR_yFrame(:) => null()
-          real (kind=Rkind), pointer :: Coef_Vect_FOR_zFrame(:) => null()
-          real (kind=Rkind), pointer :: Coef_OF_Vect1(:)        => null()
-          real (kind=Rkind), pointer :: Coef_OF_Vect2(:)        => null()
-          character (len=3)          :: Type_Vect = 'zxy'
+          logical                        :: Frame                   = .FALSE.
+          logical                        :: BF                      = .FALSE.
+          integer                        :: Frame_type              = 0
+          real (kind=Rkind), allocatable :: Coef_Vect_FOR_xFrame(:)
+          real (kind=Rkind), allocatable :: Coef_Vect_FOR_yFrame(:)
+          real (kind=Rkind), allocatable :: Coef_Vect_FOR_zFrame(:)
+          real (kind=Rkind), allocatable :: Coef_OF_Vect1(:)
+          real (kind=Rkind), allocatable :: Coef_OF_Vect2(:)
+          character (len=3)              :: Type_Vect = 'zxy'
                  ! correspondance between Vec1 or vec2 and the BF axis
                  ! Vect1 => Type_Vect(1) axis (default z axis)
                  ! Vect2 => Type_Vect(2) axis (default x axis)
@@ -120,7 +120,7 @@
           logical                  :: cos_th                   = .TRUE.
           logical                  :: Def_cos_th               = .TRUE.
 
-          integer                  :: iAtA=0,iAtB=0 ! enables to define the vector from 2 particles
+          integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 particles
           integer,                  allocatable :: type_Qin(:)
           character (len=Name_len), allocatable :: name_Qin(:)
           integer, pointer                  :: list_Qpoly_TO_Qprim(:) => null()
@@ -174,23 +174,23 @@
 
       IF (nb_vect > 1) THEN
 
-        CALL alloc_array(BFTransfo%Coef_Vect_FOR_xFrame,[nb_vect],    &
+        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_xFrame,[nb_vect],    &
                         "BFTransfo%Coef_Vect_FOR_xFrame",name_sub)
         BFTransfo%Coef_Vect_FOR_xFrame(:) = 0
 
-        CALL alloc_array(BFTransfo%Coef_Vect_FOR_yFrame,[nb_vect],    &
+        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_yFrame,[nb_vect],    &
                         "BFTransfo%Coef_Vect_FOR_yFrame",name_sub)
         BFTransfo%Coef_Vect_FOR_yFrame(:) = 0
 
-        CALL alloc_array(BFTransfo%Coef_Vect_FOR_zFrame,[nb_vect],    &
+        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_zFrame,[nb_vect],    &
                         "BFTransfo%Coef_Vect_FOR_zFrame",name_sub)
         BFTransfo%Coef_Vect_FOR_zFrame(:) = 0
 
-        CALL alloc_array(BFTransfo%Coef_OF_Vect1,[nb_vect],           &
+        CALL alloc_NParray(BFTransfo%Coef_OF_Vect1,[nb_vect],           &
                         "BFTransfo%Coef_OF_Vect1",name_sub)
         BFTransfo%Coef_OF_Vect1(:) = 0
 
-        CALL alloc_array(BFTransfo%Coef_OF_Vect2,[nb_vect],           &
+        CALL alloc_NParray(BFTransfo%Coef_OF_Vect2,[nb_vect],           &
                         "BFTransfo%Coef_OF_Vect2",name_sub)
         BFTransfo%Coef_OF_Vect2(:) = 0
       END IF
@@ -206,26 +206,26 @@
 
       !write(out_unit,*) 'BEGINNING ',name_sub
 
-      IF (associated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
-        CALL dealloc_array(BFTransfo%Coef_Vect_FOR_xFrame,              &
+      IF (allocated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
+        CALL dealloc_NParray(BFTransfo%Coef_Vect_FOR_xFrame,              &
                           "BFTransfo%Coef_Vect_FOR_xFrame",name_sub)
       END IF
-      IF (associated(BFTransfo%Coef_Vect_FOR_yFrame)) THEN
-        CALL dealloc_array(BFTransfo%Coef_Vect_FOR_yFrame,              &
+      IF (allocated(BFTransfo%Coef_Vect_FOR_yFrame)) THEN
+        CALL dealloc_NParray(BFTransfo%Coef_Vect_FOR_yFrame,              &
                           "BFTransfo%Coef_Vect_FOR_yFrame",name_sub)
 
       END IF
-      IF (associated(BFTransfo%Coef_Vect_FOR_zFrame)) THEN
-        CALL dealloc_array(BFTransfo%Coef_Vect_FOR_zFrame,              &
+      IF (allocated(BFTransfo%Coef_Vect_FOR_zFrame)) THEN
+        CALL dealloc_NParray(BFTransfo%Coef_Vect_FOR_zFrame,              &
                           "BFTransfo%Coef_Vect_FOR_zFrame",name_sub)
       END IF
 
-      IF (associated(BFTransfo%Coef_OF_Vect1)) THEN
-        CALL dealloc_array(BFTransfo%Coef_OF_Vect1,                     &
+      IF (allocated(BFTransfo%Coef_OF_Vect1)) THEN
+        CALL dealloc_NParray(BFTransfo%Coef_OF_Vect1,                     &
                           "BFTransfo%Coef_OF_Vect1",name_sub)
       END IF
-      IF (associated(BFTransfo%Coef_OF_Vect2)) THEN
-        CALL dealloc_array(BFTransfo%Coef_OF_Vect2,                     &
+      IF (allocated(BFTransfo%Coef_OF_Vect2)) THEN
+        CALL dealloc_NParray(BFTransfo%Coef_OF_Vect2,                     &
                           "BFTransfo%Coef_OF_Vect2",name_sub)
       END IF
       BFTransfo%Type_Vect = 'zxy'
@@ -245,20 +245,20 @@
       write(out_unit,*) 'Frame,Frame_type',BFTransfo%Frame,BFTransfo%Frame_type
       IF (BFTransfo%Frame_type /= 0) THEN
 
-        IF (associated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
+        IF (allocated(BFTransfo%Coef_Vect_FOR_xFrame)) THEN
             write(out_unit,*) 'Coef_Vect_FOR_xFrame(:)',BFTransfo%Coef_Vect_FOR_xFrame(:)
         END IF
-        IF (associated(BFTransfo%Coef_Vect_FOR_yFrame)) THEN
+        IF (allocated(BFTransfo%Coef_Vect_FOR_yFrame)) THEN
             write(out_unit,*) 'Coef_Vect_FOR_yFrame(:)',BFTransfo%Coef_Vect_FOR_yFrame(:)
         END IF
-        IF (associated(BFTransfo%Coef_Vect_FOR_zFrame)) THEN
+        IF (allocated(BFTransfo%Coef_Vect_FOR_zFrame)) THEN
             write(out_unit,*) 'Coef_Vect_FOR_zFrame(:)',BFTransfo%Coef_Vect_FOR_zFrame(:)
         END IF
 
-        IF (associated(BFTransfo%Coef_OF_Vect1)) THEN
+        IF (allocated(BFTransfo%Coef_OF_Vect1)) THEN
           write(out_unit,*) 'Coef_OF_Vect1(:)',BFTransfo%Coef_OF_Vect1(:)
         END IF
-        IF (associated(BFTransfo%Coef_OF_Vect2)) THEN
+        IF (allocated(BFTransfo%Coef_OF_Vect2)) THEN
           write(out_unit,*) 'Coef_OF_Vect2(:)',BFTransfo%Coef_OF_Vect2(:)
         END IF
         write(out_unit,*) 'Type_Vect: ',BFTransfo%Type_Vect
@@ -636,7 +636,7 @@
 
       BFTransfo2%Frame_type             = BFTransfo1%Frame_type
 
-      IF (associated(BFTransfo1%Coef_Vect_FOR_xFrame)) THEN
+      IF (allocated(BFTransfo1%Coef_Vect_FOR_xFrame)) THEN
         nb_vect = size(BFTransfo1%Coef_Vect_FOR_xFrame)
       ELSE
         nb_vect = 0
@@ -827,11 +827,10 @@
       RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,BunchTransfo,    &
                                              num_Frame_in_Container,Cart_type)
 
-      TYPE (Type_BFTransfo),intent(inout)    :: BFTransfo
+      TYPE (Type_BFTransfo),   intent(inout) :: BFTransfo
       TYPE (Type_BunchTransfo),intent(inout) :: BunchTransfo
-
-      integer, intent(inout)                 :: num_Frame_in_Container
-      character (len=*),    intent(in)       :: Cart_Type
+      integer,                 intent(inout) :: num_Frame_in_Container
+      character (len=*),       intent(in)    :: Cart_Type
 
 
       integer :: nb_vect,nb_var,iv,num_Frame_in_Container_rec,Frame_type
