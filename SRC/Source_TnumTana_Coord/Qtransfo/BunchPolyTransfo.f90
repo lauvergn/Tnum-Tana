@@ -125,7 +125,7 @@
           integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
 
 
-          TYPE (Type_BFTransfo), pointer    :: tab_BFTransfo(:) => null() ! dim: nb_vect
+          TYPE (Type_BFTransfo),    allocatable :: tab_BFTransfo(:) ! dim: nb_vect
 
           ! variables use for the calculation (Tana)
           ! They are defined here, because of the recursive structure
@@ -683,11 +683,11 @@ CONTAINS
         CALL dealloc_NParray(BFTransfo%name_Qin,"BFTransfo%name_Qin",name_sub)
       END IF
 
-      IF (associated(BFTransfo%tab_BFTransfo)) THEN
+      IF (allocated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,BFTransfo%nb_vect
           CALL dealloc_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
-        CALL dealloc_array(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
+        CALL dealloc_NParray(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
       END IF
 
       IF (BFTransfo%BF) THEN
@@ -1211,8 +1211,8 @@ CONTAINS
           STOP
         END IF
         IF (nb_vect > 0) THEN
-          CALL alloc_array(BFTransfo%tab_BFTransfo,[nb_vect],         &
-                          "BFTransfo%tab_BFTransfo",name_sub)
+          CALL alloc_NParray(BFTransfo%tab_BFTransfo,[nb_vect],         &
+                            "BFTransfo%tab_BFTransfo",name_sub)
           num_Frame_in_Container_rec = 0
 
           DO iv=1,nb_vect
@@ -1548,7 +1548,7 @@ CONTAINS
         write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
       END IF
 
-      IF (recur_loc .AND. associated(BFTransfo%tab_BFTransfo)) THEN
+      IF (recur_loc .AND. allocated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,ubound(BFTransfo%tab_BFTransfo,dim=1)
           CALL RecWrite_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
@@ -2737,10 +2737,9 @@ CONTAINS
       IF (allocated(BFTransfo1%name_Qin)) BFTransfo2%name_Qin = BFTransfo1%name_Qin
 
 
-      IF (BFTransfo2%Frame .AND. associated(BFTransfo1%tab_BFTransfo)) THEN
+      IF (BFTransfo2%Frame .AND. allocated(BFTransfo1%tab_BFTransfo)) THEN
         n = size(BFTransfo1%tab_BFTransfo)
-        CALL alloc_array(BFTransfo2%tab_BFTransfo,[n],                &
-                        "BFTransfo2%tab_BFTransfo",name_sub)
+        CALL alloc_NParray(BFTransfo2%tab_BFTransfo,[n],"BFTransfo2%tab_BFTransfo",name_sub)
         DO i=1,n
           !CALL RecWrite_BFTransfo(BFTransfo1%tab_BFTransfo(i),.FALSE.)
           BFTransfo2%tab_BFTransfo(i)%list_Qpoly_TO_Qprim = BFTransfo2%list_Qpoly_TO_Qprim
