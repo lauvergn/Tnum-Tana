@@ -118,13 +118,13 @@ MODULE mod_Qtransfo
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE read_Qtransfo(Qtransfo,nb_Qin,nb_extra_Coord,                  &
+      SUBROUTINE read_Qtransfo(Qtransfo,Qtransfo_itm1,nb_Qin,nb_extra_Coord,    &
                                With_Tab_dnQflex,QMLib_in,mendeleev,             &
                                Tana_Is_Possible,Cart_Type)
         
         USE mod_Lib_QTransfo, ONLY : make_nameQ
 
-        TYPE (Type_Qtransfo), intent(inout)    :: Qtransfo
+        TYPE (Type_Qtransfo), intent(inout)    :: Qtransfo,Qtransfo_itm1
         integer,              intent(inout)    :: nb_Qin,nb_extra_Coord
         TYPE (table_atom),    intent(in)       :: mendeleev
         logical,              intent(in)       :: With_Tab_dnQflex,QMLib_in
@@ -682,16 +682,15 @@ MODULE mod_Qtransfo
 
         CASE ('poly')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
-          IF ( .NOT. associated(Qtransfo%BunchTransfo)) THEN
+          IF ( .NOT. associated(Qtransfo_itm1%BunchTransfo)) THEN
             write(out_unit,*) ' ERROR in ',name_sub
             write(out_unit,*) 'For Poly transfo, ... '
-            write(out_unit,*) ' Qtransfo%BunchTransfo MUST be associoted TO'
-            write(out_unit,*) ' mole%tab_Qtransfo(1)%BunchTransfo.'
+            write(out_unit,*) ' Qtransfo_itm1%BunchTransfo MUST be associated'
 
             write(out_unit,*) ' Check the fortran !!'
             STOP 'ERROR in read_Qtransfo: Problem with BunchTransfo for poly transfo'
           END IF
-          nb_vect      = Qtransfo%BunchTransfo%nb_vect
+          nb_vect      = Qtransfo_itm1%BunchTransfo%nb_vect
 
           nb_Qdef      = max(1,3*nb_vect-3)
 
@@ -699,7 +698,7 @@ MODULE mod_Qtransfo
           Qtransfo%BFTransfo%nb_var     = nb_Qin
           Qtransfo%BFTransfo%Def_cos_th = cos_th
           Qtransfo%nb_Qin               = nb_Qin
-          Qtransfo%nb_Qout              = 3*nb_vect + Qtransfo%BunchTransfo%nb_ExtraLFSF
+          Qtransfo%nb_Qout              = 3*nb_vect + Qtransfo_itm1%BunchTransfo%nb_ExtraLFSF
 
           CALL sub_Type_Name_OF_Qin(Qtransfo,"Qpoly")
           Qtransfo%BFTransfo%type_Qin = Qtransfo%type_Qin
@@ -708,8 +707,9 @@ MODULE mod_Qtransfo
           Qtransfo%BFTransfo%Frame    = .TRUE.
           Qtransfo%BFTransfo%euler(:) = .FALSE.
           iF_inout = 0
-          CALL RecRead_BFTransfo(Qtransfo%BFTransfo,                    &
-                                 Qtransfo%BunchTransfo,iF_inout,Cart_Type)
+          CALL RecRead_BFTransfo(Qtransfo%BFTransfo,                      &
+                                 nb_vect, Qtransfo_itm1%BunchTransfo%ind_vect, &
+                                 iF_inout,Cart_Type)
           Qtransfo%type_Qin = Qtransfo%BFTransfo%type_Qin
           Qtransfo%name_Qin = Qtransfo%BFTransfo%name_Qin
           CALL Set_Type_Name_OF_Qin_extraLFSF(Qtransfo)
@@ -724,10 +724,9 @@ MODULE mod_Qtransfo
           END IF
 
           ! Calculation of M_Tana if needed
-          IF (count(Qtransfo%BunchTransfo%M_Tana /= ZERO) == 0) THEN
-            CALL M_Tana_FROM_Bunch2Transfo(Qtransfo%BunchTransfo)
+          IF (count(Qtransfo_itm1%BunchTransfo%M_Tana /= ZERO) == 0) THEN
+            CALL M_Tana_FROM_Bunch2Transfo(Qtransfo_itm1%BunchTransfo)
           END IF
-          nullify(Qtransfo%BunchTransfo)
 
         CASE ('qtox_ana')
           Tana_Is_Possible            = .FALSE.

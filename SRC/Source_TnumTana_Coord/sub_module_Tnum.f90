@@ -712,7 +712,7 @@ MODULE mod_Tnum
 
 
       !     - divers ------------------------------------------
-      integer :: i,n,it,iat,i_Q,iQout,iQin
+      integer :: i,n,it,itm1,iat,i_Q,iQout,iQin
 
       NAMELIST /variables/nat,zmat,bunch,cos_th,                                &
                      Without_Rot,Centered_ON_CoM,JJ,                            &
@@ -1009,10 +1009,12 @@ MODULE mod_Tnum
             END IF
           END IF
 
-          flush(out_unit)
           IF (debug) write(out_unit,*) 'read Qtransfo',it
+          flush(out_unit)
+          itm1 = max(it-1,1)
 
-          CALL read_Qtransfo(mole%tab_Qtransfo(it),nb_Qin,mole%nb_extra_Coord,  &
+          CALL read_Qtransfo(mole%tab_Qtransfo(it),mole%tab_Qtransfo(itm1),     &
+                             nb_Qin,mole%nb_extra_Coord,  &
                              With_Tab_dnQflex,QMLib,const_phys%mendeleev,       &
                              Tana_Is_Possible,mole%Cart_Type)
           mole%tab_Qtransfo(it)%BeforeActive = (it == nb_Qtransfo-1)
@@ -1024,9 +1026,6 @@ MODULE mod_Tnum
           CALL Set_masses_Z_TO_CoordType(mole,mole%tab_Qtransfo(it))
 
           SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(it)))
-          CASE ('bunch','bunch_poly')
-            ! because we need BunchTransfo for Poly transfo
-            mole%tab_Qtransfo(it+1)%BunchTransfo => mole%tab_Qtransfo(it)%BunchTransfo
 
           CASE ("nm")
             mole%itNM  = it
@@ -1480,7 +1479,8 @@ MODULE mod_Tnum
 
 
         mole%tab_Cart_transfo(1)%num_transfo = 1
-        CALL read_Qtransfo(mole%tab_Cart_transfo(1),mole%ncart_act,             &
+        CALL read_Qtransfo(mole%tab_Cart_transfo(1),mole%tab_Cart_transfo(1),   &
+                           mole%ncart_act,             &
                            mole%nb_extra_Coord,With_Tab_dnQflex,QMLib,          &
                            const_phys%mendeleev,Tana_Is_Possible,mole%Cart_Type)
 

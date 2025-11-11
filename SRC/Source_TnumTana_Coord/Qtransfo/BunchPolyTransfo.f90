@@ -76,8 +76,6 @@
       END TYPE Type_BunchTransfo
 
       TYPE Type_BFTransfo
-
-          TYPE (Type_BunchTransfo), allocatable :: BunchTransfo ! it will be allocated only for the first vector (true BF)
           integer                  :: nb_var                 = 0
           integer                  :: nb_var_Rot             = 0
 
@@ -884,11 +882,12 @@ CONTAINS
   END SUBROUTINE dealloc_NParray_OF_BFTransfodim1
       !!@description: TODO
       !!@param: TODO
-      RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,BunchTransfo,    &
+      RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,nb_vect_bunch,ind_vect_bunch,    &
                                              num_Frame_in_Container,Cart_type)
 
       TYPE (Type_BFTransfo),   intent(inout) :: BFTransfo
-      TYPE (Type_BunchTransfo),intent(inout) :: BunchTransfo
+      integer,                 intent(in)    :: nb_vect_bunch
+      integer,                 intent(inout) :: ind_vect_bunch(:,:)
       integer,                 intent(inout) :: num_Frame_in_Container
       character (len=*),       intent(in)    :: Cart_Type
 
@@ -945,10 +944,10 @@ CONTAINS
          write(out_unit,*) 'BEGINNING ',name_sub
        END IF
 !-----------------------------------------------------------
-      IF (BunchTransfo%nb_vect > max_vect) THEN
+      IF (nb_vect_bunch > max_vect) THEN
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) 'max_vect is too small',max_vect
-        write(out_unit,*) ' it MUST be larger than',BunchTransfo%nb_vect
+        write(out_unit,*) ' it MUST be larger than',nb_vect_bunch
         STOP
       END IF
 
@@ -1010,10 +1009,10 @@ CONTAINS
 
       IF (iv_tot == 1) zmat_order_save = zmat_order
 
-      IF (BunchTransfo%ind_vect(3,iv_tot) == 0 .OR.                     &
-          BunchTransfo%ind_vect(4,iv_tot) == 0) THEN
-        BunchTransfo%ind_vect(3,iv_tot) = iAtA
-        BunchTransfo%ind_vect(4,iv_tot) = iAtB
+      IF (ind_vect_bunch(3,iv_tot) == 0 .OR.                     &
+          ind_vect_bunch(4,iv_tot) == 0) THEN
+        ind_vect_bunch(3,iv_tot) = iAtA
+        ind_vect_bunch(4,iv_tot) = iAtB
       END IF
 
       IF (len_trim(name_Frame) > 0) name_F = trim("  " // trim(name_Frame))
@@ -1049,14 +1048,14 @@ CONTAINS
           STOP
         END IF
 
-        CALL alloc_FrameType(BFTransfo,BunchTransfo%nb_vect)
+        CALL alloc_FrameType(BFTransfo,nb_vect_bunch)
 
-        BFTransfo%Coef_Vect_FOR_xFrame = Coef_Vect_FOR_xFrame(1:BunchTransfo%nb_vect)
-        BFTransfo%Coef_Vect_FOR_yFrame = Coef_Vect_FOR_yFrame(1:BunchTransfo%nb_vect)
-        BFTransfo%Coef_Vect_FOR_zFrame = Coef_Vect_FOR_zFrame(1:BunchTransfo%nb_vect)
+        BFTransfo%Coef_Vect_FOR_xFrame = Coef_Vect_FOR_xFrame(1:nb_vect_bunch)
+        BFTransfo%Coef_Vect_FOR_yFrame = Coef_Vect_FOR_yFrame(1:nb_vect_bunch)
+        BFTransfo%Coef_Vect_FOR_zFrame = Coef_Vect_FOR_zFrame(1:nb_vect_bunch)
 
-        BFTransfo%Coef_OF_Vect1 = Coef_OF_Vect1(1:BunchTransfo%nb_vect)
-        BFTransfo%Coef_OF_Vect2 = Coef_OF_Vect2(1:BunchTransfo%nb_vect)
+        BFTransfo%Coef_OF_Vect1 = Coef_OF_Vect1(1:nb_vect_bunch)
+        BFTransfo%Coef_OF_Vect2 = Coef_OF_Vect2(1:nb_vect_bunch)
 
         CALL string_uppercase_TO_lowercase(Type_Vect)
         BFTransfo%Type_Vect = Type_Vect
@@ -1242,7 +1241,7 @@ CONTAINS
 
 
             CALL RecRead_BFTransfo(BFTransfo%tab_BFTransfo(iv),         &
-                                   BunchTransfo,                        &
+                                   nb_vect_bunch,ind_vect_bunch, &
                                    num_Frame_in_Container_rec,Cart_type)
             ! The next lines HAVE to be after the "CALL RecRead_BFTransfo".
             BFTransfo%list_Qprim_TO_Qpoly = BFTransfo%tab_BFTransfo(iv)%list_Qprim_TO_Qpoly
