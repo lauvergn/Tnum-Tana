@@ -72,12 +72,11 @@ MODULE mod_Qtransfo
           integer                           :: opt_param       = 0
           logical                           :: Primitive_coord = .FALSE.
 
-
           TYPE (Type_CartesianTransfo)              :: CartesianTransfo
           TYPE (Type_QTOXanaTransfo)                :: QTOXanaTransfo
           TYPE (Type_ZmatTransfo)                   :: ZmatTransfo
           TYPE (Type_RectilinearNM_Transfo)         :: RectilinearNM_Transfo
-          TYPE (Type_BunchTransfo),     pointer :: BunchTransfo       => null()
+          TYPE (Type_BunchTransfo),     allocatable :: BunchTransfo
           TYPE (Type_BFTransfo)                     :: BFTransfo
 
           TYPE (Type_LinearTransfo)                 :: LinearTransfo
@@ -571,7 +570,7 @@ MODULE mod_Qtransfo
 
         CASE ('bunch','bunch_poly') ! It should one of the first transfo
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
-          IF (.NOT. associated(Qtransfo%BunchTransfo)) THEN
+          IF (.NOT. allocated(Qtransfo%BunchTransfo)) THEN
             allocate(Qtransfo%BunchTransfo,stat=err_mem)
             memory = 1
             CALL error_memo_allo(err_mem,memory,'Qtransfo%BunchTransfo',name_sub,'Type_BunchTransfo')
@@ -682,11 +681,10 @@ MODULE mod_Qtransfo
 
         CASE ('poly')
           Tana_Is_Possible = Tana_Is_Possible .AND. .TRUE.
-          IF ( .NOT. associated(Qtransfo_itm1%BunchTransfo)) THEN
+          IF ( .NOT. allocated(Qtransfo_itm1%BunchTransfo)) THEN
             write(out_unit,*) ' ERROR in ',name_sub
             write(out_unit,*) 'For Poly transfo, ... '
-            write(out_unit,*) ' Qtransfo_itm1%BunchTransfo MUST be associated'
-
+            write(out_unit,*) ' Qtransfo_itm1%BunchTransfo MUST be allocated'
             write(out_unit,*) ' Check the fortran !!'
             STOP 'ERROR in read_Qtransfo: Problem with BunchTransfo for poly transfo'
           END IF

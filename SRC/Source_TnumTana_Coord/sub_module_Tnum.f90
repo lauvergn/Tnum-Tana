@@ -165,7 +165,6 @@ MODULE mod_Tnum
           integer                          :: itNM                 = -1
           integer                          :: itRPH                = -1
           TYPE (Type_ActiveTransfo), pointer, public :: ActiveTransfo=> null() ! it'll point on tab_Qtransfo
-          TYPE (Type_NMTransfo),     pointer :: NMTransfo            => null() ! it'll point on tab_Qtransfo
           TYPE (Type_RPHTransfo),    pointer :: RPHTransfo           => null() ! it'll point on tab_Qtransfo
           TYPE (Type_Qtransfo),      pointer :: tab_Qtransfo(:)      => null()
           TYPE (Type_Qtransfo),      pointer :: tab_Cart_transfo(:)  => null()
@@ -553,7 +552,6 @@ MODULE mod_Tnum
         END IF
 
         nullify(mole%ActiveTransfo)  ! true pointer
-        nullify(mole%NMTransfo)      ! true pointer
         nullify(mole%RPHTransfo)     ! true pointer
 
         CALL dealloc_CurviRPH(mole%CurviRPH)
@@ -1028,16 +1026,14 @@ MODULE mod_Tnum
           SELECT CASE (get_name_Qtransfo(mole%tab_Qtransfo(it)))
 
           CASE ("nm")
-            mole%itNM  = it
-            IF (associated(mole%NMTransfo)) THEN
+            IF (mole%itNM > 0) THEN
               write(out_unit,*) ' ERROR in ',name_sub
               write(out_unit,*) '  TWO NM transformations have been read'
               write(out_unit,*) '  Only one is possible'
               write(out_unit,*) ' Check your data !!'
               STOP
-            ELSE
-              mole%NMTransfo => mole%tab_Qtransfo(it)%NMTransfo
             END IF
+            mole%itNM  = it
 
           CASE ("rph")
             IF (it /= nb_Qtransfo-1) THEN
@@ -1320,7 +1316,6 @@ MODULE mod_Tnum
 
           CALL alloc_NParray(mole%tab_Qtransfo(it)%NMTransfo,             &
                             "mole%tab_Qtransfo(it)%NMTransfo",name_sub)
-          mole%NMTransfo => mole%tab_Qtransfo(it)%NMTransfo
 
           mole%tab_Qtransfo(it)%NMTransfo%ReadCoordBlocks  = purify_hess
           mole%tab_Qtransfo(it)%NMTransfo%k_Half           = k_Half
@@ -1707,8 +1702,6 @@ MODULE mod_Tnum
         !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
 
         SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
-        CASE ("nm")
-          mole1%NMTransfo => mole1%tab_Qtransfo(it)%NMTransfo
         CASE ("rph")
           mole1%RPHTransfo => mole1%tab_Qtransfo(it)%RPHTransfo
         CASE ('active')

@@ -79,8 +79,7 @@
       CALL Read_CoordType(mole,para_Tnum,const_phys)
       !     ------------------------------------------------------------
       !-----------------------------------------------------------------
-
-      IF (associated(mole%NMTransfo) .OR. associated(mole%RPHTransfo)) THEN
+      IF (mole%itNM > 0 .OR. mole%itRPH > 0) THEN
         write(out_unit,*) "ERROR: This test program cannot be used with"
         write(out_unit,*) "Normal modes (NM) or RPH"
         STOP

@@ -2759,9 +2759,9 @@ CONTAINS
   END SUBROUTINE Rec_BFTransfo1TOBFTransfo2
 
   SUBROUTINE alloc_BunchTransfo(BunchTransfo)
-      TYPE (Type_BunchTransfo), intent(inout) :: BunchTransfo
+    TYPE (Type_BunchTransfo), intent(inout) :: BunchTransfo
 
-       character (len=*), parameter :: name_sub = 'alloc_BunchTransfo'
+    character (len=*), parameter :: name_sub = 'alloc_BunchTransfo'
 
 
        !write(out_unit,*) 'BEGINNING ',name_sub
@@ -2832,17 +2832,15 @@ CONTAINS
 
   END SUBROUTINE alloc_BunchTransfo
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE dealloc_BunchTransfo(BunchTransfo)
-       TYPE (Type_BunchTransfo), pointer, intent(inout) :: BunchTransfo
+  SUBROUTINE dealloc_BunchTransfo(BunchTransfo)
+    TYPE (Type_BunchTransfo), allocatable, intent(inout) :: BunchTransfo
 
       integer :: err_mem,memory
        character (len=*), parameter :: name_sub='dealloc_BunchTransfo'
 
        !write(out_unit,*) 'BEGINNING ',name_sub ; flush(out_unit)
 
-      IF (.NOT. associated(BunchTransfo)) RETURN
+      IF (.NOT. allocated(BunchTransfo)) RETURN
 
 
        IF (allocated(BunchTransfo%ind_vect)) THEN
@@ -2897,16 +2895,14 @@ CONTAINS
        deallocate(BunchTransfo,stat=err_mem)
        memory = 1
        CALL error_memo_allo(err_mem,-memory,'BunchTransfo',name_sub,'Type_BunchTransfo')
-       nullify(BunchTransfo)
 
        !write(out_unit,*) 'END dealloc_BunchTransfo'  ; flush(out_unit)
 
   END SUBROUTINE dealloc_BunchTransfo
 
-      SUBROUTINE Read_BunchTransfo(BunchTransfo,mendeleev)
-
-      TYPE (Type_BunchTransfo),intent(inout) :: BunchTransfo
-      TYPE (table_atom), intent(in)          :: mendeleev
+  SUBROUTINE Read_BunchTransfo(BunchTransfo,mendeleev)
+    TYPE (Type_BunchTransfo), intent(inout) :: BunchTransfo
+    TYPE (table_atom),        intent(in)    :: mendeleev
 
 
       integer :: i,j,i_at,icf,icf1,iat1
@@ -3266,12 +3262,11 @@ CONTAINS
       IF (debug) write(out_unit,*) 'END ',name_sub
       !--------------------------------------------------------
 
-      END SUBROUTINE Read_BunchTransfo
+  END SUBROUTINE Read_BunchTransfo
 
-      SUBROUTINE Read2_BunchTransfo(BunchTransfo,mendeleev,with_vect)
-
-      TYPE (Type_BunchTransfo),intent(inout) :: BunchTransfo
-      TYPE (table_atom), intent(in)          :: mendeleev
+  SUBROUTINE Read2_BunchTransfo(BunchTransfo,mendeleev,with_vect)
+      TYPE (Type_BunchTransfo), intent(inout) :: BunchTransfo
+      TYPE (table_atom),        intent(in)    :: mendeleev
 
 
       logical :: with_vect
@@ -3496,9 +3491,9 @@ CONTAINS
       IF (debug) write(out_unit,*) 'END ',name_sub
       flush(out_unit)
       !--------------------------------------------------------
-      END SUBROUTINE Read2_BunchTransfo
+  END SUBROUTINE Read2_BunchTransfo
 
-      SUBROUTINE Add_DummyG(Mat_At_TO_centers,COM,iG,masses_OF_At,MtotG,tab_At_TO_G)
+  SUBROUTINE Add_DummyG(Mat_At_TO_centers,COM,iG,masses_OF_At,MtotG,tab_At_TO_G)
 
       real(kind=Rkind), intent(inout) :: Mat_At_TO_centers(:,:)
       real(kind=Rkind), intent(inout) :: COM(:,:)
@@ -3727,9 +3722,9 @@ CONTAINS
 
       SUBROUTINE M_Tana_FROM_Bunch2Transfo(BunchTransfo)
 
-      TYPE(type_bunchtransfo) :: BunchTransfo
-      real (kind=Rkind)       :: Mtot
+      TYPE(type_bunchtransfo), intent(inout) :: BunchTransfo
 
+      real (kind=Rkind)       :: Mtot
 
       !--------------------------------------------------------
       real (kind=Rkind), allocatable :: A(:,:)             ! for F. Gatti and M. Ndong
@@ -3826,16 +3821,16 @@ CONTAINS
         write(out_unit,*) 'END ',name_sub
       END IF
       !--------------------------------------------------------
-      END SUBROUTINE M_Tana_FROM_Bunch2Transfo
+  END SUBROUTINE M_Tana_FROM_Bunch2Transfo
 
-      SUBROUTINE Write_BunchTransfo(BunchTransfo)
-      TYPE (Type_BunchTransfo), pointer, intent(in) :: BunchTransfo
+  SUBROUTINE Write_BunchTransfo(BunchTransfo)
+      TYPE (Type_BunchTransfo), allocatable, intent(in) :: BunchTransfo
 
       integer :: i,nb_at
       character (len=*), parameter :: name_sub='Write_BunchTransfo'
 
 
-      IF (.NOT. associated(BunchTransfo)) RETURN
+      IF (.NOT. allocated(BunchTransfo)) RETURN
 
       write(out_unit,*) 'BEGINNING ',name_sub
 
@@ -3866,15 +3861,14 @@ CONTAINS
 
       write(out_unit,*) 'END ',name_sub
 
-      END SUBROUTINE Write_BunchTransfo
+  END SUBROUTINE Write_BunchTransfo
 
-      SUBROUTINE calc_BunchTransfo(dnQvect,dnx,BunchTransfo,nderiv,inTOout)
+  SUBROUTINE calc_BunchTransfo(dnQvect,dnx,BunchTransfo,nderiv,inTOout)
 
-      TYPE (Type_dnVec),                 intent(inout) :: dnQvect,dnx
-      TYPE (Type_BunchTransfo), pointer, intent(in)    :: BunchTransfo
-      integer,                           intent(in)    :: nderiv
-      logical,                           intent(in)    :: inTOout
-
+      TYPE (Type_dnVec),                     intent(inout) :: dnQvect,dnx
+      TYPE (Type_BunchTransfo), allocatable, intent(in)    :: BunchTransfo
+      integer,                               intent(in)    :: nderiv
+      logical,                               intent(in)    :: inTOout
 
       integer           :: iv,ivect_iv,i,i_at,ivect_at,nb_ExtraLFSF
       integer           :: iG,ixyz_G,ixyz_At,j,jat
@@ -3887,7 +3881,7 @@ CONTAINS
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='calc_BunchTransfo'
       !--------------------------------------------------------
-      IF (.NOT. associated(BunchTransfo)) THEN
+      IF (.NOT. allocated(BunchTransfo)) THEN
         write(out_unit,*) 'ERROR in ',name_sub
         write(out_unit,*) 'BunchTransfo is not associated!'
         write(out_unit,*) ' CHECK the fortran!!'
@@ -3979,8 +3973,8 @@ CONTAINS
       END SUBROUTINE calc_BunchTransfo
 
       SUBROUTINE BunchTransfo1TOBunchTransfo2(BunchTransfo1,BunchTransfo2)
-      TYPE (Type_BunchTransfo),pointer, intent(in)    :: BunchTransfo1
-      TYPE (Type_BunchTransfo),pointer, intent(inout) :: BunchTransfo2
+      TYPE (Type_BunchTransfo),allocatable, intent(in)    :: BunchTransfo1
+      TYPE (Type_BunchTransfo),allocatable, intent(inout) :: BunchTransfo2
 
 
       !--------------------------------------------------------
@@ -3989,7 +3983,7 @@ CONTAINS
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
       !--------------------------------------------------------
-      IF (.NOT. associated(BunchTransfo1)) RETURN
+      IF (.NOT. allocated(BunchTransfo1)) RETURN
 
       IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
