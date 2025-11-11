@@ -92,7 +92,7 @@
           integer                  :: num_Frame_in_BF        = 0
           integer                  :: num_Frame_in_Container = 0
           character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
-          integer, pointer         :: Tab_num_Frame(:)       => null()
+          integer, allocatable     :: Tab_num_Frame(:)
 
           logical                        :: Frame                   = .FALSE.
           logical                        :: BF                      = .FALSE.
@@ -123,8 +123,8 @@
           integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 particles
           integer,                  allocatable :: type_Qin(:)
           character (len=Name_len), allocatable :: name_Qin(:)
-          integer, pointer                  :: list_Qpoly_TO_Qprim(:) => null()
-          integer, pointer                  :: list_Qprim_TO_Qpoly(:) => null()
+          integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
+          integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
 
 
           TYPE (Type_BFTransfo), pointer    :: tab_BFTransfo(:) => null() ! dim: nb_vect
@@ -687,13 +687,13 @@
       END IF
 
       IF (BFTransfo%BF) THEN
-        IF (associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
-          CALL dealloc_array(BFTransfo%list_Qpoly_TO_Qprim,             &
+        IF (allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
+          CALL dealloc_NParray(BFTransfo%list_Qpoly_TO_Qprim,             &
                             "BFTransfo%list_Qpoly_TO_Qprim",name_sub)
         END IF
 
-        IF (associated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
-          CALL dealloc_array(BFTransfo%list_Qprim_TO_Qpoly,             &
+        IF (allocated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
+          CALL dealloc_NParray(BFTransfo%list_Qprim_TO_Qpoly,             &
                             "BFTransfo%list_Qprim_TO_Qpoly",name_sub)
         END IF
       END IF
@@ -719,9 +719,8 @@
 
       CALL dealloc_FrameType(BFTransfo)
 
-      IF (associated(BFTransfo%tab_num_Frame))  THEN
-        CALL dealloc_array(BFTransfo%tab_num_Frame,                     &
-                          "BFTransfo%tab_num_Frame",name_sub)
+      IF (allocated(BFTransfo%tab_num_Frame))  THEN
+        CALL dealloc_NParray(BFTransfo%tab_num_Frame,"BFTransfo%tab_num_Frame",name_sub)
       END IF
 
       CALL dealloc_TanaVar_FROM_BFTransfo(BFTransfo)
@@ -853,7 +852,7 @@
       integer, save :: num_vect_in_BF         = 0
       integer, save :: iv_tot                 = 0
       character (len=6) :: Spherical_convention
-      integer, pointer :: tab_num_Frame(:)
+      integer, allocatable :: tab_num_Frame(:)
 
       integer, parameter :: max_vect = 100
       real (kind=Rkind) :: Coef_Vect_FOR_xFrame(max_vect)
@@ -894,11 +893,11 @@
 
       IF (iv_tot == 0) THEN
         nb_Qin = size(BFTransfo%type_Qin)
-        CALL alloc_array(BFTransfo%list_Qpoly_TO_Qprim,[nb_Qin],      &
+        CALL alloc_NParray(BFTransfo%list_Qpoly_TO_Qprim,[nb_Qin],      &
                         "BFTransfo%list_Qpoly_TO_Qprim",name_sub)
         BFTransfo%list_Qpoly_TO_Qprim(:) = [(i,i=1,nb_Qin)]
 
-        CALL alloc_array(BFTransfo%list_Qprim_TO_Qpoly,[nb_Qin],      &
+        CALL alloc_NParray(BFTransfo%list_Qprim_TO_Qpoly,[nb_Qin],      &
                         "BFTransfo%list_Qprim_TO_Qpoly",name_sub)
         BFTransfo%list_Qprim_TO_Qpoly(:) = [(i,i=1,nb_Qin)]
       END IF
@@ -1060,35 +1059,29 @@
         BFTransfo%num_Frame_in_Container = num_Frame_in_Container
         BFTransfo%num_Frame_in_BF        = num_Frame_in_BF
 
-        IF (.NOT. associated(BFTransfo%tab_num_Frame)) THEN ! rec_level MUST 1
+        IF (.NOT. allocated(BFTransfo%tab_num_Frame)) THEN ! rec_level MUST 1
           IF (rec_level /= 1) STOP 'WRONG rec_level'
-          CALL alloc_array(BFTransfo%tab_num_Frame,[rec_level],       &
-                          "BFTransfo%tab_num_Frame",name_sub)
+          CALL alloc_NParray(BFTransfo%tab_num_Frame,[rec_level],"BFTransfo%tab_num_Frame",name_sub)
           BFTransfo%tab_num_Frame(:) = 0
           BFTransfo%tab_num_Frame(rec_level) = 1
         ELSE ! the size of the table is not correct (rec_level-1))
           IF (size(BFTransfo%tab_num_Frame) /= rec_level-1) STOP 'PROBLEM with rec_level'
 
-          nullify(tab_num_Frame)
-          CALL alloc_array(tab_num_Frame,[rec_level-1],               &
-                          "tab_num_Frame",name_sub)
-          ! save BFTransfo%tab_num_Frame
+          CALL alloc_NParray(tab_num_Frame,[rec_level-1],"tab_num_Frame",name_sub)
           tab_num_Frame(:) = BFTransfo%tab_num_Frame(:)
 
           ! dealloc BFTransfo%tab_num_Frame
-          CALL dealloc_array(BFTransfo%tab_num_Frame,                   &
-                            "BFTransfo%tab_num_Frame",name_sub)
+          CALL dealloc_NParray(BFTransfo%tab_num_Frame,"BFTransfo%tab_num_Frame",name_sub)
 
           ! alloc BFTransfo%tab_num_Frame with the new size
-          CALL alloc_array(BFTransfo%tab_num_Frame,[rec_level],       &
-                          "BFTransfo%tab_num_Frame",name_sub)
+          CALL alloc_array(BFTransfo%tab_num_Frame,[rec_level],"BFTransfo%tab_num_Frame",name_sub)
 
           ! set the new BFTransfo%tab_num_Frame
           BFTransfo%tab_num_Frame(:) = 0
           BFTransfo%tab_num_Frame(1:rec_level-1) = tab_num_Frame(:)
           BFTransfo%tab_num_Frame(rec_level)     = num_Frame_in_Container
 
-          CALL dealloc_array(tab_num_Frame,"tab_num_Frame",name_sub)
+          CALL dealloc_NParray(tab_num_Frame,"tab_num_Frame",name_sub)
         END IF
 
         ! Frame name
@@ -1172,9 +1165,8 @@
 
             BFTransfo%tab_BFTransfo(iv)%euler(:)          = .TRUE.
 
-            CALL alloc_array(BFTransfo%tab_BFTransfo(iv)%tab_num_Frame, &
-                                                        [rec_level],  &
-                            "BFTransfo%tab_BFTransfo(iv)%tab_num_Frame",name_sub)
+            CALL alloc_NParray(BFTransfo%tab_BFTransfo(iv)%tab_num_Frame,[rec_level],  &
+                              "BFTransfo%tab_BFTransfo(iv)%tab_num_Frame",name_sub)
             BFTransfo%tab_BFTransfo(iv)%tab_num_Frame(:) = BFTransfo%tab_num_Frame(:)
 
             IF (iv == 1) BFTransfo%tab_BFTransfo(iv)%euler(1) = .FALSE.
@@ -1182,8 +1174,8 @@
             BFTransfo%tab_BFTransfo(iv)%type_Qin = BFTransfo%type_Qin
             BFTransfo%tab_BFTransfo(iv)%name_Qin = BFTransfo%name_Qin
 
-            BFTransfo%tab_BFTransfo(iv)%list_Qprim_TO_Qpoly => BFTransfo%list_Qprim_TO_Qpoly
-            BFTransfo%tab_BFTransfo(iv)%list_Qpoly_TO_Qprim => BFTransfo%list_Qpoly_TO_Qprim
+            BFTransfo%tab_BFTransfo(iv)%list_Qprim_TO_Qpoly = BFTransfo%list_Qprim_TO_Qpoly
+            BFTransfo%tab_BFTransfo(iv)%list_Qpoly_TO_Qprim = BFTransfo%list_Qpoly_TO_Qprim
 
             BFTransfo%tab_BFTransfo(iv)%Def_cos_th = BFTransfo%Def_cos_th
 
@@ -1192,6 +1184,8 @@
                                    BunchTransfo,                        &
                                    num_Frame_in_Container_rec,Cart_type)
             ! The next lines HAVE to be after the "CALL RecRead_BFTransfo".
+            BFTransfo%list_Qprim_TO_Qpoly = BFTransfo%tab_BFTransfo(iv)%list_Qprim_TO_Qpoly
+            BFTransfo%list_Qpoly_TO_Qprim = BFTransfo%tab_BFTransfo(iv)%list_Qpoly_TO_Qprim
             BFTransfo%type_Qin = BFTransfo%tab_BFTransfo(iv)%type_Qin
             BFTransfo%name_Qin = BFTransfo%tab_BFTransfo(iv)%name_Qin
             BFTransfo%nb_vect_tot = BFTransfo%nb_vect_tot +             &
@@ -1450,7 +1444,7 @@
       write(out_unit,*) 'num_Frame_in_BF',BFTransfo%num_Frame_in_BF
       write(out_unit,*) 'num_Frame_in_Container',BFTransfo%num_Frame_in_Container
       write(out_unit,*) 'name_Frame: ',BFTransfo%name_Frame
-      IF (associated(BFTransfo%tab_num_Frame))                          &
+      IF (allocated(BFTransfo%tab_num_Frame))                          &
            write(out_unit,*) 'tab_num_Frame',BFTransfo%tab_num_Frame(:)
 
       write(out_unit,*) 'nb_vect,nb_vect_tot',                         &
@@ -1485,11 +1479,11 @@
               (trim(BFTransfo%name_Qin(iq))," ",iq=1,BFTransfo%nb_var)
       END IF
 
-      IF (associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
+      IF (allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
         write(out_unit,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
       END IF
 
-      IF (associated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
+      IF (allocated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
         write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
       END IF
 
@@ -1562,9 +1556,9 @@
         !write(out_unit,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
         iv = 0
         i_Qpoly = i_Qpoly + 1
-        IF (.NOT. associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
+        IF (.NOT. allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
           write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not associated'
+          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not allocated'
           CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
           write(out_unit,*) ' Check the fortran source !!'
           STOP
@@ -2020,9 +2014,9 @@
         write(out_unit,*) 'd0,iv_in,name_frame',iv_in,BFTransfo%name_Frame
         iv = 0
         i_Qpoly = i_Qpoly + 1
-        IF (.NOT. associated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
+        IF (.NOT. allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
           write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not associated'
+          write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not allocated'
           CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
           write(out_unit,*) ' Check the fortran source !!'
           STOP
@@ -2659,10 +2653,9 @@
       BFTransfo2%Def_cos_th             = BFTransfo1%Def_cos_th
       BFTransfo2%Euler(:)               = BFTransfo1%Euler(:)
 
-      IF (associated(BFTransfo1%tab_num_Frame)) THEN
+      IF (allocated(BFTransfo1%tab_num_Frame)) THEN
         n = size(BFTransfo1%tab_num_Frame)
-        CALL alloc_array(BFTransfo2%tab_num_Frame,[n],                &
-                        "BFTransfo2%tab_num_Frame",name_sub)
+        CALL alloc_NParray(BFTransfo2%tab_num_Frame,[n],"BFTransfo2%tab_num_Frame",name_sub)
         BFTransfo2%tab_num_Frame(:) = BFTransfo1%tab_num_Frame(:)
       END IF
 
@@ -2670,11 +2663,11 @@
         ! the lists are copied only for the BF frame.
         n = size(BFTransfo1%list_Qpoly_TO_Qprim)
 
-        CALL alloc_array(BFTransfo2%list_Qpoly_TO_Qprim,[n],          &
+        CALL alloc_NParray(BFTransfo2%list_Qpoly_TO_Qprim,[n],          &
                         "BFTransfo2%list_Qpoly_TO_Qprim",name_sub)
         BFTransfo2%list_Qpoly_TO_Qprim(:) = BFTransfo1%list_Qpoly_TO_Qprim(:)
 
-        CALL alloc_array(BFTransfo2%list_Qprim_TO_Qpoly,[n],          &
+        CALL alloc_NParray(BFTransfo2%list_Qprim_TO_Qpoly,[n],          &
                         "BFTransfo2%list_Qprim_TO_Qpoly",name_sub)
         BFTransfo2%list_Qprim_TO_Qpoly(:) = BFTransfo1%list_Qprim_TO_Qpoly(:)
       END IF
@@ -2689,8 +2682,8 @@
                         "BFTransfo2%tab_BFTransfo",name_sub)
         DO i=1,n
           !CALL RecWrite_BFTransfo(BFTransfo1%tab_BFTransfo(i),.FALSE.)
-          BFTransfo2%tab_BFTransfo(i)%list_Qpoly_TO_Qprim => BFTransfo2%list_Qpoly_TO_Qprim
-          BFTransfo2%tab_BFTransfo(i)%list_Qprim_TO_Qpoly => BFTransfo2%list_Qprim_TO_Qpoly
+          BFTransfo2%tab_BFTransfo(i)%list_Qpoly_TO_Qprim = BFTransfo2%list_Qpoly_TO_Qprim
+          BFTransfo2%tab_BFTransfo(i)%list_Qprim_TO_Qpoly = BFTransfo2%list_Qprim_TO_Qpoly
 
           CALL Rec_BFTransfo1TOBFTransfo2(BFTransfo1%tab_BFTransfo(i),  &
                                           BFTransfo2%tab_BFTransfo(i))
