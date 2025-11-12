@@ -109,6 +109,7 @@ $(OBJ_DIR)/sub_module_Coord_KEO.o : \
           $(mod_activetransfo) \
           $(mod_rphtransfo) \
           $(mod_cartesiantransfo) \
+          $(mod_linearnmtransfo) \
           $(mod_export_keo) \
           $(mod_tnum) \
           $(mod_paramq) \
