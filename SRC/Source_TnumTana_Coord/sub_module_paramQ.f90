@@ -954,7 +954,7 @@ CONTAINS
 !     -----------------------------------------------------------------
 
       IF (.NOT. mole%Cart_transfo) RETURN
-      IF (.NOT. associated(mole%tab_Cart_transfo)) RETURN
+      IF (.NOT. allocated(mole%tab_Cart_transfo)) RETURN
 
 
       VT(:) = ZERO
@@ -2204,7 +2204,7 @@ CONTAINS
     ELSE
       Cart_Transfo_loc = mole%Cart_transfo
     END IF
-    IF (.NOT. associated(mole%tab_Cart_transfo)) Cart_Transfo_loc = .FALSE.
+    IF (.NOT. allocated(mole%tab_Cart_transfo)) Cart_Transfo_loc = .FALSE.
 
     IF (debug) write(out_unit,*) 'Cart_Transfo_loc, mole%Cart_transfo',Cart_Transfo_loc,mole%Cart_transfo
 

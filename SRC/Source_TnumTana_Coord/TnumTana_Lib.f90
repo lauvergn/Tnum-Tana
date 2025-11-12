@@ -554,7 +554,7 @@ SUBROUTINE Tnum_get_EckartRot(Qact,nb_act,EckartRot)
   CALL Check_TnumInit(name_sub)
 
   Eckart  = .FALSE.
-  IF (associated(mole%tab_Cart_transfo)) THEN
+  IF (allocated(mole%tab_Cart_transfo)) THEN
     Eckart =  (mole%tab_Cart_transfo(1)%CartesianTransfo%Eckart .OR.            &
                mole%tab_Cart_transfo(1)%CartesianTransfo%MultiRefEckart)
   END IF

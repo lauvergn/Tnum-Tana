@@ -110,9 +110,9 @@
 
 
     !----- for the CoordType and Tnum --------------------------------------
-    real (kind=Rkind),            intent(inout) :: Qact(:)
-    TYPE (Type_RPHpara_AT_Qact1), intent(in)    :: RPHpara_AT_Qact1
-    TYPE (CoordType),             intent(in)    :: mole
+    real (kind=Rkind),            intent(inout)      :: Qact(:)
+    TYPE (Type_RPHpara_AT_Qact1), intent(in)         :: RPHpara_AT_Qact1
+    TYPE (CoordType),             intent(in), target :: mole
 
 
     integer                        :: i_Qact,i
@@ -169,9 +169,9 @@
     IMPLICIT NONE
 
     !----- for the CoordType and Tnum --------------------------------------
-    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
-    TYPE (Tnum),                  intent(in)    :: para_Tnum
-    TYPE (CoordType),             intent(inout) :: mole
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
+    TYPE (Tnum),                  intent(in)            :: para_Tnum
+    TYPE (CoordType),             intent(inout), target :: mole
 
     real (kind=Rkind),            intent(in)    :: Qact(:)
 
@@ -217,10 +217,10 @@
     IMPLICIT NONE
 
     !----- for the CoordType and Tnum --------------------------------------
-    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
-    TYPE (Tnum),                  intent(in)    :: para_Tnum
-    TYPE (CoordType),             intent(inout) :: mole
-    real (kind=Rkind),            intent(in)    :: Qact_in(:)
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
+    TYPE (Tnum),                  intent(in)            :: para_Tnum
+    TYPE (CoordType),             intent(inout), target :: mole
+    real (kind=Rkind),            intent(in)            :: Qact_in(:)
 
 
 
@@ -369,11 +369,10 @@
 
 
      !----- for the CoordType and Tnum --------------------------------------
-     TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
-     TYPE (Tnum),                  intent(in)    :: para_Tnum
-     TYPE (CoordType),             intent(inout) :: mole
-
-     real (kind=Rkind),            intent(in)    :: Qact(:)
+     TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
+     TYPE (Tnum),                  intent(in)            :: para_Tnum
+     TYPE (CoordType),             intent(inout), target :: mole
+     real (kind=Rkind),            intent(in)            :: Qact(:)
 
 
      integer               :: nderiv

@@ -59,10 +59,10 @@ MODULE mod_Tana_keo
       USE mod_ActiveTransfo
       IMPLICIT NONE
 
-      TYPE(sum_opnd),        intent(inout)        :: TWOxKEO
-      TYPE (CoordType),      intent(inout)        :: mole
-      TYPE (Tnum),           intent(inout)        :: para_Tnum
-      real (kind=Rkind),     intent(inout)        :: Qact(:)
+      TYPE(sum_opnd),        intent(inout)         :: TWOxKEO
+      TYPE (CoordType),      intent(inout), target :: mole
+      TYPE (Tnum),           intent(inout)         :: para_Tnum
+      real (kind=Rkind),     intent(inout)         :: Qact(:)
 
       type(Type_PiEulerRot), pointer    :: P_euler(:)
       TYPE(sum_opnd), pointer           :: M_mass_out(:,:)

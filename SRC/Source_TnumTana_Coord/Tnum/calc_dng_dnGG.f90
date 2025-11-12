@@ -419,7 +419,7 @@ MODULE mod_dnGG_dng
     TYPE(Type_dnMat),  intent(inout), optional  :: dng,dnGG
 
 !----- for the CoordType and Tnum --------------------------------------
-    TYPE (CoordType),  intent(in)               :: mole
+    TYPE (CoordType),  intent(in), target       :: mole
     TYPE (Tnum),       intent(in)               :: para_Tnum
 
 

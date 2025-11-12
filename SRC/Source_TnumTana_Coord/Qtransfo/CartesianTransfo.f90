@@ -40,6 +40,8 @@ MODULE mod_CartesianTransfo
 
       PRIVATE
 
+      real (kind=Rkind)  :: dnTErr(0:3) = ZERO ! Error for the det(dnT)
+
       !!@description: enables to change the BF frame orientation (Eckart or ....)
       !!@param: TODO
       TYPE Type_CartesianTransfo
@@ -88,7 +90,6 @@ MODULE mod_CartesianTransfo
         integer           :: type_diago  = 4 ! enables to select diagonalization type (MatOFdnS)
         integer           :: type_cs     = 0 ! enables to select the way to calculate dnCos and dnSin
         logical           :: check_dnT   = .FALSE. ! if true, we check det(dnT) == 1
-        real (kind=Rkind) :: dnTErr(0:3) = ZERO ! Error for the det(dnT)
 
       END TYPE Type_CartesianTransfo
 
@@ -98,7 +99,7 @@ MODULE mod_CartesianTransfo
       PUBLIC :: Set_P_Axis_CartesianTransfo, Set_Eckart_CartesianTransfo
       PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_dnTEckart, dnMWX_MultiRef
       PUBLIC :: centre_masse, sub3_dncentre_masse, sub3_NOdncentre_masse
-      PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight
+      PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight, dnTErr
 
       CONTAINS
 
@@ -302,7 +303,6 @@ MODULE mod_CartesianTransfo
       CartesianTransfo%type_diago      = 4
       CartesianTransfo%type_cs         = 0
       CartesianTransfo%check_dnT       = .FALSE.
-      CartesianTransfo%dnTErr(:)       = ZERO
 
       END SUBROUTINE dealloc_CartesianTransfo
       SUBROUTINE Read_CartesianTransfo(CartesianTransfo)
@@ -754,7 +754,7 @@ MODULE mod_CartesianTransfo
       write(out_unit,*) 'type_diago',CartesianTransfo%type_diago
       write(out_unit,*) 'type_cs',CartesianTransfo%type_cs
       write(out_unit,*) 'check_dnT',CartesianTransfo%check_dnT
-      write(out_unit,*) 'dnTErr(:)',CartesianTransfo%dnTErr(:)
+      write(out_unit,*) 'dnTErr(:)',dnTErr(:)
 
 
       IF (allocated(CartesianTransfo%TransVect)) THEN
@@ -869,7 +869,6 @@ MODULE mod_CartesianTransfo
         CartesianTransfo2%type_diago      = CartesianTransfo1%type_diago
         CartesianTransfo2%type_cs         = CartesianTransfo1%type_cs
         CartesianTransfo2%check_dnT       = CartesianTransfo1%check_dnT
-        CartesianTransfo2%dnTErr(:)       = CartesianTransfo1%dnTErr(:)
 
       END SUBROUTINE CartesianTransfo1TOCartesianTransfo2
 
@@ -878,7 +877,8 @@ MODULE mod_CartesianTransfo
                                            Qact,nderiv,inTOout)
 
         TYPE (Type_dnVec),            intent(inout)  :: dnQin,dnQout
-        TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
+
+        TYPE (Type_CartesianTransfo), intent(in)     :: CartesianTransfo
         real (kind=Rkind),            intent(in)     :: Qact(:)
         integer,                      intent(in)     :: nderiv
         logical,                      intent(in)     :: inTOout
@@ -1571,7 +1571,7 @@ MODULE mod_CartesianTransfo
         TYPE (Type_dnVec),            intent(in)     :: dnXin
         TYPE(Type_dnS),               intent(inout)  :: dnT(3,3)
         TYPE(Type_dnS),               intent(in)     :: dnMWXref(:,:)
-        TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in)     :: CartesianTransfo
         integer,                      intent(in)     :: nderiv
 
 
@@ -1741,19 +1741,15 @@ MODULE mod_CartesianTransfo
           END IF
 
 !$OMP CRITICAL (calc_dnTEckart_CRIT)
-          CartesianTransfo%dnTErr(0) =                                  &
-                      max(CartesianTransfo%dnTErr(0),abs(dnWork%d0-ONE))
+          dnTErr(0) = max(dnTErr(0),abs(dnWork%d0-ONE))
           IF (dnWork%nderiv > 0) THEN
-             CartesianTransfo%dnTErr(1) =                               &
-                  max(CartesianTransfo%dnTErr(1),maxval(abs(dnWork%d1)))
+             dnTErr(1) = max(dnTErr(1),maxval(abs(dnWork%d1)))
           END IF
           IF (dnWork%nderiv > 1) THEN
-             CartesianTransfo%dnTErr(2) =                               &
-                  max(CartesianTransfo%dnTErr(2),maxval(abs(dnWork%d2)))
+             dnTErr(2) = max(dnTErr(2),maxval(abs(dnWork%d2)))
           END IF
           IF (dnWork%nderiv > 2) THEN
-             CartesianTransfo%dnTErr(3) =                               &
-                  max(CartesianTransfo%dnTErr(3),maxval(abs(dnWork%d3)))
+             dnTErr(3) = max(dnTErr(3),maxval(abs(dnWork%d3)))
           END IF
 !$OMP END CRITICAL (calc_dnTEckart_CRIT)
 
@@ -1790,7 +1786,7 @@ MODULE mod_CartesianTransfo
       RECURSIVE SUBROUTINE dnMWX_MultiRef(dnMWXref,CartesianTransfo,Qact,dnx,iref)
 
         TYPE (Type_dnS),              intent(inout)           :: dnMWXref(:,:)
-        TYPE (Type_CartesianTransfo), intent(inout)           :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in)              :: CartesianTransfo
         TYPE (Type_dnVec),            intent(in)              :: dnx
         real (kind=Rkind),            intent(in)              :: Qact(:)
         integer,                      intent(in),   optional  :: iref
@@ -2199,7 +2195,7 @@ MODULE mod_CartesianTransfo
 
         TYPE (Type_dnS), intent(inout)           :: dnSwitch(:)
         TYPE (Type_dnVec), intent(in)            :: dnx
-        TYPE (Type_CartesianTransfo), intent(inout) :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in) :: CartesianTransfo
 
 
         TYPE (Type_dnS), allocatable :: dnDist2(:)

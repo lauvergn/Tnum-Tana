@@ -108,7 +108,14 @@ MODULE mod_Qtransfo
         MODULE PROCEDURE dealloc_array_OF_Qtransfodim1
       END INTERFACE
 
-      PUBLIC alloc_array,dealloc_array,dealloc_Qtransfo
+      INTERFACE alloc_NParray
+        MODULE PROCEDURE alloc_NParray_OF_Qtransfodim1
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        MODULE PROCEDURE dealloc_NParray_OF_Qtransfodim1
+      END INTERFACE
+
+      PUBLIC alloc_array,dealloc_array,alloc_NParray,dealloc_NParray,dealloc_Qtransfo
       PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
       PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
       PUBLIC set_name_Qtransfo,get_name_Qtransfo

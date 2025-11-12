@@ -632,12 +632,11 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   USE mod_PrimOp_def
   IMPLICIT NONE
 
-  real (kind=Rkind),     intent(in)    :: Qact(:)
-  real (kind=Rkind),     intent(inout) :: Vinact(:)
-
-  TYPE (Tnum) ,          intent(in)    :: para_Tnum
-  TYPE (CoordType),      intent(in)    :: mole
-  TYPE (PrimOp_t),       intent(in)    :: PrimOp
+  real (kind=Rkind),     intent(in)         :: Qact(:)
+  real (kind=Rkind),     intent(inout)      :: Vinact(:)
+  TYPE (Tnum) ,          intent(in)         :: para_Tnum
+  TYPE (CoordType),      intent(in), target :: mole
+  TYPE (PrimOp_t),       intent(in)         :: PrimOp
 
   !----- local variables ----------------------------------------
   real (kind=Rkind), allocatable :: Qact1(:)
@@ -746,7 +745,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
-      TYPE (Tnum)    :: para_Tnum
+      TYPE (Tnum)      :: para_Tnum
       TYPE (CoordType) :: mole
 
 !----- for Qact ... ---------------------------------------------
@@ -762,7 +761,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       integer           :: nderivE,nderivS,nderiv_loc
       integer           :: nderivImE,nderivScal
-
 
 !----- working variables -------------------------------------------------
       integer             :: nderivScal_loc
@@ -1868,17 +1866,17 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      real (kind=Rkind), intent(inout) :: Qact(:)
-      TYPE (CoordType),  intent(inout) :: mole
-      TYPE (Tnum),       intent(in)    :: para_Tnum
-      TYPE (PrimOp_t),   intent(inout) :: PrimOp
-      real (kind=Rkind), intent(in)    :: hCC(mole%ncart_act,mole%ncart_act)
-      logical,           intent(in)    :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
-
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in)            :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in)            :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
       TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -1900,7 +1898,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       logical                  :: Read_OnTheFly_only,OnTheFly
       character (len=Line_len) :: name_FChk
-      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
 
 !      -----------------------------------------------------------------
@@ -2355,17 +2352,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      real (kind=Rkind), intent(inout)        :: Qact(:)
-      TYPE (CoordType),  intent(inout)        :: mole
-      TYPE (Tnum),       intent(in)           :: para_Tnum
-      TYPE (PrimOp_t),   intent(inout)        :: PrimOp
-      real (kind=Rkind), intent(in), optional :: hCC(mole%ncart_act,mole%ncart_act)
-      logical,           intent(in), optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in),  optional :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in),  optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
 
       TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -2392,7 +2390,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer :: i_Block,nb_Block
       integer ::i,j,iQ,jQ,i2
       real (kind=Rkind) ::  auTOcm_inv
-      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       !-----------------------------------------------------------------
       integer :: err_mem,memory
@@ -2859,17 +2856,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      real (kind=Rkind), intent(inout)        :: Qact(:)
-      TYPE (CoordType),  intent(inout)        :: mole
-      TYPE (Tnum),       intent(in)           :: para_Tnum
-      TYPE (PrimOp_t),   intent(inout)        :: PrimOp
-      real (kind=Rkind), intent(in), optional :: hCC(mole%ncart_act,mole%ncart_act)
-      logical,           intent(in), optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in),  optional :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in),  optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
 
       TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -2896,7 +2894,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer :: i_Block,nb_Block
       integer ::i,j,iQ,jQ,i2
       real (kind=Rkind) ::  auTOcm_inv
-      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
 !      -----------------------------------------------------------------
       integer :: err_mem,memory
@@ -3373,6 +3370,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer :: Ind_Coord_AtBlock,Ind_Coord_PerBlock(mole%nb_var)
       real (kind=Rkind) :: d0grad(nb_NM)
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
 
       TYPE(Type_dnS)       :: dnECC(1,1),dnE(1,1)
@@ -3387,7 +3385,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer                  :: nb_scalar_Op
 
       character (len=Line_len) :: name_FChk
-      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       !-----------------------------------------------------------------
       integer :: err_mem,memory
@@ -3653,13 +3650,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
     IMPLICIT NONE
 
     !----- for the CoordType and Tnum --------------------------------------
-    TYPE (Tnum),      intent(inout)        :: para_Tnum
-    TYPE (CoordType), intent(inout)        :: mole
-    TYPE (PrimOp_t),  intent(inout)        :: PrimOp
-    logical,          intent(in), optional :: Tana,KEO_only
+    TYPE (Tnum),      intent(inout)         :: para_Tnum
+    TYPE (CoordType), intent(inout), target :: mole
+    TYPE (PrimOp_t),  intent(inout)         :: PrimOp
+    logical,          intent(in),  optional :: Tana,KEO_only
 
     TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
-
+    TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
+    TYPE (Type_RPHTransfo),   pointer :: RPHTransfo => null() ! it'll point on tab_Qtransfo
     !-------------------------------------------------------------------------
     real (kind=Rkind)                 :: Qact(mole%nb_var)
     TYPE (Type_dnVec)                 :: dnx
@@ -3683,8 +3681,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
     real (kind=Rkind), allocatable    :: GGdef_Qmodel(:,:)
     integer                           :: GTaylor_Order
 
-    TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
-    TYPE (Type_RPHTransfo),   pointer :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+
 
     !----- for debuging --------------------------------------------------
     integer :: err_mem,memory
