@@ -42,6 +42,7 @@
       TYPE (CoordType)   :: mole
       TYPE (Tnum)      :: para_Tnum
       TYPE (PrimOp_t)  :: PrimOp
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
       real (kind=Rkind) :: vep,rho
       real (kind=Rkind), pointer :: Tdef2(:,:),Tdef1(:)
@@ -101,6 +102,7 @@
       !     -   zmatrix, polysperical, bunch...
       !     ------------------------------------------------------------
       CALL Read_mole(mole,para_Tnum)
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
       !     ------------------------------------------------------------
       !-----------------------------------------------------------------
 
@@ -145,8 +147,8 @@
       !para_Q%Qread(:) = reshape(xread, [3*mole%nat] )
 
 
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
-      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
+      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
       CALL Write_Q_WU(Qdyn,mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout,&
               mole%tab_Qtransfo(mole%nb_Qtransfo)%type_Qout,'Coordinates, Qdyn')
 
@@ -298,8 +300,8 @@ stop
       CALL sub_QinRead_TO_Qact(para_Q%Qread,Qact,mole,0)
 
 
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
-      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
+      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
       CALL Write_Q_WU(Qdyn,mole%tab_Qtransfo(mole%nb_Qtransfo)%name_Qout,&
               mole%tab_Qtransfo(mole%nb_Qtransfo)%type_Qout,'Coordinates, Qdyn')
 

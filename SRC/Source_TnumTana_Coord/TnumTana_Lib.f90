@@ -95,7 +95,7 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
     CALL sub_QactTOd0x(Qcart,Qact,mole,Gcenter=.FALSE.)
   ELSE IF (nb_act < mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
     CALL sub_QactTOd0x(Qcart,Qact_loc,mole,Gcenter=.FALSE.)
     deallocate(Qact_loc)
@@ -171,7 +171,7 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
     CALL sub_QactTOd0x(Qcart,Qact,mole,Gcenter=.TRUE.)
   ELSE IF (nb_act < mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
     CALL sub_QactTOd0x(Qcart,Qact_loc,mole,Gcenter=.TRUE.)
     deallocate(Qact_loc)
@@ -414,7 +414,7 @@ SUBROUTINE Tnum_get_Qact0(Qact0,nb_act)
   CALL Check_TnumInit(name_sub)
 
   IF (nb_act == mole%nb_act) THEN
-    CALL get_Qact0(Qact0,mole%ActiveTransfo)
+    CALL get_Qact0(Qact0,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
   ELSE
     write(out_unit,*) ' ERROR in ',name_sub
     write(out_unit,*) ' Wrong nb_act value. It must be equal to: ',mole%nb_act
@@ -517,7 +517,7 @@ SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
 
   IF (nb_act <= mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
   ELSE
     write(out_unit,*) ' ERROR in ', name_sub
@@ -601,7 +601,7 @@ SUBROUTINE InitTnum3_NM_TO_LinearTransfo(Qact,nb_act,Hess,nb_cart)
 
     IF (nb_act <= mole%nb_var) THEN
       allocate(Qact_loc(mole%nb_var))
-      CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+      CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
       Qact_loc(1:nb_act) = Qact
     ELSE
       write(out_unit,*) ' ERROR in ', name_sub
@@ -827,7 +827,7 @@ SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c(Qact0,nb_act) BIND(C, name="get_Qact0_
      STOP
   END IF
 
-  CALL get_Qact0(Qact0_Rkind,mole%ActiveTransfo)
+  CALL get_Qact0(Qact0_Rkind,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
   Qact0 = Qact0_Rkind
 
 END SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c

@@ -108,7 +108,7 @@ PROGRAM Tnum90_MidasCpp
 !===========================================================
 
   CALL alloc_NParray(Qact,[mole%nb_var],'Qact',name_sub)
-  CALL get_Qact0(Qact,mole%ActiveTransfo) ! important when constraints (rigid, flexible are added)
+  CALL get_Qact0(Qact,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo) ! important when constraints (rigid, flexible are added)
 
 !-------------------------------------------------
 !     - Cartesian coordinates of the reference geometry

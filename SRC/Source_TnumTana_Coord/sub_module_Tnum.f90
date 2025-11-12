@@ -436,15 +436,6 @@ MODULE mod_Tnum
         write(out_unit,*) '------------------------------------------'
       END IF
 
-      !-------------------------------------------------------
-      write(out_unit,*) 'ActiveTransfo from mole'
-      write(out_unit,*) 'asso mole%ActiveTransfo:',associated(mole%ActiveTransfo)
-      IF (associated(mole%ActiveTransfo)) THEN
-        CALL Write_ActiveTransfo(mole%ActiveTransfo)
-      ELSE
-        write(out_unit,*) 'WARNING: mole%ActiveTransfo is NOT associated!!'
-      END IF
-
       write(out_unit,*) 'nrho_OF_Qdyn',mole%nrho_OF_Qdyn
       write(out_unit,*) 'nrho_OF_Qact',mole%nrho_OF_Qact
 
@@ -1059,7 +1050,7 @@ MODULE mod_Tnum
                write(out_unit,*) 'it,name_transfo: ',it,get_name_Qtransfo(mole%tab_Qtransfo(it))
                STOP
             END IF
-            IF (associated(mole%ActiveTransfo)) THEN
+            IF (mole%itActive > 0) THEN
               write(out_unit,*) ' ERROR in ',name_sub
               write(out_unit,*) '  TWO active transformations have been read'
               write(out_unit,*) '  Only one is possible'
@@ -1937,9 +1928,10 @@ MODULE mod_Tnum
 !       analysis of list_act_OF_Qdyn(.) to define ActiveTransfo%list_QactTOQdyn(.) and ActiveTransfo%list_QdynTOQact(.)
 !================================================================
   SUBROUTINE type_var_analysis_OF_CoordType(mole,print_lev)
-  TYPE (CoordType), intent(inout)         :: mole
-  logical,          intent(in),  optional :: print_lev
+    TYPE (CoordType), intent(inout)         :: mole
+    logical,          intent(in),  optional :: print_lev
 
+    TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
       integer :: iv_inact20,iv_rigid0,iv_inact21,iv_act1,iv_inact22
       integer :: iv_inact31,iv_rigid100
@@ -1953,27 +1945,30 @@ MODULE mod_Tnum
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
+
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+
       print_loc = (print_level > 0 .OR. debug)
       IF (present(print_lev)) print_loc = print_lev
 
       IF (debug) write(out_unit,*) 'BEGINNING ',name_sub
       IF (print_loc) THEN
          write(out_unit,*) '-analysis of the variable type ---'
-         write(out_unit,*) '  mole%ActiveTransfo%list_act_OF_Qdyn',      &
-                                     mole%ActiveTransfo%list_act_OF_Qdyn
+         write(out_unit,*) '  ActiveTransfo%list_act_OF_Qdyn',      &
+                                     ActiveTransfo%list_act_OF_Qdyn
       END IF
 
       mole%nb_act1    =                                                 &
-       count(abs(mole%ActiveTransfo%list_act_OF_Qdyn(1:mole%nb_var))==1)
-      mole%nb_inact20 = count(mole%ActiveTransfo%list_act_OF_Qdyn==20) +&
-                        count(mole%ActiveTransfo%list_act_OF_Qdyn==200)
-      mole%nb_inact21 = count(mole%ActiveTransfo%list_act_OF_Qdyn==21) +&
-                        count(mole%ActiveTransfo%list_act_OF_Qdyn==210)
-      mole%nb_inact31 = count(mole%ActiveTransfo%list_act_OF_Qdyn==31)
-      mole%nb_inact22 = count(mole%ActiveTransfo%list_act_OF_Qdyn==22)
+       count(abs(ActiveTransfo%list_act_OF_Qdyn(1:mole%nb_var))==1)
+      mole%nb_inact20 = count(ActiveTransfo%list_act_OF_Qdyn==20) +&
+                        count(ActiveTransfo%list_act_OF_Qdyn==200)
+      mole%nb_inact21 = count(ActiveTransfo%list_act_OF_Qdyn==21) +&
+                        count(ActiveTransfo%list_act_OF_Qdyn==210)
+      mole%nb_inact31 = count(ActiveTransfo%list_act_OF_Qdyn==31)
+      mole%nb_inact22 = count(ActiveTransfo%list_act_OF_Qdyn==22)
       mole%nb_rigid0  =                                                 &
-            count(mole%ActiveTransfo%list_act_OF_Qdyn(1:mole%nb_var)==0)
-      mole%nb_rigid100= count(mole%ActiveTransfo%list_act_OF_Qdyn==100)
+            count(ActiveTransfo%list_act_OF_Qdyn(1:mole%nb_var)==0)
+      mole%nb_rigid100= count(ActiveTransfo%list_act_OF_Qdyn==100)
 
 
 
@@ -1985,7 +1980,7 @@ MODULE mod_Tnum
       IF (n_test /= mole%nb_var) THEN
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) ' type of variable impossible',              &
-                                    mole%ActiveTransfo%list_act_OF_Qdyn
+                                    ActiveTransfo%list_act_OF_Qdyn
         write(out_unit,*) 'nb_act1+nb_inact+nb_rigid... and nb_var',   &
                               n_test,mole%nb_var
         STOP
@@ -2007,35 +2002,35 @@ MODULE mod_Tnum
        iv_rigid0  = iv_inact20 + mole%nb_inact20
 
 
-       mole%ActiveTransfo%list_QactTOQdyn(:) = 0
+       ActiveTransfo%list_QactTOQdyn(:) = 0
 
        DO i=1,mole%nb_var
 
-        SELECT CASE (mole%ActiveTransfo%list_act_OF_Qdyn(i))
+        SELECT CASE (ActiveTransfo%list_act_OF_Qdyn(i))
         CASE (1,-1)
            iv_act1 = iv_act1 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_act1) = i
+           ActiveTransfo%list_QactTOQdyn(iv_act1) = i
         CASE (31)
            iv_inact31 = iv_inact31 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_inact31) = i
+           ActiveTransfo%list_QactTOQdyn(iv_inact31) = i
         CASE (21,210)
            iv_inact21 = iv_inact21 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_inact21) = i
+           ActiveTransfo%list_QactTOQdyn(iv_inact21) = i
         CASE (22)
            iv_inact22 = iv_inact22 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_inact22) = i
+           ActiveTransfo%list_QactTOQdyn(iv_inact22) = i
         CASE (20,200)
            iv_inact20 = iv_inact20 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_inact20) = i
+           ActiveTransfo%list_QactTOQdyn(iv_inact20) = i
         CASE (0)
            iv_rigid0 = iv_rigid0 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_rigid0) = i
+           ActiveTransfo%list_QactTOQdyn(iv_rigid0) = i
         CASE (100)
            iv_rigid100 = iv_rigid100 + 1
-           mole%ActiveTransfo%list_QactTOQdyn(iv_rigid100) = i
+           ActiveTransfo%list_QactTOQdyn(iv_rigid100) = i
          CASE default
            write(out_unit,*) ' ERROR in ',name_sub
-           write(out_unit,*) ' act_OF_Qdyn',mole%ActiveTransfo%list_act_OF_Qdyn(i),' impossible'
+           write(out_unit,*) ' act_OF_Qdyn',ActiveTransfo%list_act_OF_Qdyn(i),' impossible'
            STOP
          END SELECT
 
@@ -2044,9 +2039,9 @@ MODULE mod_Tnum
 !     variable list in CoordType order ------------------------
 !     =>  ActiveTransfo%list_QdynTOQact
 !
-      mole%ActiveTransfo%list_QdynTOQact(:) = 0
-      DO i=1,size(mole%ActiveTransfo%list_QdynTOQact)
-        mole%ActiveTransfo%list_QdynTOQact(mole%ActiveTransfo%list_QactTOQdyn(i)) = i
+      ActiveTransfo%list_QdynTOQact(:) = 0
+      DO i=1,size(ActiveTransfo%list_QdynTOQact)
+        ActiveTransfo%list_QdynTOQact(ActiveTransfo%list_QactTOQdyn(i)) = i
       END DO
 
       mole%nb_inact2n = mole%nb_inact21 + mole%nb_inact22
@@ -2065,28 +2060,28 @@ MODULE mod_Tnum
       END SELECT
 
       nb_Qtransfo = mole%nb_Qtransfo
-      mole%ActiveTransfo%nb_var      = mole%nb_var
+      ActiveTransfo%nb_var      = mole%nb_var
 
-      mole%ActiveTransfo%nb_act      = mole%nb_act
-      mole%ActiveTransfo%nb_act1     = mole%nb_act1
+      ActiveTransfo%nb_act      = mole%nb_act
+      ActiveTransfo%nb_act1     = mole%nb_act1
 
-      mole%ActiveTransfo%nb_inact2n  = mole%nb_inact2n
-      mole%ActiveTransfo%nb_inact21  = mole%nb_inact21
-      mole%ActiveTransfo%nb_inact22  = mole%nb_inact22
-      mole%ActiveTransfo%nb_inact20  = mole%nb_inact20
-      mole%ActiveTransfo%nb_inact    = mole%nb_inact
+      ActiveTransfo%nb_inact2n  = mole%nb_inact2n
+      ActiveTransfo%nb_inact21  = mole%nb_inact21
+      ActiveTransfo%nb_inact22  = mole%nb_inact22
+      ActiveTransfo%nb_inact20  = mole%nb_inact20
+      ActiveTransfo%nb_inact    = mole%nb_inact
 
-      mole%ActiveTransfo%nb_inact31  = mole%nb_inact31
+      ActiveTransfo%nb_inact31  = mole%nb_inact31
 
-      mole%ActiveTransfo%nb_rigid0   = mole%nb_rigid0
-      mole%ActiveTransfo%nb_rigid100 = mole%nb_rigid100
-      mole%ActiveTransfo%nb_rigid    = mole%nb_rigid
+      ActiveTransfo%nb_rigid0   = mole%nb_rigid0
+      ActiveTransfo%nb_rigid100 = mole%nb_rigid100
+      ActiveTransfo%nb_rigid    = mole%nb_rigid
 
       ! list_QactTOQdyn has been changed (not the same Qact order),
       !   then ActiveTransfo%Qact0 has to be changed as well.
       DO iQin=1,mole%nb_var
-         iQout = mole%ActiveTransfo%list_QactTOQdyn(iQin)
-         mole%ActiveTransfo%Qact0(iQin) = mole%ActiveTransfo%Qdyn0(iQout)
+         iQout = ActiveTransfo%list_QactTOQdyn(iQin)
+         ActiveTransfo%Qact0(iQin) = ActiveTransfo%Qdyn0(iQout)
       END DO
 
 
@@ -2094,7 +2089,7 @@ MODULE mod_Tnum
       CALL sub_Type_Name_OF_Qin(mole%tab_Qtransfo(nb_Qtransfo),"Qact")
       DO iQin=1,mole%nb_var
 
-         iQout = mole%ActiveTransfo%list_QactTOQdyn(iQin)
+         iQout = ActiveTransfo%list_QactTOQdyn(iQin)
          !write(out_unit,*) 'iQin,iQout,type_Qout',iQin,iQout,mole%tab_Qtransfo(nb_Qtransfo)%type_Qout(iQout)
          !flush(out_unit)
          mole%tab_Qtransfo(nb_Qtransfo)%type_Qin(iQin) =                &
@@ -2109,8 +2104,8 @@ MODULE mod_Tnum
 
       IF (print_loc) THEN
         write(out_unit,*) 'mole%nrho_OF_Qact(:)    ',mole%nrho_OF_Qact(:)
-        write(out_unit,*) 'mole%...%list_QactTOQdyn',mole%ActiveTransfo%list_QactTOQdyn
-        write(out_unit,*) 'mole%...%list_QdynTOQact',mole%ActiveTransfo%list_QdynTOQact
+        write(out_unit,*) 'mole%...%list_QactTOQdyn',ActiveTransfo%list_QactTOQdyn
+        write(out_unit,*) 'mole%...%list_QdynTOQact',ActiveTransfo%list_QdynTOQact
         write(out_unit,*)
         write(out_unit,*) 'mole%...%type_Qout(:)',mole%tab_Qtransfo(nb_Qtransfo)%type_Qout(:)
         write(out_unit,*) 'mole%...%type_Qin(:)',mole%tab_Qtransfo(nb_Qtransfo)%type_Qin(:)
@@ -2182,22 +2177,24 @@ MODULE mod_Tnum
   TYPE (CoordType), intent(inout) :: mole
 
       integer :: it
-      TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+      TYPE (Type_RPHTransfo),   pointer :: RPHTransfo    ! it'll point on tab_Qtransfo
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
       IF (.NOT. mole%itRPH > 0) RETURN
       RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
 
       RPHTransfo%option = 0 ! If option/=0, we set up to option 0 to be able to perform
                            ! the transformations Sub_paraRPH_TO_mole and Sub_mole_TO_paraRPH
 
       IF (debug) write(out_unit,*) 'BEGINNING Sub_paraRPH_TO_CoordType'
 
-      mole%ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn(:)
-      mole%nb_act1                           = RPHTransfo%nb_act1
-      mole%nb_inact21                        = RPHTransfo%nb_inact21
+      ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn(:)
+      mole%nb_act1                      = RPHTransfo%nb_act1
+      mole%nb_inact21                   = RPHTransfo%nb_inact21
 
 
       mole%nb_inact2n = mole%nb_inact21 + mole%nb_inact22
@@ -2209,29 +2206,32 @@ MODULE mod_Tnum
       IF (mole%Without_Rot) mole%ndimG  = mole%nb_act
 
 
-      mole%ActiveTransfo%nb_var      = mole%nb_var
+      ActiveTransfo%nb_var      = mole%nb_var
 
-      mole%ActiveTransfo%nb_act      = mole%nb_act
-      mole%ActiveTransfo%nb_act1     = mole%nb_act1
+      ActiveTransfo%nb_act      = mole%nb_act
+      ActiveTransfo%nb_act1     = mole%nb_act1
 
-      mole%ActiveTransfo%nb_inact2n  = mole%nb_inact2n
-      mole%ActiveTransfo%nb_inact21  = mole%nb_inact21
-      mole%ActiveTransfo%nb_inact22  = mole%nb_inact22
-      mole%ActiveTransfo%nb_inact20  = mole%nb_inact20
-      mole%ActiveTransfo%nb_inact    = mole%nb_inact
+      ActiveTransfo%nb_inact2n  = mole%nb_inact2n
+      ActiveTransfo%nb_inact21  = mole%nb_inact21
+      ActiveTransfo%nb_inact22  = mole%nb_inact22
+      ActiveTransfo%nb_inact20  = mole%nb_inact20
+      ActiveTransfo%nb_inact    = mole%nb_inact
 
-      mole%ActiveTransfo%nb_inact31  = mole%nb_inact31
+      ActiveTransfo%nb_inact31  = mole%nb_inact31
 
-      mole%ActiveTransfo%nb_rigid0   = mole%nb_rigid0
-      mole%ActiveTransfo%nb_rigid100 = mole%nb_rigid100
-      mole%ActiveTransfo%nb_rigid    = mole%nb_rigid
+      ActiveTransfo%nb_rigid0   = mole%nb_rigid0
+      ActiveTransfo%nb_rigid100 = mole%nb_rigid100
+      ActiveTransfo%nb_rigid    = mole%nb_rigid
 
       IF (debug) write(out_unit,*) 'END Sub_paraRPH_TO_CoordType'
 
 
   END SUBROUTINE Sub_paraRPH_TO_CoordType
+
   SUBROUTINE Sub_CoordType_TO_paraRPH(mole)
   TYPE (CoordType), intent(inout) :: mole
+
+      TYPE(Type_ActiveTransfo),  pointer :: ActiveTransfo ! true pointer
 
       integer :: i
       !logical, parameter :: debug = .TRUE.
@@ -2242,12 +2242,14 @@ MODULE mod_Tnum
       ! This transformation is done only if option==0.
       !    For option=1, everything is already done
 
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+
       IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH'
 
 
       DO i=1,mole%nb_var
-        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
-        mole%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+        IF (ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
+        ActiveTransfo%list_act_OF_Qdyn(i) = 1
       END DO
       mole%nb_act1 = mole%nb_act1 + mole%nb_inact21
       mole%nb_inact21 = 0
@@ -2263,22 +2265,22 @@ MODULE mod_Tnum
       IF (mole%Without_Rot) mole%ndimG      = mole%nb_act
 
 
-      mole%ActiveTransfo%nb_var      = mole%nb_var
+      ActiveTransfo%nb_var      = mole%nb_var
 
-      mole%ActiveTransfo%nb_act      = mole%nb_act
-      mole%ActiveTransfo%nb_act1     = mole%nb_act1
+      ActiveTransfo%nb_act      = mole%nb_act
+      ActiveTransfo%nb_act1     = mole%nb_act1
 
-      mole%ActiveTransfo%nb_inact2n  = mole%nb_inact2n
-      mole%ActiveTransfo%nb_inact21  = mole%nb_inact21
-      mole%ActiveTransfo%nb_inact22  = mole%nb_inact22
-      mole%ActiveTransfo%nb_inact20  = mole%nb_inact20
-      mole%ActiveTransfo%nb_inact    = mole%nb_inact
+      ActiveTransfo%nb_inact2n  = mole%nb_inact2n
+      ActiveTransfo%nb_inact21  = mole%nb_inact21
+      ActiveTransfo%nb_inact22  = mole%nb_inact22
+      ActiveTransfo%nb_inact20  = mole%nb_inact20
+      ActiveTransfo%nb_inact    = mole%nb_inact
 
-      mole%ActiveTransfo%nb_inact31  = mole%nb_inact31
+      ActiveTransfo%nb_inact31  = mole%nb_inact31
 
-      mole%ActiveTransfo%nb_rigid0   = mole%nb_rigid0
-      mole%ActiveTransfo%nb_rigid100 = mole%nb_rigid100
-      mole%ActiveTransfo%nb_rigid    = mole%nb_rigid
+      ActiveTransfo%nb_rigid0   = mole%nb_rigid0
+      ActiveTransfo%nb_rigid100 = mole%nb_rigid100
+      ActiveTransfo%nb_rigid    = mole%nb_rigid
 
       IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH'
 
@@ -2290,13 +2292,15 @@ MODULE mod_Tnum
       TYPE (CoordType) :: mole
 
       integer :: i
-     TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+     TYPE (Type_RPHTransfo),    pointer :: RPHTransfo    ! it'll point on tab_Qtransfo
+     TYPE(Type_ActiveTransfo),  pointer :: ActiveTransfo ! true pointer
 
       !logical, parameter :: debug = .TRUE.
       logical, parameter :: debug = .FALSE.
 
       IF (.NOT. mole%itRPH > 0) RETURN
       RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
 
       IF (RPHTransfo%option /= 0) RETURN
       ! This transformation is done only if option==0.
@@ -2305,11 +2309,11 @@ MODULE mod_Tnum
       IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH_new'
 
 
-      RPHTransfo%list_act_OF_Qdyn = mole%ActiveTransfo%list_act_OF_Qdyn
+      RPHTransfo%list_act_OF_Qdyn = ActiveTransfo%list_act_OF_Qdyn
 
       DO i=1,mole%nb_var
-        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
-                              mole%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+        IF (ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
+                              ActiveTransfo%list_act_OF_Qdyn(i) = 1
       END DO
 
       IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH_new'

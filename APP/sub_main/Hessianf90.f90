@@ -40,6 +40,7 @@
 !     - parameters for para_Tnum -----------------------
       TYPE (CoordType) :: mole
       TYPE (Tnum)      :: para_Tnum
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
       real (kind=Rkind) :: vep,rho
       real (kind=Rkind), pointer :: Tdef2(:,:),Tdef1(:)
@@ -78,6 +79,7 @@
       !     -   zmatrix, polysperical, bunch...
       !     ------------------------------------------------------------
       CALL Read_mole(mole,para_Tnum)
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
       !     ------------------------------------------------------------
       !-----------------------------------------------------------------
 
@@ -169,12 +171,12 @@
         dnE%d2(:,:) = (dnE%d2+transpose(dnE%d2)) * HALF ! symetrization
 
 
-        write(out_unit,*) 'dnE%d0',mole%ActiveTransfo%Qdyn0,dnE%d0
+        write(out_unit,*) 'dnE%d0',ActiveTransfo%Qdyn0,dnE%d0
         write(out_unit,*) 'Dipole Moment',dnMu%d0
 
         IF (nderiv > 0) THEN
           DO i=1,mole%nb_act
-            write(out_unit,*) 'dnE%d1',mole%ActiveTransfo%Qact0(i),dnE%d1(i)
+            write(out_unit,*) 'dnE%d1',ActiveTransfo%Qact0(i),dnE%d1(i)
           END DO
         END IF
         !write(out_unit,*) 'Grad',dnE%d1(mole%nb_act1+1:mole%nb_act)

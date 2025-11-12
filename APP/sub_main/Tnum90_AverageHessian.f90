@@ -154,7 +154,7 @@
 !===========================================================
 
       CALL alloc_NParray(Qact,[mole%nb_var],'Qact',name_sub)
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
 !-------------------------------------------------
 !-------------------------------------------------
@@ -180,7 +180,7 @@
 
       DO i=1,nb_average
         read(5,*) Qdyn(:)
-        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(Qdyn,Qact,mole%ActiveTransfo)
+        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(Qdyn,Qact,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
 
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)

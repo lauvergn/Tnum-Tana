@@ -241,7 +241,7 @@
 
     TYPE (Type_dnVec)                :: dnQact
     real (kind=Rkind), allocatable   :: QrefQact(:,:)     ! QrefQact(nb_Qact1,nb_ref)
-    TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+    TYPE (Type_RPHTransfo), pointer  :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
     !-----------------------------------------------------------
     integer :: err_mem,memory
@@ -272,7 +272,7 @@
 
 
     !here it should be Qin of RPH (therefore Qdyn ?????)
-    CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+    CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
     RPHpara_AT_Qact1%RPHQact1(:) = Qdyn(RPHTransfo%list_QactTOQdyn(1:nb_act1))
 
@@ -810,7 +810,7 @@
 !--------- Qact => Qdyn ------------------------------------------
 ! we need Qdyn because, we calculate, the hessian, gradient with Qdyn coord
 !-----------------------------------------------------------------
-       CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+       CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
        IF (debug) write(out_unit,*) 'Qdyn',Qdyn
 
 !-----------------------------------------------------------------
