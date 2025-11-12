@@ -1876,8 +1876,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical,           intent(in)    :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
 
-      TYPE (CoordType) :: mole_1
+      TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -1963,9 +1964,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       ELSE ! both are false
         !- create mole_1 (type=-1 => type=1)
         mole_1 = mole
+        ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
+
         DO i=1,mole_1%nb_var
-          IF (mole_1%ActiveTransfo%list_act_OF_Qdyn(i) == -1)           &
-                            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (ActiveTransfo_1%list_act_OF_Qdyn(i) == -1)           &
+                            ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
         END DO
         IF (debug) THEN
           write(out_unit,*) 'mole_1:'
@@ -2360,8 +2363,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical,           intent(in), optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
 
-      TYPE (CoordType) :: mole_1
+      TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+
       TYPE(Type_dnMat) :: dnGG
 
       real (kind=Rkind), allocatable :: d0k(:,:),d0k_save(:,:),d0h(:,:)
@@ -2519,26 +2524,28 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         !- create mole_1 (type=-1 => type=1)
         mole_1 = mole
+        ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
+
         mole_1%tab_Qtransfo(mole_1%itNM)%skip_transfo = .TRUE.
         ! a changer (utilisation de Qread_TO_Qact !!!
         DO i=1,mole_1%nb_var
           IF (Ind_Coord_PerBlock(i) == Ind_Coord_AtBlock(i_Block)) THEN
-            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+            ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
           ELSE IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+            ActiveTransfo_1%list_act_OF_Qdyn(i) = 100
           END IF
         END DO
         CALL type_var_analysis_OF_CoordType(mole_1)
         write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
-                                mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
+                                ActiveTransfo_1%list_act_OF_Qdyn(:)
 
-        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole_1%ActiveTransfo%Qdyn0,  &
-                                             mole_1%ActiveTransfo%Qact0,  &
-                                             mole_1%ActiveTransfo)
+        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo_1%Qdyn0,  &
+                                             ActiveTransfo_1%Qact0,  &
+                                             ActiveTransfo_1)
 
-        Qact = mole_1%ActiveTransfo%Qact0(:)
-        IF (print_level > 1) write(out_unit,*) 'Qdyn0',mole_1%ActiveTransfo%Qdyn0
-        IF (print_level > 1) write(out_unit,*) 'Qact0',mole_1%ActiveTransfo%Qact0
+        Qact = ActiveTransfo_1%Qact0(:)
+        IF (print_level > 1) write(out_unit,*) 'Qdyn0',ActiveTransfo_1%Qdyn0
+        IF (print_level > 1) write(out_unit,*) 'Qact0',ActiveTransfo_1%Qact0
         flush(out_unit)
 
 
@@ -2565,7 +2572,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         iQ = 0
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
           iQ = iQ + 1
           ScalePara(i) = sqrt(sqrt(abs(d0h(iQ,iQ)/d0k(iQ,iQ))))
         END DO
@@ -2611,7 +2618,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           iQ = 0
           DO i=1,mole%nb_var
             IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
             iQ = iQ + 1
             ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
             !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
@@ -2631,13 +2638,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         iQ = 0
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
           iQ = iQ + 1
 
           jQ = 0
           DO j=1,mole%nb_var
             IF (Ind_Coord_PerBlock(j) /= Ind_Coord_AtBlock(i_Block) .OR.&
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(j)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(j)) /= 1) CYCLE
             jQ = jQ + 1
             mat(i,j)     = d0c_inv(jQ,iQ)
             mat_inv(i,j) = d0c(jQ,iQ)
@@ -2645,7 +2652,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         END DO
         END IF
-        ActiveTransfo%Qdyn0 = mole_1%ActiveTransfo%Qdyn0
+        ActiveTransfo%Qdyn0 = ActiveTransfo_1%Qdyn0
 
         CALL dealloc_NParray(d0k_save,"d0k_save",name_sub)
         CALL dealloc_NParray(d0c_ini, "d0c_ini", name_sub)
@@ -2860,9 +2867,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical,           intent(in), optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
 
-
-      TYPE (CoordType) :: mole_1
+      TYPE (CoordType), target :: mole_1
       TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+
       TYPE(Type_dnMat) :: dnGG
 
       real (kind=Rkind), allocatable :: d0k(:,:),d0k_save(:,:),d0h(:,:)
@@ -3026,23 +3034,24 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         ELSE
           !- create mole_1 (type=-1 => type=1)
           mole_1 = mole
+          ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
           ! a changer (utilisation de Qread_TO_Qact !!!
           DO i=1,mole_1%nb_var
             IF (Ind_Coord_PerBlock(i) == Ind_Coord_AtBlock(i_Block)) THEN
-              mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+              ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
             ELSE IF (Ind_Coord_PerBlock(i) /= 0) THEN
-              mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+              ActiveTransfo_1%list_act_OF_Qdyn(i) = 100
             END IF
           END DO
           CALL type_var_analysis_OF_CoordType(mole_1)
           write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
-                                  mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
+                                  ActiveTransfo_1%list_act_OF_Qdyn(:)
 
           CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,  &
                                                ActiveTransfo%Qact0,  &
                                                ActiveTransfo)
 
-          Qact = mole_1%ActiveTransfo%Qact0(:)
+          Qact = ActiveTransfo_1%Qact0(:)
           IF (print_level > 1) write(out_unit,*) 'Qact',Qact
 
 
@@ -3069,7 +3078,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           iQ = 0
           DO i=1,mole%nb_var
             IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
             iQ = iQ + 1
             ScalePara(i) = sqrt(sqrt(abs(d0h(iQ,iQ)/d0k(iQ,iQ))))
           END DO
@@ -3113,7 +3122,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             iQ = 0
             DO i=1,mole%nb_var
               IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
               iQ = iQ + 1
               ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
               !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
@@ -3133,13 +3142,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             iQ = 0
             DO i=1,mole%nb_var
               IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                  abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                  abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
               iQ = iQ + 1
 
               jQ = 0
               DO j=1,mole%nb_var
                 IF (Ind_Coord_PerBlock(j) /= Ind_Coord_AtBlock(i_Block) .OR.&
-                  abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(j)) /= 1) CYCLE
+                  abs(ActiveTransfo_1%list_act_OF_Qdyn(j)) /= 1) CYCLE
                 jQ = jQ + 1
                 mat(i,j)     = d0c_inv(jQ,iQ)
                 mat_inv(i,j) = d0c(jQ,iQ)
@@ -3147,7 +3156,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
             END DO
           END IF
-          ActiveTransfo%Qdyn0 = mole_1%ActiveTransfo%Qdyn0
+          ActiveTransfo%Qdyn0 = ActiveTransfo_1%Qdyn0
 
           CALL dealloc_NParray(d0k_save,"d0k_save",name_sub)
           CALL dealloc_NParray(d0c_ini, "d0c_ini", name_sub)

@@ -232,7 +232,7 @@ MODULE mod_dnGG_dng
       END IF
       !-----------------------------------------------------------------
 
-   ELSE IF (mole%nb_Qtransfo == -1 .OR. para_Tnum%f2f1_ana) THEN
+   ELSE IF (mole%nb_Qtransfo == 1 .OR. para_Tnum%f2f1_ana) THEN
       !-----------------------------------------------------------------
       ! with anlytical expression of f2, f1
       IF (present(dnGG)) THEN
@@ -656,9 +656,11 @@ MODULE mod_dnGG_dng
                                                 ! then we can calculate dng form the inversion of dnGG
         mole100 = mole
 
+
+
         DO i=1,mole100%nb_var
-          IF (mole100%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
-                           mole100%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)  &
+                           mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
         mole100%nb_act          = mole%nb_act  + mole%nb_rigid100
         mole100%nb_act1         = mole%nb_act1 + mole%nb_rigid100
@@ -768,8 +770,8 @@ MODULE mod_dnGG_dng
                                                 ! then we can calculate dng form the inversion of dnGG
         mole100 = mole
         DO i=1,mole100%nb_var
-          IF (mole100%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
-                           mole100%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
+                           mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
         mole100%nb_act      = mole%nb_act  + mole%nb_rigid100
         mole100%nb_act1     = mole%nb_act1 + mole%nb_rigid100

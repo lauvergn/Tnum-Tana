@@ -173,7 +173,7 @@ MODULE mod_f2f2Vep
       END IF
 
 
-      IF (mole%nb_Qtransfo == -1 .OR. para_Tnum%f2f1_ana) THEN
+      IF (mole%nb_Qtransfo == 1 .OR. para_Tnum%f2f1_ana) THEN
         CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
         CALL calc_f2_f1Q_ana(Qdyn,                                      &

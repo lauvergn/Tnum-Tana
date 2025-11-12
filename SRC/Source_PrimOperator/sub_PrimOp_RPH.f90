@@ -828,9 +828,9 @@
         mole_loc%nb_act1    = nb_act1    ! from RPH
         mole_loc%nb_inact21 = nb_inact21 ! from RPH
         mole_loc%nb_inact2n = nb_inact21 ! from RPH
-        mole_loc%ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn ! from RPH
-        mole_loc%ActiveTransfo%list_QactTOQdyn(:)  = RPHTransfo%list_QactTOQdyn  ! from RPH
-        mole_loc%ActiveTransfo%list_QdynTOQact(:)  = RPHTransfo%list_QdynTOQact  ! from RPH
+        mole_loc%tab_Qtransfo(mole_loc%itActive)%ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn ! from RPH
+        mole_loc%tab_Qtransfo(mole_loc%itActive)%ActiveTransfo%list_QactTOQdyn(:)  = RPHTransfo%list_QactTOQdyn  ! from RPH
+        mole_loc%tab_Qtransfo(mole_loc%itActive)%ActiveTransfo%list_QdynTOQact(:)  = RPHTransfo%list_QdynTOQact  ! from RPH
       END IF
 
       nderiv = 0
