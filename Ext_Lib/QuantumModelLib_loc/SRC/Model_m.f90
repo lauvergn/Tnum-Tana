@@ -364,6 +364,7 @@ CONTAINS
 
   USE QML_OneD_Photons_m
   USE QML_OneD_Photons2_m
+  USE QML_OneD_Photons2_m
   IMPLICIT NONE
 
     TYPE (Model_t),      intent(inout)           :: QModel

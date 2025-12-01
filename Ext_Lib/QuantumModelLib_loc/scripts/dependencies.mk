@@ -149,11 +149,13 @@ $(OBJ_DIR)/HenonHeiles_m.o : \
 $(OBJ_DIR)/ClH2p_Botschwina_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
+          $(qdutil_m) \
           $(addnsvm_m)
 #file+mod_name: SRC/QML/fulvene_m.f90 qml_fulvene_m
 $(OBJ_DIR)/fulvene_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
+          $(qml_morse_m) \
           $(qdutil_m) \
           $(addnsvm_m)
 #file+mod_name: SRC/QML/CH5_m.f90 qml_ch5_m
