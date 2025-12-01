@@ -59,7 +59,7 @@
                                                                          ! defaut (itQtransfo=nb_Qtransfo, active coordinates)
         integer                        :: nb_Qtransfo          = -1      ! number of coordinate transformations
 
-        TYPE (Type_oneDTransfo), pointer :: OneDTransfo(:)     => null() ! add a transformation (experimental)
+        TYPE (Type_oneDTransfo), allocatable :: OneDTransfo(:)           ! add a transformation (experimental)
 
         real (kind=Rkind)              :: mass                 = ZERO    ! for CAP inv
         real (kind=Rkind)              :: Ecol_Min             = -ONE    ! for CAP inv
@@ -154,7 +154,7 @@
         write(out_unit,*) 'ind_Q (order from itQtranfo)   ',CAP%ind_Q
       END IF
 
-      IF (associated(CAP%OneDTransfo)) THEN
+      IF (allocated(CAP%OneDTransfo)) THEN
         write(out_unit,*) ' -------------------------------'
         write(out_unit,*) ' Add a coordinate transformation'
         CALL Write_oneDTransfo(CAP%OneDTransfo)
@@ -432,7 +432,7 @@
 
       calc_CAP = ZERO
 
-      IF (associated(CAP%OneDTransfo)) THEN
+      IF (allocated(CAP%OneDTransfo)) THEN
         CALL alloc_dnSVM(dnR,nb_var_deriv=1,nderiv=0)
         CALL alloc_dnSVM(dntR,nb_var_deriv=1,nderiv=0)
 

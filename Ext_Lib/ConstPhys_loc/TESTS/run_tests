@@ -5,19 +5,19 @@ DIR_SRC=$here/..
 echo $here
 echo $DIR_SRC
 
-PCEXE=$DIR_SRC/PhysConst.exe
+PCEXE=$DIR_SRC/PhysicalConstants_Main.x
 
 
 if (! test -f $PCEXE) then
   cd $DIR_SRC
-    make FC=gfortran OPT=0 INT=4 LAPACK=0 PhysConst &> $here/comp.log
+    make FC=gfortran OPT=0 INT=4 LAPACK=0 PhysicalConstants_Main.x &> $here/comp.log
   cd $here
   compOK=`grep -c 'OK' comp.log `
   if [ $compOK = '1' ] 
   then
-     echo " PhysConst.exe compilation: OK"
+     echo " PhysicalConstants_Main.x compilation: OK"
   else
-     echo " PhysConst.exe compilation: ERROR"
+     echo " PhysicalConstants_Main.x compilation: ERROR"
      exit 1
   fi
 fi

@@ -158,7 +158,7 @@
       rho = ONE
 
       DO i=1,mole%nb_act
-        DQact(i) = Qdyn(mole%ActiveTransfo%list_QactTOQdyn(i)) - Qact_ref(i)
+        DQact(i) = Qdyn(mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn(i)) - Qact_ref(i)
       END DO
 
 

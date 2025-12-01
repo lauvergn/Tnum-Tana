@@ -40,13 +40,15 @@ MODULE mod_Coord_KEO
                                   calc_freq_block,calc_freq_with_d0c,   &
                                   h0_symmetrization,sort_with_tab,      &
                                   Init_degenerate_freq,Read_degenerate_freq
-  USE mod_ActiveTransfo,   ONLY : get_Qact0,Adding_InactiveCoord_TO_Qact,&
+  USE mod_ActiveTransfo,   ONLY : Type_ActiveTransfo,get_Qact0,          &
+                                  Adding_InactiveCoord_TO_Qact,          &
                                   Set_AllActive,                         &
                                   Qact_TO_Qdyn_FROM_ActiveTransfo,       &
                                   Qdyn_TO_Qact_FROM_ActiveTransfo,       &
                                   Qinact2n_TO_Qact_FROM_ActiveTransfo
   USE mod_RPHTransfo,      ONLY : Type_RPHpara_AT_Qact1,Type_RPHTransfo, &
                                   alloc_array,dealloc_array,             &
+                                  alloc_NParray,dealloc_NParray,         &
                                   alloc_rphpara_at_qact1,switch_rph,     &
                                   write_rphtransfo,set_rphtransfo,       &
                                   write_rphpara_at_qact1,                &
@@ -54,9 +56,10 @@ MODULE mod_Coord_KEO
                                   RPHpara1_AT_Qact1_TO_RPHpara2_AT_Qact1,&
                                   Find_iQa_OF_RPHpara_AT_Qact1
   USE mod_CartesianTransfo, ONLY: calc_dnteckart,calc_dntxdnxin_to_dnxout,&
-                                  calc_eckartrot,dnmwx_multiref
+                                  calc_eckartrot,dnmwx_multiref,dnTErr
+  USE mod_LinearNMTransfo,  ONLY: Type_NMTransfo
   USE mod_export_KEO
-  USE mod_Tnum,            ONLY : Tnum,param_PES_FromTnum,dealloc_Tnum, &
+  USE mod_Tnum,             ONLY: Tnum,param_PES_FromTnum,dealloc_Tnum, &
                                   CoordType,dealloc_coordtype,          &
                                   Read_CoordType,write_coordtype,       &
                                   sub_coordtype_to_pararph,             &

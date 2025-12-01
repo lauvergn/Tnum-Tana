@@ -39,58 +39,58 @@
 
       PRIVATE
 
-      !! @description: TODO
-      !! @param: TODO
       TYPE Type_LinearTransfo
-        real (kind=Rkind), pointer  :: mat(:,:)=>null()
-        real (kind=Rkind), pointer  :: mat_inv(:,:)=>null()
+        real (kind=Rkind), allocatable  :: mat(:,:)
+        real (kind=Rkind), allocatable  :: mat_inv(:,:)
         logical :: inv    =.FALSE.
         logical :: transp =.FALSE.
 
         logical :: check_LinearTransfo=.TRUE.
-
+      CONTAINS
+          PROCEDURE, PRIVATE, PASS(linearTransfo1) :: linearTransfo2_TO_linearTransfo1
+          GENERIC,   PUBLIC  :: assignment(=) => linearTransfo2_TO_linearTransfo1
       END TYPE Type_LinearTransfo
 
-
-      !!@description: TODO
-      !!@param: TODO
       TYPE Type_NMTransfo
-        logical                    :: hessian_old      = .TRUE.
-        logical                    :: hessian_cart     = .TRUE.
-        logical                    :: hessian_onthefly = .FALSE.
-        TYPE (File_t)              :: file_hessian
-        integer                    :: nb_NM            = 0      ! nb_act
+        logical                        :: hessian_old      = .TRUE.
+        logical                        :: hessian_cart     = .TRUE.
+        logical                        :: hessian_onthefly = .FALSE.
+        TYPE (File_t)                  :: file_hessian
+        integer                        :: nb_NM            = 0      ! nb_act
 
-        integer                    :: NM_TO_sym_ver    = 4
+        integer                        :: NM_TO_sym_ver    = 4
 
-        logical                    :: d0c_read         = .FALSE.
-        logical                    :: hessian_read     = .FALSE.
-        logical                    :: k_read           = .FALSE.
-        integer                    :: nb_read          = 0
+        logical                        :: d0c_read         = .FALSE.
+        logical                        :: hessian_read     = .FALSE.
+        logical                        :: k_read           = .FALSE.
+        integer                        :: nb_read          = 0
 
-        integer                    :: ncart_act        = 0
+        integer                        :: ncart_act    = 0
         real (kind=Rkind), allocatable :: hCC(:,:)
 
-        real (kind=Rkind), pointer :: d0h(:,:)         =>null()
-        real (kind=Rkind), pointer :: d0k(:,:)         =>null()
+        real (kind=Rkind), allocatable :: d0h(:,:)
+        real (kind=Rkind), allocatable :: d0k(:,:)
 
         ! to set up automaticaly the HObasis
-        real (kind=Rkind), pointer :: Q0_HObasis(:)        =>null()
-        real (kind=Rkind), pointer :: scaleQ_HObasis(:)    =>null()
+        real (kind=Rkind), allocatable :: Q0_HObasis(:)
+        real (kind=Rkind), allocatable :: scaleQ_HObasis(:)
 
 
-        real (kind=Rkind), pointer :: d0c_inv(:,:)             =>null()
-        real (kind=Rkind), pointer :: d0c(:,:)                 =>null()
-        real (kind=Rkind), pointer :: phase(:)                 =>null() ! to change the sign of d0c
-        real (kind=Rkind), pointer :: d0eh(:)                  =>null()
-        logical                    :: ReadCoordBlocks  = .FALSE.! if .TRUE., the hessian is transformed to a block diagonal form (default : .FALSE.)
-        integer, allocatable       :: BlockCoord(:)             ! define the list of coordinate blocks (same integer => same block)
-        logical                    :: eq_hess          = .FALSE.! if .TRUE., we use an hessian purified (default : .FALSE.)
-        logical                    :: k_Half           = .FALSE.! if .TRUE., make a transfo, to get -1/2D2./dx2
-        integer, pointer           :: Qact1_eq(:,:)    =>null() ! Qact1_eq(nb_NM,nb_NM) : for the symmetrized H0
-        integer                    :: nb_equi          = 0      ! number of set of equivalent variables
-        integer, pointer           :: dim_equi(:)      =>null() ! dimension for each set of equivalence
-        integer, pointer           :: tab_equi(:,:)    =>null() ! list of variables for each set of equivalence
+        real (kind=Rkind), allocatable :: d0c_inv(:,:)
+        real (kind=Rkind), allocatable :: d0c(:,:)
+        real (kind=Rkind), allocatable :: phase(:)                  ! to change the sign of d0c
+        real (kind=Rkind), allocatable :: d0eh(:)
+        logical                        :: ReadCoordBlocks  = .FALSE.! if .TRUE., the hessian is transformed to a block diagonal form (default : .FALSE.)
+        integer,           allocatable :: BlockCoord(:)             ! define the list of coordinate blocks (same integer => same block)
+        logical                        :: eq_hess          = .FALSE.! if .TRUE., we use an hessian purified (default : .FALSE.)
+        logical                        :: k_Half           = .FALSE.! if .TRUE., make a transfo, to get -1/2D2./dx2
+        integer,           allocatable :: Qact1_eq(:,:)             ! Qact1_eq(nb_NM,nb_NM) : for the symmetrized H0
+        integer                        :: nb_equi          = 0      ! number of set of equivalent variables
+        integer,           allocatable :: dim_equi(:)               ! dimension for each set of equivalence
+        integer,           allocatable :: tab_equi(:,:)             ! list of variables for each set of equivalence
+      CONTAINS
+          PROCEDURE, PRIVATE, PASS(NMTransfo1) :: NMTransfo2_TO_NMTransfo1
+          GENERIC,   PUBLIC  :: assignment(=) => NMTransfo2_TO_NMTransfo1
       END TYPE Type_NMTransfo
 
       INTERFACE alloc_array
@@ -101,14 +101,22 @@
         ! for RPHTransfo
         MODULE PROCEDURE dealloc_array_OF_NMTransfodim0
       END INTERFACE
-
+      INTERFACE alloc_NParray
+        ! for RPHTransfo
+        MODULE PROCEDURE alloc_NParray_OF_NMTransfodim0
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        ! for RPHTransfo
+        MODULE PROCEDURE dealloc_NParray_OF_NMTransfodim0
+      END INTERFACE
 
       PUBLIC :: Type_LinearTransfo, alloc_LinearTransfo, dealloc_LinearTransfo, &
                 Read_linearTransfo, Read_LC_projectionTransfo, calc_LinearTransfo
       PUBLIC :: Type_NMTransfo, alloc_array, dealloc_array, Read_NMTransfo,     &
-                Write_NMTransfo, NMTransfo1TONMTransfo2, dealloc_NMTransfo
+                Write_NMTransfo, dealloc_NMTransfo,     &
+                alloc_NParray, dealloc_NParray
 
-      CONTAINS
+CONTAINS
 
 !================================================================
 !      Subroutines for the linear Transfo:
@@ -133,13 +141,11 @@
       character (len=*), parameter :: name_sub='alloc_LinearTransfo'
 
 
-      IF (associated(LinearTransfo%mat))  THEN
-        CALL dealloc_array(LinearTransfo%mat,                           &
-                          "LinearTransfo%mat",name_sub)
+      IF (allocated(LinearTransfo%mat))  THEN
+        CALL dealloc_NParray(LinearTransfo%mat,"LinearTransfo%mat",name_sub)
       END IF
-      IF (associated(LinearTransfo%mat_inv))  THEN
-        CALL dealloc_array(LinearTransfo%mat_inv,                       &
-                          "LinearTransfo%mat_inv",name_sub)
+      IF (allocated(LinearTransfo%mat_inv))  THEN
+        CALL dealloc_NParray(LinearTransfo%mat_inv,"LinearTransfo%mat_inv",name_sub)
       END IF
 
       CALL alloc_array(LinearTransfo%mat,[nb_Qin,nb_Qin],             &
@@ -153,19 +159,17 @@
       !-----------------------------------------------------------------------
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE dealloc_LinearTransfo(LinearTransfo)
+  SUBROUTINE dealloc_LinearTransfo(LinearTransfo)
 
       TYPE (Type_LinearTransfo), intent(inout) :: LinearTransfo
 
       character (len=*), parameter :: name_sub='dealloc_LinearTransfo'
 
-      IF (associated(LinearTransfo%mat))  THEN
-        CALL dealloc_array(LinearTransfo%mat,                           &
-                          "LinearTransfo%mat",name_sub)
+      IF (allocated(LinearTransfo%mat))  THEN
+        CALL dealloc_NParray(LinearTransfo%mat,"LinearTransfo%mat",name_sub)
       END IF
-      IF (associated(LinearTransfo%mat_inv))  THEN
-        CALL dealloc_array(LinearTransfo%mat_inv,                       &
-                          "LinearTransfo%mat_inv",name_sub)
+      IF (allocated(LinearTransfo%mat_inv))  THEN
+        CALL dealloc_NParray(LinearTransfo%mat_inv,"LinearTransfo%mat_inv",name_sub)
       END IF
 
       LinearTransfo%inv                 = .FALSE.
@@ -173,8 +177,24 @@
 
       LinearTransfo%check_LinearTransfo = .TRUE.
 
-      END SUBROUTINE dealloc_linearTransfo
+  END SUBROUTINE dealloc_linearTransfo
+  SUBROUTINE linearTransfo2_TO_linearTransfo1(LinearTransfo1,linearTransfo2)
+      CLASS(Type_LinearTransfo), intent(inout) :: LinearTransfo1
+      TYPE (Type_LinearTransfo), intent(in)    :: LinearTransfo2
 
+      character (len=*), parameter :: name_sub='linearTransfo2_TO_linearTransfo1'
+      integer :: n
+
+      n = size(LinearTransfo2%mat,dim=1)
+      CALL alloc_LinearTransfo(LinearTransfo1,n)
+      LinearTransfo1%mat     = LinearTransfo2%mat
+      LinearTransfo1%mat_inv = LinearTransfo2%mat_inv
+
+      LinearTransfo1%inv                 = LinearTransfo2%inv
+      LinearTransfo1%transp              = LinearTransfo2%transp
+      LinearTransfo1%check_LinearTransfo = LinearTransfo2%check_LinearTransfo
+
+  END SUBROUTINE linearTransfo2_TO_linearTransfo1
     SUBROUTINE alloc_array_OF_NMTransfodim0(tab,name_var,name_sub)
       IMPLICIT NONE
 
@@ -224,6 +244,54 @@
        nullify(tab)
 
       END SUBROUTINE dealloc_array_OF_NMTransfodim0
+
+    SUBROUTINE alloc_NParray_OF_NMTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_NMTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                  intent(in)    :: name_var,name_sub
+
+      integer, parameter :: ndim=0
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_NMTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       allocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_NMTransfo')
+
+      END SUBROUTINE alloc_NParray_OF_NMTransfodim0
+      SUBROUTINE dealloc_NParray_OF_NMTransfodim0(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_NMTransfo), allocatable, intent(inout) :: tab
+      character (len=*),                  intent(in)    :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_NMTransfodim0'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+       IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = 1
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_NMTransfo')
+
+      END SUBROUTINE dealloc_NParray_OF_NMTransfodim0
 
       SUBROUTINE Read_linearTransfo(LinearTransfo,nb_Qin)
 
@@ -680,26 +748,26 @@
 
       character (len=*), parameter :: name_sub='dealloc_NMTransfo'
 
-      IF (associated(NMTransfo%d0c_inv))  THEN
+      IF (allocated(NMTransfo%d0c_inv))  THEN
         CALL dealloc_array(NMTransfo%d0c_inv,"NMTransfo%d0c_inv",name_sub)
       END IF
-      IF (associated(NMTransfo%d0c))  THEN
-        CALL dealloc_array(NMTransfo%d0c,"NMTransfo%d0c",name_sub)
+      IF (allocated(NMTransfo%d0c))  THEN
+        CALL dealloc_NParray(NMTransfo%d0c,"NMTransfo%d0c",name_sub)
       END IF
-      IF (associated(NMTransfo%d0eh))  THEN
-        CALL dealloc_array(NMTransfo%d0eh,"NMTransfo%d0eh",name_sub)
+      IF (allocated(NMTransfo%d0eh))  THEN
+        CALL dealloc_NParray(NMTransfo%d0eh,"NMTransfo%d0eh",name_sub)
       END IF
-      IF (associated(NMTransfo%dim_equi))  THEN
-        CALL dealloc_array(NMTransfo%dim_equi,"NMTransfo%dim_equi",name_sub)
+      IF (allocated(NMTransfo%dim_equi))  THEN
+        CALL dealloc_NParray(NMTransfo%dim_equi,"NMTransfo%dim_equi",name_sub)
       END IF
-      IF (associated(NMTransfo%tab_equi))  THEN
-        CALL dealloc_array(NMTransfo%tab_equi,"NMTransfo%tab_equi",name_sub)
+      IF (allocated(NMTransfo%tab_equi))  THEN
+        CALL dealloc_NParray(NMTransfo%tab_equi,"NMTransfo%tab_equi",name_sub)
       END IF
       IF (allocated(NMTransfo%BlockCoord))  THEN
         CALL dealloc_NParray(NMTransfo%BlockCoord,"NMTransfo%BlockCoord",name_sub)
       END IF
-      IF (associated(NMTransfo%Qact1_eq))  THEN
-        CALL dealloc_array(NMTransfo%Qact1_eq,"NMTransfo%Qact1_eq",name_sub)
+      IF (allocated(NMTransfo%Qact1_eq))  THEN
+        CALL dealloc_NParray(NMTransfo%Qact1_eq,"NMTransfo%Qact1_eq",name_sub)
       END IF
 
       NMTransfo%hessian_old      = .TRUE.
@@ -716,18 +784,18 @@
       NMTransfo%k_read           = .FALSE.
       NMTransfo%d0c_read         = .FALSE.
 
-      IF (associated(NMTransfo%d0h)) THEN
-        CALL dealloc_array(NMTransfo%d0h,"NMTransfo%d0h",name_sub)
+      IF (allocated(NMTransfo%d0h)) THEN
+        CALL dealloc_NParray(NMTransfo%d0h,"NMTransfo%d0h",name_sub)
       END IF
-      IF (associated(NMTransfo%d0k)) THEN
-        CALL dealloc_array(NMTransfo%d0k,"NMTransfo%d0k",name_sub)
+      IF (allocated(NMTransfo%d0k)) THEN
+        CALL dealloc_NParray(NMTransfo%d0k,"NMTransfo%d0k",name_sub)
       END IF
 
-      IF (associated(NMTransfo%Q0_HObasis)) THEN
-        CALL dealloc_array(NMTransfo%Q0_HObasis,"NMTransfo%Q0_HObasis",name_sub)
+      IF (allocated(NMTransfo%Q0_HObasis)) THEN
+        CALL dealloc_NParray(NMTransfo%Q0_HObasis,"NMTransfo%Q0_HObasis",name_sub)
       END IF
-      IF (associated(NMTransfo%scaleQ_HObasis)) THEN
-        CALL dealloc_array(NMTransfo%scaleQ_HObasis,"NMTransfo%scaleQ_HObasis",name_sub)
+      IF (allocated(NMTransfo%scaleQ_HObasis)) THEN
+        CALL dealloc_NParray(NMTransfo%scaleQ_HObasis,"NMTransfo%scaleQ_HObasis",name_sub)
       END IF
 
       NMTransfo%nb_NM         = 0
@@ -837,8 +905,8 @@
         END IF
 
         NMTransfo%nb_NM = nb_NM
-        IF (.NOT. associated(NMTransfo%d0c)) THEN
-          CALL alloc_array(NMTransfo%d0c,[nb_NM,nb_NM],"NMTransfo%d0c",name_sub)
+        IF (.NOT. allocated(NMTransfo%d0c)) THEN
+          CALL alloc_NParray(NMTransfo%d0c,[nb_NM,nb_NM],"NMTransfo%d0c",name_sub)
           NMTransfo%d0c(:,:) = ZERO
         END IF
 
@@ -904,8 +972,8 @@
             END IF
   
             NMTransfo%nb_NM = nb_NM
-            IF (.NOT. associated(NMTransfo%d0h)) THEN
-              CALL alloc_array(NMTransfo%d0h,[nb_NM,nb_NM],"NMTransfo%d0h",name_sub)
+            IF (.NOT. allocated(NMTransfo%d0h)) THEN
+              CALL alloc_NParray(NMTransfo%d0h,[nb_NM,nb_NM],"NMTransfo%d0h",name_sub)
               NMTransfo%d0h(:,:) = ZERO
               CALL alloc_NParray(mat,[nb_NM,nb_NM],"mat",name_sub)
             END IF
@@ -957,8 +1025,8 @@
               STOP
             END IF
   
-            IF (.NOT. associated(NMTransfo%d0k)) THEN
-              CALL alloc_array(NMTransfo%d0k,[nb_NM,nb_NM],"NMTransfo%d0k",name_sub)
+            IF (.NOT. allocated(NMTransfo%d0k)) THEN
+              CALL alloc_NParray(NMTransfo%d0k,[nb_NM,nb_NM],"NMTransfo%d0k",name_sub)
               NMTransfo%d0k(:,:) = ZERO
               CALL alloc_NParray(mat,[nb_NM,nb_NM],"mat",name_sub)
             END IF
@@ -991,14 +1059,14 @@
         IF (.NOT. allocated(NMTransfo%BlockCoord)) THEN
           CALL alloc_NParray(NMTransfo%BlockCoord,[nb_Qin],"NMTransfo%BlockCoord",name_sub)
         END IF
-        IF (.NOT. associated(NMTransfo%Qact1_eq)) THEN
-          CALL alloc_array(NMTransfo%Qact1_eq,[nb_Qin,nb_Qin],"NMTransfo%Qact1_eq",name_sub)
+        IF (.NOT. allocated(NMTransfo%Qact1_eq)) THEN
+          CALL alloc_NParray(NMTransfo%Qact1_eq,[nb_Qin,nb_Qin],"NMTransfo%Qact1_eq",name_sub)
         END IF
-        IF (.NOT. associated(NMTransfo%dim_equi)) THEN
-          CALL alloc_array(NMTransfo%dim_equi,[nb_Qin],"NMTransfo%dim_equi",name_sub)
+        IF (.NOT. allocated(NMTransfo%dim_equi)) THEN
+          CALL alloc_NParray(NMTransfo%dim_equi,[nb_Qin],"NMTransfo%dim_equi",name_sub)
         END IF
-        IF (.NOT. associated(NMTransfo%tab_equi)) THEN
-          CALL alloc_array(NMTransfo%tab_equi,[nb_Qin,nb_Qin],"NMTransfo%tab_equi",name_sub)
+        IF (.NOT. allocated(NMTransfo%tab_equi)) THEN
+          CALL alloc_NParray(NMTransfo%tab_equi,[nb_Qin,nb_Qin],"NMTransfo%tab_equi",name_sub)
         END IF
 
         write(out_unit,*)
@@ -1090,11 +1158,11 @@
         CALL write_Mat_MPI(NMTransfo%hCC,out_unit,6)
       END IF
 
-      IF (associated(NMTransfo%Q0_HObasis)) THEN
+      IF (allocated(NMTransfo%Q0_HObasis)) THEN
         write(out_unit,*) 'Q0_HObasis'
         CALL write_Vec_MPI(NMTransfo%Q0_HObasis,out_unit,5)
       END IF
-      IF (associated(NMTransfo%scaleQ_HObasis)) THEN
+      IF (allocated(NMTransfo%scaleQ_HObasis)) THEN
         write(out_unit,*) 'scaleQ_HObasis'
         CALL write_Vec_MPI(NMTransfo%scaleQ_HObasis,out_unit,5)
       END IF
@@ -1106,11 +1174,11 @@
       write(out_unit,*) 'd0c_read',NMTransfo%d0c_read
 
 
-      IF (associated(NMTransfo%d0h)) THEN
+      IF (allocated(NMTransfo%d0h)) THEN
         write(out_unit,*) 'd0h'
         CALL Write_Mat_MPI(NMTransfo%d0h,out_unit,5)
       END IF
-      IF (associated(NMTransfo%d0k)) THEN
+      IF (allocated(NMTransfo%d0k)) THEN
         write(out_unit,*) 'd0k'
         CALL Write_Mat_MPI(NMTransfo%d0k,out_unit,5)
       END IF
@@ -1121,19 +1189,19 @@
       flush(out_unit)
 
       IF (nb_NM > 0) THEN
-        IF (associated(NMTransfo%d0c_inv)) THEN
+        IF (allocated(NMTransfo%d0c_inv)) THEN
           write(out_unit,*)  'd0c_inv: '
           CALL Write_Mat_MPI(NMTransfo%d0c_inv,out_unit,4)
         END IF
         flush(out_unit)
 
-        IF (associated(NMTransfo%d0c)) THEN
+        IF (allocated(NMTransfo%d0c)) THEN
           write(out_unit,*)  'd0c: '
           CALL Write_Mat_MPI(NMTransfo%d0c,out_unit,4)
         END IF
         flush(out_unit)
 
-        IF (associated(NMTransfo%d0eh)) THEN
+        IF (allocated(NMTransfo%d0eh)) THEN
           write(out_unit,*)  'd0eh: ',NMTransfo%d0eh(:)
         END IF
         flush(out_unit)
@@ -1171,8 +1239,6 @@
       flush(out_unit)
       END SUBROUTINE Write_NMTransfo
 
-      !!@description: TODO
-      !!@param: TODO
       SUBROUTINE NMTransfo1TONMTransfo2(NMTransfo1,NMTransfo2)
 
       TYPE (Type_NMTransfo), intent(in)  :: NMTransfo1
@@ -1198,47 +1264,52 @@
       NMTransfo2%ncart_act        = NMTransfo1%ncart_act
       IF (allocated(NMTransfo1%hCC)) NMTransfo2%hCC = NMTransfo1%hCC
 
-      IF (associated(NMTransfo1%d0h)) THEN
-        CALL alloc_array(NMTransfo2%d0h,shape(NMTransfo1%d0h),          &
+      IF (allocated(NMTransfo1%d0h)) THEN
+        CALL alloc_NParray(NMTransfo2%d0h,shape(NMTransfo1%d0h),          &
                         "NMTransfo2%d0h",name_sub)
         NMTransfo2%d0h(:,:) = NMTransfo1%d0h(:,:)
       END IF
 
-      IF (associated(NMTransfo1%d0k)) THEN
-        CALL alloc_array(NMTransfo2%d0k,shape(NMTransfo1%d0k),          &
+      IF (allocated(NMTransfo1%d0k)) THEN
+        CALL alloc_NParray(NMTransfo2%d0k,shape(NMTransfo1%d0k),          &
                         "NMTransfo2%d0k",name_sub)
         NMTransfo2%d0k(:,:) = NMTransfo1%d0k(:,:)
       END IF
 
 
-      IF (associated(NMTransfo1%Q0_HObasis)) THEN
-        CALL alloc_array(NMTransfo2%Q0_HObasis,shape(NMTransfo1%Q0_HObasis),&
+      IF (allocated(NMTransfo1%Q0_HObasis)) THEN
+        CALL alloc_NParray(NMTransfo2%Q0_HObasis,shape(NMTransfo1%Q0_HObasis),&
                         "NMTransfo2%Q0_HObasis",name_sub)
         NMTransfo2%Q0_HObasis(:) = NMTransfo1%Q0_HObasis(:)
       END IF
-      IF (associated(NMTransfo1%scaleQ_HObasis)) THEN
-        CALL alloc_array(NMTransfo2%scaleQ_HObasis,shape(NMTransfo1%scaleQ_HObasis),&
+      IF (allocated(NMTransfo1%scaleQ_HObasis)) THEN
+        CALL alloc_NParray(NMTransfo2%scaleQ_HObasis,shape(NMTransfo1%scaleQ_HObasis),&
                         "NMTransfo2%scaleQ_HObasis",name_sub)
         NMTransfo2%scaleQ_HObasis(:) = NMTransfo1%scaleQ_HObasis(:)
       END IF
 
 
 
-      IF (NMTransfo2%nb_NM > 0) THEN
-        NMTransfo2%nb_NM            = NMTransfo1%nb_NM
-
+      NMTransfo2%nb_NM            = NMTransfo1%nb_NM
+      IF (allocated(NMTransfo1%d0c_inv)) THEN
         CALL alloc_array(NMTransfo2%d0c_inv,shape(NMTransfo1%d0c_inv),  &
                         "NMTransfo2%d0c_inv",name_sub)
         NMTransfo2%d0c_inv = NMTransfo1%d0c_inv
-
+      END IF
+      IF (allocated(NMTransfo1%d0c)) THEN
         CALL alloc_array(NMTransfo2%d0c,shape(NMTransfo1%d0c),          &
                         "NMTransfo2%d0c",name_sub)
         NMTransfo2%d0c = NMTransfo1%d0c
-
+      END IF
+      IF (allocated(NMTransfo1%d0eh)) THEN
         CALL alloc_array(NMTransfo2%d0eh,shape(NMTransfo1%d0eh),        &
                         "NMTransfo2%d0eh",name_sub)
         NMTransfo2%d0eh = NMTransfo1%d0eh
-
+      END IF
+      IF (allocated(NMTransfo1%phase)) THEN
+        CALL alloc_array(NMTransfo2%phase,shape(NMTransfo1%phase),        &
+                        "NMTransfo2%phase",name_sub)
+        NMTransfo2%phase = NMTransfo1%phase
       END IF
 
       NMTransfo2%k_Half          = NMTransfo1%k_Half
@@ -1267,7 +1338,106 @@
         NMTransfo2%tab_equi = NMTransfo1%tab_equi
       END IF
 
-      END SUBROUTINE NMTransfo1TONMTransfo2
+  END SUBROUTINE NMTransfo1TONMTransfo2
+
+  SUBROUTINE NMTransfo2_TO_NMTransfo1(NMTransfo1,NMTransfo2)
+      CLASS(Type_NMTransfo), intent(inout) :: NMTransfo1
+      TYPE (Type_NMTransfo), intent(in)    :: NMTransfo2
+
+      integer :: nb_Qin,n1
+      integer :: err_mem,memory
+      character (len=*), parameter :: name_sub='NMTransfo2_TO_NMTransfo1'
+
+      CALL dealloc_NMTransfo(NMTransfo1)
+
+      NMTransfo1%NM_TO_sym_ver    = NMTransfo2%NM_TO_sym_ver
+
+      NMTransfo1%hessian_old      = NMTransfo2%hessian_old
+      NMTransfo1%hessian_cart     = NMTransfo2%hessian_cart
+      NMTransfo1%hessian_onthefly = NMTransfo2%hessian_onthefly
+      NMTransfo1%file_hessian     = NMTransfo2%file_hessian
+
+      NMTransfo1%hessian_read     = NMTransfo2%hessian_read
+      NMTransfo1%k_read           = NMTransfo2%k_read
+      NMTransfo1%nb_read          = NMTransfo2%nb_read
+      NMTransfo1%d0c_read         = NMTransfo2%d0c_read
+
+      NMTransfo1%ncart_act        = NMTransfo2%ncart_act
+      IF (allocated(NMTransfo2%hCC)) NMTransfo1%hCC = NMTransfo2%hCC
+
+      IF (allocated(NMTransfo2%d0h)) THEN
+        CALL alloc_NParray(NMTransfo1%d0h,shape(NMTransfo2%d0h),          &
+                        "NMTransfo1%d0h",name_sub)
+        NMTransfo1%d0h(:,:) = NMTransfo2%d0h(:,:)
+      END IF
+
+      IF (allocated(NMTransfo2%d0k)) THEN
+        CALL alloc_NParray(NMTransfo1%d0k,shape(NMTransfo2%d0k),          &
+                        "NMTransfo1%d0k",name_sub)
+        NMTransfo1%d0k(:,:) = NMTransfo2%d0k(:,:)
+      END IF
 
 
-      END MODULE mod_LinearNMTransfo
+      IF (allocated(NMTransfo2%Q0_HObasis)) THEN
+        CALL alloc_NParray(NMTransfo1%Q0_HObasis,shape(NMTransfo2%Q0_HObasis),&
+                        "NMTransfo1%Q0_HObasis",name_sub)
+        NMTransfo1%Q0_HObasis(:) = NMTransfo2%Q0_HObasis(:)
+      END IF
+      IF (allocated(NMTransfo2%scaleQ_HObasis)) THEN
+        CALL alloc_NParray(NMTransfo1%scaleQ_HObasis,shape(NMTransfo2%scaleQ_HObasis),&
+                        "NMTransfo1%scaleQ_HObasis",name_sub)
+        NMTransfo1%scaleQ_HObasis(:) = NMTransfo2%scaleQ_HObasis(:)
+      END IF
+
+
+
+      NMTransfo1%nb_NM            = NMTransfo2%nb_NM
+      IF (allocated(NMTransfo2%d0c_inv)) THEN
+        CALL alloc_array(NMTransfo1%d0c_inv,shape(NMTransfo2%d0c_inv),  &
+                        "NMTransfo1%d0c_inv",name_sub)
+        NMTransfo1%d0c_inv = NMTransfo2%d0c_inv
+      END IF
+      IF (allocated(NMTransfo2%d0c)) THEN
+        CALL alloc_array(NMTransfo1%d0c,shape(NMTransfo2%d0c),          &
+                        "NMTransfo1%d0c",name_sub)
+        NMTransfo1%d0c = NMTransfo2%d0c
+      END IF
+      IF (allocated(NMTransfo2%d0eh)) THEN
+        CALL alloc_array(NMTransfo1%d0eh,shape(NMTransfo2%d0eh),        &
+                        "NMTransfo1%d0eh",name_sub)
+        NMTransfo1%d0eh = NMTransfo2%d0eh
+      END IF
+      IF (allocated(NMTransfo2%phase)) THEN
+        CALL alloc_array(NMTransfo1%phase,shape(NMTransfo2%phase),        &
+                        "NMTransfo1%phase",name_sub)
+        NMTransfo1%phase = NMTransfo2%phase
+      END IF
+
+      NMTransfo1%k_Half          = NMTransfo2%k_Half
+      NMTransfo1%ReadCoordBlocks = NMTransfo2%ReadCoordBlocks
+      NMTransfo1%eq_hess         = NMTransfo2%eq_hess
+
+      IF (NMTransfo1%ReadCoordBlocks) THEN
+        nb_Qin = size(NMTransfo2%BlockCoord)
+
+        CALL alloc_NParray(NMTransfo1%BlockCoord,shape(NMTransfo2%BlockCoord),&
+                          "NMTransfo1%BlockCoord",name_sub)
+        NMTransfo1%BlockCoord = NMTransfo2%BlockCoord
+
+        CALL alloc_array(NMTransfo1%Qact1_eq,shape(NMTransfo2%Qact1_eq),&
+                        "NMTransfo1%Qact1_eq",name_sub)
+        NMTransfo1%Qact1_eq  = NMTransfo2%Qact1_eq
+
+        NMTransfo1%nb_equi = NMTransfo2%nb_equi
+
+        CALL alloc_array(NMTransfo1%dim_equi,shape(NMTransfo2%dim_equi),&
+                        "NMTransfo1%dim_equi",name_sub)
+        NMTransfo1%dim_equi = NMTransfo2%dim_equi
+
+        CALL alloc_array(NMTransfo1%tab_equi,shape(NMTransfo2%tab_equi),&
+                        "NMTransfo1%tab_equi",name_sub)
+        NMTransfo1%tab_equi = NMTransfo2%tab_equi
+      END IF
+
+  END SUBROUTINE NMTransfo2_TO_NMTransfo1
+END MODULE mod_LinearNMTransfo

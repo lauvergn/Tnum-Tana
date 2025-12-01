@@ -32,7 +32,7 @@
 !
 !===========================================================================
 !===========================================================================
-      MODULE mod_OneDTransfo
+MODULE mod_OneDTransfo
       use TnumTana_system_m
       USE mod_dnSVM
       IMPLICIT NONE
@@ -42,13 +42,13 @@
       !!@description: TODO
       !!@param: TODO
       TYPE Type_oneDTransfo
-        integer                    :: iQin         = 0
-        integer                    :: type_oneD    = 0     ! identity
-        logical                    :: skip_transfo = .FALSE.
-        logical                    :: inTOout      =.TRUE. ! T => no inversion (inTOout), F => inversion (outTOin)
-        character (len=Name_len)   :: name_oneD    = "identity"
-        real (kind=Rkind), pointer :: cte(:)       => null()
-        integer, pointer           :: opt_cte(:)   => null()
+        integer                        :: iQin         = 0
+        integer                        :: type_oneD    = 0     ! identity
+        logical                        :: skip_transfo = .FALSE.
+        logical                        :: inTOout      =.TRUE. ! T => no inversion (inTOout), F => inversion (outTOin)
+        character (len=Name_len)       :: name_oneD    = "identity"
+        real (kind=Rkind), allocatable :: cte(:)
+        integer,           allocatable :: opt_cte(:)
       END TYPE Type_oneDTransfo
 
       INTERFACE alloc_array
@@ -58,56 +58,64 @@
         MODULE PROCEDURE dealloc_array_OF_OneDTransfodim1
       END INTERFACE
 
+      INTERFACE alloc_NParray
+        MODULE PROCEDURE alloc_NParray_OF_OneDTransfodim1
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        MODULE PROCEDURE dealloc_NParray_OF_OneDTransfodim1
+      END INTERFACE
+
       PUBLIC :: Type_oneDTransfo, alloc_oneDTransfo, dealloc_oneDTransfo,       &
                 Read_oneDTransfo, Read_InfiniteRange,                           &
                 Write_oneDTransfo, calc_oneDTransfo,                            &
-                oneDTransfo1TOoneDTransfo2, alloc_array, dealloc_array
+                oneDTransfo1TOoneDTransfo2, alloc_array, dealloc_array, &
+                alloc_NParray, dealloc_NParray
 
-      CONTAINS
+CONTAINS
 
 !=======================================================================
 !     oneD transfo
 !=======================================================================
       SUBROUTINE alloc_oneDTransfo(oneDTransfo,nb_transfo)
 
-      TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo(:)
-      integer,                          intent(in)    :: nb_transfo
+      TYPE (Type_oneDTransfo), allocatable, intent(inout) :: oneDTransfo(:)
+      integer,                              intent(in)    :: nb_transfo
 
       integer :: it
       character (len=*), parameter :: name_sub='alloc_oneDTransfo'
 
-      IF (associated(oneDTransfo)) THEN
+      IF (allocated(oneDTransfo)) THEN
         CALL dealloc_oneDTransfo(oneDTransfo)
       END IF
       IF (nb_transfo < 1) RETURN
 
-      CALL alloc_array(oneDTransfo,[nb_transfo],"oneDTransfo",name_sub)
+      CALL alloc_NParray(oneDTransfo,[nb_transfo],"oneDTransfo",name_sub)
 
       DO it=1,nb_transfo
-        CALL alloc_array(oneDTransfo(it)%cte,[20],                    &
-                        "oneDTransfo(it)%cte",name_sub)
+        CALL alloc_NParray(oneDTransfo(it)%cte,[20],                    &
+                          "oneDTransfo(it)%cte",name_sub)
 
-        CALL alloc_array(oneDTransfo(it)%opt_cte,[20],                &
-                        "oneDTransfo(it)%opt_cte",name_sub)
+        CALL alloc_NParray(oneDTransfo(it)%opt_cte,[20],                &
+                          "oneDTransfo(it)%opt_cte",name_sub)
       END DO
 
       END SUBROUTINE alloc_oneDTransfo
       SUBROUTINE dealloc_oneDTransfo(oneDTransfo)
 
-      TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo(:)
+      TYPE (Type_oneDTransfo), allocatable, intent(inout) :: oneDTransfo(:)
 
       integer :: it
       character (len=*), parameter :: name_sub='dealloc_oneDTransfo'
 
-      IF (.NOT. associated(oneDTransfo)) RETURN
+      IF (.NOT. allocated(oneDTransfo)) RETURN
 
       DO it=1,size(oneDTransfo)
-        CALL dealloc_array(oneDTransfo(it)%cte,                         &
-                          "oneDTransfo(it)%cte",name_sub)
-        CALL dealloc_array(oneDTransfo(it)%opt_cte,                     &
-                          "oneDTransfo(it)%opt_cte",name_sub)
+        CALL dealloc_NParray(oneDTransfo(it)%cte,                         &
+                            "oneDTransfo(it)%cte",name_sub)
+        CALL dealloc_NParray(oneDTransfo(it)%opt_cte,                     &
+                            "oneDTransfo(it)%opt_cte",name_sub)
       END DO
-      CALL dealloc_array(oneDTransfo,"oneDTransfo",name_sub)
+      CALL dealloc_NParray(oneDTransfo,"oneDTransfo",name_sub)
 
       END SUBROUTINE dealloc_oneDTransfo
 
@@ -172,17 +180,75 @@
 
       END SUBROUTINE dealloc_array_OF_OneDTransfodim1
 
+      SUBROUTINE alloc_NParray_OF_OneDTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
+      IMPLICIT NONE
+
+      TYPE (Type_oneDTransfo), allocatable, intent(inout)        :: tab(:)
+      integer,                              intent(in)           :: tab_ub(:)
+      integer,                              intent(in), optional :: tab_lb(:)
+      character (len=*),                    intent(in)           :: name_var,name_sub
+
+      integer, parameter :: ndim=1
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_OneDTransfodim1'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+       IF (present(tab_lb)) THEN
+         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+         memory = product(tab_ub(:)-tab_lb(:)+1)
+         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
+       ELSE
+         memory = product(tab_ub(:))
+         allocate(tab(tab_ub(1)),stat=err_mem)
+       END IF
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_oneDTransfo')
+
+      END SUBROUTINE alloc_NParray_OF_OneDTransfodim1
+      SUBROUTINE dealloc_NParray_OF_OneDTransfodim1(tab,name_var,name_sub)
+      IMPLICIT NONE
+
+      TYPE (Type_oneDTransfo), allocatable, intent(inout) :: tab(:)
+      character (len=*),                    intent(in)    :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_OneDTransfodim1'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+       IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = size(tab)
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_oneDTransfo')
+
+      END SUBROUTINE dealloc_NParray_OF_OneDTransfodim1
       SUBROUTINE oneDTransfo1TOoneDTransfo2(oneDTransfo1,oneDTransfo2)
 
       !-- oneDTransfo --------------------------------------
-      TYPE (Type_oneDTransfo), pointer, intent(in)    :: oneDTransfo1(:)
-      TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo2(:)
+      TYPE (Type_oneDTransfo), allocatable, intent(in)    :: oneDTransfo1(:)
+      TYPE (Type_oneDTransfo), allocatable, intent(inout) :: oneDTransfo2(:)
 
       integer :: it
       character (len=*), parameter :: name_sub = 'oneDTransfo1TOoneDTransfo2'
 
       CALL dealloc_oneDTransfo(oneDTransfo2)
-      IF (.NOT. associated(oneDTransfo1)) RETURN
+      IF (.NOT. allocated(oneDTransfo1)) RETURN
 
       CALL alloc_oneDTransfo(oneDTransfo2,size(oneDTransfo1))
 
@@ -208,9 +274,9 @@
   ! x E ]-inf,inf[ => phi E ]-pi,pi[ ->  : "xTOu" or 74 (with R0=Pi)
   SUBROUTINE Read_InfiniteRange(oneDTransfo,type_Qout,not_all)
 
-    TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo(:)
-    integer,                          intent(in)    :: type_Qout(:) ! coordinate type (distance, angles ...)
-    logical,                          intent(in)    :: not_all ! if true, we can specify which coordinate will be tranformed
+    TYPE (Type_oneDTransfo), allocatable, intent(inout) :: oneDTransfo(:)
+    integer,                              intent(in)    :: type_Qout(:) ! coordinate type (distance, angles ...)
+    logical,                              intent(in)    :: not_all ! if true, we can specify which coordinate will be tranformed
 
     ! local variables
     integer :: i
@@ -222,13 +288,13 @@
     !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
 
-    IF (.NOT. associated(oneDTransfo)) THEN
+    IF (.NOT. allocated(oneDTransfo)) THEN
       write(out_unit,*) ' ERROR in ',name_sub
       write(out_unit,*) '  oneDTransfo(:) is not associated !!'
       write(out_unit,*) ' Check the the FORTRAN !!'
       STOP
     END IF
-    IF (associated(oneDTransfo) .AND. size(oneDTransfo) < 1) THEN
+    IF (allocated(oneDTransfo) .AND. size(oneDTransfo) < 1) THEN
       write(out_unit,*) ' ERROR in ',name_sub
       write(out_unit,*) '  the size of oneDTransfo(:) is < 1 !!'
       write(out_unit,*) '    size of oneDTransfo(:)',size(oneDTransfo)
@@ -292,8 +358,8 @@
 
       SUBROUTINE Read_oneDTransfo(oneDTransfo,nb_transfo,nb_Qin)
 
-      TYPE (Type_oneDTransfo), pointer, intent(inout) :: oneDTransfo(:)
-      integer,                          intent(in)    :: nb_Qin,nb_transfo
+      TYPE (Type_oneDTransfo), allocatable, intent(inout) :: oneDTransfo(:)
+      integer,                              intent(in)    :: nb_Qin,nb_transfo
 
       integer :: i,it,nb_flex_act,err,nbcol
 
@@ -522,14 +588,14 @@
 
     END SUBROUTINE Read_oneDTransfo
 
-      SUBROUTINE Write_oneDTransfo(oneDTransfo)
+    SUBROUTINE Write_oneDTransfo(oneDTransfo)
 
-      TYPE (Type_oneDTransfo), pointer, intent(in) :: oneDTransfo(:)
+      TYPE (Type_oneDTransfo), allocatable, intent(in) :: oneDTransfo(:)
 
       integer :: it
       character (len=*), parameter :: name_sub='Write_oneDTransfo'
 
-      IF (.NOT. associated(oneDTransfo)) RETURN
+      IF (.NOT. allocated(oneDTransfo)) RETURN
 
       write(out_unit,*) 'BEGINNING Write_oneDTransfo ',size(oneDTransfo)
       DO it=1,size(oneDTransfo)
@@ -543,17 +609,14 @@
       END DO
       write(out_unit,*) 'END Write_oneDTransfo '
 
-      END SUBROUTINE Write_oneDTransfo
+    END SUBROUTINE Write_oneDTransfo
 
+    SUBROUTINE calc_oneDTransfo(dnQin,dnQout,oneDTransfo,nderiv,inTOout)
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE calc_oneDTransfo(dnQin,dnQout,oneDTransfo,nderiv,inTOout)
-
-        TYPE (Type_dnVec), intent(inout)    :: dnQin,dnQout
-        TYPE (Type_oneDTransfo), intent(in) :: oneDTransfo(:)
-        integer, intent(in)                 :: nderiv
-        logical                             :: inTOout
+        TYPE (Type_dnVec),       intent(inout) :: dnQin,dnQout
+        TYPE (Type_oneDTransfo), intent(in)    :: oneDTransfo(:)
+        integer, intent(in)                    :: nderiv
+        logical                                :: inTOout
 
 
         integer                    :: iQin,type_oneD
@@ -646,6 +709,4 @@
       END IF
 !---------------------------------------------------------------------
       END SUBROUTINE calc_oneDTransfo
-
-
-      END MODULE mod_OneDTransfo
+END MODULE mod_OneDTransfo

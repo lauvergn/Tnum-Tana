@@ -33,28 +33,22 @@
 !
 !===========================================================================
 !===========================================================================
-      PROGRAM TnumTana
-      use TnumTana_system_m
-      use mod_dnSVM
-      use mod_Constant
-      use mod_Coord_KEO
+PROGRAM TnumTana
+  use TnumTana_system_m
+  use mod_dnSVM
+  use mod_Constant
+  use mod_Coord_KEO
 
       IMPLICIT NONE
 
 !     - parameters for para_Tnum -----------------------
-      TYPE (constant)  :: const_phys
-      TYPE (CoordType) :: mole
-      TYPE (Tnum)      :: para_Tnum
+      TYPE (constant)          :: const_phys
+      TYPE (CoordType), target :: mole
+      TYPE (Tnum)              :: para_Tnum
 
-      real (kind=Rkind) :: vep,rho
-      real (kind=Rkind), pointer :: Tdef2(:,:)=>null()
-      real (kind=Rkind), pointer :: Tdef1(:)=>null()
-      real (kind=Rkind), pointer :: Tcor2(:,:)=>null()
-      real (kind=Rkind), pointer :: Tcor1(:)=>null()
-      real (kind=Rkind), pointer :: Trot(:,:)=>null()
 
-      TYPE(Type_dnMat) :: dng,dnGG
-      TYPE(Type_dnVec) :: dnx
+      TYPE(Type_dnVec)         :: dnx
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
 !     ------------------------------------------------------
 
@@ -79,12 +73,13 @@
       CALL Read_CoordType(mole,para_Tnum,const_phys)
       !     ------------------------------------------------------------
       !-----------------------------------------------------------------
-
-      IF (associated(mole%NMTransfo) .OR. associated(mole%RPHTransfo)) THEN
+      IF (mole%itNM > 0 .OR. mole%itRPH > 0) THEN
         write(out_unit,*) "ERROR: This test program cannot be used with"
         write(out_unit,*) "Normal modes (NM) or RPH"
         STOP
       END IF
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+
 
       !-----------------------------------------------------------------
       !     - read coordinate values -----------------------------------
@@ -102,7 +97,7 @@
 !===========================================================
 
       CALL alloc_NParray(Qact,[mole%nb_var],'Qact',name_sub)
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
 
 
 !-------------------------------------------------
@@ -139,4 +134,4 @@
 
       write(out_unit,*) 'END ',name_sub
 
-      END PROGRAM TnumTana
+END PROGRAM TnumTana
