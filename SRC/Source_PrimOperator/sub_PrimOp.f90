@@ -499,10 +499,12 @@
               d0MatOp(iOpE)%ImVal(:,:) = mat_imV(:,:)
             END IF
 
-            DO i=1,PrimOp%nb_scalar_Op
-              iterm = d0MatOp(iOpScal-1+i)%derive_term_TO_iterm(0,0)
-              d0MatOp(iOpScal-1+i)%ReVal(:,:,iterm) = mat_ScalOp(:,:,i)
-            END DO
+            IF (PrimOp%nb_scalar_Op > 0 .AND. nb_Op > 2) THEN
+              DO i=1,PrimOp%nb_scalar_Op
+                iterm = d0MatOp(iOpScal-1+i)%derive_term_TO_iterm(0,0)
+                d0MatOp(iOpScal-1+i)%ReVal(:,:,iterm) = mat_ScalOp(:,:,i)
+              END DO
+            END IF
 
             !----------------------------------------------------------------
             DO ie=1,PrimOp%nb_elec
@@ -548,7 +550,7 @@
           END IF
 
 
-          IF (PrimOp%HarD .AND. associated(mole%RPHTransfo) .AND. PrimOp%nb_elec == 1) THEN
+          IF (PrimOp%HarD .AND. mole%itRPH > 0 .AND. PrimOp%nb_elec == 1) THEN
             CALL get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
             DO ie=1,PrimOp%nb_elec
               d0MatOp(iOpE)%ReVal(ie,ie,itermE) =                               &
@@ -630,12 +632,11 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   USE mod_PrimOp_def
   IMPLICIT NONE
 
-  real (kind=Rkind),     intent(in)    :: Qact(:)
-  real (kind=Rkind),     intent(inout) :: Vinact(:)
-
-  TYPE (Tnum) ,          intent(in)    :: para_Tnum
-  TYPE (CoordType),      intent(in)    :: mole
-  TYPE (PrimOp_t),       intent(in)    :: PrimOp
+  real (kind=Rkind),     intent(in)         :: Qact(:)
+  real (kind=Rkind),     intent(inout)      :: Vinact(:)
+  TYPE (Tnum) ,          intent(in)         :: para_Tnum
+  TYPE (CoordType),      intent(in), target :: mole
+  TYPE (PrimOp_t),       intent(in)         :: PrimOp
 
   !----- local variables ----------------------------------------
   real (kind=Rkind), allocatable :: Qact1(:)
@@ -645,6 +646,7 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   integer, allocatable, save :: tab_iQa(:)
   logical :: Find_iQa
   integer :: numths
+  TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
   !----- for debuging --------------------------------------------------
   integer :: err_mem,memory
@@ -658,6 +660,13 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
    flush(out_unit)
   END IF
   !-----------------------------------------------------------
+  IF (mole%itRPH == -1) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' RPHTransfo is not set: itRPH=-1'
+    write(out_unit,*) ' itRPH',mole%itRPH
+    STOP ' ERROR in get_Vinact_AT_Qact_HarD: RPHTransfo is not set'
+  END IF
+  RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
 
   IF (.NOT. allocated(tab_iQa)) THEN
     numths = 1
@@ -668,21 +677,21 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   END IF
 
   !here it should be Qin of RPH (therefore Qdyn ?????)
-  CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+  CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
   !write(out_unit,*) 'test HARD without HAC'
 
   ! transfert the dnQin coordinates: type21 in dnVecQin and ....
   !   the other (active, rigid ..) in dnQout
-  CALL alloc_NParray(Qact1,[mole%RPHTransfo%nb_act1],"Qact1",name_sub)
-  CALL alloc_NParray(Qinact21,[mole%RPHTransfo%nb_inact21],"Qinact21",name_sub)
+  CALL alloc_NParray(Qact1,[RPHTransfo%nb_act1],"Qact1",name_sub)
+  CALL alloc_NParray(Qinact21,[RPHTransfo%nb_inact21],"Qinact21",name_sub)
 
   iQinact21 = 0
   iQact1    = 0
   DO iQ=1,mole%nb_var
-   IF (mole%RPHTransfo%list_act_OF_Qdyn(iQ) == 21) THEN
+   IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 21) THEN
      iQinact21 = iQinact21 + 1
      Qinact21(iQinact21) = Qdyn(iQ)
-   ELSE IF (mole%RPHTransfo%list_act_OF_Qdyn(iQ) == 1) THEN
+   ELSE IF (RPHTransfo%list_act_OF_Qdyn(iQ) == 1) THEN
      iQact1 = iQact1 + 1
      Qact1(iQact1) = Qdyn(iQ)
    END IF
@@ -696,7 +705,7 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
   iQa = tab_iQa(ith)
 
   ! find the iQa from tab_RPHpara_AT_Qact1
-  Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+  Find_iQa = Find_iQa_OF_RPHpara_AT_Qact1(iQa,Qact1,RPHTransfo%tab_RPHpara_AT_Qact1)
   IF (.NOT. Find_iQa) THEN
    write(out_unit,*) 'ERROR in ',name_sub
    STOP
@@ -705,18 +714,18 @@ SUBROUTINE get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
    tab_iQa(ith) = iQa
   END IF
 
-  Vinact(:) = HALF*sum(mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)*Qinact21(:)**2)
+  Vinact(:) = HALF*sum(RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)*Qinact21(:)**2)
 
   IF (debug) THEN
     write(out_unit,*) 'iQa',iQa
     write(out_unit,*) 'Qinact21',Qinact21(:)
-    write(out_unit,*) 'dnehess',mole%RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
+    write(out_unit,*) 'dnehess',RPHTransfo%tab_RPHpara_AT_Qact1(iQa)%dnehess%d0(:)
     write(out_unit,*) 'Vinact',Vinact
   END IF
 
   CALL dealloc_NParray(Qact1,"Qact1",name_sub)
   CALL dealloc_NParray(Qinact21,"Qinact21",name_sub)
-
+  nullify(RPHTransfo)
   !-----------------------------------------------------------
   IF (debug) THEN
     write(out_unit,*) 'END ',name_sub
@@ -736,7 +745,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IMPLICIT NONE
 
 !----- for the CoordType and Tnum --------------------------------------
-      TYPE (Tnum)    :: para_Tnum
+      TYPE (Tnum)      :: para_Tnum
       TYPE (CoordType) :: mole
 
 !----- for Qact ... ---------------------------------------------
@@ -752,7 +761,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       integer           :: nderivE,nderivS,nderiv_loc
       integer           :: nderivImE,nderivScal
-
 
 !----- working variables -------------------------------------------------
       integer             :: nderivScal_loc
@@ -937,7 +945,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             !END IF
             list_QactTOQML(iQact) = iQML
           END DO
-          !list_QactTOQML = PrimOp%Qit_TO_QQMLib(mole%liste_QactTOQdyn(1:mole%nb_act))
         ELSE IF (nderivE > 0) THEN
           STOP 'ERROR in get_dnMatOp_AT_Qact: The gradient or hessian cannot be obtained'
         END IF
@@ -1053,7 +1060,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             END DO
             !----------------------------------------------------------------
           END IF
-          IF (PrimOp%HarD .AND. associated(mole%RPHTransfo) .AND. PrimOp%nb_elec == 1) THEN
+          IF (PrimOp%HarD .AND. mole%itRPH > 0 .AND. PrimOp%nb_elec == 1) THEN
             CALL get_Vinact_AT_Qact_HarD(Qact,Vinact,mole,para_Tnum,PrimOp)
             DO ie=1,PrimOp%nb_elec
               Tab_dnMatOp(iOpE)%tab_dnMatOp(ie,ie,itermE)%d0 =                  &
@@ -1859,14 +1866,17 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      TYPE (CoordType) :: mole,mole_1
-      TYPE (Tnum)      :: para_Tnum
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in)            :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in)            :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
-      real (kind=Rkind), intent(inout) :: Qact(:)
-      TYPE (PrimOp_t)     :: PrimOp
-      real (kind=Rkind)   :: hCC(mole%ncart_act,mole%ncart_act)
-      logical             :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
-
+      TYPE (CoordType), target :: mole_1
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -1896,10 +1906,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'calc3_NM_TO_sym'
 !      -----------------------------------------------------------------
-       IF (debug) THEN
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+      IF (mole%itNM > 0) THEN
+        NMTransfo => mole%tab_Qtransfo(mole%itNM)%NMTransfo
+      ELSE
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' mole%itNM <= 0',mole%itNM
+        write(out_unit,*) ' It should never appended!'
+        write(out_unit,*) ' Check the Fortran'
+        STOP 'ERROR in calc3_NM_TO_sym: mole%itNM <= 0'
+      END IF
+      IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*)
-        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
 !       CALL Write_mole(mole)
 !       write(out_unit,*)
@@ -1912,27 +1932,27 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       write(out_unit,*) '========================================='
       write(out_unit,*)
 
-      Qact = mole%ActiveTransfo%Qact0(:)
+      Qact = ActiveTransfo%Qact0(:)
 
       write(out_unit,*) '========================================='
       write(out_unit,*) '==== hessian and kinetic matrices ======='
       write(out_unit,*) '========================================='
 
-      IF (mole%NMTransfo%hessian_read .AND. mole%NMTransfo%k_read) THEN
-        nb_NM = ubound(mole%NMTransfo%d0k,dim=1)
+      IF (NMTransfo%hessian_read .AND. NMTransfo%k_read) THEN
+        nb_NM = ubound(NMTransfo%d0k,dim=1)
         CALL alloc_NParray(d0k,[nb_NM,nb_NM],"d0k",name_sub)
-        d0k(:,:) = mole%NMTransfo%d0k(:,:)
+        d0k(:,:) = NMTransfo%d0k(:,:)
 
-        IF (nb_NM /= ubound(mole%NMTransfo%d0h,dim=1)) THEN
+        IF (nb_NM /= ubound(NMTransfo%d0h,dim=1)) THEN
           write(out_unit,*) ' ERROR in ',name_sub
           write(out_unit,*) ' The dimension of d0k and d0h are different!'
-          write(out_unit,*) ' shape(d0k):',shape(mole%NMTransfo%d0k)
-          write(out_unit,*) ' shape(d0h):',shape(mole%NMTransfo%d0h)
+          write(out_unit,*) ' shape(d0k):',shape(NMTransfo%d0k)
+          write(out_unit,*) ' shape(d0h):',shape(NMTransfo%d0h)
           write(out_unit,*) ' Check your data !!'
           STOP
         END IF
         CALL alloc_NParray(d0h,[nb_NM,nb_NM],"d0h",name_sub)
-        d0h(:,:) = mole%NMTransfo%d0h(:,:)
+        d0h(:,:) = NMTransfo%d0h(:,:)
 
         CALL alloc_NParray(d0grad,[nb_NM],"d0grad",name_sub)
         d0grad(:) = ZERO
@@ -1941,9 +1961,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       ELSE ! both are false
         !- create mole_1 (type=-1 => type=1)
         mole_1 = mole
+        ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
+
         DO i=1,mole_1%nb_var
-          IF (mole_1%ActiveTransfo%list_act_OF_Qdyn(i) == -1)           &
-                            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (ActiveTransfo_1%list_act_OF_Qdyn(i) == -1)           &
+                            ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
         END DO
         IF (debug) THEN
           write(out_unit,*) 'mole_1:'
@@ -1971,10 +1993,10 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL alloc_MatOFdnS(dnECC,mole_1%ncart_act,2)
         CALL alloc_MatOFdnS(dnE,nb_NM,2)
 
-        IF (mole%NMTransfo%hessian_old) THEN
-          IF (mole%NMTransfo%hessian_onthefly) THEN
+        IF (NMTransfo%hessian_old) THEN
+          IF (NMTransfo%hessian_onthefly) THEN
 
-            mole%NMTransfo%hessian_cart = .TRUE.
+            NMTransfo%hessian_cart = .TRUE.
             ! save on-the-fly parameters
             name_FChk          = PrimOp%para_OTF%file_FChk%name
             Read_OnTheFly_only = PrimOp%Read_OnTheFly_only
@@ -1983,7 +2005,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             ! set-up on-the-fly parameters to read the hessian
             PrimOp%OnTheFly                = .TRUE.
             PrimOp%Read_OnTheFly_only      = .TRUE.
-            PrimOp%para_OTF%file_FChk%name = mole%NMTransfo%file_hessian%name
+            PrimOp%para_OTF%file_FChk%name = NMTransfo%file_hessian%name
 
             write(out_unit,*) 'Read ab initio hessian from file: ',    &
                                   trim(PrimOp%para_OTF%file_FChk%name)
@@ -2001,7 +2023,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             PrimOp%Read_OnTheFly_only      = Read_OnTheFly_only
             PrimOp%OnTheFly                = OnTheFly
           ELSE
-            IF (mole%NMTransfo%hessian_cart) THEN
+            IF (NMTransfo%hessian_cart) THEN
               write(out_unit,*) 'Old hessian : mole_1%ncart_act',mole_1%ncart_act
               dnECC(1,1)%d1(:)   = ZERO
               IF (.NOT. l_hCC) THEN
@@ -2068,16 +2090,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL alloc_NParray(d0c,    [nb_NM,nb_NM],"d0c",    name_sub)
       CALL alloc_NParray(d0eh,   [nb_NM],      "d0eh",   name_sub)
 
-      IF (mole%NMTransfo%ReadCoordBlocks) THEN
+      IF (NMTransfo%ReadCoordBlocks) THEN
 
-        CALL H0_symmetrization(d0h,nb_NM,mole%NMTransfo%BlockCoord,      &
-                         mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
+        CALL H0_symmetrization(d0h,nb_NM,NMTransfo%BlockCoord,      &
+                         NMTransfo%dim_equi,NMTransfo%tab_equi)
         write(out_unit,*) 'purified hessian matrix'
         write(out_unit,*) nb_NM,5
         CALL Write_Mat_MPI(d0h,out_unit,5,Rformat='e20.13')
 
-        CALL H0_symmetrization(d0k,nb_NM,mole%NMTransfo%BlockCoord,      &
-                        mole%NMTransfo%dim_equi,mole%NMTransfo%tab_equi)
+        CALL H0_symmetrization(d0k,nb_NM,NMTransfo%BlockCoord,      &
+                        NMTransfo%dim_equi,NMTransfo%tab_equi)
         write(out_unit,*) 'purified K (kinetic) matrix'
         write(out_unit,*) nb_NM,5
         CALL Write_Mat_MPI(d0k,out_unit,5,Rformat='e20.13')
@@ -2094,9 +2116,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       CALL alloc_NParray(d0k_save,[nb_NM,nb_NM],"d0k_save",name_sub)
       d0k_save(:,:) = d0k(:,:)
-      IF (mole%NMTransfo%d0c_read) THEN
-        d0c(:,:) = mole%NMTransfo%d0c(:,:)
-        CALL dealloc_array(mole%NMTransfo%d0c,"mole%NMTransfo%d0c",name_sub)
+      IF (NMTransfo%d0c_read) THEN
+        d0c(:,:) = NMTransfo%d0c(:,:)
+        CALL dealloc_array(NMTransfo%d0c,"NMTransfo%d0c",name_sub)
 
         CALL calc_freq_WITH_d0c(nb_NM,d0h,d0k_save,d0eh,                &
                                 d0c,d0c_inv,norme)
@@ -2111,7 +2133,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END IF
 
       write(out_unit,*) '========================================='
-      IF (allocated(mole%NMTransfo%BlockCoord)) THEN
+      IF (allocated(NMTransfo%BlockCoord)) THEN
         IF (debug) write(out_unit,*) '   d0eh,d0c,d0c_inv after "sort_with_Tab"'
 
         CALL alloc_NParray(tab_sort,[nb_NM],"tab_sort",name_sub)
@@ -2119,7 +2141,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         max_freq = maxval(d0eh(:))
         DO i=1,nb_NM
           k = maxloc(abs(d0c(:,i)),dim=1)
-          tab_sort(i) = real(mole%NMTransfo%BlockCoord(k),kind=Rkind)
+          tab_sort(i) = real(NMTransfo%BlockCoord(k),kind=Rkind)
           IF (tab_sort(i) > ZERO) tab_sort(i) = d0eh(i) + tab_sort(i) * max_freq
         END DO
         write(out_unit,*) 'tab_sort: ',tab_sort(:)
@@ -2140,7 +2162,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL Write_Mat_MPI(d0c_inv,out_unit,5)
       END IF
 
-      IF (mole%NMTransfo%k_Half) THEN
+      IF (NMTransfo%k_Half) THEN
         write(out_unit,*) '==========================='
         d0k_save = matmul(transpose(d0c),matmul(d0k,d0c))
         write(out_unit,*) 'new d0k'
@@ -2153,19 +2175,19 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) '==========================='
       END IF
 
-      mole%NMTransfo%nb_NM = nb_NM
+      NMTransfo%nb_NM = nb_NM
 
-      CALL alloc_array(mole%NMTransfo%d0c,[nb_NM,nb_NM],            &
-                      "mole%NMTransfo%d0c",name_sub)
-      mole%NMTransfo%d0c(:,:)     = d0c(:,:)
+      CALL alloc_array(NMTransfo%d0c,[nb_NM,nb_NM],            &
+                      "NMTransfo%d0c",name_sub)
+      NMTransfo%d0c(:,:)     = d0c(:,:)
 
-      CALL alloc_array(mole%NMTransfo%d0c_inv,[nb_NM,nb_NM],        &
-                      "mole%NMTransfo%d0c_inv",name_sub)
-      mole%NMTransfo%d0c_inv(:,:) = d0c_inv(:,:)
+      CALL alloc_array(NMTransfo%d0c_inv,[nb_NM,nb_NM],        &
+                      "NMTransfo%d0c_inv",name_sub)
+      NMTransfo%d0c_inv(:,:) = d0c_inv(:,:)
 
-      CALL alloc_array(mole%NMTransfo%d0eh,[nb_NM],                 &
-                      "mole%NMTransfo%d0eh",name_sub)
-      mole%NMTransfo%d0eh(:)      = d0eh(:)
+      CALL alloc_array(NMTransfo%d0eh,[nb_NM],                 &
+                      "NMTransfo%d0eh",name_sub)
+      NMTransfo%d0eh(:)      = d0eh(:)
 
       write(out_unit,*) 'frequencies (cm-1):',d0eh(:)*auTOcm_inv
       !write(out_unit,*) 'all scaling Gaussian  :',sqrt(abs(d0eh))
@@ -2185,8 +2207,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       DO i_act=1,nb_NM
       DO k_act=1,nb_NM
-        i_sym = mole%ActiveTransfo%list_QactTOQdyn(i_act)
-        k_sym = mole%ActiveTransfo%list_QactTOQdyn(k_act)
+        i_sym = ActiveTransfo%list_QactTOQdyn(i_act)
+        k_sym = ActiveTransfo%list_QactTOQdyn(k_act)
         mat(i_sym,k_sym)     = d0c_inv(k_act,i_act)
         mat_inv(i_sym,k_sym) = d0c(k_act,i_act)
       END DO
@@ -2205,41 +2227,41 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*) '========================================='
         write(out_unit,*) '==========================='
         write(out_unit,*) 'Parameters for the uncoupled HO basis'
-        write(out_unit,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
+        write(out_unit,*) ' Qdyn0 =',ActiveTransfo%Qdyn0
         write(out_unit,*) '==========================='
         write(out_unit,*) ' Hm basis set with Qdyn'
         DO i=1,nb_NM
-          i_sym = mole%ActiveTransfo%list_QactTOQdyn(i)
+          i_sym = ActiveTransfo%list_QactTOQdyn(i)
           write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
-            mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=',ScalePara(i),' /'
+            ActiveTransfo%Qdyn0(i_sym),' scaleQ=',ScalePara(i),' /'
         END DO
         write(out_unit,*) '==========================='
       END IF
 
 
-      mole%ActiveTransfo%Qdyn0(:) = matmul(mat_inv,mole%ActiveTransfo%Qdyn0(:))
+      ActiveTransfo%Qdyn0(:) = matmul(mat_inv,ActiveTransfo%Qdyn0(:))
 
-      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,    &
-                                           mole%ActiveTransfo%Qact0,    &
-                                           mole%ActiveTransfo)
+      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,    &
+                                           ActiveTransfo%Qact0,    &
+                                           ActiveTransfo)
 
-      Qact  = mole%ActiveTransfo%Qact0(:)
+      Qact  = ActiveTransfo%Qact0(:)
 
       IF (print_level > 0) THEN
         write(out_unit,*) '==========================='
         write(out_unit,*) 'Parameters for the HO basis (Normal Modes)'
         write(out_unit,*) ' New Qdyn0, mole with the normal modes'
-        write(out_unit,*) ' Qdyn0 =',mole%ActiveTransfo%Qdyn0
+        write(out_unit,*) ' Qdyn0 =',ActiveTransfo%Qdyn0
         write(out_unit,*) '==========================='
         write(out_unit,*) ' Hm basis set with New Qdyn'
         DO i=1,nb_NM
-          i_sym = mole%ActiveTransfo%list_QactTOQdyn(i)
-          IF (mole%NMTransfo%k_Half) THEN
+          i_sym = ActiveTransfo%list_QactTOQdyn(i)
+          IF (NMTransfo%k_Half) THEN
             write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
-              mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=',sqrt(d0k_save(i,i)),'/'
+              ActiveTransfo%Qdyn0(i_sym),' scaleQ=',sqrt(d0k_save(i,i)),'/'
           ELSE
             write(out_unit,*) '&basis_nD iQdyn(1)=',i_sym,' name="Hm" nq=5 nb=5 Q0=', &
-              mole%ActiveTransfo%Qdyn0(i_sym),' scaleQ=1. /'
+              ActiveTransfo%Qdyn0(i_sym),' scaleQ=1. /'
           END IF
         END DO
         write(out_unit,*) '==========================='
@@ -2263,12 +2285,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       write(out_unit,*) '========================================='
 
       DO i=1,mole%nb_var
-        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
-                            mole%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+        IF (ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
+                            ActiveTransfo%list_act_OF_Qdyn(i) = 100
       END DO
       CALL type_var_analysis_OF_CoordType(mole) ! Qdyn0 => Qact0 is done in this subroutine
       ! but Qact has to be changed
-      Qact(:) = mole%ActiveTransfo%Qact0
+      Qact(:) = ActiveTransfo%Qact0
 
 !     -----------------------------------------------------------------
 !     - calc G_1
@@ -2309,7 +2331,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL dealloc_NParray(ScalePara,"ScalePara",name_sub)
 
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*)
@@ -2317,11 +2339,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF
+      !-----------------------------------------------------------------
+    nullify(NMTransfo)
 
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE calc3_NM_TO_sym
-      SUBROUTINE calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
+  END SUBROUTINE calc3_NM_TO_sym
+  SUBROUTINE calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
@@ -2330,14 +2352,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      TYPE (CoordType) :: mole,mole_1
-      TYPE (Tnum)      :: para_Tnum
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in),  optional :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in),  optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
-      real (kind=Rkind), intent(inout) :: Qact(:)
-      TYPE (PrimOp_t) :: PrimOp
-      real (kind=Rkind), optional :: hCC(mole%ncart_act,mole%ncart_act)
-      logical, optional           :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
+      TYPE (CoordType), target :: mole_1
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -2365,22 +2391,32 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       integer ::i,j,iQ,jQ,i2
       real (kind=Rkind) ::  auTOcm_inv
 
-!      -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       integer :: err_mem,memory
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'calc4_NM_TO_sym'
-!      -----------------------------------------------------------------
-       IF (debug) THEN
+       !-----------------------------------------------------------------
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+      IF (mole%itNM > 0) THEN
+        NMTransfo => mole%tab_Qtransfo(mole%itNM)%NMTransfo
+      ELSE
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' mole%itNM <= 0',mole%itNM
+        write(out_unit,*) ' It should never appended!'
+        write(out_unit,*) ' Check the Fortran'
+        STOP 'ERROR in calc4_NM_TO_sym: mole%itNM <= 0'
+      END IF
+      IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*)
-        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
-!       CALL Write_mole(mole)
-!       write(out_unit,*)
+        !CALL Write_mole(mole)
+        !write(out_unit,*)
        END IF
-
       !-----------------------------------------------------------------
+
       write(out_unit,*) '========================================='
       write(out_unit,*) '========== calc4_NM_TO_sym =============='
       write(out_unit,*) '========================================='
@@ -2415,8 +2451,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL alloc_NParray(d0eh_all,[mole%nb_var],"d0eh_all",name_sub)
       d0eh_all(:) = ZERO
 
-      IF (allocated(mole%NMTransfo%BlockCoord)) THEN
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+      IF (allocated(NMTransfo%BlockCoord)) THEN
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
         ! first count the blocks
         nb_Block = 0
@@ -2429,7 +2465,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
              EXIT
           END IF
         END DO
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
         ! then, count the number of coordinates per block
         CALL alloc_NParray(nb_PerBlock,      [nb_Block],"nb_PerBlock",      name_sub)
@@ -2447,7 +2483,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           WHERE (Ind_Coord_PerBlock == i) Ind_Coord_PerBlock = -Huge(1)
 
         END DO
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
       ELSE
         Ind_Coord_PerBlock(:) = 1
@@ -2485,26 +2521,28 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         !- create mole_1 (type=-1 => type=1)
         mole_1 = mole
+        ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
+
         mole_1%tab_Qtransfo(mole_1%itNM)%skip_transfo = .TRUE.
         ! a changer (utilisation de Qread_TO_Qact !!!
         DO i=1,mole_1%nb_var
           IF (Ind_Coord_PerBlock(i) == Ind_Coord_AtBlock(i_Block)) THEN
-            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+            ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
           ELSE IF (Ind_Coord_PerBlock(i) /= 0) THEN
-            mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+            ActiveTransfo_1%list_act_OF_Qdyn(i) = 100
           END IF
         END DO
         CALL type_var_analysis_OF_CoordType(mole_1)
         write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
-                                mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
+                                ActiveTransfo_1%list_act_OF_Qdyn(:)
 
-        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole_1%ActiveTransfo%Qdyn0,  &
-                                             mole_1%ActiveTransfo%Qact0,  &
-                                             mole_1%ActiveTransfo)
+        CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo_1%Qdyn0,  &
+                                             ActiveTransfo_1%Qact0,  &
+                                             ActiveTransfo_1)
 
-        Qact = mole_1%ActiveTransfo%Qact0(:)
-        IF (print_level > 1) write(out_unit,*) 'Qdyn0',mole_1%ActiveTransfo%Qdyn0
-        IF (print_level > 1) write(out_unit,*) 'Qact0',mole_1%ActiveTransfo%Qact0
+        Qact = ActiveTransfo_1%Qact0(:)
+        IF (print_level > 1) write(out_unit,*) 'Qdyn0',ActiveTransfo_1%Qdyn0
+        IF (print_level > 1) write(out_unit,*) 'Qact0',ActiveTransfo_1%Qact0
         flush(out_unit)
 
 
@@ -2531,7 +2569,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         iQ = 0
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
           iQ = iQ + 1
           ScalePara(i) = sqrt(sqrt(abs(d0h(iQ,iQ)/d0k(iQ,iQ))))
         END DO
@@ -2567,7 +2605,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         END IF
 
         ! change d0c, d0c_inv
-        IF (mole%NMTransfo%k_Half) THEN
+        IF (NMTransfo%k_Half) THEN
           DO i=1,nb_NM
             d0c(:,i)     = d0c(:,i)     / sqrt(d0k_save(i,i))
             d0c_inv(i,:) = d0c_inv(i,:) * sqrt(d0k_save(i,i))
@@ -2577,7 +2615,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           iQ = 0
           DO i=1,mole%nb_var
             IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
             iQ = iQ + 1
             ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
             !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
@@ -2597,13 +2635,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         iQ = 0
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
           iQ = iQ + 1
 
           jQ = 0
           DO j=1,mole%nb_var
             IF (Ind_Coord_PerBlock(j) /= Ind_Coord_AtBlock(i_Block) .OR.&
-              abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(j)) /= 1) CYCLE
+              abs(ActiveTransfo_1%list_act_OF_Qdyn(j)) /= 1) CYCLE
             jQ = jQ + 1
             mat(i,j)     = d0c_inv(jQ,iQ)
             mat_inv(i,j) = d0c(jQ,iQ)
@@ -2611,7 +2649,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
         END DO
         END IF
-        mole%ActiveTransfo%Qdyn0 = mole_1%ActiveTransfo%Qdyn0
+        ActiveTransfo%Qdyn0 = ActiveTransfo_1%Qdyn0
 
         CALL dealloc_NParray(d0k_save,"d0k_save",name_sub)
         CALL dealloc_NParray(d0c_ini, "d0c_ini", name_sub)
@@ -2636,11 +2674,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                           i,i2,d0eh_all(i:i2)*auTOcm_inv
       END DO
-      CALL alloc_array(mole%NMTransfo%d0eh,[nb_NM],                 &
-                      "mole%NMTransfo%d0eh",name_sub)
+      CALL alloc_array(NMTransfo%d0eh,[nb_NM],                 &
+                      "NMTransfo%d0eh",name_sub)
 
-      mole%NMTransfo%d0eh(1:nb_NM) = d0eh_all(1:nb_NM)
-      mole%NMTransfo%nb_NM         = nb_NM
+      NMTransfo%d0eh(1:nb_NM) = d0eh_all(1:nb_NM)
+      NMTransfo%nb_NM         = nb_NM
 
       !write(out_unit,*) ' Mat'
       !CALL Write_Mat_MPI(mat,out_unit,5)
@@ -2656,31 +2694,31 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
             write(out_unit,'(a,i0,a,f0.3,a,f0.3,a)')                   &
                  '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
-                mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
+                ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
           END IF
         END DO
         write(out_unit,*) '==========================='
       END IF
 
 
-      mole%ActiveTransfo%Qdyn0(:) = matmul(mat_inv,mole%ActiveTransfo%Qdyn0(:))
+      ActiveTransfo%Qdyn0(:) = matmul(mat_inv,ActiveTransfo%Qdyn0(:))
 
-      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,    &
-                                           mole%ActiveTransfo%Qact0,    &
-                                           mole%ActiveTransfo)
+      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,    &
+                                           ActiveTransfo%Qact0,    &
+                                           ActiveTransfo)
 
 
 
-      CALL alloc_array(mole%NMTransfo%Q0_HObasis,[mole%nb_var],       &
-                      "mole%NMTransfo%Q0_HObasis",name_sub)
-      mole%NMTransfo%Q0_HObasis(:) = mole%ActiveTransfo%Qdyn0(:)
+      CALL alloc_array(NMTransfo%Q0_HObasis,[mole%nb_var],       &
+                      "NMTransfo%Q0_HObasis",name_sub)
+      NMTransfo%Q0_HObasis(:) = ActiveTransfo%Qdyn0(:)
 
-      CALL alloc_array(mole%NMTransfo%scaleQ_HObasis,[mole%nb_var],   &
-                      "mole%NMTransfo%scaleQ_HObasis",name_sub)
-      mole%NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
+      CALL alloc_array(NMTransfo%scaleQ_HObasis,[mole%nb_var],   &
+                      "NMTransfo%scaleQ_HObasis",name_sub)
+      NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
 
       write(out_unit,*) '==========================='
-      write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
+      write(out_unit,*) 'New Qact0',ActiveTransfo%Qact0(:)
       write(out_unit,*) '==========================='
 
       IF (print_level > 1 .OR. debug) THEN
@@ -2695,7 +2733,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
             write(out_unit,'(a,i0,a,f0.3,a,e11.4,a)')                &
                '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
-             mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
+             ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
           END IF
         END DO
         write(out_unit,*) '==========================='
@@ -2748,13 +2786,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
       DO i=1,mole%nb_var
-        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
-                            mole%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+        IF (ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
+                            ActiveTransfo%list_act_OF_Qdyn(i) = 100
       END DO
       CALL type_var_analysis_OF_CoordType(mole) ! Qdyn0 => Qact0 is done in this subroutine
       ! but Qact has to be changed
 
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
 
       !-----------------------------------------------------------------
       !- calc new G and hessian
@@ -2804,11 +2842,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF
+     !-----------------------------------------------------------------
+    nullify(NMTransfo)
 
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE calc4_NM_TO_sym
-      SUBROUTINE calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
+  END SUBROUTINE calc4_NM_TO_sym
+  SUBROUTINE calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,l_hCC)
       USE TnumTana_system_m
       USE mod_dnSVM
       USE mod_Constant, only : get_Conv_au_TO_unit
@@ -2818,14 +2856,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       USE mod_PrimOp_def
       IMPLICIT NONE
 
-      TYPE (CoordType) :: mole,mole_1
-      TYPE (Tnum)      :: para_Tnum
+      real (kind=Rkind), intent(inout)         :: Qact(:)
+      TYPE (CoordType),  intent(inout), target :: mole
+      TYPE (Tnum),       intent(in)            :: para_Tnum
+      TYPE (PrimOp_t),   intent(inout)         :: PrimOp
+      real (kind=Rkind), intent(in),  optional :: hCC(mole%ncart_act,mole%ncart_act)
+      logical,           intent(in),  optional :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
-      real (kind=Rkind), intent(inout) :: Qact(:)
-      TYPE (PrimOp_t) :: PrimOp
-      real (kind=Rkind), optional :: hCC(mole%ncart_act,mole%ncart_act)
-      logical, optional           :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
 
+      TYPE (CoordType), target :: mole_1
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo_1 ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
       TYPE(Type_dnMat) :: dnGG
 
@@ -2859,10 +2901,20 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'calc5_NM_TO_sym'
 !      -----------------------------------------------------------------
-       IF (debug) THEN
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+      IF (mole%itNM > 0) THEN
+        NMTransfo => mole%tab_Qtransfo(mole%itNM)%NMTransfo
+      ELSE
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' mole%itNM <= 0',mole%itNM
+        write(out_unit,*) ' It should never appended!'
+        write(out_unit,*) ' Check the Fortran'
+        STOP 'ERROR in calc5_NM_TO_sym: mole%itNM <= 0'
+      END IF
+      IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*)
-        write(out_unit,*) 'Qdyn0 =',mole%ActiveTransfo%Qdyn0(:)
+        write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
 !       CALL Write_mole(mole)
 !       write(out_unit,*)
@@ -2902,14 +2954,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       CALL alloc_NParray(d0eh_all,[mole%nb_var],"d0eh_all",name_sub)
       d0eh_all(:) = ZERO
 
-      IF (.NOT. allocated(mole%NMTransfo%BlockCoord)) THEN
-        CALL alloc_NParray(mole%NMTransfo%BlockCoord,[mole%nb_var],      &
-                        "mole%NMTransfo%BlockCoord",name_sub)
-        mole%NMTransfo%BlockCoord(:) = mole%ActiveTransfo%list_act_OF_Qdyn(:)
+      IF (.NOT. allocated(NMTransfo%BlockCoord)) THEN
+        CALL alloc_NParray(NMTransfo%BlockCoord,[mole%nb_var],      &
+                        "NMTransfo%BlockCoord",name_sub)
+        NMTransfo%BlockCoord(:) = ActiveTransfo%list_act_OF_Qdyn(:)
       END IF
 
-      IF (allocated(mole%NMTransfo%BlockCoord)) THEN
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+      IF (allocated(NMTransfo%BlockCoord)) THEN
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
         ! first count the blocks
         nb_Block = 0
@@ -2922,7 +2974,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
              EXIT
           END IF
         END DO
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
         ! then, count the number of coordinates per block
         CALL alloc_NParray(nb_PerBlock,      [nb_Block],"nb_PerBlock",      name_sub)
@@ -2940,7 +2992,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           WHERE (Ind_Coord_PerBlock == i) Ind_Coord_PerBlock = -Huge(1)
 
         END DO
-        Ind_Coord_PerBlock(:) = mole%NMTransfo%BlockCoord(:)
+        Ind_Coord_PerBlock(:) = NMTransfo%BlockCoord(:)
 
       ELSE
         Ind_Coord_PerBlock(:) = 1
@@ -2979,23 +3031,24 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         ELSE
           !- create mole_1 (type=-1 => type=1)
           mole_1 = mole
+          ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo
           ! a changer (utilisation de Qread_TO_Qact !!!
           DO i=1,mole_1%nb_var
             IF (Ind_Coord_PerBlock(i) == Ind_Coord_AtBlock(i_Block)) THEN
-              mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+              ActiveTransfo_1%list_act_OF_Qdyn(i) = 1
             ELSE IF (Ind_Coord_PerBlock(i) /= 0) THEN
-              mole_1%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+              ActiveTransfo_1%list_act_OF_Qdyn(i) = 100
             END IF
           END DO
           CALL type_var_analysis_OF_CoordType(mole_1)
           write(out_unit,*) 'mole_1%...list_act_OF_Qdyn',                &
-                                  mole_1%ActiveTransfo%list_act_OF_Qdyn(:)
+                                  ActiveTransfo_1%list_act_OF_Qdyn(:)
 
-          CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,  &
-                                               mole%ActiveTransfo%Qact0,  &
-                                               mole%ActiveTransfo)
+          CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,  &
+                                               ActiveTransfo%Qact0,  &
+                                               ActiveTransfo)
 
-          Qact = mole_1%ActiveTransfo%Qact0(:)
+          Qact = ActiveTransfo_1%Qact0(:)
           IF (print_level > 1) write(out_unit,*) 'Qact',Qact
 
 
@@ -3022,7 +3075,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           iQ = 0
           DO i=1,mole%nb_var
             IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
             iQ = iQ + 1
             ScalePara(i) = sqrt(sqrt(abs(d0h(iQ,iQ)/d0k(iQ,iQ))))
           END DO
@@ -3056,7 +3109,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           END IF
 
           ! change d0c, d0c_inv
-          IF (mole%NMTransfo%k_Half) THEN
+          IF (NMTransfo%k_Half) THEN
             DO i=1,nb_NM
               d0c(:,i)     = d0c(:,i)     / sqrt(d0k_save(i,i))
               d0c_inv(i,:) = d0c_inv(i,:) * sqrt(d0k_save(i,i))
@@ -3066,7 +3119,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             iQ = 0
             DO i=1,mole%nb_var
               IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
               iQ = iQ + 1
               ScalePara_NM(i) = sqrt(d0k_save(iQ,iQ))
               !write(out_unit,*) 'i,iQ,d0h,d0k',i,iQ,d0h(iQ,iQ),d0k(iQ,iQ)
@@ -3086,13 +3139,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             iQ = 0
             DO i=1,mole%nb_var
               IF (Ind_Coord_PerBlock(i) /= Ind_Coord_AtBlock(i_Block) .OR.  &
-                  abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(i)) /= 1) CYCLE
+                  abs(ActiveTransfo_1%list_act_OF_Qdyn(i)) /= 1) CYCLE
               iQ = iQ + 1
 
               jQ = 0
               DO j=1,mole%nb_var
                 IF (Ind_Coord_PerBlock(j) /= Ind_Coord_AtBlock(i_Block) .OR.&
-                  abs(mole_1%ActiveTransfo%list_act_OF_Qdyn(j)) /= 1) CYCLE
+                  abs(ActiveTransfo_1%list_act_OF_Qdyn(j)) /= 1) CYCLE
                 jQ = jQ + 1
                 mat(i,j)     = d0c_inv(jQ,iQ)
                 mat_inv(i,j) = d0c(jQ,iQ)
@@ -3100,7 +3153,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
             END DO
           END IF
-          mole%ActiveTransfo%Qdyn0 = mole_1%ActiveTransfo%Qdyn0
+          ActiveTransfo%Qdyn0 = ActiveTransfo_1%Qdyn0
 
           CALL dealloc_NParray(d0k_save,"d0k_save",name_sub)
           CALL dealloc_NParray(d0c_ini, "d0c_ini", name_sub)
@@ -3125,11 +3178,11 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,'("frequencies (cm-1): ",i0,"-",i0,3(1x,f0.4))') &
                           i,i2,d0eh_all(i:i2)*auTOcm_inv
       END DO
-      CALL alloc_array(mole%NMTransfo%d0eh,[nb_NM],                 &
-                      "mole%NMTransfo%d0eh",name_sub)
+      CALL alloc_array(NMTransfo%d0eh,[nb_NM],                 &
+                      "NMTransfo%d0eh",name_sub)
 
-      mole%NMTransfo%d0eh(:)      = d0eh_all(:)
-      mole%NMTransfo%nb_NM        = nb_NM
+      NMTransfo%d0eh(:)      = d0eh_all(:)
+      NMTransfo%nb_NM        = nb_NM
 
       !write(out_unit,*) ' Mat'
       !CALL Write_Mat_MPI(mat,out_unit,5)
@@ -3145,31 +3198,31 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
             write(out_unit,'(a,i0,a,f0.3,a,f0.3,a)')                   &
                  '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
-                mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
+                ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara(i),' /'
           END IF
         END DO
         write(out_unit,*) '==========================='
       END IF
 
 
-      mole%ActiveTransfo%Qdyn0(:) = matmul(mat_inv,mole%ActiveTransfo%Qdyn0(:))
+      ActiveTransfo%Qdyn0(:) = matmul(mat_inv,ActiveTransfo%Qdyn0(:))
 
-      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,    &
-                                           mole%ActiveTransfo%Qact0,    &
-                                           mole%ActiveTransfo)
+      CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,    &
+                                           ActiveTransfo%Qact0,    &
+                                           ActiveTransfo)
 
 
 
-      CALL alloc_array(mole%NMTransfo%Q0_HObasis,[mole%nb_var],       &
-                      "mole%NMTransfo%Q0_HObasis",name_sub)
-      mole%NMTransfo%Q0_HObasis(:) = mole%ActiveTransfo%Qdyn0(:)
+      CALL alloc_array(NMTransfo%Q0_HObasis,[mole%nb_var],       &
+                      "NMTransfo%Q0_HObasis",name_sub)
+      NMTransfo%Q0_HObasis(:) = ActiveTransfo%Qdyn0(:)
 
-      CALL alloc_array(mole%NMTransfo%scaleQ_HObasis,[mole%nb_var],   &
-                      "mole%NMTransfo%scaleQ_HObasis",name_sub)
-      mole%NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
+      CALL alloc_array(NMTransfo%scaleQ_HObasis,[mole%nb_var],   &
+                      "NMTransfo%scaleQ_HObasis",name_sub)
+      NMTransfo%scaleQ_HObasis(:) = ScalePara_NM(:)
 
       write(out_unit,*) '==========================='
-      write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0(:)
+      write(out_unit,*) 'New Qact0',ActiveTransfo%Qact0(:)
       write(out_unit,*) '==========================='
 
       IF (print_level > 1 .OR. debug) THEN
@@ -3184,7 +3237,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
           IF (Ind_Coord_PerBlock(i) /= 0) THEN
             write(out_unit,'(a,i0,a,f0.3,a,e11.4,a)')                &
                '  &basis_nD iQdyn(1)= ',i,' name="Hm" nq=5 nb=5 Q0=', &
-             mole%ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
+             ActiveTransfo%Qdyn0(i),' scaleQ=',ScalePara_NM(i),' /'
           END IF
         END DO
         write(out_unit,*) '==========================='
@@ -3230,13 +3283,13 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       !-----------------------------------------------------------------
       DO i=1,mole%nb_var
-        IF (mole%ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
-                            mole%ActiveTransfo%list_act_OF_Qdyn(i) = 100
+        IF (ActiveTransfo%list_act_OF_Qdyn(i) == -1)               &
+                            ActiveTransfo%list_act_OF_Qdyn(i) = 100
       END DO
       CALL type_var_analysis_OF_CoordType(mole) ! Qdyn0 => Qact0 is done in this subroutine
       ! but Qact has to be changed
 
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
 
       !-----------------------------------------------------------------
       !- calc new G and hessian
@@ -3286,17 +3339,18 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF
+    !     -----------------------------------------------------------------
+    nullify(NMTransfo)
 
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE calc5_NM_TO_sym
-      SUBROUTINE get_hess_k(d0k,d0h,nb_NM,Qact,mole,para_Tnum,          &
+  END SUBROUTINE calc5_NM_TO_sym
+  SUBROUTINE get_hess_k(d0k,d0h,nb_NM,Qact,mole,para_Tnum,          &
                             Ind_Coord_AtBlock,Ind_Coord_PerBlock,       &
                             PrimOp,hCC,l_hCC)
       USE TnumTana_system_m
       USE mod_dnSVM
-      USE mod_Coord_KEO, only : CoordType,Tnum,get_d0GG,                    &
-                                sub_dnFCC_TO_dnFcurvi, Write_CoordType
+      USE mod_Coord_KEO, only : CoordType,Tnum,get_d0GG,Type_NMTransfo, &
+                                sub_dnFCC_TO_dnFcurvi, Write_CoordType, &
+                                Type_ActiveTransfo
 
       USE mod_SimpleOp
       USE mod_PrimOp_def
@@ -3306,8 +3360,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       real (kind=Rkind) :: d0k(nb_NM,nb_NM),d0h(nb_NM,nb_NM)
 
 
-      TYPE (CoordType)     :: mole
-      TYPE (Tnum)          :: para_Tnum
+      TYPE (CoordType), target     :: mole
+      TYPE (Tnum)                  :: para_Tnum
 
       real (kind=Rkind), intent(inout) :: Qact(:)
       TYPE (PrimOp_t)   :: PrimOp
@@ -3315,6 +3369,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       logical,           intent(in)    :: l_hCC  ! if .TRUE. hCC is already calculated (for PVSCF)
       integer :: Ind_Coord_AtBlock,Ind_Coord_PerBlock(mole%nb_var)
       real (kind=Rkind) :: d0grad(nb_NM)
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
 
 
       TYPE(Type_dnS)       :: dnECC(1,1),dnE(1,1)
@@ -3330,23 +3386,32 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       character (len=Line_len) :: name_FChk
 
-
       !-----------------------------------------------------------------
       integer :: err_mem,memory
       logical, parameter :: debug=.FALSE.
       !logical, parameter :: debug=.TRUE.
       character (len=*), parameter :: name_sub = 'get_hess_k'
       !-----------------------------------------------------------------
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+      IF (mole%itNM > 0) THEN
+        NMTransfo => mole%tab_Qtransfo(mole%itNM)%NMTransfo
+      ELSE
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' mole%itNM <= 0',mole%itNM
+        write(out_unit,*) ' It should never appended!'
+        write(out_unit,*) ' Check the Fortran'
+        STOP 'ERROR in get_hess_k: mole%itNM <= 0'
+      END IF
       IF (debug) THEN
         write(out_unit,*) 'BEGINNING ',name_sub
         write(out_unit,*) 'shape Qact ',shape(Qact)
         write(out_unit,*) 'Qact =',Qact
         write(out_unit,*)
-        write(out_unit,*) 'hessian_read,k_read',mole%NMTransfo%hessian_read,mole%NMTransfo%k_read
-        write(out_unit,*) 'hessian_old',mole%NMTransfo%hessian_old
-        write(out_unit,*) 'hessian_onthefly',mole%NMTransfo%hessian_onthefly
-        write(out_unit,*) 'hessian_cart',mole%NMTransfo%hessian_cart
-        write(out_unit,*) 'mole%...list_act_OF_Qdyn',mole%ActiveTransfo%list_act_OF_Qdyn(:)
+        write(out_unit,*) 'hessian_read,k_read',NMTransfo%hessian_read,NMTransfo%k_read
+        write(out_unit,*) 'hessian_old',NMTransfo%hessian_old
+        write(out_unit,*) 'hessian_onthefly',NMTransfo%hessian_onthefly
+        write(out_unit,*) 'hessian_cart',NMTransfo%hessian_cart
+        write(out_unit,*) 'mole%...list_act_OF_Qdyn',ActiveTransfo%list_act_OF_Qdyn(:)
         write(out_unit,*)
         CALL Write_CoordType(mole)
         write(out_unit,*)
@@ -3364,7 +3429,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         flush(out_unit)
       END IF
 
-      IF (mole%NMTransfo%hessian_read .AND. mole%NMTransfo%k_read) THEN
+      IF (NMTransfo%hessian_read .AND. NMTransfo%k_read) THEN
         ib = 0
         DO i=1,mole%nb_var
           IF (Ind_Coord_PerBlock(i) == Ind_Coord_AtBlock) THEN
@@ -3373,8 +3438,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             DO j=1,mole%nb_var
               IF (Ind_Coord_PerBlock(j) == Ind_Coord_AtBlock) THEN
                 jb = jb + 1
-                d0k(ib,jb) = mole%NMTransfo%d0k(i,j)
-                d0h(ib,jb) = mole%NMTransfo%d0h(i,j)
+                d0k(ib,jb) = NMTransfo%d0k(i,j)
+                d0h(ib,jb) = NMTransfo%d0h(i,j)
               END IF
             END DO
           END IF
@@ -3394,9 +3459,9 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         END WHERE
 
         !- calculation of the hessian (mole)
-        IF (mole%NMTransfo%hessian_old) THEN
-          IF (mole%NMTransfo%hessian_onthefly) THEN
-            mole%NMTransfo%hessian_cart = .TRUE.
+        IF (NMTransfo%hessian_old) THEN
+          IF (NMTransfo%hessian_onthefly) THEN
+            NMTransfo%hessian_cart = .TRUE.
             ! save on-the-fly parameters
             name_FChk          = PrimOp%para_OTF%file_FChk%name
             Read_OnTheFly_only = PrimOp%Read_OnTheFly_only
@@ -3405,7 +3470,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             ! set-up on-the-fly parameters to read the hessian
             PrimOp%OnTheFly                = .TRUE.
             PrimOp%Read_OnTheFly_only      = .TRUE.
-            PrimOp%para_OTF%file_FChk%name = mole%NMTransfo%file_hessian%name
+            PrimOp%para_OTF%file_FChk%name = NMTransfo%file_hessian%name
 
             write(out_unit,*) 'Read ab initio hessian from file: ',    &
                                   trim(PrimOp%para_OTF%file_FChk%name)
@@ -3422,7 +3487,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
             PrimOp%Read_OnTheFly_only      = Read_OnTheFly_only
             PrimOp%OnTheFly                = OnTheFly
           ELSE
-            IF (mole%NMTransfo%hessian_cart) THEN
+            IF (NMTransfo%hessian_cart) THEN
               CALL alloc_MatOFdnS(dnE,nb_NM,2)
               CALL alloc_MatOFdnS(dnECC,mole%ncart_act,2)
 
@@ -3511,16 +3576,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         flush(out_unit)
       END IF
 
-!     -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
         flush(out_unit)
       END IF
+      !-----------------------------------------------------------------
+    nullify(NMTransfo)
 
-!     -----------------------------------------------------------------
-
-      END SUBROUTINE get_hess_k
+  END SUBROUTINE get_hess_k
 
       !=============================================================
       !     Harmonic potential part : pot2
@@ -3575,61 +3640,75 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       END FUNCTION pot2
 
 
-SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
-      USE TnumTana_system_m
-      USE mod_dnSVM
-      USE mod_Constant, only : get_Conv_au_TO_unit
-      USE mod_Coord_KEO
-      USE mod_SimpleOp
-      USE mod_PrimOp_def
-      
-      IMPLICIT NONE
+  SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Constant, only : get_Conv_au_TO_unit
+    USE mod_Coord_KEO
+    USE mod_SimpleOp
+    USE mod_PrimOp_def
+    IMPLICIT NONE
 
-!----- for the CoordType and Tnum --------------------------------------
-      TYPE (Tnum)        :: para_Tnum
-      TYPE (CoordType)   :: mole
-      TYPE (PrimOp_t)    :: PrimOp
-      logical, optional  :: Tana,KEO_only
+    !----- for the CoordType and Tnum --------------------------------------
+    TYPE (Tnum),      intent(inout)         :: para_Tnum
+    TYPE (CoordType), intent(inout), target :: mole
+    TYPE (PrimOp_t),  intent(inout)         :: PrimOp
+    logical,          intent(in),  optional :: Tana,KEO_only
+
+    TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+    TYPE (Type_NMTransfo),    pointer :: NMTransfo ! true pointer
+    TYPE (Type_RPHTransfo),   pointer :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+    !-------------------------------------------------------------------------
+    real (kind=Rkind)                 :: Qact(mole%nb_var)
+    TYPE (Type_dnVec)                 :: dnx
+
+    real (kind=Rkind), allocatable    :: hCC(:,:),GGdef(:,:)
+    logical                           :: Gref,Qref,QMLib_G
+    logical                           :: tab_skip_transfo(mole%nb_Qtransfo)
+    logical                           :: Tana_loc,KEO_only_loc
+
+    integer                           :: iQa,nb_act1_RPH,nb_inact21_RPH,nb_pts
+    integer                           :: it,nderiv
+
+    real (kind=Rkind)                 :: auTOcm_inv
+
+    real (kind=Rkind)                 :: freq(mole%nb_act)
+    TYPE (param_d0MatOp), allocatable :: d0MatOp(:)
+    integer                           :: iOp,nb_Op
+
+    integer                           :: get_Qmodel_ndim ! function
+    integer                           :: i,j,iact,jact,ndim
+    real (kind=Rkind), allocatable    :: GGdef_Qmodel(:,:)
+    integer                           :: GTaylor_Order
 
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-      real (kind=Rkind)                 :: Qact(mole%nb_var)
-      TYPE (Type_dnVec)                 :: dnx
 
-      real (kind=Rkind), allocatable    :: hCC(:,:),GGdef(:,:)
-      logical                           :: Gref,Qref,QMLib_G
-      logical                           :: tab_skip_transfo(mole%nb_Qtransfo)
-      logical                           :: Tana_loc,KEO_only_loc
+    !----- for debuging --------------------------------------------------
+    integer :: err_mem,memory
+    character (len=*), parameter :: name_sub = 'Finalize_TnumTana_Coord_PrimOp'
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    !-----------------------------------------------------------
+    ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    IF (mole%itNM > 0) THEN
+      NMTransfo => mole%tab_Qtransfo(mole%itNM)%NMTransfo
+    ELSE
+      nullify(NMTransfo)
+    END IF
+    IF (mole%itRPH > 0) THEN
+      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+    ELSE
+      nullify(RPHTransfo)
+    END IF
 
-      integer                           :: iQa,nb_act1_RPH,nb_inact21_RPH,nb_pts
-      integer                           :: it,nderiv
-
-      real (kind=Rkind)                 :: auTOcm_inv
-
-      real (kind=Rkind)                 :: freq(mole%nb_act)
-      TYPE (param_d0MatOp), allocatable :: d0MatOp(:)
-      integer                           :: iOp,nb_Op
-
-      integer                           :: get_Qmodel_ndim ! function
-      integer                           :: i,j,iact,jact,ndim
-      real (kind=Rkind), allocatable    :: GGdef_Qmodel(:,:)
-      integer                           :: GTaylor_Order
-
-!----- for debuging --------------------------------------------------
-      integer :: err_mem,memory
-      character (len=*), parameter :: name_sub = 'Finalize_TnumTana_Coord_PrimOp'
-      logical, parameter :: debug = .FALSE.
-      !logical, parameter :: debug = .TRUE.
-!-----------------------------------------------------------
-  IF (debug) THEN
-    write(out_unit,*) 'BEGINNING ',name_sub
-    write(out_unit,*) 'asso  NMTransfo',associated(mole%NMTransfo)
-    IF (associated(mole%NMTransfo)) &
-      write(out_unit,*) 'skip_transfo  NMTransfo',mole%tab_Qtransfo(mole%itNM)%skip_transfo
-    flush(out_unit)
-  END IF
-!-----------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'itNM  NMTransfo',mole%itNM
+      IF (mole%itNM > 0) &
+        write(out_unit,*) 'skip_transfo of NMTransfo',mole%tab_Qtransfo(mole%itNM)%skip_transfo
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------
 
       auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
       GTaylor_Order = para_Tnum%GTaylor_Order
@@ -3658,30 +3737,30 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       CALL Sub_init_dnOp(mole,para_Tnum,PrimOp)
       !-----------------------------------------------------------------
 
-      !CALL get_Qact0(Qact,mole%ActiveTransfo)
+      !CALL get_Qact0(Qact,ActiveTransfo)
       !CALL sub_freq_AT_Qact(freq,Qact,para_Tnum,mole,PrimOp,print_freq=.TRUE.)
       !----- calc and transfert NM to LinearTransfo%mat if needed ---------------
-      IF (associated(mole%NMTransfo)) THEN
+      IF (associated(NMTransfo)) THEN
         IF (.NOT. mole%tab_Qtransfo(mole%itNM)%skip_transfo) THEN
 
-          CALL get_Qact0(Qact,mole%ActiveTransfo)
+          CALL get_Qact0(Qact,ActiveTransfo)
 
-          IF (mole%NMTransfo%hessian_cart .AND. mole%NMTransfo%hessian_read .AND. .NOT. mole%NMTransfo%hessian_onthefly) THEN
-            SELECT CASE (mole%NMTransfo%NM_TO_sym_ver)
+          IF (NMTransfo%hessian_cart .AND. NMTransfo%hessian_read .AND. .NOT. NMTransfo%hessian_onthefly) THEN
+            SELECT CASE (NMTransfo%NM_TO_sym_ver)
             CASE(3)
-              CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)  
+              CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=NMTransfo%hCC,l_HCC=.TRUE.)  
             CASE(4)
-              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=NMTransfo%hCC,l_HCC=.TRUE.)
   
             CASE(5)
-              CALL calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+              CALL calc5_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=NMTransfo%hCC,l_HCC=.TRUE.)
   
             CASE Default
-              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=mole%NMTransfo%hCC,l_HCC=.TRUE.)
+              CALL calc4_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC=NMTransfo%hCC,l_HCC=.TRUE.)
   
             END SELECT
           ELSE
-            SELECT CASE (mole%NMTransfo%NM_TO_sym_ver)
+            SELECT CASE (NMTransfo%NM_TO_sym_ver)
             CASE(3)
               CALL alloc_NParray(hCC,[mole%ncart_act,mole%ncart_act],"hCC",name_sub)
               CALL calc3_NM_TO_sym(Qact,mole,para_Tnum,PrimOp,hCC,.FALSE.)
@@ -3698,55 +3777,53 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
   
             END SELECT
           END IF
-          !IF (print_level > 1) CALL sub_QplusDQ_TO_Cart(Qact,mole)
-
         END IF
       END IF
 
       !----- set RPH transfo of Qref -----------------------------------
-      IF (associated(mole%RPHTransfo)) THEN
+      IF (mole%itRPH > 0) THEN
 
       IF (.NOT. mole%tab_Qtransfo(mole%itRPH)%skip_transfo) THEN
 
-          CALL get_Qact0(Qact,mole%ActiveTransfo)
+          CALL get_Qact0(Qact,ActiveTransfo)
 
           ! for tab_RPHpara_AT_Qact1(0)
-          IF (.NOT. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
-            nb_act1_RPH    = mole%RPHTransfo%nb_act1
-            nb_inact21_RPH = mole%RPHTransfo%nb_inact21
+          IF (.NOT. associated(RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
+            nb_act1_RPH    = RPHTransfo%nb_act1
+            nb_inact21_RPH = RPHTransfo%nb_inact21
             nb_pts         = nb_act1_RPH ! to be able to deal with displacment along Qact1
-            CALL alloc_array(mole%RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
-                            'mole%RPHTransfo%tab_RPHpara_AT_Qact1',             &
+            CALL alloc_array(RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
+                            'RPHTransfo%tab_RPHpara_AT_Qact1',             &
                                                          name_sub,[-nb_pts])
           END IF
-          write(out_unit,*) 'in ',name_sub,' QMLib,',mole%RPHTransfo%QMlib
+          write(out_unit,*) 'in ',name_sub,' QMLib,',RPHTransfo%QMlib
 
-          CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0),&
+          CALL Set_RPHpara_AT_Qact1(RPHTransfo%tab_RPHpara_AT_Qact1(0),&
                                     Qact,para_Tnum,mole)
-          mole%RPHTransfo%init_Qref = .TRUE.
+          RPHTransfo%init_Qref = .TRUE.
 
-          CALL Qdyn_TO_Qact_FROM_ActiveTransfo(mole%ActiveTransfo%Qdyn0,  &
-                                               mole%ActiveTransfo%Qact0,  &
-                                               mole%ActiveTransfo)
+          CALL Qdyn_TO_Qact_FROM_ActiveTransfo(ActiveTransfo%Qdyn0,  &
+                                               ActiveTransfo%Qact0,  &
+                                               ActiveTransfo)
 
-          write(out_unit,*) 'New Qact0',mole%ActiveTransfo%Qact0
+          write(out_unit,*) 'New Qact0',ActiveTransfo%Qact0
 
           write(out_unit,*) ' Frequencies, normal modes at the reference geometry'
 
-          write(out_unit,11) Qact(1:mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
-                 mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnEHess%d0(:)*auTOcm_inv
+          write(out_unit,11) Qact(1:RPHTransfo%tab_RPHpara_AT_Qact1(0)%nb_act1), &
+                 RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnEHess%d0(:)*auTOcm_inv
 11        format(' frequencies : ',30f10.4)
 
           write(out_unit,*) 'dnQopt'
-          CALL Write_dnVec(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnQopt,nderiv=0)
+          CALL Write_dnVec(RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnQopt,nderiv=0)
           write(out_unit,*) 'dnC_inv'
-          CALL Write_dnMat(mole%RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnC_inv,nderiv=0)
+          CALL Write_dnMat(RPHTransfo%tab_RPHpara_AT_Qact1(0)%dnC_inv,nderiv=0)
           flush(out_unit)
-          IF (debug) CALL Write_RPHTransfo(mole%RPHTransfo)
+          IF (debug) CALL Write_RPHTransfo(RPHTransfo)
 
           ! DO iact=1,nb_act1_RPH ! for what for ?
-          !   CALL get_Qact0(Qact,mole%ActiveTransfo)
-          !   CALL Set_RPHpara_AT_Qact1(mole%RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
+          !   CALL get_Qact0(Qact,ActiveTransfo)
+          !   CALL Set_RPHpara_AT_Qact1(RPHTransfo%tab_RPHpara_AT_Qact1(-iact), &
           !                             Qact,para_Tnum,mole)
           ! END DO
 
@@ -3754,21 +3831,20 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
 
   IF (para_Tnum%Write_QMotions) THEN
-    CALL get_Qact0(Qact,mole%ActiveTransfo)
-    CALL sub_QplusDQ_TO_Cart(Qact,mole)
+    CALL sub_QplusDQ_TO_Cart(mole)
   END IF
 
   !----- Gcte if needed --------------------------------------------
   Gref = .TRUE.
-  IF (associated(mole%RPHTransfo)) THEN
-    Gref = Gref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+  IF (mole%itRPH > 0) THEN
+    Gref = Gref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
   END IF
 
   IF (Gref) THEN
     write(out_unit,*) 'nb_act,nb_rigid100',mole%nb_act,mole%nb_rigid100
     CALL alloc_NPArray(GGdef,[mole%nb_act,mole%nb_act],'GGdef',name_sub)
     GGdef(:,:) = ZERO
-    CALL get_Qact0(Qact,mole%ActiveTransfo)
+    CALL get_Qact0(Qact,ActiveTransfo)
     IF (print_level > 1) write(out_unit,*) ' Gref',shape(GGdef)
     flush(out_unit)
 
@@ -3814,7 +3890,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
     ELSE
       write(out_unit,*) ' Gref from Tnum-Tana'
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,ActiveTransfo)
       !write(out_unit,*) ' Qact',Qact
       CALL get_d0GG(Qact,para_Tnum,mole,GGdef,def=.TRUE.)
     END IF
@@ -3880,8 +3956,8 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
 
       Qref = .TRUE.
-      IF (associated(mole%RPHTransfo)) THEN
-        Qref = Qref .AND. associated(mole%RPHTransfo%tab_RPHpara_AT_Qact1)
+      IF (mole%itRPH > 0) THEN
+        Qref = Qref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
       END IF
       IF (Qref) THEN
         write(out_unit,*) '================================================='
@@ -3889,7 +3965,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
         flush(out_unit)
         CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv=0)
 
-        CALL get_Qact0(Qact,mole%ActiveTransfo)
+        CALL get_Qact0(Qact,ActiveTransfo)
         CALL sub_QactTOdnx(Qact,dnx,mole,nderiv=0,Gcenter=.FALSE.,WriteCC=.TRUE.)
 
         CALL dealloc_dnSVM(dnx)
@@ -3898,7 +3974,7 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
 
       IF (.NOT. KEO_only_loc) THEN
         write(out_unit,*) '================================================='
-        CALL get_Qact0(Qact,mole%ActiveTransfo)
+        CALL get_Qact0(Qact,ActiveTransfo)
 
         !nb_Op = 2 + PrimOp%nb_scalar_Op + PrimOp%nb_CAP + PrimOp%nb_FluxOp ! here we dont't need the other operators
         nb_Op = 2
@@ -3940,6 +4016,8 @@ SUBROUTINE Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp,Tana,KEO_only)
       END IF
       para_Tnum%GTaylor_Order = GTaylor_Order
 
+      nullify(NMTransfo)
+      nullify(RPHTransfo)
 !-----------------------------------------------------------
       !IF (debug) THEN
         write(out_unit,*) 'END ',name_sub

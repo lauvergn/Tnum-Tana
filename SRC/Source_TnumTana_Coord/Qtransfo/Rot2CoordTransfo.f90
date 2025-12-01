@@ -53,7 +53,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE (Rot2CoordTransfo_t), allocatable, intent(inout) :: Rot2CoordTransfo(:)
-    integer,                               intent(in)    :: nb_transfo
+    integer,                                intent(in)    :: nb_transfo
 
     integer :: err_mem,memory
 
@@ -126,11 +126,11 @@ CONTAINS
       write(out_unit,*) ' Current "num_Rot"',Rot2CoordTransfo(i)%num_Rot
    END IF
 
-    END DO
+  END DO
 
-    CALL Write_Rot2CoordTransfo(Rot2CoordTransfo)
+  CALL Write_Rot2CoordTransfo(Rot2CoordTransfo)
 
-  END SUBROUTINE Read_Rot2CoordTransfo
+END SUBROUTINE Read_Rot2CoordTransfo
 
   SUBROUTINE Write_Rot2CoordTransfo(Rot2CoordTransfo)
     IMPLICIT NONE

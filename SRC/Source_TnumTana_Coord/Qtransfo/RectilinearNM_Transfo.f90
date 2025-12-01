@@ -49,16 +49,15 @@
         integer           :: nb_var=0
 
         ! just for read the input data
-        real (kind=Rkind),        pointer :: masses(:)     => null() ! TRUE pointer
-        integer, pointer                  :: type_Qin(:)   => null() ! TRUE pointer
-        character (len=Name_len), pointer :: name_Qin(:)   => null() ! TRUE pointer
-        integer, pointer                  :: Z(:)          => null() ! TRUE pointer
-        character (len=Name_len),pointer  :: symbole(:)    => null() ! TRUE pointer
+        real (kind=Rkind),        allocatable :: masses(:)
+        integer,                  allocatable :: type_Qin(:)
+        character (len=Name_len), allocatable :: name_Qin(:)
+        integer,                  allocatable :: Z(:)
+        character (len=Name_len), allocatable :: symbole(:)
 
-
-        real (kind=Rkind), pointer  :: mat(:,:)=>null()
-        real (kind=Rkind), pointer  :: mat_inv(:,:)=>null()
-        logical :: inv=.FALSE.
+        real (kind=Rkind),        allocatable  :: mat(:,:)
+        real (kind=Rkind),        allocatable  :: mat_inv(:,:)
+        logical                                :: inv = .FALSE.
 
       END TYPE Type_RectilinearNM_Transfo
 
@@ -66,33 +65,11 @@
       PUBLIC :: Read_RectilinearNM_Transfo, Write_RectilinearNM_Transfo, calc_RectilinearNM_Transfo
       PUBLIC :: RectilinearNM_Transfo1TORectilinearNM_Transfo2
 
-      CONTAINS
+CONTAINS
 
-!================================================================
-!       Read Zmat Transfo
-!
-!       -analysis of the z-matrix or cart --------------
-!       => type_Qin(i):  (before type_zmat)
-!                       1 => cartesian
-!                       2 => distance
-!                       -3 => cos(valence angle)
-!                       3 => valence angle
-!                       4 => dihedral angle
-!================================================================
-      !!@description: Read Zmat Transfo
-      !!
-      !!       -analysis of the z-matrix or cart --------------
-      !!       => type_Qin(i):  (before type_zmat)
-      !!                       1 => cartesian
-      !!                       2 => distance
-      !!                       -3 => cos(valence angle)
-      !!                       3 => valence angle
-      !!                       4 => dihedral angle
-      !!@param: TODO
-
-      SUBROUTINE alloc_RectilinearNM_Transfo(RectilinearNM_Transfo,nb_Qin)
+  SUBROUTINE alloc_RectilinearNM_Transfo(RectilinearNM_Transfo,ncart)
       TYPE (Type_RectilinearNM_Transfo), intent(inout) :: RectilinearNM_Transfo
-      integer, intent(in) :: nb_Qin
+      integer,                           intent(in)    :: ncart
 
       integer :: err
       character (len=*), parameter :: name_sub='alloc_RectilinearNM_Transfo'
@@ -107,23 +84,18 @@
          STOP
        END IF
 
-      IF (associated(RectilinearNM_Transfo%mat))  THEN
-        CALL dealloc_array(RectilinearNM_Transfo%mat,                   &
-                          "RectilinearNM_Transfo%mat",name_sub)
+      IF (allocated(RectilinearNM_Transfo%mat))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%mat,"RectilinearNM_Transfo%mat",name_sub)
       END IF
-      IF (associated(RectilinearNM_Transfo%mat_inv))  THEN
-        CALL dealloc_array(RectilinearNM_Transfo%mat_inv,               &
-                          "RectilinearNM_Transfo%mat_inv",name_sub)
+      IF (allocated(RectilinearNM_Transfo%mat_inv))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%mat_inv,"RectilinearNM_Transfo%mat_inv",name_sub)
       END IF
 
-      CALL alloc_array(RectilinearNM_Transfo%mat,[nb_Qin,nb_Qin],     &
-                      "RectilinearNM_Transfo%mat",name_sub)
+      CALL alloc_NParray(RectilinearNM_Transfo%mat,[ncart,ncart],"RectilinearNM_Transfo%mat",name_sub)
       RectilinearNM_Transfo%mat(:,:) = ZERO
 
-      CALL alloc_array(RectilinearNM_Transfo%mat_inv,[nb_Qin,nb_Qin], &
-                      "RectilinearNM_Transfo%mat_inv",name_sub)
+      CALL alloc_NParray(RectilinearNM_Transfo%mat_inv,[ncart,ncart],"RectilinearNM_Transfo%mat_inv",name_sub)
       RectilinearNM_Transfo%mat_inv(:,:) = ZERO
-
 
 !      write(out_unit,*) 'END ',name_sub
 
@@ -142,24 +114,31 @@
       RectilinearNM_Transfo%nat       = 0
       RectilinearNM_Transfo%nat_act   = 0
       RectilinearNM_Transfo%nb_var    = 0
+      RectilinearNM_Transfo%inv       = .FALSE.
 
-      nullify(RectilinearNM_Transfo%masses)
-      nullify(RectilinearNM_Transfo%type_Qin)
-      nullify(RectilinearNM_Transfo%name_Qin)
-      nullify(RectilinearNM_Transfo%Z)
-      nullify(RectilinearNM_Transfo%symbole)
-
-      IF (associated(RectilinearNM_Transfo%mat))  THEN
-        CALL dealloc_array(RectilinearNM_Transfo%mat,                   &
-                          "RectilinearNM_Transfo%mat",name_sub)
+      IF (allocated(RectilinearNM_Transfo%mat))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%mat,"RectilinearNM_Transfo%mat",name_sub)
       END IF
-      IF (associated(RectilinearNM_Transfo%mat_inv))  THEN
-        CALL dealloc_array(RectilinearNM_Transfo%mat_inv,               &
-                          "RectilinearNM_Transfo%mat_inv",name_sub)
+      IF (allocated(RectilinearNM_Transfo%mat_inv))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%mat_inv,"RectilinearNM_Transfo%mat_inv",name_sub)
       END IF
 
-      RectilinearNM_Transfo%inv                 = .FALSE.
+      IF (allocated(RectilinearNM_Transfo%type_Qin))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%type_Qin,"RectilinearNM_Transfo%type_Qin",name_sub)
+      END IF
+      IF (allocated(RectilinearNM_Transfo%name_Qin))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%name_Qin,"RectilinearNM_Transfo%name_Qin",name_sub)
+      END IF
 
+      IF (allocated(RectilinearNM_Transfo%masses))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%masses,"RectilinearNM_Transfo%masses",name_sub)
+      END IF
+      IF (allocated(RectilinearNM_Transfo%Z))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%Z,"RectilinearNM_Transfo%Z",name_sub)
+      END IF
+      IF (allocated(RectilinearNM_Transfo%symbole))  THEN
+        CALL dealloc_NParray(RectilinearNM_Transfo%symbole,"RectilinearNM_Transfo%symbole",name_sub)
+      END IF
        !write(out_unit,*) 'END ',name_sub; flush(out_unit)
 
       END SUBROUTINE dealloc_RectilinearNM_Transfo
@@ -175,7 +154,7 @@
 
        real (kind=Rkind)        :: at,Mtot
        integer                  :: i,i_at
-       character (len=Name_len), pointer :: name_at(:)
+       character (len=Name_len), allocatable :: name_at(:)
 
 
        integer :: err_mem,memory,err_io
@@ -183,8 +162,8 @@
 
 
 !-----------------------------------------------------------------------
-        RectilinearNM_Transfo%ncart = 3 * RectilinearNM_Transfo%nat
-        RectilinearNM_Transfo%nat_act = RectilinearNM_Transfo%nat
+        RectilinearNM_Transfo%ncart     = 3 * RectilinearNM_Transfo%nat
+        RectilinearNM_Transfo%nat_act   = RectilinearNM_Transfo%nat
         RectilinearNM_Transfo%ncart_act = 3 * RectilinearNM_Transfo%nat_act
 
         write(out_unit,*) 'BEGINNING ',name_sub
@@ -194,11 +173,14 @@
 
 
         ! allocation of the variables:
-        CALL alloc_RectilinearNM_Transfo(RectilinearNM_Transfo,RectilinearNM_Transfo%ncart)
+        CALL alloc_RectilinearNM_Transfo(RectilinearNM_Transfo,ncart=RectilinearNM_Transfo%ncart)
+        allocate(RectilinearNM_Transfo%Z(RectilinearNM_Transfo%nat))
+        allocate(RectilinearNM_Transfo%symbole(RectilinearNM_Transfo%nat))
+        allocate(RectilinearNM_Transfo%masses(RectilinearNM_Transfo%ncart))
 
 
 
-        CALL alloc_array(name_at,[RectilinearNM_Transfo%nat],"name_at",name_sub)
+        CALL alloc_NParray(name_at,[RectilinearNM_Transfo%nat],"name_at",name_sub)
 
         read(in_unit,*,IOSTAT=err_io) (name_at(i),i=1,RectilinearNM_Transfo%nat)
         IF (err_io /= 0) THEN
@@ -226,7 +208,7 @@
           END IF
 
         END DO
-        CALL dealloc_array(name_at,"name_at",name_sub)
+        CALL dealloc_NParray(name_at,"name_at",name_sub)
         !write(out_unit,*) 'Masses: ',masses(:)
 
 

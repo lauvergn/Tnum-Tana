@@ -95,7 +95,7 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
     CALL sub_QactTOd0x(Qcart,Qact,mole,Gcenter=.FALSE.)
   ELSE IF (nb_act < mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
     CALL sub_QactTOd0x(Qcart,Qact_loc,mole,Gcenter=.FALSE.)
     deallocate(Qact_loc)
@@ -171,7 +171,7 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
     CALL sub_QactTOd0x(Qcart,Qact,mole,Gcenter=.TRUE.)
   ELSE IF (nb_act < mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
     CALL sub_QactTOd0x(Qcart,Qact_loc,mole,Gcenter=.TRUE.)
     deallocate(Qact_loc)
@@ -284,7 +284,7 @@ SUBROUTINE Tnum_Check_NMTransfo(Check)
 
 
   !$OMP    CRITICAL (Tnum_Check_NMTransfo_CRIT)
-  Check = associated(mole%NMTransfo)
+  Check = (mole%itNM > 0)
   !$OMP   END CRITICAL (Tnum_Check_NMTransfo_CRIT)
 
 END SUBROUTINE Tnum_Check_NMTransfo
@@ -301,7 +301,7 @@ SUBROUTINE Tnum_Set_skip_NM(skip_NM_sub)
   !$OMP    CRITICAL (Tnum_Set_skip_NM_CRIT)
   IF (skip_NM_sub == 0 .OR. skip_NM_sub == 1) THEN
     skip_NM = skip_NM_sub
-    IF (associated(mole%NMTransfo)) THEN
+    IF (mole%itNM > 0) THEN
       mole%tab_Qtransfo(mole%itNM)%skip_transfo = (skip_NM == 1)
     END IF
 
@@ -414,7 +414,7 @@ SUBROUTINE Tnum_get_Qact0(Qact0,nb_act)
   CALL Check_TnumInit(name_sub)
 
   IF (nb_act == mole%nb_act) THEN
-    CALL get_Qact0(Qact0,mole%ActiveTransfo)
+    CALL get_Qact0(Qact0,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
   ELSE
     write(out_unit,*) ' ERROR in ',name_sub
     write(out_unit,*) ' Wrong nb_act value. It must be equal to: ',mole%nb_act
@@ -473,14 +473,14 @@ SUBROUTINE Tnum_get_EigNM_ForPVSCF(EigNM,nb_NM)
     write(out_unit,*) ' nb_NM',nb_NM
     STOP 'ERROR in Tnum_get_EigNM_ForPVSCF:  Wrong nb_NM value!'
   END IF
-  IF (.NOT. associated(mole%NMTransfo%d0eh)) THEN
+  IF (.NOT. allocated(mole%tab_Qtransfo(mole%itNM)%NMTransfo%d0eh)) THEN
     write(out_unit,*) ' ERROR in ',name_sub
-    write(out_unit,*) ' mole%NMTransfo%d0eh(:) is NOT associated!'
+    write(out_unit,*) ' mole%...%NMTransfo%d0eh(:) is NOT allocated!'
     write(out_unit,*) ' => You MUST call InitTnum3_NM_TO_LinearTransfo'
     STOP 'ERROR in Tnum_get_EigNM_ForPVSCF: d0eh is not associated!'
   END IF
 
-  EigNM(:) = mole%NMTransfo%d0eh(:)**2 * const_phys%inv_Name/TEN**3
+  EigNM(:) = mole%tab_Qtransfo(mole%itNM)%NMTransfo%d0eh(:)**2 * const_phys%inv_Name/TEN**3
 
 END SUBROUTINE Tnum_get_EigNM_ForPVSCF
 SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
@@ -517,7 +517,7 @@ SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
 
   IF (nb_act <= mole%nb_var) THEN
     allocate(Qact_loc(mole%nb_var))
-    CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     Qact_loc(1:nb_act) = Qact
   ELSE
     write(out_unit,*) ' ERROR in ', name_sub
@@ -554,7 +554,7 @@ SUBROUTINE Tnum_get_EckartRot(Qact,nb_act,EckartRot)
   CALL Check_TnumInit(name_sub)
 
   Eckart  = .FALSE.
-  IF (associated(mole%tab_Cart_transfo)) THEN
+  IF (allocated(mole%tab_Cart_transfo)) THEN
     Eckart =  (mole%tab_Cart_transfo(1)%CartesianTransfo%Eckart .OR.            &
                mole%tab_Cart_transfo(1)%CartesianTransfo%MultiRefEckart)
   END IF
@@ -601,7 +601,7 @@ SUBROUTINE InitTnum3_NM_TO_LinearTransfo(Qact,nb_act,Hess,nb_cart)
 
     IF (nb_act <= mole%nb_var) THEN
       allocate(Qact_loc(mole%nb_var))
-      CALL get_Qact0(Qact_loc,mole%ActiveTransfo)
+      CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
       Qact_loc(1:nb_act) = Qact
     ELSE
       write(out_unit,*) ' ERROR in ', name_sub
@@ -653,9 +653,11 @@ SUBROUTINE Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
     !-----------------------------------------------------------------
     !     ---- TO finalize the coordinates (NM) and the KEO ----------
     !     ------------------------------------------------------------
-    IF (associated(mole%NMTransfo)) THEN
+    IF (mole%itNM > 0) THEN
       mole%tab_Qtransfo(mole%itNM)%skip_transfo = (skip_NM == 1) ! the NM are not calculated
-      IF (k_Half == 0 .OR. k_Half == 1) mole%NMTransfo%k_Half = (k_Half == 1)
+      IF (k_Half == 0 .OR. k_Half == 1) THEN
+        mole%tab_Qtransfo(mole%itNM)%NMTransfo%k_Half = (k_Half == 1)
+      END IF
     END IF
     CALL Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp)
   END IF
@@ -825,7 +827,7 @@ SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c(Qact0,nb_act) BIND(C, name="get_Qact0_
      STOP
   END IF
 
-  CALL get_Qact0(Qact0_Rkind,mole%ActiveTransfo)
+  CALL get_Qact0(Qact0_Rkind,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
   Qact0 = Qact0_Rkind
 
 END SUBROUTINE get_Qact0_TnumTanaDriver_FOR_c

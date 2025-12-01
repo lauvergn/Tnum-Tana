@@ -1,0 +1,37 @@
+
+here=`pwd`
+DIR_EVRT=$here/..
+
+$DIR_EVRT/Tnum90.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=3 Cart_Type='LF' /
+ &Coord_transfo name_transfo='bunch_poly' nb_vect=1 inTOout=f cos_beta=t /
+1. 1.  (H H)
+
+ &Coord_transfo name_transfo='poly' /
+     &vector nb_vect=0 Frame=t iAtA=1 iAtB=2 /
+
+ &Coord_transfo name_transfo='active' /
+1   1 1     1 1 1
+
+ &minimum  read_xyz0=t unit='angs' /
+     -1           0.996639173           1.153113648           1.437531625
+     -1           0.061715244           0.963595185           1.737531625
+
+ &calculation calc_Tnum=f calc_gG=t test=t nderivGg=0 /
+**
+
+TnumOK=`tail -1 res | grep -c "END Tnum" `
+if [ $TnumOK -ne "1" ]
+then
+ echo $0  1
+ exit
+fi
+
+G11=`awk '/d0G/ {print $2}' res`
+
+mH=1.
+
+err1=`echo $G11 $mH $mH | LANG=c awk '{print $1-(1/$2+1/$3)}'`
+err2=0.0
+
+echo $0 $err1 $err2

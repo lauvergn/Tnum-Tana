@@ -448,12 +448,12 @@ CONTAINS
     integer,                          intent(in)    :: Type_2D
 
 
-    TYPE (dnS_t), pointer :: dnR,dnZ,dnRp,dnZp
+    TYPE (dnS_t), pointer :: dnR,dnZ,dnRp,dnZp         ! true pointers (alias) for the zundel transformation
+    TYPE (dnS_t), pointer :: dnthn,dnphin,dntho,dnphio ! true pointers (alias) for the spherical transformation
+    TYPE (dnS_t), pointer :: dncthn,dnctho             ! true pointers (alias) for the spherical transformation (with cos(th))
+    TYPE (dnS_t), pointer :: dnrho,dns,dnR1,dnR2       ! true pointers (alias) for the reactive transformation
 
-    TYPE (dnS_t), pointer :: dnthn,dncthn,dnphin,dntho,dnctho,dnphio
     TYPE (dnS_t)          :: dnXo,dnYo,dnZo,dnXn,dnYn,dnZn
-
-    TYPE (dnS_t), pointer :: dnrho,dns,dnR1,dnR2
     TYPE (dnS_t)          :: dnth
 
 

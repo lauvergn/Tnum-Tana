@@ -100,14 +100,14 @@
 !     - working parameters ------------------------------------------
       integer :: err_mem,memory,err_read
 
-      logical :: calc_QTOx,calc_Tnum,calc_gG
+      logical :: calc_QTOx,calc_Tnum,calc_gG,test
       logical :: calc_grad,calc_hessian
       logical :: OnTheFly,calc_freq
       integer :: nderivGg,n_eval
       character (len=*), parameter :: name_sub='Tnum_f90'
 
 
-      NAMELIST /calculation/ calc_QTOx,calc_Tnum,calc_gG,nderivGg,      &
+      NAMELIST /calculation/ calc_QTOx,calc_Tnum,calc_gG,test,nderivGg,      &
                              calc_freq,OnTheFly,n_eval,                 &
                              calc_grad,calc_hessian,outm_name,fchk_name
 
@@ -151,6 +151,7 @@
       calc_Tnum    = .TRUE.
       calc_gG      = .FALSE.
       nderivGg     = 2
+      test         = .FALSE.
       calc_grad    = .FALSE.
       calc_hessian = .FALSE.
       calc_freq    = .FALSE.
@@ -167,11 +168,11 @@
       END IF
       write(out_unit,*) "======================================"
 
-!===========================================================
-!===========================================================
+      !===========================================================
+      !===========================================================
 
       CALL alloc_NParray(Qact,[mole%nb_var],'Qact',name_sub)
-      CALL get_Qact0(Qact,mole%ActiveTransfo)
+      CALL get_Qact0(Qact,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
 
 
@@ -331,6 +332,8 @@
         write(out_unit,*) ' dnG'
         CALL Write_dnSVM(dnGG,0)
 
+        IF (test) write(out_unit,*) 'd0g',(dng%d0(i,i),i=1,mole%ndimG)
+        IF (test) write(out_unit,*) 'd0G',(dnGG%d0(i,i),i=1,mole%ndimG)
         CALL time_perso('get_dng_dnGG')
         write(out_unit,*) "======================================"
         write(out_unit,*) "======================================"
@@ -368,7 +371,7 @@
 
         CALL dealloc_array(freq,"freq",name_sub)
 
-        CALL sub_QplusDQ_TO_Cart(Qact,mole)
+        CALL sub_QplusDQ_TO_Cart(mole)
 
         write(out_unit,*) "======================================"
         write(out_unit,*) "======================================"

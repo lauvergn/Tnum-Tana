@@ -32,26 +32,26 @@
 !
 !===========================================================================
 !===========================================================================
-      MODULE mod_HyperSpheTransfo
-      use TnumTana_system_m
-      USE mod_dnSVM
-      IMPLICIT NONE
+MODULE mod_HyperSpheTransfo
+  USE TnumTana_system_m
+  IMPLICIT NONE
 
-      PRIVATE
-      !!@description: TODO
-      !!@param: TODO
-      TYPE Type_HyperSpheTransfo
-        integer          :: nb_HyperSphe      = 0
-        integer, pointer :: list_HyperSphe(:) => null()
-      END TYPE Type_HyperSpheTransfo
+  PRIVATE
 
-      PUBLIC :: Type_HyperSpheTransfo, Read_HyperSpheTransfo, Calc_HyperSpheTransfo
+  TYPE Type_HyperSpheTransfo
+    integer              :: nb_HyperSphe      = 0
+    integer, allocatable :: list_HyperSphe(:)
+  CONTAINS
+    PROCEDURE, PRIVATE, PASS(HyperSpheTransfo1) :: HyperSpheTransfo2_TO_HyperSpheTransfo1
+    GENERIC,   PUBLIC  :: assignment(=) => HyperSpheTransfo2_TO_HyperSpheTransfo1
+  END TYPE Type_HyperSpheTransfo
 
-      CONTAINS
+  PUBLIC :: Type_HyperSpheTransfo, Read_HyperSpheTransfo, Write_HyperSpheTransfo, &
+            dealloc_HyperSpheTransfo, Calc_HyperSpheTransfo
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE Read_HyperSpheTransfo(HyperSpheTransfo,nb_Qin)
+CONTAINS
+  SUBROUTINE Read_HyperSpheTransfo(HyperSpheTransfo,nb_Qin)
+    IMPLICIT NONE
 
       TYPE (Type_HyperSpheTransfo), intent(inout) :: HyperSpheTransfo
       integer, intent(in) :: nb_Qin
@@ -81,7 +81,7 @@
         STOP
       END IF
 
-      CALL alloc_array(HyperSpheTransfo%list_HyperSphe,                 &
+      CALL alloc_NParray(HyperSpheTransfo%list_HyperSphe,                 &
                                    [HyperSpheTransfo%nb_HyperSphe],   &
                       "HyperSpheTransfo%list_HyperSphe",name_sub)
       HyperSpheTransfo%list_HyperSphe(:) = 0
@@ -122,111 +122,149 @@
                  HyperSpheTransfo%nb_HyperSphe
       write(out_unit,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
 
-      END SUBROUTINE Read_HyperSpheTransfo
+  END SUBROUTINE Read_HyperSpheTransfo
+  SUBROUTINE Write_HyperSpheTransfo(HyperSpheTransfo)
+    IMPLICIT NONE
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE calc_HyperSpheTransfo(dnQin,dnQout,HyperSpheTransfo,   &
-                                       nderiv,inTOout)
-
-        TYPE (Type_dnVec), intent(inout)         :: dnQin,dnQout
-        TYPE (Type_HyperSpheTransfo), intent(in) :: HyperSpheTransfo
-        integer, intent(in)                      :: nderiv
-        logical, intent(in)                      :: inTOout
+    TYPE (Type_HyperSpheTransfo), intent(in) :: HyperSpheTransfo
 
 
-        TYPE (Type_dnS) :: dnRho,dnTheta,dnCosTheta,dnSinTheta
-        TYPE (Type_dnS) :: dnX,dnY
-        integer :: i1,i2
-!----- for debuging ----------------------------------
-       character (len=*),parameter :: name_sub='calc_HyperSpheTransfo'
-       logical, parameter :: debug=.FALSE.
-!       logical, parameter :: debug=.TRUE.
-!----- for debuging ----------------------------------
+    character (len=*), parameter :: name_sub='Write_HyperSpheTransfo'
+
+    write(out_unit,*) 'nb_HyperSphe: ',HyperSpheTransfo%nb_HyperSphe
+    IF (allocated(HyperSpheTransfo%list_HyperSphe)) THEN 
+      write(out_unit,*) 'list_HyperSphe: ',HyperSpheTransfo%list_HyperSphe(:)
+    END IF
+
+  END SUBROUTINE Write_HyperSpheTransfo
+ SUBROUTINE dealloc_HyperSpheTransfo(HyperSpheTransfo)
+    IMPLICIT NONE
+
+    TYPE (Type_HyperSpheTransfo), intent(inout) :: HyperSpheTransfo
 
 
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'BEGINNING ',name_sub
-        write(out_unit,*) 'dnQin'
-        CALL Write_dnSVM(dnQin,nderiv)
-      END IF
-!---------------------------------------------------------------------
+    character (len=*), parameter :: name_sub='dealloc_HyperSpheTransfo'
 
-      IF (HyperSpheTransfo%nb_HyperSphe > 2) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  This subroutine works nb_HyperSphe = 2'
-        write(out_unit,*) '  nb_HyperSphe: ',HyperSpheTransfo%nb_HyperSphe
-        write(out_unit,*) ' Check your data !!'
-        STOP
-      END IF
+    HyperSpheTransfo%nb_HyperSphe = 0
+    IF (allocated(HyperSpheTransfo%list_HyperSphe) ) THEN
+      CALL dealloc_NParray(HyperSpheTransfo%list_HyperSphe,  &
+                          "HyperSpheTransfo%list_HyperSphe",name_sub)
+    END IF
 
-      CALL check_alloc_dnVec(dnQin,'dnQin',name_sub)
-      CALL check_alloc_dnVec(dnQout,'dnQout',name_sub)
+  END SUBROUTINE dealloc_HyperSpheTransfo
+  SUBROUTINE HyperSpheTransfo2_TO_HyperSpheTransfo1(HyperSpheTransfo1,HyperSpheTransfo2)
+    IMPLICIT NONE
 
-      CALL alloc_dnSVM(dnX,dnQin%nb_var_deriv,nderiv)
-      CALL alloc_dnSVM(dnY,dnQin%nb_var_deriv,nderiv)
-      CALL alloc_dnSVM(dnRho,dnQin%nb_var_deriv,nderiv)
-      CALL alloc_dnSVM(dnTheta,dnQin%nb_var_deriv,nderiv)
-      CALL alloc_dnSVM(dnCosTheta,dnQin%nb_var_deriv,nderiv)
-      CALL alloc_dnSVM(dnSinTheta,dnQin%nb_var_deriv,nderiv)
+    CLASS(Type_HyperSpheTransfo), intent(inout) :: HyperSpheTransfo1
+    TYPE (Type_HyperSpheTransfo), intent(in)    :: HyperSpheTransfo2
 
-      IF (inTOout) THEN
-        CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv)
+  
+    HyperSpheTransfo1%nb_HyperSphe = HyperSpheTransfo2%nb_HyperSphe
+    IF (allocated(HyperSpheTransfo2%list_HyperSphe)) &
+        HyperSpheTransfo1%list_HyperSphe = HyperSpheTransfo2%list_HyperSphe
 
-        i1 = HyperSpheTransfo%list_HyperSphe(1)
-        i2 = HyperSpheTransfo%list_HyperSphe(2)
-        !write(out_unit,*) 'i1,i2',i1,i2
-        CALL sub_dnVec_TO_dnS(dnQin,dnRho,i1,nderiv)
-        CALL sub_dnVec_TO_dnS(dnQin,dnTheta,i2,nderiv)
+  END SUBROUTINE HyperSpheTransfo2_TO_HyperSpheTransfo1
 
-        CALL sub_dnS1_TO_dntR2(dnTheta,dnCosTheta,2,nderiv)
-        CALL sub_dnS1_TO_dntR2(dnTheta,dnSinTheta,3,nderiv)
+  SUBROUTINE calc_HyperSpheTransfo(dnQin,dnQout,HyperSpheTransfo,nderiv,inTOout)
+    USE mod_dnSVM
+    IMPLICIT NONE
 
-        CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnRho,dnCosTheta,dnX,nderiv)
-        CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnRho,dnSinTheta,dnY,nderiv)
+    TYPE (Type_dnVec), intent(inout)         :: dnQin,dnQout
+    TYPE (Type_HyperSpheTransfo), intent(in) :: HyperSpheTransfo
 
-        CALL sub_dnS_TO_dnVec(dnX,dnQout,i1,nderiv)
-        CALL sub_dnS_TO_dnVec(dnY,dnQout,i2,nderiv)
+    integer, intent(in)                      :: nderiv
+    logical, intent(in)                      :: inTOout
 
-       !write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1)/pi*180._Rkind,dnQin%d0(i2)/pi*180._Rkind
-       !write(out_unit,*) 'hyper x,y',dnQout%d0(i1)/pi*180._Rkind,dnQout%d0(i2)/pi*180._Rkind
-      ELSE
-        CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
 
-        i1 = HyperSpheTransfo%list_HyperSphe(1)
-        i2 = HyperSpheTransfo%list_HyperSphe(2)
-        write(out_unit,*) 'hyper i1,i2',i1,i2
-        write(out_unit,*) 'hyper x,y',dnQout%d0(i1),dnQout%d0(i2)
+    TYPE (Type_dnS) :: dnRho,dnTheta,dnCosTheta,dnSinTheta
+    TYPE (Type_dnS) :: dnX,dnY
+    integer :: i1,i2
+    !----- for debuging ----------------------------------
+    character (len=*),parameter :: name_sub='calc_HyperSpheTransfo'
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'dnQin'
+      CALL Write_dnSVM(dnQin,nderiv)
+    END IF
+    !---------------------------------------------------------------------
 
-        CALL sub_dnVec_TO_dnS(dnQout,dnX,i1,nderiv)
-        CALL sub_dnVec_TO_dnS(dnQout,dnY,i2,nderiv)
+    IF (HyperSpheTransfo%nb_HyperSphe > 2) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  This subroutine works nb_HyperSphe = 2'
+      write(out_unit,*) '  nb_HyperSphe: ',HyperSpheTransfo%nb_HyperSphe
+      write(out_unit,*) ' Check your data !!'
+      STOP
+    END IF
 
-        dnRho%d0 = sqrt(dnX%d0**2 + dnY%d0**2)
-        dnTheta%d0 = atan2(dnY%d0,dnX%d0)
-        CALL dihedral_range(dnTheta%d0,2)
+    CALL check_alloc_dnVec(dnQin,'dnQin',name_sub)
+    CALL check_alloc_dnVec(dnQout,'dnQout',name_sub)
 
-        CALL sub_dnS_TO_dnVec(dnRho,dnQin,i1,nderiv)
-        CALL sub_dnS_TO_dnVec(dnTheta,dnQin,i2,nderiv)
+    CALL alloc_dnSVM(dnX,dnQin%nb_var_deriv,nderiv)
+    CALL alloc_dnSVM(dnY,dnQin%nb_var_deriv,nderiv)
+    CALL alloc_dnSVM(dnRho,dnQin%nb_var_deriv,nderiv)
+    CALL alloc_dnSVM(dnTheta,dnQin%nb_var_deriv,nderiv)
+    CALL alloc_dnSVM(dnCosTheta,dnQin%nb_var_deriv,nderiv)
+    CALL alloc_dnSVM(dnSinTheta,dnQin%nb_var_deriv,nderiv)
 
-        write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)
-        write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)/pi*180._Rkind
+    IF (inTOout) THEN
+      CALL sub_dnVec1_TO_dnVec2(dnQin,dnQout,nderiv)
 
-      END IF
+      i1 = HyperSpheTransfo%list_HyperSphe(1)
+      i2 = HyperSpheTransfo%list_HyperSphe(2)
+      !write(out_unit,*) 'i1,i2',i1,i2
+      CALL sub_dnVec_TO_dnS(dnQin,dnRho,i1,nderiv)
+      CALL sub_dnVec_TO_dnS(dnQin,dnTheta,i2,nderiv)
 
-      CALL dealloc_dnSVM(dnRho)
-      CALL dealloc_dnSVM(dnTheta)
-      CALL dealloc_dnSVM(dnCosTheta)
-      CALL dealloc_dnSVM(dnSinTheta)
-      CALL dealloc_dnSVM(dnX)
-      CALL dealloc_dnSVM(dnY)
+      CALL sub_dnS1_TO_dntR2(dnTheta,dnCosTheta,2,nderiv)
+      CALL sub_dnS1_TO_dntR2(dnTheta,dnSinTheta,3,nderiv)
 
-!---------------------------------------------------------------------
-      IF (debug) THEN
-        write(out_unit,*) 'END ',name_sub
-      END IF
-!---------------------------------------------------------------------
-      END SUBROUTINE calc_HyperSpheTransfo
+      CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnRho,dnCosTheta,dnX,nderiv)
+      CALL sub_dnS1_PROD_dnS2_TO_dnS3(dnRho,dnSinTheta,dnY,nderiv)
 
-      END MODULE mod_HyperSpheTransfo
+      CALL sub_dnS_TO_dnVec(dnX,dnQout,i1,nderiv)
+      CALL sub_dnS_TO_dnVec(dnY,dnQout,i2,nderiv)
+
+      !write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1)/pi*180._Rkind,dnQin%d0(i2)/pi*180._Rkind
+      !write(out_unit,*) 'hyper x,y',dnQout%d0(i1)/pi*180._Rkind,dnQout%d0(i2)/pi*180._Rkind
+    ELSE
+      CALL sub_dnVec1_TO_dnVec2(dnQout,dnQin,nderiv)
+
+      i1 = HyperSpheTransfo%list_HyperSphe(1)
+      i2 = HyperSpheTransfo%list_HyperSphe(2)
+      IF (debug) write(out_unit,*) 'hyper i1,i2',i1,i2
+      IF (debug) write(out_unit,*) 'hyper x,y',dnQout%d0(i1),dnQout%d0(i2)
+
+      CALL sub_dnVec_TO_dnS(dnQout,dnX,i1,nderiv)
+      CALL sub_dnVec_TO_dnS(dnQout,dnY,i2,nderiv)
+
+      dnRho%d0 = sqrt(dnX%d0**2 + dnY%d0**2)
+      dnTheta%d0 = atan2(dnY%d0,dnX%d0)
+      CALL dihedral_range(dnTheta%d0,2)
+
+      CALL sub_dnS_TO_dnVec(dnRho,dnQin,i1,nderiv)
+      CALL sub_dnS_TO_dnVec(dnTheta,dnQin,i2,nderiv)
+
+      IF (debug) write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)
+      IF (debug) write(out_unit,*) 'hyper rho,theta',dnQin%d0(i1),dnQin%d0(i2)/pi*180._Rkind
+
+    END IF
+
+    CALL dealloc_dnSVM(dnRho)
+    CALL dealloc_dnSVM(dnTheta)
+    CALL dealloc_dnSVM(dnCosTheta)
+    CALL dealloc_dnSVM(dnSinTheta)
+    CALL dealloc_dnSVM(dnX)
+    CALL dealloc_dnSVM(dnY)
+
+    !---------------------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'END ',name_sub
+    END IF
+    !---------------------------------------------------------------------
+  END SUBROUTINE calc_HyperSpheTransfo
+
+END MODULE mod_HyperSpheTransfo
 

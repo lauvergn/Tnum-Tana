@@ -21,7 +21,7 @@ ROH 1. angs
 ROH 1. angs
 cosA   0.5
 
- &calculation calc_Tnum=f calc_gG=t nderivGg=0 /
+ &calculation calc_Tnum=f calc_gG=t test=t nderivGg=0 /
 **
 
 TnumOK=`tail -1 res | grep -c "END Tnum" `

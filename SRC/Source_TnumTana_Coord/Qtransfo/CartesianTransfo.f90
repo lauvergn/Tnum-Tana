@@ -40,6 +40,8 @@ MODULE mod_CartesianTransfo
 
       PRIVATE
 
+      real (kind=Rkind)  :: dnTErr(0:3) = ZERO ! Error for the det(dnT)
+
       !!@description: enables to change the BF frame orientation (Eckart or ....)
       !!@param: TODO
       TYPE Type_CartesianTransfo
@@ -57,18 +59,16 @@ MODULE mod_CartesianTransfo
                                                              ! The other ones (Rot_New_Orient and Rot_PA)
                                                              !    are not used anymore
 
-        logical                    :: Eckart           = .FALSE.
-
-        logical                    :: MultiRefEckart     = .FALSE.
-        integer                    :: nb_Qact            = 0
-        integer, pointer           :: list_Qact(:)       => null() ! list of active coordinates
-        real (kind=Rkind), pointer :: tab_sc(:)          => null()
-        real (kind=Rkind), pointer :: tab_phi0(:)        => null()
-        integer, pointer           :: tab_expo(:)        => null()
-        integer, pointer           :: tab_switch_type(:) => null()
-        integer, pointer           :: tab_nb_Ref(:)      => null()
-
-        integer                    :: MultiRef_type      = 0 ! 0: old periodic
+        logical                        :: Eckart           = .FALSE.
+        logical                        :: MultiRefEckart     = .FALSE.
+        integer                        :: nb_Qact            = 0
+        integer, allocatable           :: list_Qact(:)  ! list of active coordinates
+        real (kind=Rkind), allocatable :: tab_sc(:)
+        real (kind=Rkind), allocatable :: tab_phi0(:)
+        integer, allocatable           :: tab_expo(:)
+        integer, allocatable           :: tab_switch_type(:)
+        integer, allocatable           :: tab_nb_Ref(:)
+        integer                        :: MultiRef_type      = 0 ! 0: old periodic
                                                              ! 1: along coordinates (high barrier)
                                                              ! 2: along coordinates (low barrier)
                                                              ! 3: using distances (high barrier)
@@ -81,16 +81,15 @@ MODULE mod_CartesianTransfo
         integer           :: ncart_act        = 0            ! nb of cart. coordinates
         integer           :: nat_act          = 0            ! nb of cart. coordinates
 
-        real (kind=Rkind), pointer :: TransVect(:,:) => null()  ! Translation vector (mainly, the Center-of-masss)
-        real (kind=Rkind), pointer :: Qxyz(:,:,:)    => null()  ! Qxyz(3,nat_act,nb_RefGeometry) cart. coordinates
-        real (kind=Rkind), pointer :: MWQxyz(:,:,:)  => null()  ! MWQxyz(3,nat_act,nb_RefGeometry) mass weighted cart. coordinates
-        real (kind=Rkind), pointer :: d0sm(:)        => null()  ! sqrt of the masses
-        real (kind=Rkind), pointer :: masses_at(:)   => null()  ! masses_at(:)
+        real (kind=Rkind), allocatable :: TransVect(:,:)     ! Translation vector (mainly, the Center-of-masss)
+        real (kind=Rkind), allocatable :: Qxyz(:,:,:)        ! Qxyz(3,nat_act,nb_RefGeometry) cart. coordinates
+        real (kind=Rkind), allocatable :: MWQxyz(:,:,:)      ! MWQxyz(3,nat_act,nb_RefGeometry) mass weighted cart. coordinates
+        real (kind=Rkind), allocatable :: d0sm(:)            ! sqrt of the masses
+        real (kind=Rkind), allocatable :: masses_at(:)       ! masses_at(:)
 
         integer           :: type_diago  = 4 ! enables to select diagonalization type (MatOFdnS)
         integer           :: type_cs     = 0 ! enables to select the way to calculate dnCos and dnSin
         logical           :: check_dnT   = .FALSE. ! if true, we check det(dnT) == 1
-        real (kind=Rkind) :: dnTErr(0:3) = ZERO ! Error for the det(dnT)
 
       END TYPE Type_CartesianTransfo
 
@@ -100,7 +99,7 @@ MODULE mod_CartesianTransfo
       PUBLIC :: Set_P_Axis_CartesianTransfo, Set_Eckart_CartesianTransfo
       PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_dnTEckart, dnMWX_MultiRef
       PUBLIC :: centre_masse, sub3_dncentre_masse, sub3_NOdncentre_masse
-      PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight
+      PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight, dnTErr
 
       CONTAINS
 
@@ -121,16 +120,16 @@ MODULE mod_CartesianTransfo
         nb_RefGeometry_loc = 1
       END IF
 
-      IF (associated(CartesianTransfo%TransVect))                       &
-        CALL dealloc_array(CartesianTransfo%TransVect,                  &
+      IF (allocated(CartesianTransfo%TransVect))                       &
+        CALL dealloc_NParray(CartesianTransfo%TransVect,                  &
                                   'CartesianTransfo%TransVect',name_sub)
 
-      IF (associated(CartesianTransfo%Qxyz))                            &
-        CALL dealloc_array(CartesianTransfo%Qxyz,                       &
+      IF (allocated(CartesianTransfo%Qxyz))                            &
+        CALL dealloc_NParray(CartesianTransfo%Qxyz,                       &
                                        'CartesianTransfo%Qxyz',name_sub)
 
-      IF (associated(CartesianTransfo%MWQxyz))                          &
-        CALL dealloc_array(CartesianTransfo%MWQxyz,                     &
+      IF (allocated(CartesianTransfo%MWQxyz))                          &
+        CALL dealloc_NParray(CartesianTransfo%MWQxyz,                     &
                                      'CartesianTransfo%MWQxyz',name_sub)
 
       IF (ncart_act > 0 .AND. nb_RefGeometry_loc > 0) THEN
@@ -138,30 +137,29 @@ MODULE mod_CartesianTransfo
         CartesianTransfo%nat_act        = ncart_act/3
         CartesianTransfo%nb_RefGeometry = nb_RefGeometry_loc
 
-        CALL alloc_array(CartesianTransfo%TransVect,                    &
+        CALL alloc_NParray(CartesianTransfo%TransVect,                    &
                                             [3,nb_RefGeometry_loc], &
                                   'CartesianTransfo%TransVect',name_sub)
         CartesianTransfo%TransVect(:,:) = ZERO
 
-        CALL alloc_array(CartesianTransfo%Qxyz,                         &
+        CALL alloc_NParray(CartesianTransfo%Qxyz,                         &
                                 [3,ncart_act/3,nb_RefGeometry_loc], &
                                        'CartesianTransfo%Qxyz',name_sub)
         CartesianTransfo%Qxyz(:,:,:) = ZERO
 
-        CALL alloc_array(CartesianTransfo%MWQxyz,                       &
+        CALL alloc_NParray(CartesianTransfo%MWQxyz,                       &
                                 [3,ncart_act/3,nb_RefGeometry_loc], &
                                      'CartesianTransfo%MWQxyz',name_sub)
         CartesianTransfo%MWQxyz(:,:,:) = ZERO
 
 
-        IF (.NOT. associated(CartesianTransfo%d0sm)) THEN
-          CALL alloc_array(CartesianTransfo%d0sm,[ncart_act],       &
-                                       'CartesianTransfo%d0sm',name_sub)
+        IF (.NOT. allocated(CartesianTransfo%d0sm)) THEN
+          CALL alloc_NParray(CartesianTransfo%d0sm,[ncart_act],'CartesianTransfo%d0sm',name_sub)
           CartesianTransfo%d0sm(:) = ZERO
         END IF
-        IF (.NOT. associated(CartesianTransfo%masses_at)) THEN
-          CALL alloc_array(CartesianTransfo%masses_at,[ncart_act/3],&
-                                  'CartesianTransfo%masses_at',name_sub)
+        IF (.NOT. allocated(CartesianTransfo%masses_at)) THEN
+          CALL alloc_NParray(CartesianTransfo%masses_at,[ncart_act/3],&
+                            'CartesianTransfo%masses_at',name_sub)
           CartesianTransfo%masses_at(:) = ZERO
         END IF
 
@@ -169,61 +167,57 @@ MODULE mod_CartesianTransfo
         CartesianTransfo%ncart_act      = 0
         CartesianTransfo%nat_act        = 0
         CartesianTransfo%nb_RefGeometry = 0
-
-        nullify(CartesianTransfo%TransVect)
-        nullify(CartesianTransfo%Qxyz)
-        nullify(CartesianTransfo%MWQxyz)
       END IF
 
       IF (present(nb_Qact)) THEN
          CartesianTransfo%nb_Qact = nb_Qact
 
-         IF (associated(CartesianTransfo%list_Qact))                    &
-         CALL dealloc_array(CartesianTransfo%list_Qact,                 &
+         IF (allocated(CartesianTransfo%list_Qact))                    &
+         CALL dealloc_NParray(CartesianTransfo%list_Qact,                 &
                            'CartesianTransfo%list_Qact',name_sub)
 
-         IF (associated(CartesianTransfo%tab_sc))                       &
-         CALL dealloc_array(CartesianTransfo%tab_sc,                    &
+         IF (allocated(CartesianTransfo%tab_sc))                       &
+         CALL dealloc_NParray(CartesianTransfo%tab_sc,                    &
                            'CartesianTransfo%tab_sc',name_sub)
 
-         IF (associated(CartesianTransfo%tab_expo))                     &
-         CALL dealloc_array(CartesianTransfo%tab_expo,                  &
+         IF (allocated(CartesianTransfo%tab_expo))                     &
+         CALL dealloc_NParray(CartesianTransfo%tab_expo,                  &
                            'CartesianTransfo%tab_expo',name_sub)
 
-         IF (associated(CartesianTransfo%tab_phi0))                     &
-         CALL dealloc_array(CartesianTransfo%tab_phi0,                  &
+         IF (allocated(CartesianTransfo%tab_phi0))                     &
+         CALL dealloc_NParray(CartesianTransfo%tab_phi0,                  &
                            'CartesianTransfo%tab_phi0',name_sub)
 
-         IF (associated(CartesianTransfo%tab_switch_type))              &
-         CALL dealloc_array(CartesianTransfo%tab_switch_type,           &
+         IF (allocated(CartesianTransfo%tab_switch_type))              &
+         CALL dealloc_NParray(CartesianTransfo%tab_switch_type,           &
                            'CartesianTransfo%tab_switch_type',name_sub)
 
-         IF (associated(CartesianTransfo%tab_nb_Ref))                   &
-         CALL dealloc_array(CartesianTransfo%tab_nb_Ref,                &
+         IF (allocated(CartesianTransfo%tab_nb_Ref))                   &
+         CALL dealloc_NParray(CartesianTransfo%tab_nb_Ref,                &
                            'CartesianTransfo%tab_nb_Ref',name_sub)
 
         IF (nb_Qact > 0) THEN
-          CALL alloc_array(CartesianTransfo%list_Qact,[nb_Qact],    &
+          CALL alloc_NParray(CartesianTransfo%list_Qact,[nb_Qact],    &
                           'CartesianTransfo%list_Qact',name_sub)
           CartesianTransfo%list_Qact(:) = 0
 
-          CALL alloc_array(CartesianTransfo%tab_sc,[nb_Qact],       &
+          CALL alloc_NParray(CartesianTransfo%tab_sc,[nb_Qact],       &
                           'CartesianTransfo%tab_sc',name_sub)
           CartesianTransfo%tab_sc(:) = SIX
 
-          CALL alloc_array(CartesianTransfo%tab_expo,[nb_Qact],     &
+          CALL alloc_NParray(CartesianTransfo%tab_expo,[nb_Qact],     &
                           'CartesianTransfo%tab_expo',name_sub)
           CartesianTransfo%tab_expo(:) = 0
 
-          CALL alloc_array(CartesianTransfo%tab_phi0,[nb_Qact],     &
+          CALL alloc_NParray(CartesianTransfo%tab_phi0,[nb_Qact],     &
                           'CartesianTransfo%tab_phi0',name_sub)
           CartesianTransfo%tab_phi0(:) = ZERO
 
-          CALL alloc_array(CartesianTransfo%tab_switch_type,[nb_Qact],&
+          CALL alloc_NParray(CartesianTransfo%tab_switch_type,[nb_Qact],&
                           'CartesianTransfo%tab_switch_type',name_sub)
           CartesianTransfo%tab_switch_type(:) = 0
 
-          CALL alloc_array(CartesianTransfo%tab_nb_Ref,[nb_Qact],   &
+          CALL alloc_NParray(CartesianTransfo%tab_nb_Ref,[nb_Qact],   &
                           'CartesianTransfo%tab_nb_Ref',name_sub)
           CartesianTransfo%tab_nb_Ref(:) = 2
 
@@ -262,56 +256,53 @@ MODULE mod_CartesianTransfo
 
       CartesianTransfo%nb_RefGeometry = 0
 
-      IF (associated(CartesianTransfo%TransVect))                       &
-        CALL dealloc_array(CartesianTransfo%TransVect,                  &
+      IF (allocated(CartesianTransfo%TransVect))                       &
+        CALL dealloc_NParray(CartesianTransfo%TransVect,                  &
                                   'CartesianTransfo%TransVect',name_sub)
 
-      IF (associated(CartesianTransfo%Qxyz))                            &
-      CALL dealloc_array(CartesianTransfo%Qxyz,                         &
+      IF (allocated(CartesianTransfo%Qxyz))                            &
+      CALL dealloc_NParray(CartesianTransfo%Qxyz,                         &
                         'CartesianTransfo%Qxyz',name_sub)
 
-      IF (associated(CartesianTransfo%MWQxyz))                          &
-        CALL dealloc_array(CartesianTransfo%MWQxyz,                     &
+      IF (allocated(CartesianTransfo%MWQxyz))                          &
+        CALL dealloc_NParray(CartesianTransfo%MWQxyz,                     &
                                      'CartesianTransfo%MWQxyz',name_sub)
 
-      IF (associated(CartesianTransfo%d0sm))                            &
-      CALL dealloc_array(CartesianTransfo%d0sm,                         &
-                        'CartesianTransfo%d0sm',name_sub)
+      IF (allocated(CartesianTransfo%d0sm))                            &
+      CALL dealloc_NParray(CartesianTransfo%d0sm,'CartesianTransfo%d0sm',name_sub)
 
-      IF (associated(CartesianTransfo%masses_at))                       &
-      CALL dealloc_array(CartesianTransfo%masses_at,                    &
-                        'CartesianTransfo%masses_at',name_sub)
+      IF (allocated(CartesianTransfo%masses_at))                       &
+      CALL dealloc_NParray(CartesianTransfo%masses_at,                    &
+                          'CartesianTransfo%masses_at',name_sub)
 
 
-      IF (associated(CartesianTransfo%list_Qact))                       &
-      CALL dealloc_array(CartesianTransfo%list_Qact,                    &
+      IF (allocated(CartesianTransfo%list_Qact))                       &
+      CALL dealloc_NParray(CartesianTransfo%list_Qact,                    &
                         'CartesianTransfo%list_Qact',name_sub)
 
-      IF (associated(CartesianTransfo%tab_sc))                          &
-      CALL dealloc_array(CartesianTransfo%tab_sc,                       &
+      IF (allocated(CartesianTransfo%tab_sc))                          &
+      CALL dealloc_NParray(CartesianTransfo%tab_sc,                       &
                         'CartesianTransfo%tab_sc',name_sub)
 
-         IF (associated(CartesianTransfo%tab_expo))                     &
-         CALL dealloc_array(CartesianTransfo%tab_expo,                  &
+         IF (allocated(CartesianTransfo%tab_expo))                     &
+         CALL dealloc_NParray(CartesianTransfo%tab_expo,                  &
                            'CartesianTransfo%tab_expo',name_sub)
 
-      IF (associated(CartesianTransfo%tab_phi0))                        &
-      CALL dealloc_array(CartesianTransfo%tab_phi0,                     &
+      IF (allocated(CartesianTransfo%tab_phi0))                        &
+      CALL dealloc_NParray(CartesianTransfo%tab_phi0,                     &
                         'CartesianTransfo%tab_phi0',name_sub)
 
-      IF (associated(CartesianTransfo%tab_switch_type))                 &
-      CALL dealloc_array(CartesianTransfo%tab_switch_type,              &
+      IF (allocated(CartesianTransfo%tab_switch_type))                 &
+      CALL dealloc_NParray(CartesianTransfo%tab_switch_type,              &
                         'CartesianTransfo%tab_switch_type',name_sub)
 
-      IF (associated(CartesianTransfo%tab_nb_Ref))                      &
-      CALL dealloc_array(CartesianTransfo%tab_nb_Ref,                   &
+      IF (allocated(CartesianTransfo%tab_nb_Ref))                      &
+      CALL dealloc_NParray(CartesianTransfo%tab_nb_Ref,                   &
                         'CartesianTransfo%tab_nb_Ref',name_sub)
 
       CartesianTransfo%type_diago      = 4
       CartesianTransfo%type_cs         = 0
       CartesianTransfo%check_dnT       = .FALSE.
-      CartesianTransfo%dnTErr(:)       = ZERO
-
 
       END SUBROUTINE dealloc_CartesianTransfo
       SUBROUTINE Read_CartesianTransfo(CartesianTransfo)
@@ -515,7 +506,7 @@ MODULE mod_CartesianTransfo
 
       END IF
 
-      IF (.NOT. associated(CartesianTransfo%Qxyz)) THEN
+      IF (.NOT. allocated(CartesianTransfo%Qxyz)) THEN
         STOP 'CartesianTransfo%Qxyz NOT allocated'
       END IF
 
@@ -531,7 +522,7 @@ MODULE mod_CartesianTransfo
 
       character (len=Name_len) :: name_int
       integer :: i,nb_Qact
-      integer, pointer :: list_Qact(:)
+      integer, allocatable :: list_Qact(:)
 
 
 
@@ -540,8 +531,7 @@ MODULE mod_CartesianTransfo
 
       write(out_unit,*) 'BEGINNING ',name_sub
 
-      nullify(list_Qact)
-      CALL alloc_array(list_Qact,[CartesianTransfo%ncart_act],'list_Qact',name_sub)
+      CALL alloc_NParray(list_Qact,[CartesianTransfo%ncart_act],'list_Qact',name_sub)
       list_Qact(:) = 0
 
       DO i=1,CartesianTransfo%ncart_act
@@ -585,7 +575,7 @@ MODULE mod_CartesianTransfo
         write(out_unit,*) ' Check your data!'
         STOP
       END IF
-      CALL dealloc_array(list_Qact,'list_Qact',name_sub)
+      CALL dealloc_NParray(list_Qact,'list_Qact',name_sub)
       write(out_unit,*) 'END ',name_sub
       END SUBROUTINE Read_MultiRef_type0_OF_CartesianTransfo
 
@@ -764,17 +754,17 @@ MODULE mod_CartesianTransfo
       write(out_unit,*) 'type_diago',CartesianTransfo%type_diago
       write(out_unit,*) 'type_cs',CartesianTransfo%type_cs
       write(out_unit,*) 'check_dnT',CartesianTransfo%check_dnT
-      write(out_unit,*) 'dnTErr(:)',CartesianTransfo%dnTErr(:)
+      write(out_unit,*) 'dnTErr(:)',dnTErr(:)
 
 
-      IF (associated(CartesianTransfo%TransVect)) THEN
+      IF (allocated(CartesianTransfo%TransVect)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
           write(out_unit,*) 'TransVect (not mass-weigthed, bohr)',j
           write(out_unit,*) CartesianTransfo%TransVect(:,j)
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%Qxyz)) THEN
+      IF (allocated(CartesianTransfo%Qxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
           write(out_unit,*) 'Qxyz (not mass-weigthed, bohr)',j
           DO i=1,CartesianTransfo%nat_act
@@ -783,7 +773,7 @@ MODULE mod_CartesianTransfo
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%MWQxyz)) THEN
+      IF (allocated(CartesianTransfo%MWQxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
           write(out_unit,*) 'Qxyz (mass-weigthed)',j
           DO i=1,CartesianTransfo%nat_act
@@ -792,16 +782,16 @@ MODULE mod_CartesianTransfo
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%d0sm)) THEN
+      IF (allocated(CartesianTransfo%d0sm)) THEN
         write(out_unit,*) 'd0sm'
         DO i=1,size(CartesianTransfo%d0sm),3
           write(out_unit,*) CartesianTransfo%d0sm(i:i+2)
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%masses_at)) write(out_unit,*) 'masses_at',CartesianTransfo%masses_at(:)
+      IF (allocated(CartesianTransfo%masses_at)) write(out_unit,*) 'masses_at',CartesianTransfo%masses_at(:)
 
-      IF (associated(CartesianTransfo%TransVect)) THEN
+      IF (allocated(CartesianTransfo%TransVect)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
           write(out_unit,*) 'TransVect (not mass-weigthed, Angs)',j
           write(out_unit,*) CartesianTransfo%TransVect(:,j) * get_Conv_au_TO_unit("L","Angs")
@@ -809,7 +799,7 @@ MODULE mod_CartesianTransfo
         END DO
       END IF
 
-      IF (associated(CartesianTransfo%Qxyz)) THEN
+      IF (allocated(CartesianTransfo%Qxyz)) THEN
         DO j=1,CartesianTransfo%nb_RefGeometry
           write(out_unit,*) 'Qxyz (not mass-weigthed, Angs)',j
           DO i=1,CartesianTransfo%nat_act
@@ -879,7 +869,6 @@ MODULE mod_CartesianTransfo
         CartesianTransfo2%type_diago      = CartesianTransfo1%type_diago
         CartesianTransfo2%type_cs         = CartesianTransfo1%type_cs
         CartesianTransfo2%check_dnT       = CartesianTransfo1%check_dnT
-        CartesianTransfo2%dnTErr(:)       = CartesianTransfo1%dnTErr(:)
 
       END SUBROUTINE CartesianTransfo1TOCartesianTransfo2
 
@@ -888,7 +877,8 @@ MODULE mod_CartesianTransfo
                                            Qact,nderiv,inTOout)
 
         TYPE (Type_dnVec),            intent(inout)  :: dnQin,dnQout
-        TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
+
+        TYPE (Type_CartesianTransfo), intent(in)     :: CartesianTransfo
         real (kind=Rkind),            intent(in)     :: Qact(:)
         integer,                      intent(in)     :: nderiv
         logical,                      intent(in)     :: inTOout
@@ -1581,7 +1571,7 @@ MODULE mod_CartesianTransfo
         TYPE (Type_dnVec),            intent(in)     :: dnXin
         TYPE(Type_dnS),               intent(inout)  :: dnT(3,3)
         TYPE(Type_dnS),               intent(in)     :: dnMWXref(:,:)
-        TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in)     :: CartesianTransfo
         integer,                      intent(in)     :: nderiv
 
 
@@ -1751,19 +1741,15 @@ MODULE mod_CartesianTransfo
           END IF
 
 !$OMP CRITICAL (calc_dnTEckart_CRIT)
-          CartesianTransfo%dnTErr(0) =                                  &
-                      max(CartesianTransfo%dnTErr(0),abs(dnWork%d0-ONE))
+          dnTErr(0) = max(dnTErr(0),abs(dnWork%d0-ONE))
           IF (dnWork%nderiv > 0) THEN
-             CartesianTransfo%dnTErr(1) =                               &
-                  max(CartesianTransfo%dnTErr(1),maxval(abs(dnWork%d1)))
+             dnTErr(1) = max(dnTErr(1),maxval(abs(dnWork%d1)))
           END IF
           IF (dnWork%nderiv > 1) THEN
-             CartesianTransfo%dnTErr(2) =                               &
-                  max(CartesianTransfo%dnTErr(2),maxval(abs(dnWork%d2)))
+             dnTErr(2) = max(dnTErr(2),maxval(abs(dnWork%d2)))
           END IF
           IF (dnWork%nderiv > 2) THEN
-             CartesianTransfo%dnTErr(3) =                               &
-                  max(CartesianTransfo%dnTErr(3),maxval(abs(dnWork%d3)))
+             dnTErr(3) = max(dnTErr(3),maxval(abs(dnWork%d3)))
           END IF
 !$OMP END CRITICAL (calc_dnTEckart_CRIT)
 
@@ -1800,7 +1786,7 @@ MODULE mod_CartesianTransfo
       RECURSIVE SUBROUTINE dnMWX_MultiRef(dnMWXref,CartesianTransfo,Qact,dnx,iref)
 
         TYPE (Type_dnS),              intent(inout)           :: dnMWXref(:,:)
-        TYPE (Type_CartesianTransfo), intent(inout)           :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in)              :: CartesianTransfo
         TYPE (Type_dnVec),            intent(in)              :: dnx
         real (kind=Rkind),            intent(in)              :: Qact(:)
         integer,                      intent(in),   optional  :: iref
@@ -2101,9 +2087,9 @@ MODULE mod_CartesianTransfo
         TYPE (Type_CartesianTransfo), intent(in) :: CartesianTransfo
 
 
-        TYPE (Type_dnS), pointer :: dnDist2(:)
+        TYPE (Type_dnS), allocatable :: dnDist2(:)
 
-        TYPE (Type_dnS)          :: dnW1,dnW2,dnSumExp
+        TYPE (Type_dnS)              :: dnW1,dnW2,dnSumExp
 
         integer              :: iref,kref,iat,ic,ixyz
         real (kind=Rkind)    :: cte(20),sc
@@ -2126,9 +2112,9 @@ MODULE mod_CartesianTransfo
 
         !---------------------------------------------------------------
         ! allocation
-        nullify(dnDist2)
-        CALL alloc_array(dnDist2,[CartesianTransfo%nb_RefGeometry],    &
-                        "dnDist2",name_sub)
+        allocate(dnDist2(CartesianTransfo%nb_RefGeometry))
+        !nullify(dnDist2)
+        !CALL alloc_array(dnDist2,[CartesianTransfo%nb_RefGeometry],"dnDist2",name_sub)
         CALL alloc_VecOFdnS(dnDist2,dnSwitch(1)%nb_var_deriv,dnSwitch(1)%nderiv)
 
         CALL alloc_dnS(dnW1,    dnSwitch(1)%nb_var_deriv,dnSwitch(1)%nderiv)
@@ -2191,9 +2177,10 @@ MODULE mod_CartesianTransfo
         CALL dealloc_dnS(dnSumExp)
 
         CALL dealloc_VecOFdnS(dnDist2)
-        CALL dealloc_array(dnDist2,"dnDist2",name_sub)
+        deallocate(dnDist2)
+        !CALL dealloc_array(dnDist2,"dnDist2",name_sub)
         !---------------------------------------------------------------
-!stop
+
 !-----------------------------------------------------------
         IF (debug) THEN
           write(out_unit,*) 'dnSwitch'
@@ -2208,10 +2195,10 @@ MODULE mod_CartesianTransfo
 
         TYPE (Type_dnS), intent(inout)           :: dnSwitch(:)
         TYPE (Type_dnVec), intent(in)            :: dnx
-        TYPE (Type_CartesianTransfo), intent(inout) :: CartesianTransfo
+        TYPE (Type_CartesianTransfo), intent(in) :: CartesianTransfo
 
 
-        TYPE (Type_dnS), pointer :: dnDist2(:)
+        TYPE (Type_dnS), allocatable :: dnDist2(:)
 
         TYPE (Type_dnS)          :: dnW1,dnW2,dnSumExp
         TYPE (Type_dnS)          :: dnMWXref(3,CartesianTransfo%nat_act)
@@ -2240,9 +2227,10 @@ MODULE mod_CartesianTransfo
 
         !---------------------------------------------------------------
         ! allocation
-        nullify(dnDist2)
-        CALL alloc_array(dnDist2,[CartesianTransfo%nb_RefGeometry],    &
-                        "dnDist2",name_sub)
+        !nullify(dnDist2)
+        !CALL alloc_array(dnDist2,[CartesianTransfo%nb_RefGeometry],"dnDist2",name_sub)
+        allocate(dnDist2(CartesianTransfo%nb_RefGeometry))
+
         CALL alloc_VecOFdnS(dnDist2,dnSwitch(1)%nb_var_deriv,dnSwitch(1)%nderiv)
 
         CALL alloc_dnS(dnW1,    dnSwitch(1)%nb_var_deriv,dnSwitch(1)%nderiv)
@@ -2318,7 +2306,8 @@ MODULE mod_CartesianTransfo
         CALL dealloc_dnS(dnSumExp)
 
         CALL dealloc_VecOFdnS(dnDist2)
-        CALL dealloc_array(dnDist2,"dnDist2",name_sub)
+        !CALL dealloc_array(dnDist2,"dnDist2",name_sub)
+        deallocate(dnDist2)
         !---------------------------------------------------------------
 
 !-----------------------------------------------------------

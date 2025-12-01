@@ -232,7 +232,7 @@ MODULE mod_dnGG_dng
       END IF
       !-----------------------------------------------------------------
 
-   ELSE IF (mole%nb_Qtransfo == -1 .OR. para_Tnum%f2f1_ana) THEN
+   ELSE IF (mole%nb_Qtransfo == 1 .OR. para_Tnum%f2f1_ana) THEN
       !-----------------------------------------------------------------
       ! with anlytical expression of f2, f1
       IF (present(dnGG)) THEN
@@ -412,31 +412,34 @@ MODULE mod_dnGG_dng
   END SUBROUTINE get_dng_dnGG_WITH_Gcte
 
   SUBROUTINE get_dng_dnGG_WITH_GTaylor(Qact,para_Tnum,mole,dng,dnGG)
+    USE mod_ActiveTransfo
     IMPLICIT NONE
 
     real (kind=Rkind), intent(in)               :: Qact(:)
     TYPE(Type_dnMat),  intent(inout), optional  :: dng,dnGG
 
 !----- for the CoordType and Tnum --------------------------------------
-    TYPE (CoordType),  intent(in)               :: mole
+    TYPE (CoordType),  intent(in), target       :: mole
     TYPE (Tnum),       intent(in)               :: para_Tnum
 
 
     real (kind=Rkind), allocatable    :: DQ(:)
     integer                           :: i,j
+    TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
 !----- for debuging --------------------------------------------------
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_GTaylor'
 !-----------------------------------------------------------
+    ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
     IF (debug) THEN
       write(out_unit,*) 'BEGINNING ',name_sub
       write(out_unit,*)
       write(out_unit,*) 'ndimG',mole%ndimG
       write(out_unit,*)
       write(out_unit,*) 'Qact',Qact
-      write(out_unit,*) 'Qact0',mole%ActiveTransfo%Qact0
+      write(out_unit,*) 'Qact0',ActiveTransfo%Qact0
       write(out_unit,*)
       write(out_unit,*) 'GTaylor_Order',para_Tnum%GTaylor_Order
       write(out_unit,*)
@@ -468,7 +471,7 @@ MODULE mod_dnGG_dng
     CALL check_alloc_dnMat(dnGG,'dnGG',name_sub)
     CALL check_alloc_dnMat(para_Tnum%dnGGref,'para_Tnum%dnGGref',name_sub)
 
-    DQ = Qact - mole%ActiveTransfo%Qact0
+    DQ = Qact - ActiveTransfo%Qact0
     IF (debug) THEN 
       write(out_unit,*) 'DQ',DQ(:)
       write(out_unit,*) 'para_Tnum%dnGGref'
@@ -575,7 +578,7 @@ MODULE mod_dnGG_dng
     !-----------------------------------------------------------
     !-----------------------------------------------------------
     !-----------------------------------------------------------
-    CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+    CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
     CALL calc_f2_f1Q_ana(Qdyn,                                      &
                          Tdef2,Tdef1,vep_loc,rho,                   &
@@ -653,27 +656,30 @@ MODULE mod_dnGG_dng
                                                 ! then we can calculate dng form the inversion of dnGG
         mole100 = mole
 
+
+
         DO i=1,mole100%nb_var
-          IF (mole100%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
-                           mole100%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)  &
+                           mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
-        mole100%nb_act      = mole%nb_act  + mole%nb_rigid100
-        mole100%nb_act1     = mole%nb_act1 + mole%nb_rigid100
-        mole100%ndimG       = mole%ndimG   + mole%nb_rigid100
-        mole100%nb_rigid100 = 0
-        mole100%nb_rigid    = mole100%nb_rigid - mole%nb_rigid100
+        mole100%nb_act          = mole%nb_act  + mole%nb_rigid100
+        mole100%nb_act1         = mole%nb_act1 + mole%nb_rigid100
+        mole100%ndimG           = mole%ndimG   + mole%nb_rigid100
+        mole100%nb_rigid100     = 0
+        mole100%nb_rigid        = mole%nb_rigid - mole%nb_rigid100
 
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 
         IF (debug) THEN
           write(out_unit,*) 'mole%nb_rigid100 > 0',mole%nb_rigid100
           write(out_unit,*)
+          write(out_unit,*) 'mole100 parameters'
           CALL Write_CoordType(mole100)
+          flush(out_unit)
         END IF
 
         CALL alloc_dnSVM(dnGG100,mole100%ndimG,mole100%ndimG,mole100%nb_act,nderiv)
         CALL get_dnGG(Qact,dnGG100,nderiv,para_Tnum,mole100)
-
         IF (para_Tnum%vep_type == 100 .AND. dnGG100%nderiv == 2) THEN
           CALL Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG100,mole,para_Tnum)
           vep_done = .TRUE.
@@ -682,6 +688,7 @@ MODULE mod_dnGG_dng
         IF (debug) THEN
           write(out_unit,*) 'dnGG100'
           CALL Write_dnSVM(dnGG100)
+          flush(out_unit)
         END IF
       END IF
       !-----------------------------------------------------------------
@@ -763,14 +770,14 @@ MODULE mod_dnGG_dng
                                                 ! then we can calculate dng form the inversion of dnGG
         mole100 = mole
         DO i=1,mole100%nb_var
-          IF (mole100%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
-                           mole100%ActiveTransfo%list_act_OF_Qdyn(i) = 1
+          IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
+                           mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) = 1
         END DO
         mole100%nb_act      = mole%nb_act  + mole%nb_rigid100
         mole100%nb_act1     = mole%nb_act1 + mole%nb_rigid100
         mole100%ndimG       = mole%ndimG   + mole%nb_rigid100
         mole100%nb_rigid100 = 0
-        mole100%nb_rigid    = mole100%nb_rigid - mole%nb_rigid100
+        mole100%nb_rigid    = mole%nb_rigid - mole%nb_rigid100
 
         mole100%tab_Qtransfo(:)%nb_act = mole100%nb_act
 
@@ -1282,6 +1289,11 @@ MODULE mod_dnGG_dng
       CALL sub_QactTOdnMWx(Qact,dnMWx,mole,nderivX,Gcenter,             &
                                Cart_Transfo=para_Tnum%With_Cart_Transfo)
 
+      IF (debug) THEN
+        write(out_unit,*) 'dnMWx'
+        CALL write_dnx(1,mole%ncart,dnMWx,nderivX)
+      END IF
+
       IF (nderivA >= 0) THEN
         CALL sub_d0A(dnA%d0,dnMWx%d0,dnMWx%d1,                          &
                      mole%nb_act,mole%nat_act,mole%ncart,               &
@@ -1513,7 +1525,6 @@ MODULE mod_dnGG_dng
 !    Calcul de la matrice A
 !
 !================================================================
-
       SUBROUTINE sub_d0A(A,d0x,d1x,                                     &
                          nb_act,nat_act,ncart,ncart_act,ndimA,          &
                          Without_Rot,With_VecCOM,Mtot)
@@ -1523,8 +1534,8 @@ MODULE mod_dnGG_dng
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: A(ndimA,ndimA),Mtot
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
 
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
@@ -1543,7 +1554,11 @@ MODULE mod_dnGG_dng
          write(out_unit,*) 'nb_act,nat_act,ncart,ncart_act,ndimA',             &
                      nb_act,nat_act,ncart,ncart_act,ndimA
          write(out_unit,*) 'Without_Rot',Without_Rot
+
          CALL Write_d0Q(0,'d0x',d0x,3)
+         DO i=1,nb_act
+            CALL Write_d0Q(0,'d1x',d1x(:,i),3)
+         END DO
          write(out_unit,*)
        END IF
 !-----------------------------------------------------------
@@ -1682,9 +1697,9 @@ MODULE mod_dnGG_dng
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: d1A(ndimA,ndimA,nb_act)
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
-       real (kind=Rkind) :: d2x(ncart,nb_act,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
+       real (kind=Rkind) :: d2x(:,:,:)
 
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
@@ -1829,10 +1844,10 @@ END SUBROUTINE sub_d1A
 
        integer :: nb_act,nat_act,ncart,ncart_act,ndimA
        real (kind=Rkind) :: d2A(ndimA,ndimA,nb_act,nb_act)
-       real (kind=Rkind) :: d0x(ncart)
-       real (kind=Rkind) :: d1x(ncart,nb_act)
-       real (kind=Rkind) :: d2x(ncart,nb_act,nb_act)
-       real (kind=Rkind) :: d3x(ncart,nb_act,nb_act,nb_act)
+       real (kind=Rkind) :: d0x(:)
+       real (kind=Rkind) :: d1x(:,:)
+       real (kind=Rkind) :: d2x(:,:,:)
+       real (kind=Rkind) :: d3x(:,:,:,:)
 
        real (kind=Rkind) :: Ixx,Iyy,Izz,Ixy,Ixz,Iyz
 
@@ -2250,7 +2265,7 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
 
     CALL check_alloc_dnS(para_Tnum%dnVepref,'para_Tnum%dnVepref',name_sub)
 
-    DQ = Qact - mole%ActiveTransfo%Qact0
+    DQ = Qact - mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%Qact0
     IF (debug) THEN 
       write(out_unit,*) 'DQ',DQ(:)
       write(out_unit,*) 'para_Tnum%dnVepref'
@@ -2470,7 +2485,7 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
       CALL check_alloc_dnMat(dnGG,'dnGG',name_sub)
       CALL check_alloc_dnS(para_Tnum%dnVepref,'para_Tnum%dnVepref',name_sub)
   
-      DQ = Qact - mole%ActiveTransfo%Qact0
+      DQ = Qact - mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%Qact0
       IF (debug) THEN 
         write(out_unit,*) 'DQ',DQ(:)
         write(out_unit,*) 'para_Tnum%dnVepref'

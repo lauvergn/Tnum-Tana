@@ -31,14 +31,14 @@ PROGRAM Test_nDindex
   USE mod_nDindex
   IMPLICIT NONE
 
-  TYPE (Type_nDindex) :: nDSG4
+  TYPE (Type_nDindex) :: nDSG4_5,nDSG4_6
   TYPE (Type_nDindex) :: nDSG4_testCopy
   TYPE (Type_nDindex), allocatable :: nDi_allo
   TYPE (Type_nDindex), pointer     :: nDi_pointer
 
-  integer :: i
-  integer :: ndim,Lmin,Lmax,max_coupling
-  integer, allocatable :: nDsize(:),nDend(:),nDinit(:)
+  integer :: i,nDiff
+  integer :: ndim,Lmin,Lmax,L1Max,L2Max,max_coupling
+  integer, allocatable :: nDsize(:),nDend(:),nDinit(:),nDNum_OF_Lmax(:),LiMax(:)
   real (kind=Rkind), allocatable :: WeightSG(:)
 
   ndim = 4
@@ -49,20 +49,85 @@ PROGRAM Test_nDindex
   nDend  = [ (1,i=1,ndim) ]
   nDinit = [ (0,i=1,ndim) ]
 
-  nDSG4%packed = .TRUE.
-  CALL init_nDindexPrim(nDSG4,type_OF_nDindex=-5,ndim=ndim,             &
+  nDSG4_5%packed = .TRUE.
+  CALL init_nDindexPrim(nDSG4_5,type_OF_nDindex=-5,ndim=ndim,             &
                         nDinit=nDinit,nDend=nDend,     &
                         Lmin=Lmin,Lmax=Lmax,MaxCoupling=max_coupling)
+   CALL Write_nDindex(nDSG4_5)
 
-   CALL Write_nDindex(nDSG4)
-   allocate(WeightSG(nDSG4%Max_nDI))
+  nDSG4_6%packed = .TRUE.
+  CALL init_nDindexPrim(nDSG4_6,type_OF_nDindex=-6,ndim=ndim,             &
+                        nDinit=nDinit,nDend=nDend,     &
+                        Lmin=Lmin,Lmax=Lmax,MaxCoupling=max_coupling)
+  CALL Write_nDindex(nDSG4_6)
+  nDiff = count((nDSG4_5%Tab_L-nDSG4_6%Tab_L) /= 0)
+  write(6,*) 'Number of difference between type5 and type6',nDiff
+  IF (nDiff > 0) write(6,*) 'ERROR between type5 and type6'
+   
+   allocate(WeightSG(nDSG4_5%Max_nDI))
+   CALL calc_Weight_OF_SRep(WeightSG,nDSG4_5)
 
-   CALL calc_Weight_OF_SRep(WeightSG,nDSG4)
-
-   nDSG4_testCopy = nDSG4
+   nDSG4_testCopy = nDSG4_5
 
    CALL dealloc_nDindex(nDSG4_testCopy)
-   CALL dealloc_nDindex(nDSG4)
+   CALL dealloc_nDindex(nDSG4_5)
+   CALL dealloc_nDindex(nDSG4_6)
+
+  write(*,*) "============================================"
+  write(*,*) "===========With L1Max,L2Max or LiMax ======="
+  nDNum_OF_Lmax = [ (1,i=1,ndim) ] ; nDNum_OF_Lmax(1:2) = 2
+  Lmin  = 0
+  Lmax  = 4
+  L1Max = 3
+  L2Max = 1
+  LiMax = [L1Max,L2Max]
+  max_coupling = ndim
+  nDsize = [ (LMax-1,i=1,ndim) ]
+  nDend  = [ (LMax-1,i=1,ndim) ]
+  nDinit = [ (0,i=1,ndim) ]
+  nDSG4_5%packed = .TRUE.
+  CALL init_nDindexPrim(nDSG4_5,type_OF_nDindex=-5,ndim=ndim,  &
+                        nDinit=nDinit,nDend=nDend,             &
+                        Lmin=Lmin,Lmax=Lmax,                   &
+                        L1max=L1max,L2max=L2max,               &
+                        nDNum_OF_Lmax=nDNum_OF_Lmax,           &
+                        MaxCoupling=max_coupling)
+   CALL Write_nDindex(nDSG4_5)
+
+  nDSG4_6%packed = .TRUE.
+  CALL init_nDindexPrim(nDSG4_6,type_OF_nDindex=-6,ndim=ndim,  &
+                        nDinit=nDinit,nDend=nDend,             &
+                        Lmin=Lmin,Lmax=Lmax,Limax=LiMax,       &
+                        nDNum_OF_Lmax=nDNum_OF_Lmax,           &
+                        MaxCoupling=max_coupling)
+  CALL Write_nDindex(nDSG4_6)
+  nDiff = size(nDSG4_5%Tab_L) - size(nDSG4_6%Tab_L)
+  IF (nDiff == 0) nDiff = count((nDSG4_5%Tab_L-nDSG4_6%Tab_L) /= 0)
+  write(6,*) 'Number of difference between type5 and type6',nDiff
+  IF (nDiff > 0) write(6,*) 'ERROR between type5 and type6'
+  write(*,*) "============================================"
+
+  write(*,*) "===========With LiMax ======================"
+  CALL dealloc_nDindex(nDSG4_6)
+  nDNum_OF_Lmax = [ (1,i=1,ndim) ] ; nDNum_OF_Lmax(1:2) = 2 ; nDNum_OF_Lmax(3) = 3
+  Lmin  = 0
+  Lmax  = 4
+  L1Max = 3
+  L2Max = 1
+  LiMax = [3,2,1]
+  max_coupling = ndim
+  nDsize = [ (LMax,i=1,ndim) ]
+  nDend  = [ (LMax-1,i=1,ndim) ]
+  nDinit = [ (0,i=1,ndim) ]
+  nDSG4_5%packed = .TRUE.
+  nDSG4_6%packed = .TRUE.
+  CALL init_nDindexPrim(nDSG4_6,type_OF_nDindex=-6,ndim=ndim,  &
+                        nDinit=nDinit,nDend=nDend,             &
+                        Lmin=Lmin,Lmax=Lmax,Limax=LiMax,       &
+                        nDNum_OF_Lmax=nDNum_OF_Lmax,           &
+                        MaxCoupling=max_coupling)
+  CALL Write_nDindex(nDSG4_6)
+  write(*,*) "============================================"
 
 
   write(*,*) "============================================"

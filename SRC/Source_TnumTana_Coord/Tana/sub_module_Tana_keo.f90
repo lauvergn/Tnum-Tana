@@ -56,18 +56,19 @@ MODULE mod_Tana_keo
       USE mod_Tana_op,    ONLY : add_Vextr_new, Get_F2_F1_FROM_TWOxKEO, Get_Gana_FROM_TWOxKEO
       USE mod_Qtransfo,   ONLY : get_name_Qtransfo
       USE VarName_Tana_m
- 
+      USE mod_ActiveTransfo
       IMPLICIT NONE
 
-      TYPE(sum_opnd),        intent(inout)        :: TWOxKEO
-      TYPE (CoordType),      intent(inout)        :: mole
-      TYPE (Tnum),           intent(inout)        :: para_Tnum
-      real (kind=Rkind),     intent(inout)        :: Qact(:)
+      TYPE(sum_opnd),        intent(inout)         :: TWOxKEO
+      TYPE (CoordType),      intent(inout), target :: mole
+      TYPE (Tnum),           intent(inout)         :: para_Tnum
+      real (kind=Rkind),     intent(inout)         :: Qact(:)
 
       type(Type_PiEulerRot), pointer    :: P_euler(:)
       TYPE(sum_opnd), pointer           :: M_mass_out(:,:)
 
       TYPE(sum_opnd), allocatable       :: Gana(:,:)
+      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
 
       integer, pointer                  :: list_Qactiv(:)
@@ -108,6 +109,7 @@ MODULE mod_Tana_keo
         write(out_unit,*) ' BEGINNING Tana'
         flush(out_unit)
       END IF
+      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
 
       nullify(M_mass_out)
       poly = .false.
@@ -137,7 +139,7 @@ MODULE mod_Tana_keo
         STOP
       end if
 
-      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%ActiveTransfo)
+      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
 
       nullify(tab_Q)
       CALL alloc_array(tab_Q,shape(Qdyn),'tab_Q',routine_name)
@@ -176,17 +178,17 @@ MODULE mod_Tana_keo
 
         tab_Q(iQpoly) = Qdyn(iQprim)
 
-        list_Qactiv(iQpoly)     = mole%ActiveTransfo%list_act_of_Qdyn(iQprim)
+        list_Qactiv(iQpoly)     = ActiveTransfo%list_act_of_Qdyn(iQprim)
 
-        list_QpolytoQact(iQpoly) = mole%ActiveTransfo%list_QdynTOQact(iQprim)
+        list_QpolytoQact(iQpoly) = ActiveTransfo%list_QdynTOQact(iQprim)
 
         list_QactTOQpoly(list_QpolytoQact(iQpoly) ) = iQpoly
       END DO
 
-      nb_act     = count(mole%ActiveTransfo%list_act_of_Qdyn == 1 .OR.  &
-                         mole%ActiveTransfo%list_act_of_Qdyn == 21)
-      constraint = (count(mole%ActiveTransfo%list_act_of_Qdyn /= 1 .AND.&
-                          mole%ActiveTransfo%list_act_of_Qdyn /= 21) > 0 )
+      nb_act     = count(ActiveTransfo%list_act_of_Qdyn == 1 .OR.  &
+                         ActiveTransfo%list_act_of_Qdyn == 21)
+      constraint = (count(ActiveTransfo%list_act_of_Qdyn /= 1 .AND.&
+                          ActiveTransfo%list_act_of_Qdyn /= 21) > 0 )
       IF (nb_act /= mole%nb_act) THEN
         write(out_unit,*) ' ERROR in ',routine_name
         write(out_unit,*) "  mole%nb_act from mole is not equal to nb_act"
@@ -488,7 +490,7 @@ MODULE mod_Tana_keo
          if(F_system%tab_BFTransfo(i)%frame) nsub_syst = nsub_syst+1
        end do
        nvec = F_system%nb_vect-nsub_syst+1
-       CALL alloc_array(F_system%listVFr,[nvec],'F_system%listVFr',routine_name)
+       CALL alloc_NParray(F_system%listVFr,[nvec],'F_system%listVFr',routine_name)
        ivF = 1
        F_system%listVFr(ivF) = i_var
        i_var = i_var+1
@@ -757,8 +759,8 @@ MODULE mod_Tana_keo
    Recursive subroutine  extract_bloc_matrix(F_system, M_mass)
      USE mod_BunchPolyTransfo, only : Type_BFTransfo
 
-     type(Type_BFTransfo),                intent(inout)      :: F_system
-     real(kind = Rkind),pointer                              :: M_mass(:,:)
+     type(Type_BFTransfo),   intent(inout)      :: F_system
+     real(kind = Rkind),     intent(in)         :: M_mass(:,:)
 
      integer                         :: nvec, nvec_subsyst
      integer                         :: i, j, ivF, i_var
@@ -767,14 +769,14 @@ MODULE mod_Tana_keo
      integer                         :: i_BF, j_BF
      character (len=*), parameter    :: routine_name='extract_bloc_matrix'
 
-     if(associated(F_system%M_mass)) then
+     if(allocated(F_system%M_mass)) then
        do iv=1, F_system%nb_vect
-         IF (associated(F_system%tab_BFTransfo(iv)%M_mass)) THEN
-           CALL dealloc_array(F_system%tab_BFTransfo(iv)%M_mass,        &
-                             'F_system%tab_BFTransfo(iv)%M_mass',routine_name)
+         IF (allocated(F_system%tab_BFTransfo(iv)%M_mass)) THEN
+           CALL dealloc_NParray(F_system%tab_BFTransfo(iv)%M_mass,        &
+                               'F_system%tab_BFTransfo(iv)%M_mass',routine_name)
          END IF
        end do
-       CALL dealloc_array(F_system%M_mass,'F_system%M_mass',routine_name)
+       CALL dealloc_NParray(F_system%M_mass,'F_system%M_mass',routine_name)
      end if
 
       if(F_system%frame) then
@@ -788,7 +790,7 @@ MODULE mod_Tana_keo
           if(F_system%euler(i)) nb_var = nb_var + 1
         end do
 
-        CALL alloc_array(F_system%M_mass,[nvec, nvec],'F_system%M_mass',routine_name)
+        CALL alloc_NParray(F_system%M_mass,[nvec, nvec],'F_system%M_mass',routine_name)
 
        do  i = 1, nvec
          i_BF = F_system%listVFr(i)
