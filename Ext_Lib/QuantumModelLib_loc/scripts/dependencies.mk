@@ -3,6 +3,7 @@ qmllib_finitediff_m := $(OBJ_DIR)/FiniteDiff_m.o
 qmllib_utillib_m := $(OBJ_DIR)/UtilLib_m.o
 qml_twod_rjdi2014_m := $(OBJ_DIR)/TwoD_RJDI2014_m.o
 qml_tully_m := $(OBJ_DIR)/Tully_m.o
+qml_doublewell_m := $(OBJ_DIR)/DoubleWell_m.o
 qml_extmodel_m := $(OBJ_DIR)/ExtModel_m.o
 qml_vibronic_m := $(OBJ_DIR)/Vibronic_m.o
 qml_hoo_dmbe_m := $(OBJ_DIR)/HOO_DMBE_m.o
@@ -27,6 +28,7 @@ qml_twod_mullerbrown_m := $(OBJ_DIR)/TwoD_MullerBrown_m.o
 qml_test_m := $(OBJ_DIR)/Test_m.o
 qml_clh2p_m := $(OBJ_DIR)/ClH2p_m.o
 qml_bottleneck_m := $(OBJ_DIR)/Bottleneck_m.o
+qml_h2_h2on_m := $(OBJ_DIR)/H2_H2On_m.o
 qml_dmabn_m := $(OBJ_DIR)/dmabn_m.o
 qml_uracil_m := $(OBJ_DIR)/Uracil_m.o
 qml_buck_m := $(OBJ_DIR)/Buck_m.o
@@ -70,6 +72,12 @@ $(OBJ_DIR)/Tully_m.o : \
           $(qml_empty_m) \
           $(qdutil_m) \
           $(addnsvm_m)
+#file+mod_name: SRC/QML/DoubleWell_m.f90 qml_doublewell_m
+$(OBJ_DIR)/DoubleWell_m.o : \
+          $(qdutil_numparameters_m) \
+          $(qml_empty_m) \
+          $(addnsvm_m) \
+          $(qdutil_m)
 #file+mod_name: SRC/QML/ExtModel_m.f90 qml_extmodel_m
 $(OBJ_DIR)/ExtModel_m.o : \
           $(qdutil_numparameters_m) \
@@ -179,7 +187,8 @@ $(OBJ_DIR)/Sigmoid_m.o : \
 $(OBJ_DIR)/Morse_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
-          $(addnsvm_m)
+          $(addnsvm_m) \
+          $(qdutil_m)
 #file+mod_name: SRC/QML/NO3_m.f90 qml_no3_m
 $(OBJ_DIR)/NO3_m.o : \
           $(qdutil_numparameters_m) \
@@ -213,6 +222,12 @@ $(OBJ_DIR)/ClH2p_m.o : \
           $(addnsvm_m)
 #file+mod_name: SRC/QML/Bottleneck_m.f90 qml_bottleneck_m
 $(OBJ_DIR)/Bottleneck_m.o : \
+          $(qdutil_numparameters_m) \
+          $(qml_empty_m) \
+          $(qdutil_m) \
+          $(addnsvm_m)
+#file+mod_name: SRC/QML/H2_H2On_m.f90 qml_h2_h2on_m
+$(OBJ_DIR)/H2_H2On_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
           $(qdutil_m) \
@@ -358,6 +373,7 @@ $(OBJ_DIR)/Model_m.o : \
           $(qml_poly1d_m) \
           $(qml_h2_m) \
           $(qml_henonheiles_m) \
+          $(qml_doublewell_m) \
           $(qml_tully_m) \
           $(qml_psb3_m) \
           $(qml_retinal_jpcb2000_m) \
@@ -366,6 +382,7 @@ $(OBJ_DIR)/Model_m.o : \
           $(qml_h2sin_m) \
           $(qml_h2nsi_m) \
           $(qml_h2o_m) \
+          $(qml_h2_h2on_m) \
           $(qml_clh2p_m) \
           $(qml_clh2p_botschwina_m) \
           $(qml_bottleneck_m) \

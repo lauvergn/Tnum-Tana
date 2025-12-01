@@ -4,6 +4,7 @@ FiniteDiff_m.f90  \
 UtilLib_m.f90  \
 TwoD_RJDI2014_m.f90  \
 Tully_m.f90  \
+DoubleWell_m.f90  \
 ExtModel_m.f90  \
 Vibronic_m.f90  \
 HOO_DMBE_m.f90  \
@@ -28,6 +29,7 @@ TwoD_MullerBrown_m.f90  \
 Test_m.f90  \
 ClH2p_m.f90  \
 Bottleneck_m.f90  \
+H2_H2On_m.f90  \
 dmabn_m.f90  \
 Uracil_m.f90  \
 Buck_m.f90  \

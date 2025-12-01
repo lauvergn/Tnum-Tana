@@ -34,93 +34,82 @@ MODULE mod_nDindex
                              dealloc_ndind, ndind2tondind1, write_tab_ndind
   IMPLICIT NONE
 
-      PRIVATE
+  PRIVATE
 
-      integer, parameter :: err_Max_nDI = 1
-      integer, parameter :: err_nDI     = 2
-      integer, parameter :: err_nDval   = 3
+  integer, parameter :: err_Max_nDI = 1
+  integer, parameter :: err_nDI     = 2
+  integer, parameter :: err_nDval   = 3
 
-      !!@description: TODO
-      !!@param: TODO
-      TYPE Type_nDindex
+  TYPE Type_nDindex
+    logical                       :: alloc           = .FALSE. ! IF F, tables haven't been allocated.
+    logical                       :: init            = .FALSE. ! IF F, tables haven't been initialized
+    logical                       :: Write_Tab       = .FALSE. ! IF T write Tab_nDval and Tab_Norm
+    integer                       :: ndim            = 0       ! number of index: dimension of table nDind, nDdim
+    integer, allocatable          :: nDinit(:)                 ! smallest value of the individual index (1 or 0)
+    integer, allocatable          :: nDend(:)                  ! largest value of the individual index
+    integer, allocatable          :: nDsize(:)                 ! size of the individual index
+    real(kind=Rkind), allocatable :: nDweight(:)               ! weight of the individual index
+    logical, allocatable          :: skip_li(:,:)              ! skip_li(0:Lmax,ndim). Default F (keep all l(:) terms)
+    logical                       :: packed          = .FALSE. ! IF T allocate and set the Tab_nDval and Tab_Norm
+    logical                       :: packed_done     = .FALSE. ! IF T The pack feature is done
+    integer, allocatable          :: Tab_nDval(:,:)            ! Tab_nDval(ndim,Max_nDI) table the individual indexes
+    real(kind=Rkind), allocatable :: Tab_Norm(:)               ! TabNorm for the whole basis
+    integer,  allocatable         :: Tab_L(:)                  ! Equivalent to Tab_Norm (but integer)
+    integer                       :: Max_nDI         = 0       ! largest value of the multidimensional index
+    integer                       :: type_OF_nDindex = -1
+                                    ! 0: using a table such Sum(nDind(:)) < Norm
+                                    ! 1: standard table, (init1....dim1)X(init2....dim2)....
+                                    ! 2: such Sum(nDind(:)) < Norm
+                                    ! 3: such Sum(nDind(:)) < Lmax (for new Smolyak grid)
+    integer                       :: MaxCoupling     = -1
+    integer                       :: MinCoupling     = 0
+    real(kind=Rkind)              :: MaxNorm         = -ONE
+    real(kind=Rkind)              :: MinNorm         = ZERO
+    integer                       :: Lmax            = -1
+    integer, allocatable          :: LiMax(:)
+    integer                       :: L1max           = huge(1)
+    integer                       :: L2max           = huge(1)
+    integer, allocatable          :: nDNum_OF_Lmax(:)            ! associated the index to Lmax (0), L1max (1), L2max(2)
+    integer                       :: Lmin            = 0
+    logical                       :: With_L          = .FALSE. ! IF T, it uses L instead of the Norm
+    TYPE (RealVec_t), allocatable :: Tab_nDNorm(:)             ! Tab_nDindex(ndim) (for recursive used)
+    TYPE (IntVec_t),  allocatable :: Tab_i_TO_l(:)             ! equivalent to Tab_nDNorm
+    TYPE(TypeDInd),  allocatable  :: Tab_DInd(:) ! for SGtype2
+  END TYPE Type_nDindex
 
-        logical                       :: alloc           = .FALSE. ! IF F, tables haven't been allocated.
-        logical                       :: init            = .FALSE. ! IF F, tables haven't been initialized
-        logical                       :: Write_Tab       = .FALSE. ! IF T write Tab_nDval and Tab_Norm
+  INTERFACE alloc_array
+    MODULE PROCEDURE alloc_array_OF_nDindexdim0,alloc_array_OF_nDindexdim1
+  END INTERFACE
+  INTERFACE dealloc_array
+    MODULE PROCEDURE dealloc_array_OF_nDindexdim0,dealloc_array_OF_nDindexdim1
+  END INTERFACE
 
-        integer                       :: ndim            = 0       ! number of index: dimension of table nDind, nDdim
-        integer, allocatable          :: nDinit(:)                 ! smallest value of the individual index (1 or 0)
-        integer, allocatable          :: nDend(:)                  ! largest value of the individual index
-        integer, allocatable          :: nDsize(:)                 ! size of the individual index
-        real(kind=Rkind), allocatable :: nDweight(:)               ! weight of the individual index
-        logical, allocatable          :: skip_li(:,:)              ! skip_li(0:Lmax,ndim). Default F (keep all l(:) terms)
+  INTERFACE alloc_NParray
+    MODULE PROCEDURE alloc_NParray_OF_nDindexdim0,alloc_NParray_OF_nDindexdim1
+  END INTERFACE
+  INTERFACE dealloc_NParray
+    MODULE PROCEDURE dealloc_NParray_OF_nDindexdim0,dealloc_NParray_OF_nDindexdim1
+  END INTERFACE
 
-        logical                       :: packed          = .FALSE. ! IF T allocate and set the Tab_nDval and Tab_Norm
-        logical                       :: packed_done     = .FALSE. ! IF T The pack feature is done
+  PUBLIC :: Type_nDindex,alloc_nDindex,dealloc_nDindex,Write_nDindex
 
-        integer, allocatable          :: Tab_nDval(:,:)            ! Tab_nDval(ndim,Max_nDI) table the individual indexes
-        real(kind=Rkind), allocatable :: Tab_Norm(:)               ! TabNorm for the whole basis
-        integer,  allocatable         :: Tab_L(:)                  ! Equivalent to Tab_Norm (but integer)
+  PUBLIC :: alloc_array,dealloc_array,alloc_NParray,dealloc_NParray
+  PUBLIC :: init_nDindexPrim,init_nDindex_typeTAB
+  PUBLIC :: pack_nDindex,sort_nDindex,unpack_nDindex
+  PUBLIC :: calc_nDI,calc_Norm_OF_nDI,calc_Norm_OF_nDval,calc_L_OF_nDI,calc_L_OF_nDval
+  PUBLIC :: calc_nDindex,calc_nDval_m1,calc_nDval_p1
 
-        integer                       :: Max_nDI         = 0       ! largest value of the multidimensional index
+  PUBLIC :: ADD_ONE_TO_nDindex,ADD_ONE_TO_nDval_m1,ADD_ONE_TO_nDval_p1
+  PUBLIC :: init_nDval_OF_nDindex
 
-        integer                       :: type_OF_nDindex = -1
-                                        ! 0: using a table such Sum(nDind(:)) < Norm
-                                        ! 1: standard table, (init1....dim1)X(init2....dim2)....
-                                        ! 2: such Sum(nDind(:)) < Norm
-                                        ! 3: such Sum(nDind(:)) < Lmax (for new Smolyak grid)
+CONTAINS
 
-        integer                       :: MaxCoupling     = -1
-        integer                       :: MinCoupling     = 0
-        real(kind=Rkind)              :: MaxNorm         = -ONE
-        real(kind=Rkind)              :: MinNorm         = ZERO
-        integer                       :: Lmax            = -1
-        integer                       :: L1max           = huge(1)
-        integer                       :: L2max           = huge(1)
-        integer, allocatable          :: nDNum_OF_Lmax(:)            ! associated the index to Lmax (0), L1max (1), L2max(2)
-
-        integer                       :: Lmin            = 0
-        logical                       :: With_L          = .FALSE. ! IF T, it uses L instead of the Norm
-
-        TYPE (RealVec_t), allocatable :: Tab_nDNorm(:)             ! Tab_nDindex(ndim) (for recursive used)
-        TYPE (IntVec_t),  allocatable :: Tab_i_TO_l(:)             ! equivalent to Tab_nDNorm
-
-        TYPE(TypeDInd),  allocatable  :: Tab_DInd(:) ! for SGtype2
-      END TYPE Type_nDindex
-
-        INTERFACE alloc_array
-          MODULE PROCEDURE alloc_array_OF_nDindexdim0,alloc_array_OF_nDindexdim1
-        END INTERFACE
-        INTERFACE dealloc_array
-          MODULE PROCEDURE dealloc_array_OF_nDindexdim0,dealloc_array_OF_nDindexdim1
-        END INTERFACE
-
-        INTERFACE alloc_NParray
-          MODULE PROCEDURE alloc_NParray_OF_nDindexdim0,alloc_NParray_OF_nDindexdim1
-        END INTERFACE
-        INTERFACE dealloc_NParray
-          MODULE PROCEDURE dealloc_NParray_OF_nDindexdim0,dealloc_NParray_OF_nDindexdim1
-        END INTERFACE
-
-        PUBLIC :: Type_nDindex,alloc_nDindex,dealloc_nDindex,Write_nDindex
-
-        PUBLIC :: alloc_array,dealloc_array,alloc_NParray,dealloc_NParray
-        PUBLIC :: init_nDindexPrim,init_nDindex_typeTAB
-        PUBLIC :: pack_nDindex,sort_nDindex,unpack_nDindex
-        PUBLIC :: calc_nDI,calc_Norm_OF_nDI,calc_Norm_OF_nDval,calc_L_OF_nDI,calc_L_OF_nDval
-        PUBLIC :: calc_nDindex,calc_nDval_m1,calc_nDval_p1
-
-        PUBLIC :: ADD_ONE_TO_nDindex,ADD_ONE_TO_nDval_m1,ADD_ONE_TO_nDval_p1
-        PUBLIC :: init_nDval_OF_nDindex
-
-      CONTAINS
-
-      SUBROUTINE init_nDindexPrim(nDindex,ndim,nDsize,nDend,nDinit,             &
-                                  nDweight,type_OF_nDindex,                     &
-                                  MinNorm,MaxNorm,MaxCoupling,MinCoupling,      &
-                                  Lmin,Lmax,L1max,L2max,nDNum_OF_Lmax,          &
-                                  skip_li,                                      &
-                                  tab_i_TO_l,With_init,With_nDindex,err_sub)
+  SUBROUTINE init_nDindexPrim(nDindex,ndim,nDsize,nDend,nDinit,             &
+                              nDweight,type_OF_nDindex,                     &
+                              MinNorm,MaxNorm,MaxCoupling,MinCoupling,      &
+                              Lmin,Lmax,L1max,L2max,LiMax,nDNum_OF_Lmax,    &
+                              skip_li,                                      &
+                              tab_i_TO_l,With_init,With_nDindex,err_sub)
 
         TYPE (Type_nDindex), intent(inout)           :: nDindex
         integer,             intent(in)              :: ndim
@@ -133,8 +122,8 @@ MODULE mod_nDindex
         integer,             intent(in),    optional :: nDinit(:),nDNum_OF_Lmax(:)
         real(kind=Rkind),    intent(in),    optional :: nDweight(:)
         real(kind=Rkind),    intent(in),    optional :: MaxNorm,MinNorm
-        TYPE (IntVec_t),  intent(in),    optional, allocatable :: tab_i_TO_l(:)
-        integer,             intent(in),    optional :: Lmin,Lmax,L1max,L2max
+        TYPE (IntVec_t),     intent(in),    optional, allocatable :: tab_i_TO_l(:)
+        integer,             intent(in),    optional :: Lmin,Lmax,L1max,L2max,LiMax(:)
         logical,             intent(in),    optional :: With_init,With_nDindex
 
         logical,             intent(in),    optional :: skip_li(:,:)
@@ -289,9 +278,8 @@ MODULE mod_nDindex
         END IF
         IF (nDindex%MinCoupling > ndim+1) THEN
           write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) ' MinCoupling is < ndim+1 !!',nDindex%MinCoupling
+          write(out_unit,*) ' MinCoupling is > ndim+1 !!',nDindex%MinCoupling
           write(out_unit,*) ' MinCoupling,ndim',nDindex%MinCoupling,ndim
-
           write(out_unit,*) ' Check the fortran source!!'
           STOP
         END IF
@@ -307,6 +295,10 @@ MODULE mod_nDindex
              nDindex%MinNorm = ZERO
            END IF
 
+           IF (present(LiMax)) THEN
+             nDindex%LiMax    = LiMax
+           END IF
+
            IF (present(L1max)) THEN
              nDindex%L1max    = L1max
            ELSE
@@ -319,6 +311,9 @@ MODULE mod_nDindex
              nDindex%L2max    = Lmax
            END IF
 
+           IF (present(LiMax)) THEN
+             nDindex%LiMax    = LiMax
+           END IF
         ELSE
            IF (present(MinNorm)) THEN
              nDindex%MinNorm = MinNorm
@@ -366,6 +361,10 @@ MODULE mod_nDindex
          CASE (-5)
            CALL init_nDindex_type5m(nDindex,err_sub=err_sub_loc)
 
+         CASE (6)
+           CALL init_nDindex_type6p(nDindex,err_sub=err_sub_loc)
+         CASE (-6)
+           CALL init_nDindex_type6m(nDindex,err_sub=err_sub_loc)
          CASE DEFAULT
            write(out_unit,*) ' ERROR in ',name_sub
            write(out_unit,*) 'type_OF_nDindex',nDindex%type_OF_nDindex
@@ -1199,7 +1198,233 @@ END SUBROUTINE init_nDindex_type5p
       END IF
 !-----------------------------------------------------------
 
-      END SUBROUTINE init_nDindex_type5m
+  END SUBROUTINE init_nDindex_type5m
+  SUBROUTINE init_nDindex_type6p(nDindex,err_sub)
+
+  TYPE (Type_nDindex),  intent(inout)           :: nDindex
+  integer,              intent(inout)           :: err_sub
+
+  logical :: In_the_list
+  integer :: i,L,nDI,nb_Coupling,nDval(nDindex%ndim)
+  integer, allocatable :: Li(:)
+  integer :: iiG,iG,maxth,ith
+  real (kind=Rkind) :: Norm
+
+!----- for debuging --------------------------------------------------
+  integer :: err_mem,memory
+  character (len=*), parameter :: name_sub='init_nDindex_type6p'
+  logical,parameter :: debug=.FALSE.
+  !logical,parameter :: debug=.TRUE.
+!-----------------------------------------------------------
+  IF (debug) THEN
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) 'Lmax,L1max,L2max',nDindex%Lmax,nDindex%L1max,nDindex%L2max
+    write(out_unit,*) 'nDNum_OF_Lmax',nDindex%nDNum_OF_Lmax
+    !CALL Write_nDindex(nDindex)
+    flush(out_unit)
+  END IF
+!-----------------------------------------------------------
+  err_sub = 0
+
+  IF (.NOT. nDindex%init) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' nDindex has to be initialized!!'
+    write(out_unit,*) ' CHECK the fortran source!!'
+    STOP
+  END IF
+  IF (nDindex%type_OF_nDindex /= 6) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' type_OF_nDindex MUST be set to 6'
+    write(out_unit,*) ' type_OF_nDindex:',nDindex%type_OF_nDindex
+    write(out_unit,*) ' CHECK the fortran source!!'
+    STOP
+  END IF
+
+  ! first the number of points
+  CALL calc_Max_nDI_type6p(nDindex)
+
+  IF (nDindex%Write_Tab .OR. debug) THEN
+    write(out_unit,*) 'nDindex%Max_nDI',nDindex%Max_nDI
+    flush(out_unit)
+  END IF
+
+  IF (nDindex%Max_nDI <= 0) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Max_nDI MUST be set > 0'
+    write(out_unit,*) ' Max_nDI:',nDindex%Max_nDI
+    err_sub = err_Max_nDI
+    RETURN
+  END IF
+
+  IF (nDindex%packed) THEN
+    CALL alloc_NParray(nDindex%Tab_nDval,                         &
+                               [nDindex%ndim,nDindex%Max_nDI],  &
+                      "nDindex%Tab_nDval",name_sub)
+    CALL alloc_NParray(nDindex%Tab_Norm,[nDindex%Max_nDI],      &
+                      "nDindex%Tab_Norm",name_sub)
+    CALL alloc_NParray(nDindex%Tab_L,[nDindex%Max_nDI],         &
+                      "nDindex%Tab_L",name_sub)
+  END IF
+
+
+  nDI = 0
+  nDval(:) = nDindex%nDinit(:)
+  nDval(nDindex%ndim) = nDval(nDindex%ndim) - 1
+  IF (allocated(nDindex%LiMax)) THEN
+    allocate(Li(size(nDindex%LiMax)))
+  ELSE
+    allocate(Li(0))
+  END IF
+
+  DO
+    CALL ADD_ONE_TO_nDindex_type6p(nDval,nDindex,In_the_list)
+
+    IF (.NOT. In_the_list) EXIT
+    nDI = nDI + 1
+
+    IF (nDindex%packed) THEN
+      CALL calc_LLi_OF_nDindex_type6(L,Li,nDval,nDindex)
+      nDindex%Tab_nDval(:,nDI) = nDval(:)
+      nDindex%Tab_Norm(nDI)    = real(L,kind=Rkind)
+      nDindex%Tab_L(nDI)       = L
+    END IF
+    IF (nDindex%Write_Tab .OR. debug)  THEN
+       IF (nDI < 100) THEN
+         write(out_unit,*) 'nDI,nDval',nDI,':',nDval,' L:',L
+       ELSE IF (nDI == 100) THEN
+         write(out_unit,*) 'nDI,nDval ....'
+       END IF
+       flush(out_unit)
+    END IF
+  END DO
+  IF (nDI /= nDindex%Max_nDI) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' nDI MUST be equal to Max_nDI'
+    write(out_unit,*) ' nDI,Max_nDI:',nDI,nDindex%Max_nDI
+    write(out_unit,*) ' Check the fortran source!'
+    err_sub = err_nDI
+    RETURN
+  END IF
+
+  nDindex%packed_done = nDindex%packed
+!-----------------------------------------------------------
+  IF (debug) THEN
+    !CALL Write_nDindex(nDindex)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
+  END IF
+!-----------------------------------------------------------
+
+END SUBROUTINE init_nDindex_type6p
+  SUBROUTINE init_nDindex_type6m(nDindex,err_sub)
+
+        TYPE (Type_nDindex),  intent(inout)           :: nDindex
+        integer,              intent(inout)           :: err_sub
+
+        logical :: In_the_list
+        integer, allocatable :: Li(:)
+        integer :: L,i,nDI,nb_Coupling,nDval(nDindex%ndim)
+        integer :: iiG,iG
+
+        real (kind=Rkind) :: Norm
+
+!----- for debuging --------------------------------------------------
+      integer :: err_mem,memory
+      character (len=*), parameter :: name_sub='init_nDindex_type6m'
+      logical,parameter :: debug=.FALSE.
+      !logical,parameter :: debug=.TRUE.
+!-----------------------------------------------------------
+      IF (debug) THEN
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'Lmax,L1max,L2max',nDindex%Lmax,nDindex%L1max,nDindex%L2max
+        write(out_unit,*) 'nDNum_OF_Lmax',nDindex%nDNum_OF_Lmax
+        !CALL Write_nDindex(nDindex)
+      END IF
+!-----------------------------------------------------------
+      err_sub = 0
+
+        IF (.NOT. nDindex%init) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nDindex has to be initialized!!'
+          write(out_unit,*) ' CHECK the fortran source!!'
+          STOP
+        END IF
+
+        IF (nDindex%type_OF_nDindex /= -6) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' type_OF_nDindex MUST be set to -6'
+          write(out_unit,*) ' type_OF_nDindex:',nDindex%type_OF_nDindex
+          write(out_unit,*) ' CHECK the fortran source!!'
+          STOP
+        END IF
+
+        ! first the number of points
+        CALL calc_Max_nDI_type6m(nDindex)
+
+        IF (nDindex%Write_Tab .OR. debug)                               &
+                      write(out_unit,*) 'nDindex%Max_nDI',nDindex%Max_nDI
+
+        IF (nDindex%Max_nDI <= 0) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' Max_nDI MUST be set > 0'
+          write(out_unit,*) ' Max_nDI:',nDindex%Max_nDI
+          err_sub = err_Max_nDI
+          RETURN
+        END IF
+
+        IF (nDindex%packed) THEN
+          CALL alloc_NParray(nDindex%Tab_nDval,                         &
+                                     [nDindex%ndim,nDindex%Max_nDI],  &
+                            "nDindex%Tab_nDval",name_sub)
+          CALL alloc_NParray(nDindex%Tab_Norm,[nDindex%Max_nDI],      &
+                            "nDindex%Tab_Norm",name_sub)
+          CALL alloc_NParray(nDindex%Tab_L,[nDindex%Max_nDI],         &
+                            "nDindex%Tab_L",name_sub)
+        END IF
+
+
+        nDI = 0
+        nDval(:) = nDindex%nDinit(:)
+        nDval(1) = nDval(1) - 1
+        IF (allocated(nDindex%LiMax)) THEN
+          allocate(Li(size(nDindex%LiMax)))
+        ELSE
+          allocate(Li(0))
+        END IF
+
+        DO
+          CALL ADD_ONE_TO_nDindex_type6m(nDval,nDindex,In_the_list)
+
+          IF (.NOT. In_the_list) EXIT
+          nDI = nDI + 1
+
+          IF (nDindex%packed) THEN
+            CALL calc_LLi_OF_nDindex_type6(L,Li,nDval,nDindex)
+            nDindex%Tab_nDval(:,nDI) = nDval(:)
+            nDindex%Tab_Norm(nDI)    = real(L,kind=Rkind)
+            nDindex%Tab_L(nDI)       = L
+          END IF
+          IF (nDindex%Write_Tab .OR. debug)                             &
+             write(out_unit,*) 'nDI,nDval',nDI,':',nDval,' L:',L
+        END DO
+        IF (nDI /= nDindex%Max_nDI) THEN
+          write(out_unit,*) ' ERROR in ',name_sub
+          write(out_unit,*) ' nDI MUST be equal to Max_nDI'
+          write(out_unit,*) ' nDI,Max_nDI:',nDI,nDindex%Max_nDI
+          write(out_unit,*) ' Check the fortran source!'
+          err_sub = err_nDI
+          RETURN
+        END IF
+
+        nDindex%packed_done = nDindex%packed
+!-----------------------------------------------------------
+      IF (debug) THEN
+        !CALL Write_nDindex(nDindex)
+        write(out_unit,*) 'END ',name_sub
+      END IF
+!-----------------------------------------------------------
+
+  END SUBROUTINE init_nDindex_type6m
       SUBROUTINE BubbleSort_tab_Sort_nDI(tab_Sort_nDI,nDindex,ibasis)
         TYPE (Type_nDindex), intent (in) :: nDindex
         integer, intent (in)             :: ibasis
@@ -1386,6 +1611,8 @@ END SUBROUTINE init_nDindex_type5p
         Lmax            = nDindex%Lmax
         Lmin            = nDindex%Lmin
         With_L          = nDindex%With_L
+
+        IF (allocated(nDindex%LiMax)) deallocate(nDindex%LiMax)
 
         IF (allocated(nDindex%nDsize))    THEN
           CALL dealloc_NParray(nDindex%nDsize,"nDindex%nDsize","dealloc_nDindex")
@@ -1851,7 +2078,7 @@ END SUBROUTINE init_nDindex_type5p
           Li    = nDindex%Tab_L(nDI)
           Lj    = nDindex%Tab_L(nDJ)
 
-          IF (Normi > Normj) THEN   ! permutation: d0b, d1b, d2b ...
+          IF (Normi > Normj) THEN   ! permutation
             nDval(:)                 = nDindex%Tab_nDval(:,nDI)
             nDindex%Tab_nDval(:,nDI) = nDindex%Tab_nDval(:,nDJ)
             nDindex%Tab_nDval(:,nDJ) = nDval(:)
@@ -1913,6 +2140,8 @@ END SUBROUTINE init_nDindex_type5p
 
         nDindex1%L1max           = nDindex2%L1max
         nDindex1%L2max           = nDindex2%L2max
+
+        IF (allocated(nDindex2%LiMax)) nDindex1%LiMax = nDindex2%LiMax
 
         IF (allocated(nDindex2%nDNum_OF_Lmax)) THEN
           nDindex1%nDNum_OF_Lmax = nDindex2%nDNum_OF_Lmax
@@ -2016,6 +2245,8 @@ END SUBROUTINE init_nDindex_type5p
 
         nDindex1%L1max           = nDindex2%L1max
         nDindex1%L2max           = nDindex2%L2max
+
+        IF (allocated(nDindex2%LiMax)) nDindex1%LiMax = nDindex2%LiMax
 
         IF (allocated(nDindex2%nDNum_OF_Lmax)) THEN
           nDindex1%nDNum_OF_Lmax = nDindex2%nDNum_OF_Lmax
@@ -2150,6 +2381,10 @@ END SUBROUTINE init_nDindex_type5p
           CASE (-5)
             CALL calc_nDindex_type5m(nDindex,nDI,nDval)
 
+          CASE (6)
+            CALL calc_nDindex_type6p(nDindex,nDI,nDval)
+          CASE (-6)
+            CALL calc_nDindex_type6m(nDindex,nDI,nDval)
           CASE DEFAULT
             write(out_unit,*) ' ERROR in calc_nDindex'
             write(out_unit,*) ' Not yet type_OF_nDindex =',nDindex%type_OF_nDindex
@@ -2189,6 +2424,34 @@ END SUBROUTINE init_nDindex_type5p
     END DO
 
   END SUBROUTINE calc_nDindex_type5m
+  SUBROUTINE calc_nDindex_type6p(nDindex,nDI,nDval)
+    TYPE (Type_nDindex), intent(in)    :: nDindex
+    integer,             intent(in)    :: nDI
+    integer,             intent(inout) :: nDval(:)
+
+    integer :: loc_nDI
+    logical :: test
+
+    CALL init_nDval_OF_nDindex(nDindex,nDval)
+    DO loc_nDI=1,nDI
+      CALL ADD_ONE_TO_nDindex_type6p(nDval,nDindex,test)
+    END DO
+
+  END SUBROUTINE calc_nDindex_type6p
+  SUBROUTINE calc_nDindex_type6m(nDindex,nDI,nDval)
+    TYPE (Type_nDindex), intent(in)    :: nDindex
+    integer,             intent(in)    :: nDI
+    integer,             intent(inout) :: nDval(:)
+
+    integer :: loc_nDI
+    logical :: test
+
+    CALL init_nDval_OF_nDindex(nDindex,nDval)
+    DO loc_nDI=1,nDI
+      CALL ADD_ONE_TO_nDindex_type6m(nDval,nDindex,test)
+    END DO
+
+  END SUBROUTINE calc_nDindex_type6m
   SUBROUTINE calc_nDval_m1(nDval,nDI,nDsize,ndim)
   integer,             intent(in)    :: nDI,ndim
   integer,             intent(inout) :: nDval(:)
@@ -2255,9 +2518,9 @@ END SUBROUTINE init_nDindex_type5p
     CASE (2)
       nDval(nDindex%ndim) = nDval(nDindex%ndim) -1
 
-    CASE (5)
+    CASE (5,6)
       nDval(nDindex%ndim) = nDval(nDindex%ndim) -1
-    CASE (-5)
+    CASE (-5,-6)
       nDval(1) = nDval(1) -1
 
     CASE DEFAULT
@@ -2338,6 +2601,12 @@ END SUBROUTINE init_nDindex_type5p
         CALL ADD_ONE_TO_nDindex_type5p(nDval,nDindex,test)
       CASE (-5)
         CALL ADD_ONE_TO_nDindex_type5m(nDval,nDindex,test)
+
+      CASE (6)
+        CALL ADD_ONE_TO_nDindex_type6p(nDval,nDindex,test)
+      CASE (-6)
+        CALL ADD_ONE_TO_nDindex_type6m(nDval,nDindex,test)
+
       CASE DEFAULT
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) ' Not yet type_OF_nDindex =',nDindex%type_OF_nDindex
@@ -2613,7 +2882,238 @@ END SUBROUTINE ADD_ONE_TO_nDindex_type5p
   END IF
 
 END SUBROUTINE Analysis_nDval_nDindex_type5
+  SUBROUTINE ADD_ONE_TO_nDindex_type6p(nDval,nDindex,In_the_list)
+  integer,             intent(inout) :: nDval(:)
+  TYPE (Type_nDindex), intent(in)    :: nDindex
+  logical,             intent(inout) :: In_the_list
 
+  integer :: i,nb_Coupling,L
+
+  logical :: InRange
+
+!-----------------------------------------------------------
+      character (len=*), parameter :: name_sub='ADD_ONE_TO_nDindex_type6p'
+      logical,parameter :: debug=.FALSE.
+      !logical,parameter :: debug=.TRUE.
+!-----------------------------------------------------------
+      IF (debug) THEN
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) '  nDval (in) ',nDval
+        write(out_unit,*) '  nDend  ',nDindex%nDend
+        write(out_unit,*) '  nDinit ',nDindex%nDinit
+        write(out_unit,*) '  nDindex%Lmax',nDindex%Lmax
+
+      END IF
+!-----------------------------------------------------------
+
+  DO
+    nDval(nDindex%ndim) = nDval(nDindex%ndim) + 1
+
+    CALL Analysis_nDval_nDindex_type6(nDval,nDindex,L,In_the_list,InRange)
+    IF (debug) THEN
+      write(out_unit,*) 'nDval (temp),L',nDval,':',L
+      write(out_unit,*) 'nDval (temp)',nDval,':',In_the_list,InRange
+    END IF
+
+
+    IF ( nDval(nDindex%ndim) > nDindex%nDend(nDindex%ndim) .OR. L > nDindex%Lmax) THEN
+
+      DO i=nDindex%ndim,2,-1
+        nDval(i)   = nDindex%nDinit(i)
+        nDval(i-1) = nDval(i-1) + 1
+
+        CALL Analysis_nDval_nDindex_type6(nDval,nDindex,L,In_the_list,InRange)
+
+        IF (debug) THEN
+          write(out_unit,*) 'nDval2 (temp),L',nDval,':',L
+          write(out_unit,*) 'nDval2 (temp)',nDval,':',In_the_list,InRange
+        END IF
+
+        IF (In_the_list) EXIT
+
+      END DO
+    END IF
+
+    IF (nDval(1) > nDindex%nDend(1) .OR. L > nDindex%Lmax) EXIT
+
+    nb_Coupling = count((nDval-nDindex%nDinit) > 0)
+    IF ( nb_Coupling < nDindex%MinCoupling) CYCLE
+
+    IF (In_the_list) EXIT
+
+  END DO
+
+  IF (debug) THEN
+    write(out_unit,*) '  nDval (out), In_the_list',nDval,In_the_list
+    write(out_unit,*) 'END ',name_sub
+  END IF
+
+END SUBROUTINE ADD_ONE_TO_nDindex_type6p
+  SUBROUTINE ADD_ONE_TO_nDindex_type6m(nDval,nDindex,In_the_list)
+  integer,             intent(inout) :: nDval(:)
+  TYPE (Type_nDindex), intent(in)    :: nDindex
+  logical,             intent(inout) :: In_the_list
+
+  integer :: i,nb_Coupling,L
+  logical :: InRange
+
+!-----------------------------------------------------------
+      character (len=*), parameter :: name_sub='ADD_ONE_TO_nDindex_type6m'
+      logical,parameter :: debug=.FALSE.
+      !logical,parameter :: debug=.TRUE.
+!-----------------------------------------------------------
+      IF (debug) THEN
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) '  nDval (in) ',nDval
+      END IF
+!-----------------------------------------------------------
+
+  DO
+    nDval(1) = nDval(1) + 1
+    CALL Analysis_nDval_nDindex_type6(nDval,nDindex,L,In_the_list,InRange)
+    IF (debug) write(out_unit,*) 'nDval (temp)',nDval,In_the_list,InRange
+
+
+    IF ( nDval(1) > nDindex%nDend(1) .OR. L > nDindex%Lmax) THEN
+
+      DO i=1,nDindex%ndim-1
+        nDval(i)   = nDindex%nDinit(i)
+        nDval(i+1) = nDval(i+1) + 1
+
+        CALL Analysis_nDval_nDindex_type6(nDval,nDindex,L,In_the_list,InRange)
+        IF (debug) write(out_unit,*) 'nDval2 (temp)',nDval,In_the_list,InRange
+
+        IF (In_the_list .OR. L < nDindex%Lmin) EXIT
+
+      END DO
+    END IF
+
+
+    IF (nDval(nDindex%ndim) > nDindex%nDend(nDindex%ndim) .OR. L > nDindex%Lmax) EXIT
+
+    nb_Coupling = count((nDval-nDindex%nDinit) > 0)
+    IF ( nb_Coupling < nDindex%MinCoupling) CYCLE
+
+    IF (In_the_list) EXIT
+
+  END DO
+
+  IF (debug) THEN
+    write(out_unit,*) ' -------------------------------------------'
+    write(out_unit,*) '  nDval (out), In_the_list',nDval,In_the_list
+    write(out_unit,*) 'END ',name_sub
+  END IF
+
+  END SUBROUTINE ADD_ONE_TO_nDindex_type6m
+  SUBROUTINE calc_LLi_OF_nDindex_type6(L,Li,nDval,nDindex)
+
+  TYPE (Type_nDindex), intent(in)        :: nDindex
+  integer,             intent(inout)     :: L,Li(:)
+  integer,             intent(in)        :: nDval(:)
+
+  integer         :: i,iL,vali
+
+    IF (allocated(nDindex%Tab_i_TO_l)) THEN
+      Li(:) = 0
+      L     = 0
+
+      DO i=1,nDindex%ndim
+        vali = nDval(i)
+        IF (nDindex%nDinit(i) == 0) vali = vali + 1
+
+        IF (vali > ubound(nDindex%Tab_i_TO_l(i)%vec,dim=1)) THEN
+          iL = nDindex%nDNum_OF_Lmax(i)
+          IF (iL > 0) THEN
+            Li(iL) = Li(iL) + nDindex%LiMax(iL)+1
+          ELSE
+            L  = L + nDindex%Lmax+1
+          END IF
+        ELSE
+          iL = nDindex%nDNum_OF_Lmax(i)
+          IF (iL > 0) THEN
+            Li(iL) = Li(iL) + nDindex%Tab_i_TO_l(i)%vec(vali)
+          ELSE
+            L  = L + nDindex%Tab_i_TO_l(i)%vec(vali)
+          END IF
+        END IF
+      END DO
+      L = L + sum(Li)
+    ELSE
+      L = sum(nDval-nDindex%nDinit,mask=(nDindex%nDNum_OF_Lmax(:) == 0) )
+      IF (allocated(nDindex%LiMax)) THEN
+        DO i=1,size(nDindex%LiMax)
+          Li(i) = sum(nDval-nDindex%nDinit,mask=(nDindex%nDNum_OF_Lmax(:) == i) )
+        END DO
+        L = L + sum(Li)
+      END IF
+
+      IF (L /= sum(nDval-nDindex%nDinit)) STOP 'pb with L, Li'
+    END IF
+
+  END SUBROUTINE calc_LLi_OF_nDindex_type6
+
+  SUBROUTINE Analysis_nDval_nDindex_type6(nDval,nDindex,L,InList,InRange)
+
+  integer,             intent(in)        :: nDval(:)
+  TYPE (Type_nDindex), intent(in)        :: nDindex
+  integer,             intent(inout)     :: L
+  logical,             intent(inout)     :: InList,InRange
+
+
+  integer              :: i,nb_Coupling
+  integer, allocatable :: Li(:)
+
+  !-----------------------------------------------------------
+  character (len=*), parameter :: name_sub='Analysis_nDval_nDindex_type6'
+  logical,parameter :: debug=.FALSE.
+  !logical,parameter :: debug=.TRUE.
+  !-----------------------------------------------------------
+  IF (debug) THEN
+    write(out_unit,*) 'BEGINNING ',name_sub
+    write(out_unit,*) '  nDval (in) ',nDval
+  END IF
+  !-----------------------------------------------------------
+
+  IF (allocated(nDindex%LiMax)) THEN
+    allocate(Li(size(nDindex%LiMax)))
+  ELSE
+    allocate(Li(0))
+  END IF
+
+  CALL calc_LLi_OF_nDindex_type6(L,Li,nDval,nDindex)
+  nb_Coupling = count((nDval-nDindex%nDinit) > 0)
+
+   IF (debug) write(out_unit,*) 'L,Li',L,':',Li
+   IF (allocated(nDindex%LiMax)) THEN
+    InRange = all(Li <= nDindex%LiMax)
+    IF (debug) write(out_unit,*) 'InRange (with Li)',InRange,':',(Li <= nDindex%LiMax)
+  ELSE
+    InRange = .TRUE.
+  END IF
+
+  InRange = InRange .AND.                                         &
+            L  <= nDindex%Lmax  .AND. L  >= nDindex%Lmin  .AND.   &
+            all(nDval <= nDindex%nDend)
+
+  InList = InRange  .AND. nb_Coupling <= nDindex%MaxCoupling
+ 
+  IF (debug) THEN
+    write(out_unit,*) '-----------------------------------------------------'
+    !write(out_unit,*) 'nDend      ',nDindex%nDend
+    !write(out_unit,*) 'nDinit     ',nDindex%nDinit
+    !write(out_unit,*) 'Lmax       ',nDindex%Lmax
+    write(out_unit,*) 'nDval      ',nDval
+    !IF (allocated(nDindex%LiMax)) write(out_unit,*) 'nDindex%LiMax',nDindex%LiMax
+    write(out_unit,*) 'Li         ',Li
+    write(out_unit,*) 'L          ',L
+    !write(out_unit,*) 'nb_Coupling',nb_Coupling
+    write(out_unit,*) 'InRange    ',InRange
+    write(out_unit,*) 'InList     ',InList
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
+  END IF
+ 
+END SUBROUTINE Analysis_nDval_nDindex_type6
 
   SUBROUTINE ADD_ONE_TO_nDval_m1(nDval,nDsize)
   integer,             intent(inout) :: nDval(:)
@@ -3330,6 +3830,10 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
         CASE (-5)
           CALL calc_Max_nDI_type5m(nDindex)
 
+        CASE (6)
+          CALL calc_Max_nDI_type6p(nDindex)
+        CASE (-6)
+          CALL calc_Max_nDI_type6m(nDindex)
         CASE DEFAULT
           write(out_unit,*) ' ERROR in ',name_sub
           write(out_unit,*) 'type_OF_nDindex',nDindex%type_OF_nDindex
@@ -3417,7 +3921,43 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
         END DO
 
       END SUBROUTINE calc_Max_nDI_type5m
+      SUBROUTINE calc_Max_nDI_type6p(nDindex)
 
+        TYPE (Type_nDindex)        :: nDindex
+
+        logical :: In_the_list
+        integer :: nDval(nDindex%ndim)
+
+        nDindex%Max_nDI     = 0
+
+        CALL init_nDval_OF_nDindex(nDindex,nDval)
+        DO
+          CALL ADD_ONE_TO_nDindex_type6p(nDval,nDindex,In_the_list)
+
+          IF (.NOT. In_the_list) EXIT
+          nDindex%Max_nDI     = nDindex%Max_nDI + 1
+          !write(out_unit,*) 'nDI,nDval',nDindex%Max_nDI,nDval
+        END DO
+
+      END SUBROUTINE calc_Max_nDI_type6p
+      SUBROUTINE calc_Max_nDI_type6m(nDindex)
+
+        TYPE (Type_nDindex)        :: nDindex
+
+        logical :: In_the_list
+        integer :: nDval(nDindex%ndim)
+
+        nDindex%Max_nDI     = 0
+
+        CALL init_nDval_OF_nDindex(nDindex,nDval)
+        DO
+          CALL ADD_ONE_TO_nDindex_type6m(nDval,nDindex,In_the_list)
+          IF (.NOT. In_the_list) EXIT
+          nDindex%Max_nDI     = nDindex%Max_nDI + 1
+          !write(out_unit,*) 'nDI,nDval',nDindex%Max_nDI,nDval
+        END DO
+
+      END SUBROUTINE calc_Max_nDI_type6m
       SUBROUTINE calc_Max_nDI_type0(nDindex)
 
         TYPE (Type_nDindex)        :: nDindex
@@ -3496,6 +4036,12 @@ END SUBROUTINE Analysis_nDval_nDindex_type5
 
         write(out_unit,*) trim(name_info_loc),'Lmin',nDindex%Lmin
         write(out_unit,*) trim(name_info_loc),'Lmax',nDindex%Lmax
+        write(out_unit,*) trim(name_info_loc),'L1max,L2max',nDindex%L1max,nDindex%L2max
+        IF (allocated(nDindex%LiMax)) &
+           write(out_unit,*) trim(name_info_loc),'LiMax(:)',nDindex%LiMax
+        IF (allocated(nDindex%nDNum_OF_Lmax)) &
+           write(out_unit,*) trim(name_info_loc),'nDNum_OF_Lmax(:)',nDindex%nDNum_OF_Lmax
+           
         write(out_unit,*) trim(name_info_loc),'With_L',nDindex%With_L
 
 

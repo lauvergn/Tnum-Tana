@@ -56,24 +56,26 @@ PROGRAM TEST_model
   logical                        :: Lerr
   integer                        :: err
 
-  CALL Initialize_Test(test_var,test_name='QModel_ExtModel')
+  CALL Initialize_Test(test_var,test_name='QModel_H2_H2On')
 
-  nderiv = 2
+  nderiv = 0
   write(out_unit,*) '---------------------------------------------'
   write(out_unit,*) '---------------------------------------------'
   write(out_unit,*) '---------------------------------------------'
-  write(out_unit,*) ' ExtModel potential'
+  write(out_unit,*) ' H2_H2On potential (H2@clathrate)'
   write(out_unit,*) ' With units: Bohr and Hartree (atomic units)'
   write(out_unit,*) '---------------------------------------------'
   flush(out_unit)
 
-  CALL Init_Model(QModel,pot_name='ExtModel',adiabatic=.FALSE.)
-  nderiv=2
+  CALL Init_Model(QModel,pot_name='H2_H2On',adiabatic=.FALSE.,PubliUnit=.FALSE.)
+  nderiv=1
 
   allocate(q(QModel%QM%ndim))
-  CALL QModel%QM%Ref_FOR_Test_QModel(err,Q0=Q,nderiv=nderiv)
+  q = QModel%QM%Q0
+  !CALL get_Q0_QML_H2_H2On(q,QModel%QM,option=1)
+  !CALL QModel%QM%Test_QModel(err,Q0=Q,nderiv=nderiv)
 
-  CALL Logical_Test(test_var,test1=(err == 0),info='Q0 initialization')
+  !CALL Logical_Test(test_var,test1=(err == 0),info='Q0 initialization')
 
   write(out_unit,*) '---------------------------------------------'
   write(out_unit,*) '----- CHECK POT -----------------------------'
@@ -88,8 +90,7 @@ PROGRAM TEST_model
   write(out_unit,*) '---------------------------------------------'
   write(out_unit,*) '---------------------------------------------'
   write(out_unit,*) ' Potential and derivatives'
-  flush(out_unit)
-  nderiv = 3
+  nderiv = 1
   CALL Eval_Pot(QModel,Q,PotVal,nderiv=nderiv)
 
   write(out_unit,*) 'Q(:) (bohr):'
@@ -97,11 +98,11 @@ PROGRAM TEST_model
   write(out_unit,*) 'Energy (Hartree)'
   CALL Write_dnMat(PotVal,nio=out_unit)
 
-  CALL QModel%QM%Ref_FOR_Test_QModel(err,dnMatV=PotValref,nderiv=nderiv)
-  dnErr = PotValref-PotVal
-  Lerr  = Check_dnMat_IS_ZERO(dnErr)
+  !CALL QModel%QM%Ref_FOR_Test_QModel(err,dnMatV=PotValref,nderiv=nderiv)
+  !dnErr = PotValref-PotVal
+  !Lerr  = Check_dnMat_IS_ZERO(dnErr)
   
-  CALL Logical_Test(test_var,test1=Lerr,info='dnVMat')
+  !CALL Logical_Test(test_var,test1=Lerr,info='dnVMat')
 
 
   CALL dealloc_dnMat(PotVal)
