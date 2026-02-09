@@ -1193,7 +1193,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       SUBROUTINE dnOp_num_grid_v2(Qact,Tab_dnMatOp,                     &
                                   mole,para_Tnum,PrimOp,nderiv)
       USE TnumTana_system_m
-      !$ USE omp_lib, only : OMP_GET_THREAD_NUM,omp_get_num_threads
+      !$ USE omp_lib, only : OMP_GET_THREAD_NUM,omp_get_max_threads
       USE mod_dnSVM
       USE mod_Coord_KEO
       USE mod_SimpleOp
@@ -1250,16 +1250,16 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (PrimOp%stepOp <= ZERO) THEN
         write(out_unit,*) ' ERROR in ',name_sub
         write(out_unit,*) ' stepOp is <= 0',PrimOp%stepOp
-        STOP
+        STOP 'ERROR in dnOp_num_grid_v2: stepOp is <= 0'
       END IF
       step2 = ONE/(PrimOp%stepOp*PrimOp%stepOp)
       step24 = step2*HALF*HALF
       stepp = ONE/(PrimOp%stepOp+PrimOp%stepOp)
 
       nb_thread = 1
-      !$ nb_thread = omp_get_num_threads()
+      !$ nb_thread = omp_get_max_threads()
       IF (PrimOp%OnTheFly) nb_thread = 1
-      IF (print_level > 1) write(out_unit,*) 'nb_thread in ',name_sub,' : ',nb_thread
+      IF (print_level > 1 .OR. debug) write(out_unit,*) 'nb_thread in ',name_sub,' : ',nb_thread
       flush(out_unit)
 
       nb_Op = size(Tab_dnMatOp)
