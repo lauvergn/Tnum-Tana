@@ -809,6 +809,7 @@
     allocate(tab_Qname(size(tab_VarName)))
     DO i=1,size(tab_VarName)
        tab_Qname(i) = MCTDH_VarName(tab_VarName(i))
+       write(out_unit,*) 'coucou Coord. name',i,tab_Qname(i)
     END DO
 
     TWOxKEO_MCTDH = keo
@@ -907,7 +908,7 @@
      '--------------------------------------------------------------------'
      write(i_out,'(A)',advance='no') 'modes  '
      do i=1,mole%nb_act
-         write(i_out,'(2A)',advance='no') ' | ', trim(tab_Qname(i))
+        write(i_out,'(2A)',advance='no') ' | ', trim(tab_Qname(mole%liste_QactTOQdyn(i)))
      end do
      if(param_JJ ==1) then
        write(i_out,'(2A)',advance='no') ' | k'  !Add k=Jz
