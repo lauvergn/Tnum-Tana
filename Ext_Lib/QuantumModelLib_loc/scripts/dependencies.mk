@@ -9,6 +9,7 @@ qml_vibronic_m := $(OBJ_DIR)/Vibronic_m.o
 qml_hoo_dmbe_m := $(OBJ_DIR)/HOO_DMBE_m.o
 qml_oned_photons_m := $(OBJ_DIR)/OneD_Photons_m.o
 qml_h2o_m := $(OBJ_DIR)/H2O_m.o
+qml_chfclbr_m := $(OBJ_DIR)/CHFClBr_m.o
 qml_cnh_murrell_m := $(OBJ_DIR)/CNH_Murrell_m.o
 qml_oned_photons2_m := $(OBJ_DIR)/OneD_Photons2_m.o
 qml_poly1d_m := $(OBJ_DIR)/Poly1D_m.o
@@ -49,13 +50,15 @@ qml_ph4jo_m := $(OBJ_DIR)/PH4Jo_m.o
 adiachannels_makehinact_m := $(OBJ_DIR)/MakeHinact_m.o
 adiachannels_basis_m := $(OBJ_DIR)/Basis_m.o
 model_m := $(OBJ_DIR)/Model_m.o
+qmlvalues_m := $(OBJ_DIR)/QMLValues_m.o
 irc_m := $(OBJ_DIR)/IRC_m.o
 opt_m := $(OBJ_DIR)/Opt_m.o
 #===============================================
 #file+mod_name: SRC/QMLLib/FiniteDiff_m.f90 qmllib_finitediff_m
 $(OBJ_DIR)/FiniteDiff_m.o : \
           $(qdutil_numparameters_m) \
-          $(addnsvm_m)
+          $(addnsvm_m) \
+          $(qmlvalues_m)
 #file+mod_name: SRC/QMLLib/UtilLib_m.f90 qmllib_utillib_m
 $(OBJ_DIR)/UtilLib_m.o : \
           $(qdutil_numparameters_m) \
@@ -107,6 +110,12 @@ $(OBJ_DIR)/H2O_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
           $(addnsvm_m)
+#file+mod_name: SRC/QML/CHFClBr_m.f90 qml_chfclbr_m
+$(OBJ_DIR)/CHFClBr_m.o : \
+          $(qdutil_numparameters_m) \
+          $(qml_empty_m) \
+          $(qdutil_m) \
+          $(addnsvm_m)
 #file+mod_name: SRC/QML/CNH_Murrell_m.f90 qml_cnh_murrell_m
 $(OBJ_DIR)/CNH_Murrell_m.o : \
           $(qdutil_numparameters_m) \
@@ -123,7 +132,8 @@ $(OBJ_DIR)/OneD_Photons2_m.o : \
 $(OBJ_DIR)/Poly1D_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
-          $(addnsvm_m)
+          $(addnsvm_m) \
+          $(qdutil_m)
 #file+mod_name: SRC/QML/LinearHBond_m.f90 qml_linearhbond_m
 $(OBJ_DIR)/LinearHBond_m.o : \
           $(qdutil_numparameters_m) \
@@ -149,13 +159,11 @@ $(OBJ_DIR)/HenonHeiles_m.o : \
 $(OBJ_DIR)/ClH2p_Botschwina_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
-          $(qdutil_m) \
           $(addnsvm_m)
 #file+mod_name: SRC/QML/fulvene_m.f90 qml_fulvene_m
 $(OBJ_DIR)/fulvene_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
-          $(qml_morse_m) \
           $(qdutil_m) \
           $(addnsvm_m)
 #file+mod_name: SRC/QML/CH5_m.f90 qml_ch5_m
@@ -251,7 +259,8 @@ $(OBJ_DIR)/Uracil_m.o : \
 $(OBJ_DIR)/Buck_m.o : \
           $(qdutil_numparameters_m) \
           $(qml_empty_m) \
-          $(addnsvm_m)
+          $(addnsvm_m) \
+          $(qdutil_m)
 #file+mod_name: SRC/QML/PH4_m.f90 qml_ph4_m
 $(OBJ_DIR)/PH4_m.o : \
           $(qdutil_numparameters_m) \
@@ -383,6 +392,7 @@ $(OBJ_DIR)/Model_m.o : \
           $(qml_hnnhp_m) \
           $(qml_h2sin_m) \
           $(qml_h2nsi_m) \
+          $(qml_chfclbr_m) \
           $(qml_h2o_m) \
           $(qml_h2_h2on_m) \
           $(qml_clh2p_m) \
@@ -413,8 +423,14 @@ $(OBJ_DIR)/Model_m.o : \
           $(qml_oned_photons_m) \
           $(qml_oned_photons2_m) \
           $(addnsvm_m) \
+          $(qmlvalues_m) \
           $(qmllib_finitediff_m) \
           $(qdutil_test_m)
+#file+mod_name: SRC/QMLValues_m.f90 qmlvalues_m
+$(OBJ_DIR)/QMLValues_m.o : \
+          $(qdutil_numparameters_m) \
+          $(addnsvm_m) \
+          $(qdutil_m)
 #file+mod_name: SRC/Opt/IRC_m.f90 irc_m
 $(OBJ_DIR)/IRC_m.o : \
           $(qdutil_numparameters_m) \

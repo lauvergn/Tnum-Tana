@@ -94,9 +94,9 @@ PROGRAM TEST_morse
   ! For testing the model
   allocate(Qref(Model%ndim))
   allocate(Gref(Model%ndim,Model%ndim))
-  CALL Model%QM%Ref_FOR_Test_QModel(err,Q0=Qref,d0GGdef=Gref,dnMatV=PotValref,nderiv=nderiv)
+  CALL Model%QM%RefValues_QModel(err,Q0=Qref,d0GGdef=Gref,dnMatV=PotValref,nderiv=nderiv)
   write(out_unit,*) 'Reference Energy (Hartree)'
-  CALL Write_dnMat(PotVal,nio=out_unit)
+  CALL Write_dnMat(PotValref,nio=out_unit)
   flush(out_unit)
   dnErr = PotValref-PotVal
   Lerr  = Check_dnMat_IS_ZERO(dnErr)

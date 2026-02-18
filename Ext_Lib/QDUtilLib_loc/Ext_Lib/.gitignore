@@ -1,0 +1,6 @@
+.DS_Store
+**/*.mod
+*/*.a
+*/obj/*
+*/OBJ/*
+mk-fdeps-dev/mk-fdeps

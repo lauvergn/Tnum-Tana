@@ -71,6 +71,7 @@ MODULE QML_Empty_m
     integer :: nb_ScalOp        = 1 ! number scalar operators including the potential
                                     ! numbering: [0: potential, 1...: other operators]
 
+    logical :: ImagContrib      = .FALSE.
     logical :: Phase_Following  = .TRUE.
     logical :: Phase_Checking   = .TRUE.
     logical :: adiabatic        = .TRUE.
@@ -99,9 +100,11 @@ MODULE QML_Empty_m
       PROCEDURE :: EvalPot_QModel         => EvalPot_QML_Empty
       PROCEDURE :: EvalPotAbInitio_QModel => EvalPotAbInitio_QML_Empty
       PROCEDURE :: EvalScalOp_QModel      => EvalScalOp_QML_Empty
+      PROCEDURE :: EvalImagPot_QModel     => EvalImagPot_QML_Empty
+      PROCEDURE :: EvalImagScalOp_QModel  => EvalImagScalOp_QML_Empty
       PROCEDURE :: EvalFunc_QModel        => EvalFunc_QML_Empty
       PROCEDURE :: Write_QModel           => Write_QML_Empty
-      PROCEDURE :: Ref_FOR_Test_QModel    => Ref_FOR_Test_QML_Empty
+      PROCEDURE :: RefValues_QModel       => RefValues_QML_Empty
      !PROCEDURE :: get2_Q0_QModel         => get2_Q0_QML_Empty
       PROCEDURE :: get_d0GGdef_QModel     => get_d0GGdef_QML_Empty
       PROCEDURE :: Cart_TO_Q_QModel       => Cart_TO_Q_QML_Empty
@@ -300,6 +303,43 @@ MODULE QML_Empty_m
       Mat_OF_ScalOpDia(:,:,:) = ZERO
   
   END SUBROUTINE EvalScalOp_QML_Empty
+
+  SUBROUTINE EvalImagPot_QML_Empty(QModel,Mat_OF_PotDia,dnQ,nderiv)
+    USE ADdnSVM_m, ONLY : dnS_t
+    IMPLICIT NONE
+
+    CLASS (QML_Empty_t),    intent(in)     :: QModel
+    TYPE (dnS_t),           intent(in)     :: dnQ(:)
+    TYPE (dnS_t),           intent(inout)  :: Mat_OF_PotDia(:,:)
+    integer,                intent(in)     :: nderiv
+
+    IF (.NOT. QModel%ImagContrib) write(out_unit,*) ' WARNING in EvalImagPot_QML_Empty: ImagContrib is .FALSE.'
+
+    write(out_unit,*) 'ERROR in EvalImagPot_QML_Empty (EvalImagPot_QML_Empty)'
+    write(out_unit,*) '  The intialized model does not have EvalPot_QModel subroutine!'
+    STOP 'ERROR in EvalImagPot_QML_Empty: the intialized model does not have EvalImagPot_QModel subroutine'
+    Mat_OF_PotDia(:,:) = ZERO
+
+  END SUBROUTINE EvalImagPot_QML_Empty
+
+  SUBROUTINE EvalImagScalOp_QML_Empty(QModel,Mat_OF_ScalOpDia,list_Op,dnQ,nderiv)
+    USE QDUtil_m,  ONLY : ZERO
+    USE ADdnSVM_m, ONLY : dnS_t
+    IMPLICIT NONE
+  
+      CLASS (QML_Empty_t),    intent(in)     :: QModel
+      TYPE (dnS_t),           intent(in)     :: dnQ(:)
+      integer,                intent(in)     :: list_Op(:)
+      TYPE (dnS_t),           intent(inout)  :: Mat_OF_ScalOpDia(:,:,:)
+      integer,                intent(in)     :: nderiv
+  
+      IF (.NOT. QModel%ImagContrib) write(out_unit,*) ' WARNING in EvalImagScalOp_QModel: ImagContrib is .FALSE.'
+      write(out_unit,*) 'ERROR in EvalImagScalOp_QModel (EvalImagScalOp_QML_Empty)'
+      write(out_unit,*) '  The intialized model does not have EvalScalOp_QModel subroutine!'
+      STOP 'ERROR in EvalImagScalOp_QML_Empty: the intialized model does not have EvalImagScalOp_QModel subroutine'
+      Mat_OF_ScalOpDia(:,:,:) = ZERO
+  
+  END SUBROUTINE EvalImagScalOp_QML_Empty
 
   SUBROUTINE EvalPotAbInitio_QML_Empty(QModel,Mat_OF_PotDia,dnX,nderiv)
     USE QMLLib_UtilLib_m, ONLY : Find_Label
@@ -503,6 +543,7 @@ MODULE QML_Empty_m
     write(nio,*)
     write(nio,*) 'nsurf:                     ',QModel%nsurf
     write(nio,*) 'ndim:                      ',QModel%ndim
+    write(nio,*) 'ImagContrib:               ',QModel%ImagContrib
     write(nio,*) 'numeric:                   ',QModel%numeric
     write(nio,*) 'no analytical derivatives: ',QModel%no_ana_der
     write(nio,*) 'Cartesian => model coord.: ',QModel%Cart_TO_Q
@@ -584,24 +625,23 @@ MODULE QML_Empty_m
     END DO
 
   END SUBROUTINE Qact_TO_Q_QML_Empty
-    SUBROUTINE Ref_FOR_Test_QML_Empty(QModel,err,Q0,dnMatV,d0GGdef,nderiv)
+    SUBROUTINE RefValues_QML_Empty(QModel,err,nderiv,Q0,dnMatV,d0GGdef,option)
     USE QDUtil_m
     USE ADdnSVM_m
     IMPLICIT NONE
 
     CLASS(QML_Empty_t), intent(in)             :: QModel
-
     integer,           intent(inout)           :: err
-
     integer,           intent(in)              :: nderiv
+
     real (kind=Rkind), intent(inout), optional :: Q0(:)
     TYPE (dnMat_t),    intent(inout), optional :: dnMatV
-
     real (kind=Rkind), intent(inout), optional :: d0GGdef(:,:)
+    integer,           intent(in),    optional :: option
 
 
     !----- for debuging --------------------------------------------------
-    character (len=*), parameter :: name_sub='Ref_FOR_Test_QML_Empty'
+    character (len=*), parameter :: name_sub='RefValues_QML_Empty'
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
 !-----------------------------------------------------------
@@ -619,10 +659,15 @@ MODULE QML_Empty_m
       err = 0
     END IF
 
+    write(out_unit,*) 'ERROR in RefValues_QModel (RefValues_QML_Empty)'
+    write(out_unit,*) '  The intialized model does not have RefValues_QModel subroutine!'
+    write(out_unit,*) '  model name:',Qmodel%pot_name
+    STOP 'ERROR in RefValues_QML_Empty: the intialized model does not have RefValues_QModel subroutine'
+
     IF (debug) THEN
       write(out_unit,*) ' END ',name_sub
       flush(out_unit)
     END IF
 
-  END SUBROUTINE Ref_FOR_Test_QML_Empty
+  END SUBROUTINE RefValues_QML_Empty
 END MODULE QML_Empty_m

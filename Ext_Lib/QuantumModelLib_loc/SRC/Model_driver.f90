@@ -38,13 +38,15 @@
 !===========================================================================
 !===========================================================================
 SUBROUTINE sub_Read_Qmodel(ndim,nsurf,nio)
+  !< Subroutine which enables to set the model (potential) in reading the 'potential' namelist.
   USE QDUtil_NumParameters_m
   USE Model_m
   !$ USE omp_lib
   IMPLICIT NONE
 
-  integer,                intent(inout)     :: ndim,nsurf
-  integer,                intent(in)        :: nio
+  integer,                intent(inout)     :: ndim  !< number of degree(s) of freedom
+  integer,                intent(inout)     :: nsurf !< number of electronic states or vibrational adiabatic channels
+  integer,                intent(in)        :: nio   !< unit file where the namelist is read
 
 !$OMP CRITICAL (CRIT_sub_Read_Qmodel)
     !$ write(out_unit,*) 'begining: max threads?',omp_get_max_threads()
@@ -64,15 +66,17 @@ SUBROUTINE sub_Read_Qmodel(ndim,nsurf,nio)
 
 END SUBROUTINE sub_Read_Qmodel
 SUBROUTINE sub_Init_Qmodel(ndim,nsurf,pot_name,adiabatic,option)
+  !< Subroutine which enables to set the model (potential).
   USE QDUtil_NumParameters_m
   USE Model_m
   !$ USE omp_lib
   IMPLICIT NONE
 
-  integer,                intent(inout)     :: ndim,nsurf
-  character (len=*),      intent(in)        :: pot_name
-  integer,                intent(in)        :: option
-  logical,                intent(in)        :: adiabatic
+  integer,                intent(inout)     :: ndim      !< integer, number of degree(s) of freedom
+  integer,                intent(inout)     :: nsurf     !< integer, number of electronic states or vibrational adiabatic channels
+  character (len=*),      intent(in)        :: pot_name  !< character string, potential of model name
+  integer,                intent(in)        :: option    !< integer, option of the model (relevant to some models)
+  logical,                intent(in)        :: adiabatic !< logical, flag to turn on/off the adiatic calculations
 
 !$OMP CRITICAL (CRIT_sub_Init_Qmodel)
     !$ write(out_unit,*) 'begining: max threads?',omp_get_max_threads()
@@ -160,6 +164,17 @@ FUNCTION get_Qmodel_nsurf() RESULT(nsurf)
   nsurf  = QuantumModel%nsurf
 
 END FUNCTION get_Qmodel_nsurf
+FUNCTION get_Qmodel_NB() RESULT(NB)
+  USE Model_m
+  IMPLICIT NONE
+
+  integer     :: NB
+
+  CALL check_alloc_QM(QuantumModel,name_sub_in='get_Qmodel_ndim in Model_driver.f90')
+
+  NB  = QuantumModel%NB
+
+END FUNCTION get_Qmodel_NB
 FUNCTION get_Qmodel_Vib_Adia() RESULT(Vib_Adia)
   USE Model_m
   IMPLICIT NONE
@@ -237,7 +252,7 @@ SUBROUTINE sub_Qmodel_V(V,Q)
   CALL calc_pot(V,QuantumModel,Q(1:QuantumModel%ndim))
 
 END SUBROUTINE sub_Qmodel_V
-SUBROUTINE sub_Qmodel_Vdia_Vadia(Vdia,Vadia,Q)
+SUBROUTINE sub_Qmodel_Vdia_Vadia_old(Vdia,Vadia,Q)
   USE QDUtil_NumParameters_m
   USE ADdnSVM_m, ONLY : dnMat_t,dealloc_dnMat
   USE Model_m
@@ -258,6 +273,34 @@ SUBROUTINE sub_Qmodel_Vdia_Vadia(Vdia,Vadia,Q)
 
   CALL dealloc_dnMat(PotVal_dia)
   CALL dealloc_dnMat(PotVal_adia)
+
+END SUBROUTINE sub_Qmodel_Vdia_Vadia_old
+SUBROUTINE sub_Qmodel_Vdia_Vadia(Vdia,Vadia,Q)
+  USE QDUtil_NumParameters_m
+  USE QMLValues_m
+  USE Model_m
+  IMPLICIT NONE
+
+  real (kind=Rkind),      intent(in)        :: Q(QuantumModel%ndim)
+  real (kind=Rkind),      intent(inout)     :: Vdia(QuantumModel%nsurf,QuantumModel%nsurf)
+  real (kind=Rkind),      intent(inout)     :: Vadia(QuantumModel%nsurf,QuantumModel%nsurf)
+
+  !TYPE (dnMat_t)             :: PotVal_adia,PotVal_dia
+  TYPE (QMLValues_t)         :: QMLValues
+
+
+  CALL check_alloc_QM(QuantumModel,'sub_Qmodel_Vdia_Vadia')
+
+  CALL Eval_Pot(QuantumModel,Q,QMLValues,nderiv=0)
+
+  IF (allocated(QMLValues%PotAdia%d0)) THEN
+    Vadia = QMLValues%PotAdia%d0
+  ELSE
+    Vadia = ZERO
+  END IF
+  Vdia  = QMLValues%PotDia%d0
+
+  CALL dealloc_QMLValues(QMLValues)
 
 END SUBROUTINE sub_Qmodel_Vdia_Vadia
 SUBROUTINE sub_Qmodel_VVec(V,Vec,Q)
@@ -296,8 +339,8 @@ SUBROUTINE sub_Qmodel_VVec_Vec0(V,Vec,Vec0,Q)
 
   real (kind=Rkind),      intent(in)        :: Q(QuantumModel%ndim)
   real (kind=Rkind),      intent(inout)     :: V(QuantumModel%nsurf,QuantumModel%nsurf)
-  real (kind=Rkind),      intent(inout)     :: Vec(QuantumModel%nsurf,QuantumModel%nsurf)
-  real (kind=Rkind),      intent(inout)     :: Vec0(QuantumModel%nsurf,QuantumModel%nsurf)
+  real (kind=Rkind),      intent(inout)     :: Vec(QuantumModel%NB,QuantumModel%nsurf)
+  real (kind=Rkind),      intent(inout)     :: Vec0(QuantumModel%NB,QuantumModel%nsurf)
 
   TYPE (dnMat_t)                  :: Vec_loc,PotVal_loc,Vec0_loc
 
@@ -379,7 +422,7 @@ SUBROUTINE sub_Qmodel_VG_NAC_Vec0(V,G,NAC,Vec0,Q)
   real (kind=Rkind),      intent(inout)    :: V(QuantumModel%nsurf,QuantumModel%nsurf)
   real (kind=Rkind),      intent(inout)    :: G(QuantumModel%nsurf,QuantumModel%nsurf,QuantumModel%ndim)
   real (kind=Rkind),      intent(inout)    :: NAC(QuantumModel%nsurf,QuantumModel%nsurf,QuantumModel%ndim)
-  real (kind=Rkind),      intent(inout)    :: Vec0(QuantumModel%nsurf,QuantumModel%nsurf)
+  real (kind=Rkind),      intent(inout)    :: Vec0(QuantumModel%NB,QuantumModel%NB)
 
   TYPE (dnMat_t)                  :: NAC_loc,PotVal_loc,Vec0_loc
 
@@ -625,6 +668,17 @@ SUBROUTINE set_Qmodel_Phase_Checking(Phase_Checking)
   QuantumModel%QM%Phase_Checking = Phase_Checking
 
 END SUBROUTINE set_Qmodel_Phase_Checking
+SUBROUTINE set_Qmodel_Print_Vec_Overlap(Print_Vec_Overlap)
+  USE Model_m
+  USE ADdnSVM_m
+  IMPLICIT NONE
+
+  logical,                intent(inout)        :: Print_Vec_Overlap
+
+  IF (Print_Vec_Overlap) print_level_dia_dnMat = 2
+
+END SUBROUTINE set_Qmodel_Print_Vec_Overlap
+
 SUBROUTINE sub_model_V(V,Q,ndim,nsurf)
   USE QDUtil_NumParameters_m
   USE Model_m

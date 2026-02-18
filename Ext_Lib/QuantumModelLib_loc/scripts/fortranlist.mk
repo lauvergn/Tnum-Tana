@@ -10,6 +10,7 @@ Vibronic_m.f90  \
 HOO_DMBE_m.f90  \
 OneD_Photons_m.f90  \
 H2O_m.f90  \
+CHFClBr_m.f90  \
 CNH_Murrell_m.f90  \
 OneD_Photons2_m.f90  \
 Poly1D_m.f90  \
@@ -51,5 +52,6 @@ MakeHinact_m.f90  \
 Basis_m.f90  \
 Model_driver.f90  \
 Model_m.f90  \
+QMLValues_m.f90  \
 IRC_m.f90  \
 Opt_m.f90  \

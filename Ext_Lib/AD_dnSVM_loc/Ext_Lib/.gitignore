@@ -1,5 +1,7 @@
 .DS_Store
+**/*.mod
 */*.a
 */obj/*
 */OBJ/*
 QDUtilLib
+mk-fdeps-dev/mk-fdeps
