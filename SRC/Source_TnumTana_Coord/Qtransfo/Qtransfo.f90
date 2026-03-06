@@ -219,7 +219,6 @@ MODULE mod_Qtransfo
         check_LinearTransfo     = .TRUE.
 
         read(in_unit,Coord_transfo,IOSTAT=err_io)
-        err_io = 0
         IF (err_io < 0) THEN
           write(out_unit,*) ' ERROR in ',name_sub
           write(out_unit,*) '  while reading the namelist "Coord_transfo"'

@@ -164,7 +164,6 @@
       IF (err_read /= 0) THEN
         write(out_unit,*) ' NO namelist "calculation"!'
         write(out_unit,*) ' => calc_QTOx=t and calc_Tnum=t'
-
       END IF
       write(out_unit,*) "======================================"
 
