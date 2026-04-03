@@ -3025,7 +3025,7 @@ CONTAINS
 
       integer       :: i,iZ,ncart
 
-      ncart = 3*mole%nat
+      ncart = min(3*mole%nat,size(d0x))
 
       Z_act(:) = -1
       iZ = 0
@@ -3058,7 +3058,7 @@ CONTAINS
       iZ = 0
       DO i=1,ncart,3
         iZ = iZ + 1
-        write(out_unit,112) Z_act(iZ),d0x(i+0)*a0,d0x(i+1)*a0,d0x(i+2)*a0
+        write(out_unit,112) Z_act(iZ),d0x(i+0:i+2)
  112    format(2x,i5,3(2x,f20.9))
 
       END DO
