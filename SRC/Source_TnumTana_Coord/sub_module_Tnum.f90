@@ -34,34 +34,34 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Tnum
-      USE TnumTana_system_m
-      use mod_dnSVM,            only: Type_dnMat,Type_dnS
-      USE mod_nDFit,            only: param_nDFit
-      USE mod_QTransfo,         only: type_qtransfo, write_qtransfo,    &
-                                      dealloc_qtransfo, dealloc_NParray,&
-                                      alloc_NParray, read_qtransfo,     &
-                                      sub_type_name_of_qin,             &
-                                      sub_check_lineartransfo,          &
-                                      qtransfo1toqtransfo2
-      USE mod_LinearNMTransfo,  only: type_nmtransfo, dealloc_NParray,  &
-                                      alloc_NParray, read_lineartransfo,&
-                                      read_nmtransfo, alloc_lineartransfo
-      USE mod_RPHTransfo,       only: type_rphtransfo, write_rphtransfo,&
-                                      dealloc_array, alloc_array,       &
-                                      rphtransfo1torphtransfo2,         &
-                                      dealloc_rphtransfo
-      USE CurviRPH_mod,         only: curvirph_type, dealloc_curvirph,  &
-                                      curvirph1_to_curvirph2, get_CurviRPH
-      USE mod_ActiveTransfo
-      USE mod_CartesianTransfo
-      USE mod_Tana_Sum_OpnD
+  USE TnumTana_system_m
+  use mod_dnSVM,            only: Type_dnMat,Type_dnS
+  USE mod_nDFit,            only: param_nDFit
+  USE mod_QTransfo,         only: type_qtransfo, write_qtransfo,    &
+                                  dealloc_qtransfo, dealloc_NParray,&
+                                  alloc_NParray, read_qtransfo,     &
+                                  sub_type_name_of_qin,             &
+                                  sub_check_lineartransfo,          &
+                                  qtransfo1toqtransfo2
+  USE mod_LinearNMTransfo,  only: type_nmtransfo, dealloc_NParray,  &
+                                  alloc_NParray, read_lineartransfo,&
+                                  read_nmtransfo, alloc_lineartransfo
+  USE mod_RPHTransfo,       only: type_rphtransfo, write_rphtransfo,&
+                                  dealloc_array, alloc_array,       &
+                                  rphtransfo1torphtransfo2,         &
+                                  dealloc_rphtransfo
+  USE CurviRPH_mod,         only: curvirph_type, dealloc_curvirph,  &
+                                  curvirph1_to_curvirph2, get_CurviRPH
+  USE mod_ActiveTransfo
+  USE mod_CartesianTransfo
+  USE mod_Tana_Sum_OpnD
 
-      IMPLICIT NONE
+  IMPLICIT NONE
 
-        PRIVATE
+  PRIVATE
 
-!-------------------------------------------------------------------------------
-        TYPE param_PES_FromTnum
+  !-------------------------------------------------------------------------------
+  TYPE param_PES_FromTnum
 
           integer           :: nb_elec              = 1       ! nb of electronic PES
 
@@ -115,83 +115,85 @@ MODULE mod_Tnum
           !TYPE (param_nDFit)              :: para_nDFit_V
           !TYPE (param_nDFit), allocatable :: para_nDFit_Scalar_Op(:)
 
-        END TYPE param_PES_FromTnum
-!-------------------------------------------------------------------------------
-        TYPE CoordType
-          logical            :: WriteCC    = .FALSE.
+  END TYPE param_PES_FromTnum
+  !-------------------------------------------------------------------------------
+  TYPE CoordType
+    logical            :: WriteCC    = .FALSE.
 
-          real (kind=Rkind)  :: stepQ = ONETENTH**4
-          logical            :: num_x = .FALSE.
-
-
-          integer :: nb_act           = 0
-          integer :: nb_var           = 0         ! nb_var= 3*nat-6 + nb_extra_Coord
-          integer :: ndimG            = 0
-          integer :: nb_extra_Coord   = 0
-          integer :: ncart            = 0
-          integer :: ncart_act        = 0
-          integer :: nat0             = 0
-          integer :: nat              = 0
-          integer :: nat_act          = 0
-
-          ! for the ab initio calculation
-          integer                          :: charge       = 0
-          integer                          :: multiplicity = -1
-          integer                          :: nb_elec      = -1      ! here it is the number of electrons
-
-          integer,                  allocatable :: Z(:)
-          character (len=Name_len), allocatable :: symbole(:)
-
-          logical                          :: cos_th       = .FALSE.  ! T => coordinate (valence angle) => cos(th)
-                                                                      ! F => coordinate (valence angle) => th
-
-          logical                          :: Without_Rot         = .FALSE.
-          logical                          :: Centered_ON_CoM     = .TRUE.
-          logical                          :: With_VecCOM         = .FALSE.
-          character (len=:), allocatable   :: Cart_Type
-
-          logical                          :: Old_Qtransfo        = .FALSE.
-          logical                          :: Cart_transfo        = .FALSE.
-          logical                          :: Rot_Dip_with_EC     = .FALSE.
+    real (kind=Rkind)  :: stepQ = ONETENTH**4
+    logical            :: num_x = .FALSE.
 
 
+    integer :: nb_act           = 0
+    integer :: nb_var           = 0         ! nb_var= 3*nat-6 + nb_extra_Coord
+    integer :: ndimG            = 0
+    integer :: nb_extra_Coord   = 0
+    integer :: ncart            = 0
+    integer :: ncart_act        = 0
+    integer :: nat0             = 0
+    integer :: nat              = 0
+    integer :: nat_act          = 0
 
-          integer                                :: nb_Qtransfo         = -1
-          integer                                :: opt_param           =  0
-          integer, allocatable                   :: opt_Qdyn(:)
+    ! for the ab initio calculation
+    integer                          :: charge       = 0
+    integer                          :: multiplicity = -1
+    integer                          :: nb_elec      = -1      ! here it is the number of electrons
 
-          integer                                :: itActive             = -1
-          integer                                :: itPrim               = -1
-          integer                                :: itNM                 = -1
-          integer                                :: itRPH                = -1
-          TYPE (Type_Qtransfo),      allocatable :: tab_Qtransfo(:)
-          TYPE (Type_Qtransfo),      allocatable :: tab_Cart_transfo(:)
-          TYPE (Type_RPHTransfo),    allocatable :: RPHTransfo_inact2n ! For the inactive coordinates (type 21)
+    integer,                  allocatable :: Z(:)
+    character (len=Name_len), allocatable :: symbole(:)
 
-          TYPE (CurviRPH_type)                   :: CurviRPH
+    logical                          :: cos_th       = .FALSE.  ! T => coordinate (valence angle) => cos(th)
+                                                                ! F => coordinate (valence angle) => th
 
-          integer, pointer :: liste_QactTOQdyn(:) => null()   ! true pointer
-          integer, pointer :: liste_QdynTOQact(:) => null()   ! true pointer
-          integer, allocatable :: nrho_OF_Qact(:)             ! enables to define the volume element
-          integer, allocatable :: nrho_OF_Qdyn(:)             ! enables to define the volume element
+    logical                          :: Without_Rot         = .FALSE.
+    logical                          :: Centered_ON_CoM     = .TRUE.
+    logical                          :: With_VecCOM         = .FALSE.
+    character (len=:), allocatable   :: Cart_Type
+
+    logical                          :: Old_Qtransfo        = .FALSE.
+    logical                          :: Cart_transfo        = .FALSE.
+    logical                          :: Rot_Dip_with_EC     = .FALSE.
+
+    integer                                :: nb_Qtransfo         = -1
+    integer                                :: opt_param           =  0
+    integer, allocatable                   :: opt_Qdyn(:)
+
+    integer                                :: itActive             = -1
+    integer                                :: itPrim               = -1
+    integer                                :: itNM                 = -1
+    integer                                :: itRPH                = -1
+    TYPE (Type_Qtransfo),      allocatable :: tab_Qtransfo(:)
+    TYPE (Type_Qtransfo),      allocatable :: tab_Cart_transfo(:)
+    TYPE (Type_RPHTransfo),    allocatable :: RPHTransfo_inact2n ! For the inactive coordinates (type 21)
+
+    TYPE (CurviRPH_type)                   :: CurviRPH
+
+    integer, pointer :: liste_QactTOQdyn(:) => null()   ! true pointer
+    integer, pointer :: liste_QdynTOQact(:) => null()   ! true pointer
+    integer, allocatable :: nrho_OF_Qact(:)             ! enables to define the volume element
+    integer, allocatable :: nrho_OF_Qdyn(:)             ! enables to define the volume element
 
 
-          integer :: nb_act1   =0
-          integer :: nb_inact2n=0,nb_inact21=0,nb_inact22=0
-          integer :: nb_inact20=0,nb_inact=0
-          integer :: nb_inact31=0
-          integer :: nb_rigid0 =0,nb_rigid100=0,nb_rigid=0
+    integer :: nb_act1     = 0
+    integer :: nb_inact2n  = 0
+    integer :: nb_inact21  = 0
+    integer :: nb_inact22  = 0
+    integer :: nb_inact20  = 0
+    integer :: nb_inact    = 0
+    integer :: nb_inact31  = 0
+    integer :: nb_rigid0   = 0
+    integer :: nb_rigid100 = 0
+    integer :: nb_rigid    = 0
 
-
-          real (kind=Rkind), allocatable :: masses(:)
-          integer,           allocatable :: active_masses(:) ! for partial hessian (PVSCF)
-          real (kind=Rkind), allocatable :: d0sm(:)
-          real (kind=Rkind)              :: Mtot = ZERO
-          real (kind=Rkind)              :: Mtot_inv = ZERO
-        CONTAINS
-          PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
-          GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
-        END TYPE CoordType
+    real (kind=Rkind), allocatable :: masses(:)
+    integer,           allocatable :: active_masses(:) ! for partial hessian (PVSCF)
+    real (kind=Rkind), allocatable :: d0sm(:)
+    real (kind=Rkind)              :: Mtot = ZERO
+    real (kind=Rkind)              :: Mtot_inv = ZERO
+  CONTAINS
+    PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
+    GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
+  END TYPE CoordType
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
@@ -489,14 +491,14 @@ MODULE mod_Tnum
 
     character (len=*), parameter :: name_sub='dealloc_CoordType'
 
-
-    !write(out_unit,*) 'BEGINNING ',name_sub
+!write(out_unit,*) 'BEGINNING ',name_sub
     !flush(out_unit)
 
         mole%WriteCC      = .FALSE.
 
         mole%stepQ        = ONETENTH**4
         mole%num_x        = .FALSE.
+
 
         mole%nb_act       = 0
         mole%nb_var       = 0
@@ -526,10 +528,13 @@ MODULE mod_Tnum
         mole%Without_Rot     = .FALSE.
         mole%Centered_ON_CoM = .TRUE.
         mole%cos_th          = .FALSE.
+        mole%With_VecCOM     = .FALSE.
         IF (allocated(mole%Cart_Type)) deallocate(mole%Cart_Type)
+
 
         mole%Old_Qtransfo    = .FALSE.
         mole%Cart_transfo    = .FALSE.
+        mole%Rot_Dip_with_EC = .FALSE.
 
         mole%nb_Qtransfo     = -1
         mole%itActive        = -1
@@ -1765,7 +1770,6 @@ MODULE mod_Tnum
 
       CALL CurviRPH1_TO_CurviRPH2(mole2%CurviRPH,mole1%CurviRPH)
 
-      !IF (mole2%Cart_transfo .AND. associated(mole2%tab_Cart_transfo)) THEN
       IF (allocated(mole2%tab_Cart_transfo)) THEN
 
         CALL alloc_NParray(mole1%tab_Cart_transfo,                        &

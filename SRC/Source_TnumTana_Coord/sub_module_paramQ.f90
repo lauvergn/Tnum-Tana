@@ -2287,6 +2287,8 @@ CONTAINS
       END IF
 
       !=================================================
+      !write(out_unit,*) 'COUCOU: Gcenter, mole%Centered_ON_CoM',Gcenter, mole%Centered_ON_CoM ; flush(out_unit)
+      !write(out_unit,*) 'COUCOU: allo mole%masses',allocated(mole%masses)
       IF (Gcenter .AND. mole%Centered_ON_CoM) THEN
         icG = mole%ncart-2
         CALL sub3_dncentre_masse(mole%ncart_act,mole%nb_act,mole%ncart, &
