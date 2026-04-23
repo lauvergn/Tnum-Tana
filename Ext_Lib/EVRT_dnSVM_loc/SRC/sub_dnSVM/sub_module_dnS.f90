@@ -49,6 +49,14 @@ MODULE mod_dnS
   INTERFACE dealloc_array
     MODULE PROCEDURE dealloc_array_OF_dnSdim3
   END INTERFACE
+
+  INTERFACE alloc_NParray
+    MODULE PROCEDURE alloc_NParray_OF_dnSdim3
+  END INTERFACE
+  INTERFACE dealloc_NParray
+    MODULE PROCEDURE dealloc_NParray_OF_dnSdim3
+  END INTERFACE
+
   INTERFACE Write_dnS
     MODULE PROCEDURE EVRT_Write_dnS
   END INTERFACE
@@ -82,6 +90,7 @@ MODULE mod_dnS
   PUBLIC :: sub_dnS1_TO_dntR2,sub_dntf,sub_dnf2_O_dnf3_TO_dnf1, sub_dntf_WITH_INV
   PUBLIC :: sub_ZERO_TO_dnS,sub_Weight_dnS,sub_WeightDer_dnS
   PUBLIC :: alloc_array, dealloc_array
+  PUBLIC :: alloc_NParray, dealloc_NParray
   PUBLIC :: R_wADDTO_dnS2_ider
   PUBLIC :: check_dnS_IsZERO
   PUBLIC :: Write_dnSVM,alloc_dnSVM,dealloc_dnSVM,Set_ZERO_TO_dnSVM
@@ -164,6 +173,78 @@ CONTAINS
 
   END SUBROUTINE dealloc_array_OF_dnSdim3
 
+  SUBROUTINE alloc_NParray_OF_dnSdim3(tab,tab_ub,name_var,name_sub,tab_lb)
+    USE QDUtil_m
+    IMPLICIT NONE
+
+      TYPE (Type_dnS), allocatable, intent(inout) :: tab(:,:,:)
+      integer, intent(in) :: tab_ub(:)
+      integer, intent(in), optional :: tab_lb(:)
+
+      character (len=*), intent(in) :: name_var,name_sub
+
+
+      integer, parameter :: ndim=3
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_dnSdim3'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+       IF (present(tab_lb)) THEN
+         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+         memory = product(tab_ub(:)-tab_lb(:)+1)
+         allocate(tab(tab_lb(1):tab_ub(1),                              &
+                      tab_lb(2):tab_ub(2),                              &
+                      tab_lb(3):tab_ub(3)),stat=err_mem)
+       ELSE
+         memory = product(tab_ub(:))
+         allocate(tab(tab_ub(1),tab_ub(2),tab_ub(3)),stat=err_mem)
+       END IF
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnS')
+
+      END SUBROUTINE alloc_NParray_OF_dnSdim3
+      SUBROUTINE dealloc_NParray_OF_dnSdim3(tab,name_var,name_sub)
+        USE QDUtil_m
+      IMPLICIT NONE
+
+      TYPE (Type_dnS), allocatable, intent(inout) :: tab(:,:,:)
+      character (len=*), intent(in) :: name_var,name_sub
+      integer :: i1,i2,i3
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_dnSdim3'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (.NOT. allocated(tab))                                       &
+                 CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       DO i1=ubound(tab,dim=1),lbound(tab,dim=1)
+       DO i2=ubound(tab,dim=2),lbound(tab,dim=2)
+       DO i3=ubound(tab,dim=3),lbound(tab,dim=3)
+         CALL dealloc_dnS(tab(i1,i2,i3))
+       END DO
+       END DO
+       END DO
+
+       memory = size(tab)
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnS')
+
+  END SUBROUTINE dealloc_NParray_OF_dnSdim3
 !
 !================================================================
 !

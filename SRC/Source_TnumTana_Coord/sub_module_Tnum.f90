@@ -114,7 +114,6 @@ MODULE mod_Tnum
           character (len=Line_len) ,allocatable :: nDFit_Scalar_Op_name_Fit(:)
           !TYPE (param_nDFit)              :: para_nDFit_V
           !TYPE (param_nDFit), allocatable :: para_nDFit_Scalar_Op(:)
-
   END TYPE param_PES_FromTnum
   !-------------------------------------------------------------------------------
   TYPE CoordType
@@ -194,64 +193,62 @@ MODULE mod_Tnum
     PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
     GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
   END TYPE CoordType
-!-------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
         !!@description: TODO
         !!@param: TODO
-!-------------------------------------------------------------------------------
-        TYPE Tnum
-          real (kind=Rkind)          :: stepT   = ONETENTH**4
-          logical                    :: num_GG  = .FALSE.
-          logical                    :: num_g   = .FALSE.
-          logical                    :: num_x   = .FALSE.
+  !-------------------------------------------------------------------------------
+  TYPE Tnum
+    real (kind=Rkind)              :: stepT   = ONETENTH**4
+    logical                        :: num_GG  = .FALSE.
+    logical                        :: num_g   = .FALSE.
+    logical                        :: num_x   = .FALSE.
 
-          logical                    :: Gdiago  = .FALSE.
-          logical                    :: Gcte    = .FALSE.
+    logical                        :: Gdiago  = .FALSE.
+    logical                        :: Gcte    = .FALSE.
 
-          integer                    :: NonGcteRange(2) = 0
-          logical                    :: Inertia = .TRUE.
-          real (kind=Rkind), pointer :: Gref(:,:) => null() ! reference value if Gcte=.true.
-          integer                    :: GTaylor_Order   = -1
-          integer                    :: vepTaylor_Order = -1
-          TYPE(Type_dnMat)           :: dnGGref             ! to be able to use a taylor expansion of GG
-          TYPE(Type_dnS)             :: dnVepref            ! to be able to use a taylor expansion of the Vep
+    integer                        :: NonGcteRange(2) = 0
+    logical                        :: Inertia = .TRUE.
+    real (kind=Rkind), allocatable :: Gref(:,:) ! reference value if Gcte=.true.
+    integer                        :: GTaylor_Order   = -1
+    integer                        :: vepTaylor_Order = -1
+    TYPE(Type_dnMat)               :: dnGGref             ! to be able to use a taylor expansion of GG
+    TYPE(Type_dnS)                 :: dnVepref            ! to be able to use a taylor expansion of the Vep
 
+    integer                        :: nrho              = 2
+    integer                        :: vep_type          = -1 ! The default depends on the GG metric
+                                                             ! 0   : without vep
+                                                             ! 1   : normal vep
+                                                             ! 100 : normal vep for the full metric tensor
+                                                             !         (not the reduced one), for coord type=100
+                                                             ! -100: vep type100 with a bug on dng (do not use)
+    integer                        :: JJ                = 0
+    logical                        :: WriteT            = .FALSE.
+    logical                        :: With_Cart_Transfo = .TRUE.
+    logical                        :: Write_QMotions    = .FALSE. ! write coordinate motions
 
-          integer                    :: nrho              = 2
-          integer                    :: vep_type          = -1 ! The default depends on the GG metric
-                                                               ! 0   : without vep
-                                                               ! 1   : normal vep
-                                                               ! 100 : normal vep for the full metric tensor
-                                                               !         (not the reduced one), for coord type=100
-                                                               ! -100: vep type100 with a bug on dng (do not use)
-          integer                    :: JJ                = 0
-          logical                    :: WriteT            = .FALSE.
-          logical                    :: With_Cart_Transfo = .TRUE.
-          logical                    :: Write_QMotions     = .FALSE. ! write coordinate motions
-                                                ! as 2 Cartesian geometries (like for the frequencies)
+    logical                        :: Tana              = .FALSE.
+    logical                        :: Tana_Init_Only    = .FALSE.
+    integer                        :: Compa_TanaTnum    = 1
+    logical                        :: MidasCppForm      = .FALSE.
+    logical                        :: MCTDHForm         = .FALSE.
+    logical                        :: LaTeXForm         = .FALSE.
+    logical                        :: VSCFForm          = .FALSE.
+    logical                        :: FortranForm       = .FALSE.
+    integer                        :: KEOExportVersion  = 1 ! Podolski form
 
-          logical                    :: Tana              = .FALSE.
-          logical                    :: Tana_Init_Only    = .FALSE.
-          integer                    :: Compa_TanaTnum    = 1
-          logical                    :: MidasCppForm      = .FALSE.
-          logical                    :: MCTDHForm         = .FALSE.
-          logical                    :: LaTeXForm         = .FALSE.
-          logical                    :: VSCFForm          = .FALSE.
-          logical                    :: FortranForm       = .FALSE.
-          integer                    :: KEOExportVersion  = 1 ! Podolski form
+    logical                        :: f2f1_ana          = .FALSE.
 
-          logical                    :: f2f1_ana          = .FALSE.
+    integer                        :: KEO_TalyorOFQinact2n = -1
 
-          integer                    :: KEO_TalyorOFQinact2n = -1
+    TYPE (param_PES_FromTnum)      :: para_PES_FromTnum
 
-          TYPE (param_PES_FromTnum)  :: para_PES_FromTnum
-
-          TYPE (sum_opnd)            :: TWOxKEO,ExpandTWOxKEO
-        CONTAINS
-          PROCEDURE, PRIVATE, PASS(Tnum1) :: Tnum2_TO_Tnum1
-          GENERIC,   PUBLIC  :: assignment(=) => Tnum2_TO_Tnum1
-        END TYPE Tnum
+    TYPE (sum_opnd)                :: TWOxKEO,ExpandTWOxKEO
+  CONTAINS
+    PROCEDURE, PRIVATE, PASS(Tnum1) :: Tnum2_TO_Tnum1
+    GENERIC,   PUBLIC  :: assignment(=) => Tnum2_TO_Tnum1
+  END TYPE Tnum
 !-------------------------------------------------------------------------------
 
       PUBLIC :: param_PES_FromTnum, Tnum, dealloc_Tnum
@@ -606,11 +603,9 @@ MODULE mod_Tnum
     IMPLICIT NONE
 
       !----- for the CoordType and Tnum --------------------------------------
-      TYPE (CoordType), intent(inout), target :: mole
-      TYPE (Tnum),      intent(inout)         :: para_Tnum
-      TYPE (constant),  intent(inout)         :: const_phys
-
-      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE (CoordType), intent(inout) :: mole
+      TYPE (Tnum),      intent(inout) :: para_Tnum
+      TYPE (constant),  intent(inout) :: const_phys
 
       !      - for the definition of d0d1d2d3_Qeq -------------
       logical :: Qeq_sym,Q0_sym
@@ -1104,9 +1099,6 @@ MODULE mod_Tnum
         END IF
         !=======================================================================
 
-        !mole%liste_QactTOQdyn = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
-        !mole%liste_QdynTOQact = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
-
         CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
         CALL alloc_NParray(mole%nrho_OF_Qdyn,[mole%nb_var],"mole%nrho_OF_Qdyn",name_sub)
@@ -1543,20 +1535,20 @@ MODULE mod_Tnum
 
 !=======================================================================
 !=======================================================================
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
-
-!    special case if ActiveTransfo%list_act_OF_Qdyn(i) = 200
-     IF (count(ActiveTransfo%list_act_OF_Qdyn(:) == 200) > 0) THEN
-       para_Tnum%num_GG = .TRUE.
-       para_Tnum%num_g  = .FALSE.
-       para_Tnum%num_x  = .FALSE.
-       write(out_unit,*) ' WARNING: ActiveTransfo%list_act_OF_Qdyn(i) = 200'
-       write(out_unit,*) ' We are using numerical derivatives !!'
-       write(out_unit,*) ' num_GG,num_g,num_x',para_Tnum%num_GG,  &
+    ASSOCIATE (ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+      !special case if ActiveTransfo%list_act_OF_Qdyn(i) = 200
+      IF (count(ActiveTransfo%list_act_OF_Qdyn(:) == 200) > 0) THEN
+        para_Tnum%num_GG = .TRUE.
+        para_Tnum%num_g  = .FALSE.
+        para_Tnum%num_x  = .FALSE.
+        write(out_unit,*) ' WARNING: ActiveTransfo%list_act_OF_Qdyn(i) = 200'
+        write(out_unit,*) ' We are using numerical derivatives !!'
+        write(out_unit,*) ' num_GG,num_g,num_x',para_Tnum%num_GG,  &
                                       para_Tnum%num_g,para_Tnum%num_x
-       write(out_unit,*) ' stepT',para_Tnum%stepT
-       write(out_unit,*)
-     END IF
+        write(out_unit,*) ' stepT',para_Tnum%stepT
+        write(out_unit,*)
+      END IF
+    END ASSOCIATE
 !=======================================================================
 !=======================================================================
 
@@ -1647,8 +1639,8 @@ MODULE mod_Tnum
     USE mod_RPHTransfo
 
     ! for the CoordType and Tnum --------------------------------------
-    CLASS (CoordType), intent(inout), target :: mole1
-    TYPE (CoordType),  intent(in)            :: mole2
+    CLASS (CoordType), intent(inout) :: mole1
+    TYPE (CoordType),  intent(in)    :: mole2
 
     integer :: it
 
@@ -1848,13 +1840,13 @@ MODULE mod_Tnum
   Tnum1%f2f1_ana             = Tnum2%f2f1_ana
   Tnum1%KEO_TalyorOFQinact2n = Tnum2%KEO_TalyorOFQinact2n
 
-  Tnum1%para_PES_FromTnum    = Tnum2%para_PES_FromTnum ! OK no pointers
+  Tnum1%para_PES_FromTnum    = Tnum2%para_PES_FromTnum
 
   Tnum1%TWOxKEO              = Tnum2%TWOxKEO
   Tnum1%ExpandTWOxKEO        = Tnum2%ExpandTWOxKEO
 
-  IF (associated(Tnum2%Gref)) THEN
-    CALL alloc_array(Tnum1%Gref,shape(Tnum2%Gref),'Tnum1%Gref','Tnum2_TO_Tnum1')
+  IF (allocated(Tnum2%Gref)) THEN
+    CALL alloc_NParray(Tnum1%Gref,shape(Tnum2%Gref),'Tnum1%Gref','Tnum2_TO_Tnum1')
     Tnum1%Gref(:,:) = Tnum2%Gref
   END IF
 
@@ -1869,56 +1861,55 @@ MODULE mod_Tnum
 
   END SUBROUTINE Tnum2_TO_Tnum1
   SUBROUTINE dealloc_Tnum(para_Tnum)
-  use mod_dnSVM
+    USE mod_dnSVM
 
-  CLASS (Tnum), intent(inout) :: para_Tnum
+    CLASS (Tnum), intent(inout) :: para_Tnum
 
-  para_Tnum%stepT   = ONETENTH**4
-  para_Tnum%num_GG  = .FALSE.
-  para_Tnum%num_g   = .FALSE.
-  para_Tnum%num_x   = .FALSE.
+    para_Tnum%stepT   = ONETENTH**4
+    para_Tnum%num_GG  = .FALSE.
+    para_Tnum%num_g   = .FALSE.
+    para_Tnum%num_x   = .FALSE.
 
-  para_Tnum%Gdiago  = .FALSE.
-  para_Tnum%Gcte    = .FALSE.
-  para_Tnum%NonGcteRange(2) = 0
-  para_Tnum%Inertia = .TRUE.
+    para_Tnum%Gdiago  = .FALSE.
+    para_Tnum%Gcte    = .FALSE.
+    para_Tnum%NonGcteRange(2) = 0
+    para_Tnum%Inertia = .TRUE.
 
-  para_Tnum%nrho              = 2
-  para_Tnum%vep_type          = -1
-  para_Tnum%JJ                = 0
-  para_Tnum%WriteT            = .FALSE.
-  para_Tnum%With_Cart_Transfo = .TRUE.
-  para_Tnum%Write_QMotions     = .FALSE.
+    para_Tnum%nrho              = 2
+    para_Tnum%vep_type          = -1
+    para_Tnum%JJ                = 0
+    para_Tnum%WriteT            = .FALSE.
+    para_Tnum%With_Cart_Transfo = .TRUE.
+    para_Tnum%Write_QMotions     = .FALSE.
 
-  para_Tnum%Tana              = .FALSE.
-  para_Tnum%Tana_Init_Only    = .FALSE.
-  para_Tnum%Compa_TanaTnum    = 1
-  para_Tnum%MidasCppForm      = .FALSE.
-  para_Tnum%MCTDHForm         = .FALSE.
-  para_Tnum%LaTeXForm         = .FALSE.
-  para_Tnum%VSCFForm          = .FALSE.
-  para_Tnum%FortranForm       = .FALSE.
+    para_Tnum%Tana              = .FALSE.
+    para_Tnum%Tana_Init_Only    = .FALSE.
+    para_Tnum%Compa_TanaTnum    = 1
+    para_Tnum%MidasCppForm      = .FALSE.
+    para_Tnum%MCTDHForm         = .FALSE.
+    para_Tnum%LaTeXForm         = .FALSE.
+    para_Tnum%VSCFForm          = .FALSE.
+    para_Tnum%FortranForm       = .FALSE.
 
-  para_Tnum%f2f1_ana          = .FALSE.
+    para_Tnum%f2f1_ana          = .FALSE.
 
-  para_Tnum%KEO_TalyorOFQinact2n = -1
+    para_Tnum%KEO_TalyorOFQinact2n = -1
 
-  IF (allocated(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)) THEN
-    deallocate(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)
-  END IF
+    IF (allocated(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)) THEN
+      deallocate(para_Tnum%para_PES_FromTnum%nDFit_Scalar_Op_name_Fit)
+    END IF
 
-  CALL delete_op(para_Tnum%TWOxKEO)
-  CALL delete_op(para_Tnum%ExpandTWOxKEO)
+    CALL delete_op(para_Tnum%TWOxKEO)
+    CALL delete_op(para_Tnum%ExpandTWOxKEO)
 
-  IF (associated(para_Tnum%Gref)) THEN
-    CALL dealloc_array(para_Tnum%Gref,'para_Tnum%Gref','dealloc_Tnum')
-  END IF
+    IF (allocated(para_Tnum%Gref)) THEN
+      CALL dealloc_NParray(para_Tnum%Gref,'para_Tnum%Gref','dealloc_Tnum')
+    END IF
 
-  CALL dealloc_dnSVM(para_Tnum%dnGGref)
-  CALL dealloc_dnSVM(para_Tnum%dnVepref)
-  para_Tnum%GTaylor_Order   = -1
-  para_Tnum%vepTaylor_Order = -1
-
+    CALL dealloc_dnSVM(para_Tnum%dnGGref)
+    CALL dealloc_dnSVM(para_Tnum%dnVepref)
+    para_Tnum%GTaylor_Order   = -1
+    para_Tnum%vepTaylor_Order = -1
 
   END SUBROUTINE dealloc_Tnum
 !================================================================
@@ -1959,30 +1950,28 @@ MODULE mod_Tnum
 !       analysis of list_act_OF_Qdyn(.) to define ActiveTransfo%list_QactTOQdyn(.) and ActiveTransfo%list_QdynTOQact(.)
 !================================================================
   SUBROUTINE type_var_analysis_OF_CoordType(mole,print_lev)
-    TYPE (CoordType), intent(inout), target :: mole
+    TYPE (CoordType), intent(inout)         :: mole
     logical,          intent(in),  optional :: print_lev
 
-    TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+    integer :: iv_inact20,iv_rigid0,iv_inact21,iv_act1,iv_inact22
+    integer :: iv_inact31,iv_rigid100
+    integer :: n_test
+    integer :: i,ii,i_Q,iQin,iQout
+    integer :: nb_Qtransfo,it
+    logical :: print_loc
 
-      integer :: iv_inact20,iv_rigid0,iv_inact21,iv_act1,iv_inact22
-      integer :: iv_inact31,iv_rigid100
-      integer :: n_test
-      integer :: i,ii,i_Q,iQin,iQout
-      integer :: nb_Qtransfo,it
-      logical :: print_loc
+    integer :: err_mem,memory
+    character (len=*), parameter :: name_sub = 'type_var_analysis_OF_CoordType'
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
 
-      integer :: err_mem,memory
-      character (len=*), parameter :: name_sub = 'type_var_analysis_OF_CoordType'
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
+    IF (debug) write(out_unit,*) 'BEGINNING ',name_sub
 
-
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    ASSOCIATE (ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
       print_loc = (print_level > 0 .OR. debug)
       IF (present(print_lev)) print_loc = print_lev
 
-      IF (debug) write(out_unit,*) 'BEGINNING ',name_sub
       IF (print_loc) THEN
          write(out_unit,*) '-analysis of the variable type ---'
          write(out_unit,*) '  ActiveTransfo%list_act_OF_Qdyn',      &
@@ -2148,7 +2137,8 @@ MODULE mod_Tnum
         write(out_unit,*)
         write(out_unit,*) '- End analysis of the variable type ---'
       END IF
-      IF (debug) write(out_unit,*) 'END ',name_sub
+    END ASSOCIATE
+    IF (debug) write(out_unit,*) 'END ',name_sub
 
   END SUBROUTINE type_var_analysis_OF_CoordType
 
@@ -2210,23 +2200,22 @@ MODULE mod_Tnum
        end subroutine Write_TcorTrot
 
   SUBROUTINE Sub_paraRPH_TO_CoordType(mole)
-  TYPE (CoordType), target, intent(inout) :: mole
+    TYPE (CoordType), intent(inout) :: mole
 
-      integer :: it
-      TYPE (Type_RPHTransfo),   pointer :: RPHTransfo    ! it'll point on tab_Qtransfo
-      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+    integer :: it
 
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
 
-      IF (.NOT. mole%itRPH > 0) RETURN
-      RPHTransfo    => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    IF (.NOT. mole%itRPH > 0) RETURN
+
+    IF (debug) write(out_unit,*) 'BEGINNING Sub_paraRPH_TO_CoordType'
+
+    ASSOCIATE(RPHTransfo=>mole%tab_Qtransfo(mole%itRPH)%RPHTransfo,   &
+              ActiveTransfo=>mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
       RPHTransfo%option = 0 ! If option/=0, we set up to option 0 to be able to perform
-                           ! the transformations Sub_paraRPH_TO_mole and Sub_mole_TO_paraRPH
-
-      IF (debug) write(out_unit,*) 'BEGINNING Sub_paraRPH_TO_CoordType'
+                            ! the transformations Sub_paraRPH_TO_mole and Sub_mole_TO_paraRPH
 
       ActiveTransfo%list_act_OF_Qdyn(:) = RPHTransfo%list_act_OF_Qdyn(:)
       mole%nb_act1                      = RPHTransfo%nb_act1
@@ -2259,38 +2248,34 @@ MODULE mod_Tnum
       ActiveTransfo%nb_rigid100 = mole%nb_rigid100
       ActiveTransfo%nb_rigid    = mole%nb_rigid
 
-      IF (debug) write(out_unit,*) 'END Sub_paraRPH_TO_CoordType'
-
+    END ASSOCIATE
+    IF (debug) write(out_unit,*) 'END Sub_paraRPH_TO_CoordType'
 
   END SUBROUTINE Sub_paraRPH_TO_CoordType
 
   SUBROUTINE Sub_CoordType_TO_paraRPH(mole)
-  TYPE (CoordType), target, intent(inout) :: mole
+    TYPE (CoordType), intent(inout) :: mole
 
-      TYPE(Type_ActiveTransfo),  pointer :: ActiveTransfo ! true pointer
+    integer :: i
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
 
-      integer :: i
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
-
-      IF (.NOT. mole%itRPH > 0) RETURN
-      IF (mole%tab_Qtransfo(mole%itRPH)%RPHTransfo%option /= 0) RETURN
+    IF (.NOT. mole%itRPH > 0) RETURN
+    IF (mole%tab_Qtransfo(mole%itRPH)%RPHTransfo%option /= 0) RETURN
       ! This transformation is done only if option==0.
       !    For option=1, everything is already done
 
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH'
 
-      IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH'
-
+    ASSOCIATE(ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
       DO i=1,mole%nb_var
         IF (ActiveTransfo%list_act_OF_Qdyn(i) == 21)               &
         ActiveTransfo%list_act_OF_Qdyn(i) = 1
       END DO
-      mole%nb_act1 = mole%nb_act1 + mole%nb_inact21
+
+      mole%nb_act1    = mole%nb_act1 + mole%nb_inact21
       mole%nb_inact21 = 0
-
-
 
       mole%nb_inact2n = mole%nb_inact21 + mole%nb_inact22
       mole%nb_act     = mole%nb_act1 + mole%nb_inact31 + mole%nb_inact2n
@@ -2317,33 +2302,27 @@ MODULE mod_Tnum
       ActiveTransfo%nb_rigid0   = mole%nb_rigid0
       ActiveTransfo%nb_rigid100 = mole%nb_rigid100
       ActiveTransfo%nb_rigid    = mole%nb_rigid
+    END ASSOCIATE
 
-      IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH'
+    IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH'
+  END SUBROUTINE Sub_CoordType_TO_paraRPH
 
+  SUBROUTINE Sub_CoordType_TO_paraRPH_new(mole)
+    TYPE (CoordType), intent(inout) :: mole
 
-      END SUBROUTINE Sub_CoordType_TO_paraRPH
+    integer :: i
 
-      SUBROUTINE Sub_CoordType_TO_paraRPH_new(mole)
+    !logical, parameter :: debug = .TRUE.
+    logical, parameter :: debug = .FALSE.
 
-      TYPE (CoordType), target, intent(inout) :: mole
+    IF (.NOT. mole%itRPH > 0) RETURN
+    IF (mole%tab_Qtransfo(mole%itRPH)%RPHTransfo%option /= 0) RETURN
+    ! This transformation is done only if option==0.
+    !    For option=1, everything is already done
 
-      integer :: i
-     TYPE (Type_RPHTransfo),    pointer :: RPHTransfo    ! it'll point on tab_Qtransfo
-     TYPE(Type_ActiveTransfo),  pointer :: ActiveTransfo ! true pointer
-
-      !logical, parameter :: debug = .TRUE.
-      logical, parameter :: debug = .FALSE.
-
-      IF (.NOT. mole%itRPH > 0) RETURN
-      RPHTransfo    => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
-
-      IF (RPHTransfo%option /= 0) RETURN
-      ! This transformation is done only if option==0.
-      !    For option=1, everything is already done
-
-      IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH_new'
-
+    IF (debug) write(out_unit,*) 'BEGINNING Sub_CoordType_TO_paraRPH_new'
+    ASSOCIATE(RPHTransfo=>mole%tab_Qtransfo(mole%itRPH)%RPHTransfo, &
+              ActiveTransfo=>mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
       RPHTransfo%list_act_OF_Qdyn = ActiveTransfo%list_act_OF_Qdyn
 
@@ -2352,50 +2331,43 @@ MODULE mod_Tnum
                               ActiveTransfo%list_act_OF_Qdyn(i) = 1
       END DO
 
-      IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH_new'
-
-
-      END SUBROUTINE Sub_CoordType_TO_paraRPH_new
+    END ASSOCIATE
+    IF (debug) write(out_unit,*) 'END Sub_CoordType_TO_paraRPH_new'
+  END SUBROUTINE Sub_CoordType_TO_paraRPH_new
 
       ! this subroutine eanbles to perform automatic contraction
   SUBROUTINE CoordTypeRPH_TO_CoordTypeFlex(mole)
-  USE mod_FlexibleTransfo, ONLY : Read_FlexibleTransfo
-  USE mod_Qtransfo,        ONLY : set_name_Qtransfo,get_name_Qtransfo
-  IMPLICIT NONE
+    USE mod_FlexibleTransfo, ONLY : Read_FlexibleTransfo
+    USE mod_Qtransfo,        ONLY : set_name_Qtransfo,get_name_Qtransfo
+    IMPLICIT NONE
 
-  TYPE (CoordType), target, intent(inout) :: mole
+    TYPE (CoordType), intent(inout) :: mole
 
-      integer :: nb_Qtransfo,nb_Qin
-      integer, allocatable :: list_flex(:)
+    integer :: nb_Qtransfo,nb_Qin
+    integer, allocatable :: list_flex(:)
 
-      TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+    !----- for debuging --------------------------------------------------
+    integer :: err_mem,memory
+    character (len=*), parameter :: name_sub = "CoordTypeRPH_TO_CoordTypeFlex"
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !-----------------------------------------------------------
 
- 
-      !----- for debuging --------------------------------------------------
-      integer :: err_mem,memory
-      character (len=*), parameter :: name_sub = "CoordTypeRPH_TO_CoordTypeFlex"
-      logical, parameter :: debug=.FALSE.
-      !logical, parameter :: debug=.TRUE.
-      IF (.NOT. mole%itRPH > 0) RETURN
-      !-----------------------------------------------------------
+    IF (mole%itRPH == -1) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' mole%itRPH = -1 is impossible for the RPH transformation'
+      write(out_unit,*) '  Check the fortran source!!'
+      STOP 'ERROR in CoordTypeRPH_TO_CoordTypeFlex: mole%itRPH = -1 is impossible'
+    END IF
+
+    ASSOCIATE(RPHTransfo=>mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
       IF (debug) THEN
-         write(out_unit,*) 'BEGINNING ',name_sub
-         write(out_unit,*) 'RPHTransfo%QMLib',RPHTransfo%QMLib
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'The RPH transformation is at:',mole%itRPH
+        write(out_unit,*) 'RPHTransfo%QMLib',RPHTransfo%QMLib
       END IF
-      !-----------------------------------------------------------
-
-      IF (mole%itRPH == -1) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' mole%itRPH = -1 is impossible for the RPH transformation'
-        write(out_unit,*) '  Check the fortran source!!'
-        STOP
-      END IF
-      RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo     
-
-      IF (debug) write(out_unit,*) 'The RPH transformation is at:',mole%itRPH
 
       nb_Qin = mole%tab_Qtransfo(mole%itRPH)%nb_Qin
-
 
       ! modification of the transformation
       IF (debug) write(out_unit,*) 'RPHTransfo%list_act_OF_Qdyn', &
@@ -2419,17 +2391,16 @@ MODULE mod_Tnum
 
       CALL sub_Type_Name_OF_Qin(mole%tab_Qtransfo(mole%itRPH),"Qflex")
 
-      ! remove the RPH transformation and the pointer
+      ! remove the RPH transformation
       CALL dealloc_RPHTransfo(mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
-      nullify(RPHTransfo)
       mole%itRPH = -1
+    END ASSOCIATE
 
-       IF (debug) THEN
-         write(out_unit,*) 'END ',name_sub
-       END IF
+    IF (debug) THEN
+      write(out_unit,*) 'END ',name_sub
+    END IF
 
   END SUBROUTINE CoordTypeRPH_TO_CoordTypeFlex
-
 
   SUBROUTINE Set_OptimizationPara_FROM_CoordType(mole,Set_Val)
   USE TnumTana_system_m

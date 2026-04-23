@@ -33,36 +33,29 @@
 !
 !===========================================================================
 !===========================================================================
- module mod_Tana_VecSumOpnD
- use TnumTana_system_m
- USE mod_Tana_sum_opnd
- IMPLICIT NONE
+module mod_Tana_VecSumOpnD
+  USE TnumTana_system_m
+  USE mod_Tana_sum_opnd
+  IMPLICIT NONE
 
- PRIVATE
-      !-----------------------------------------------------------!
-      !                        VEC_SUM_OPND                       !
-      !-----------------------------------------------------------!
-      !! @description: Definition of a type of a an array of sum of nd-operators.
-      !!               This type is used for the analytical
-      !!               computation of the KEO
-      !! @param: vec_sum             Array of sum_opnd operators
-      TYPE vec_sum_opnd
-        type(sum_opnd), allocatable        :: vec_sum(:) ! Array of opnd
-      END TYPE vec_sum_opnd
+  PRIVATE
+  !-----------------------------------------------------------!
+  !                        VEC_SUM_OPND                       !
+  !-----------------------------------------------------------!
+  !! @description: Definition of a type of a an array of sum of nd-operators.
+  !!               This type is used for the analytical
+  !!               computation of the KEO
+  !! @param: vec_sum             Array of sum_opnd operators
+  TYPE vec_sum_opnd
+    type(sum_opnd), allocatable :: vec_sum(:) ! Array of opnd
+  END TYPE vec_sum_opnd
 
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_Vec_Sum_OpnDdim1
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_Vec_Sum_OpnDdim1
-      END INTERFACE
-
-      INTERFACE alloc_NParray
-        MODULE PROCEDURE alloc_NParray_OF_Vec_Sum_OpnDdim1
-      END INTERFACE
-      INTERFACE dealloc_NParray
-        MODULE PROCEDURE dealloc_NParray_OF_Vec_Sum_OpnDdim1
-      END INTERFACE
+  INTERFACE alloc_NParray
+    MODULE PROCEDURE alloc_NParray_OF_Vec_Sum_OpnDdim1
+  END INTERFACE
+  INTERFACE dealloc_NParray
+    MODULE PROCEDURE dealloc_NParray_OF_Vec_Sum_OpnDdim1
+  END INTERFACE
 
   !!@description: Generic routine that deletes an array of operator types
   interface delete_op
@@ -84,7 +77,7 @@
   end interface
 
   PUBLIC :: vec_sum_opnd, allocate_op, delete_op, write_op, copy_F1_into_F2
-  PUBLIC :: alloc_array, dealloc_array, alloc_NParray, dealloc_NParray
+  PUBLIC :: alloc_NParray, dealloc_NParray
   PUBLIC :: V1_scalar_V2_in_F_sum_nd
   PUBLIC :: V1_cross_V2_in_Vres
   PUBLIC :: V1_plus_V2_in_Vres,V1_PLUS_TO_Vres
@@ -93,74 +86,7 @@
   PUBLIC :: F_sum_nd_times_V_in_Vres
   PUBLIC :: zero_TO_vec_sum_opnd
 
-  contains
-
-      SUBROUTINE alloc_array_OF_Vec_Sum_OpnDdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-      IMPLICIT NONE
-
-      type(vec_sum_opnd), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_Vec_Sum_OpnDdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Vec_Sum_OpnD')
-
-      END SUBROUTINE alloc_array_OF_Vec_Sum_OpnDdim1
-      SUBROUTINE dealloc_array_OF_Vec_Sum_OpnDdim1(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      type(vec_sum_opnd), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer :: i
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_Vec_Sum_OpnDdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       DO i=lbound(tab,dim=1),ubound(tab,dim=1)
-         CALL delete_op(tab(i))
-       END DO
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Vec_Sum_OpnD')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_Vec_Sum_OpnDdim1
-
+CONTAINS
       SUBROUTINE alloc_NParray_OF_Vec_Sum_OpnDdim1(tab,tab_ub,name_var,name_sub,tab_lb)
       IMPLICIT NONE
 

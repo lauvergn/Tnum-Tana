@@ -67,13 +67,6 @@ module mod_Tana_Sum_OpnD
                                     OpEl2_TO_SumOpnD1
       END TYPE sum_opnd
 
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_Sum_OpnDdim1,alloc_array_OF_Sum_OpnDdim2
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_Sum_OpnDdim1,dealloc_array_OF_Sum_OpnDdim2
-      END INTERFACE
-
       INTERFACE alloc_NParray
         MODULE PROCEDURE alloc_NParray_OF_Sum_OpnDdim1,alloc_NParray_OF_Sum_OpnDdim2
       END INTERFACE
@@ -132,7 +125,8 @@ module mod_Tana_Sum_OpnD
    PUBLIC :: sum_opnd, allocate_op, delete_op, check_allocate_op, write_op, init_to_opzero
    PUBLIC :: Simplify_Sum_OpnD, Transpose_Mat_OF_sum_opnd
 
-   PUBLIC :: alloc_array, dealloc_array, alloc_NParray, dealloc_NParray
+   PUBLIC :: alloc_NParray, dealloc_NParray
+
    PUBLIC :: copy_F1_into_F2, get_F1_plus_F2_to_F_sum_nd, get_F1_times_F2_to_F_nd
    PUBLIC :: operator (*)
    PUBLIC :: Der1_OF_OpnD_TO_Sum_OpnD, Der1_OF_Sum_OpnD_TO_Sum_OpnD
@@ -204,141 +198,6 @@ module mod_Tana_Sum_OpnD
        CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Sum_OpnD')
 
       END SUBROUTINE dealloc_NParray_OF_Sum_OpnDdim1
-
-      SUBROUTINE alloc_array_OF_Sum_OpnDdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-      IMPLICIT NONE
-
-      type(sum_opnd), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_Sum_OpnDdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Sum_OpnD')
-
-      END SUBROUTINE alloc_array_OF_Sum_OpnDdim1
-      SUBROUTINE dealloc_array_OF_Sum_OpnDdim1(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      type(sum_opnd), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer :: i
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_Sum_OpnDdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       DO i=lbound(tab,dim=1),ubound(tab,dim=1)
-         CALL delete_op(tab(i))
-       END DO
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Sum_OpnD')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_Sum_OpnDdim1
-      SUBROUTINE alloc_array_OF_Sum_OpnDdim2(tab,tab_ub,name_var,name_sub,tab_lb)
-      IMPLICIT NONE
-
-      type(sum_opnd), pointer, intent(inout) :: tab(:,:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-
-      integer, parameter :: ndim=2
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_Sum_OpnDdim2'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1),                              &
-                      tab_lb(2):tab_ub(2)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1),tab_ub(2)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'sum_opnd')
-
-      END SUBROUTINE alloc_array_OF_Sum_OpnDdim2
-      SUBROUTINE dealloc_array_OF_Sum_OpnDdim2(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      type(sum_opnd), pointer, intent(inout) :: tab(:,:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer :: i,j
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_Sum_OpnDdim2'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-
-       IF (.NOT. associated(tab))                                       &
-                 CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       DO i=lbound(tab,dim=2),ubound(tab,dim=2)
-       DO j=lbound(tab,dim=1),ubound(tab,dim=1)
-         CALL delete_op(tab(j,i))
-       END DO
-       END DO
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'sum_opnd')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_Sum_OpnDdim2
       SUBROUTINE alloc_NParray_OF_Sum_OpnDdim2(tab,tab_ub,name_var,name_sub,tab_lb)
       IMPLICIT NONE
 
@@ -554,7 +413,7 @@ module mod_Tana_Sum_OpnD
      integer                        :: error
      integer                        :: i, j, k, l
      integer                        :: n
-     logical, pointer               :: l_J(:)
+     logical, allocatable           :: l_J(:)
 
      integer                        :: i_open
      logical                        :: header_loc
@@ -572,8 +431,7 @@ module mod_Tana_Sum_OpnD
        header_loc = .FALSE.
      end if
 
-     nullify(l_J)
-     CALL alloc_array(l_J,shape(F_sum_nd%sum_prod_op1d),'l_J',routine_name)
+     CALL alloc_NParray(l_J,shape(F_sum_nd%sum_prod_op1d),'l_J',routine_name)
      l_J(:) = .true.
 
      if(i_open == out_unit) then
@@ -600,7 +458,7 @@ module mod_Tana_Sum_OpnD
            write(i_open, *)
          end if
        end do
-       IF (associated(l_J)) CALL dealloc_array(l_J,'l_J',routine_name)
+       IF (allocated(l_J)) CALL dealloc_array(l_J,'l_J',routine_name)
        return
      end if
 
@@ -639,7 +497,7 @@ module mod_Tana_Sum_OpnD
        end if
      end do
 
-     IF (associated(l_J)) CALL dealloc_array(l_J,'l_J',routine_name)
+     IF (allocated(l_J)) CALL dealloc_NParray(l_J,'l_J',routine_name)
 
    END SUBROUTINE write_sum_opnd_deform
 

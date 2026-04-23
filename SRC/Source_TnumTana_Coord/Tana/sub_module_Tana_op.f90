@@ -1608,12 +1608,12 @@
      type(sum_opnd)                  :: LiLi,JLi,LiJ,JJ,L1L1
 
 
-     type(vec_sum_opnd), pointer         :: Pi_BF(:)
-     type(vec_sum_opnd), pointer         :: Pi_dag_BF(:)
-     type(vec_sum_opnd), pointer         :: L(:)
-     type(vec_sum_opnd), pointer         :: L_dag(:)
-     type(sum_opnd), pointer             :: Lz(:)
-     type(sum_opnd), pointer             :: Liz_parent(:)
+     type(vec_sum_opnd), allocatable     :: Pi_BF(:)
+     type(vec_sum_opnd), allocatable     :: Pi_dag_BF(:)
+     type(vec_sum_opnd), allocatable     :: L(:)
+     type(vec_sum_opnd), allocatable     :: L_dag(:)
+     type(sum_opnd),     allocatable     :: Lz(:)
+     type(sum_opnd),     allocatable     :: Liz_parent(:)
      type(vec_sum_opnd)                  :: L1_bis
      type(vec_sum_opnd)                  :: L1dag_bis
      type(sum_opnd),     allocatable     :: Mat_R(:,:)
@@ -1643,7 +1643,7 @@
      logical                         :: true_BF
      logical                         :: alloc_subsyst
      logical                         :: euler
-     logical, pointer                :: zero_Pi_BF(:)
+     logical, allocatable            :: zero_Pi_BF(:)
      real(kind=Rkind)                :: sum_op, prod_op
 
      !logical, parameter           :: debug=.TRUE.
@@ -1654,15 +1654,6 @@
      IF (debug) THEN
        write(out_unit,*) 'BEGINNING ',routine_name
      END IF
-
-     nullify(Pi_BF)
-     nullify(Pi_dag_BF)
-     nullify(L)
-     nullify(L_dag)
-     nullify(Lz)
-     nullify(Liz_parent)
-
-     nullify(zero_Pi_BF)
 
      nsub_syst = count(F_system%tab_BFTransfo(:)%frame)
      nvec      = F_system%nb_vect-nsub_syst+1
@@ -1678,29 +1669,29 @@
      IF (debug) write(out_unit,*) 'true_BF',true_BF
 
      do i = 1, nvec
-       if(.not.associated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
+       if(.NOT. allocated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
 
          CALL alloc_array(P_Euler(F_system%listVFr(i))%Tab_num_Frame,shape(F_system%tab_num_Frame), &
-                         'P_Euler(F_system%listVFr(i))%Tab_num_Frame',routine_name)
+                          'P_Euler(F_system%listVFr(i))%Tab_num_Frame',routine_name)
          P_Euler(F_system%listVFr(i))%Tab_num_Frame(:) = F_system%Tab_num_Frame(:)
        end if
      end do
 
      !!allocation
-     CALL alloc_array(L,    [nvec],'L',routine_name)
-     CALL alloc_array(L_dag,[nvec],'L_dag',routine_name)
+     CALL alloc_NParray(L,    [nvec],'L',routine_name)
+     CALL alloc_NParray(L_dag,[nvec],'L_dag',routine_name)
      if(nsub_syst > 0) then
        if(.not.F_system%tab_BFTransfo(1)%frame) then
-         CALL alloc_array(Lz,[nvec+nsub_syst],'Lz',routine_name)
+         CALL alloc_NParray(Lz,[nvec+nsub_syst],'Lz',routine_name)
        else
-         CALL alloc_array(Lz,[nvec],'Lz',routine_name)
+         CALL alloc_NParray(Lz,[nvec],'Lz',routine_name)
        end if
      else
-       CALL alloc_array(Lz,[nvec],'Lz',routine_name)
+       CALL alloc_NParray(Lz,[nvec],'Lz',routine_name)
      end if
-     CALL alloc_array(Pi_BF,     shape(P_Euler),'Pi_BF',routine_name)
-     CALL alloc_array(Pi_dag_BF, shape(P_Euler),'Pi_dag_BF',routine_name)
-     CALL alloc_array(zero_Pi_BF,shape(P_Euler),'zero_Pi_BF',routine_name)
+     CALL alloc_NParray(Pi_BF,     shape(P_Euler),'Pi_BF',routine_name)
+     CALL alloc_NParray(Pi_dag_BF, shape(P_Euler),'Pi_dag_BF',routine_name)
+     CALL alloc_NParray(zero_Pi_BF,shape(P_Euler),'zero_Pi_BF',routine_name)
 
      ! Initiliation of the elementary operators, J and Jdag
      write(out_unit,*) 'init elementaries op. for S_(',F_system%tab_num_frame,')'
@@ -1933,7 +1924,7 @@
        scalar_PiPj(F_system%listVFr(i), F_system%listVFr(j)) = .true.
      end do
      end do
-     CALL dealloc_array(zero_Pi_BF,'zero_Pi_BF',routine_name)
+     CALL dealloc_NParray(zero_Pi_BF,'zero_Pi_BF',routine_name)
 
      CALL dealloc_NParray(Mat_R,'Mat_R',routine_name)
      CALL dealloc_NParray(Mat_RTranspo,'Mat_RTranspo',routine_name)
@@ -1958,12 +1949,7 @@
 
            else
 
-             !call Li_scalar_Li_from_Eq75(theta = F_system%tab_BFTransfo(i)%Qvec(2), &
-             !&                           phi   = F_system%tab_BFTransfo(i)%Qvec(3), &
-             !&                           LiLi  =  LiLi)
-
              CALL  V1_scalar_V2_in_F_sum_nd(L_dag(iv),L(iv), LiLi)
-
 
              CALL F1_sum_nd_PLUS_TO_Fres_sum_nd(LiLi,L1L1)
 
@@ -2187,7 +2173,7 @@
 
      n_size = size(F_system%tab_num_Frame)
      do i = 1, nvec
-       if(.not.associated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
+       if(.NOT.allocated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
 
          CALL alloc_array(P_Euler(F_system%listVFr(i))%Tab_num_Frame,[n_size], &
                          'P_Euler(F_system%listVFr(i))%Tab_num_Frame',routine_name)
@@ -2379,14 +2365,14 @@
      nvec_tot = F_system%nb_vect_tot
 
      do i = 1, nvec
-       if(.not. associated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
+       if(.NOT. allocated(P_Euler(F_system%listVFr(i))%Tab_num_Frame)) then
           CALL alloc_array(P_Euler(F_system%listVFr(i))%Tab_num_Frame,shape(F_system%tab_num_Frame), &
                           'P_Euler(F_system%listVFr(i))%Tab_num_Frame',routine_name)
           P_Euler(F_system%listVFr(i))%Tab_num_Frame(:) = F_system%Tab_num_Frame(:)
        end if
      end do
 
-     if(.not.compare_tab(F_system%euler, [.false., .true., .true.])) then
+     if(.NOT.compare_tab(F_system%euler, [.false., .true., .true.])) then
        write(out_unit,*) ' ERROR in',routine_name
        write(out_unit,*) "This routine can be call only for a subsystem"
        write(out_unit,*) "which has two Euler's angles"

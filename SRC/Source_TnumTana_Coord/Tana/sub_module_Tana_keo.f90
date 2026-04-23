@@ -59,31 +59,29 @@ MODULE mod_Tana_keo
       USE mod_ActiveTransfo
       IMPLICIT NONE
 
-      TYPE(sum_opnd),        intent(inout)         :: TWOxKEO
-      TYPE (CoordType),      intent(inout), target :: mole
-      TYPE (Tnum),           intent(inout)         :: para_Tnum
-      real (kind=Rkind),     intent(inout)         :: Qact(:)
-
-      type(Type_PiEulerRot), pointer    :: P_euler(:)
-      TYPE(sum_opnd), pointer           :: M_mass_out(:,:)
-
-      TYPE(sum_opnd), allocatable       :: Gana(:,:)
-      TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
+      TYPE(sum_opnd),        intent(inout)   :: TWOxKEO
+      TYPE (CoordType),      intent(inout)   :: mole
+      TYPE (Tnum),           intent(inout)   :: para_Tnum
+      real (kind=Rkind),     intent(inout)   :: Qact(:)
 
 
-      integer, pointer                  :: list_Qactiv(:)
-      integer, pointer                  :: list_QpolytoQact(:)
-      integer, pointer                  :: list_QactTOQpoly(:)
-      real(kind=Rkind), pointer         :: tab_Q(:)
-      character (len=Name_len), pointer :: tab_Qname(:)
-      TYPE (VarName_t), allocatable     :: tab_VarName(:)
+      type(Type_PiEulerRot), allocatable    :: P_euler(:)
+      TYPE(sum_opnd),        allocatable    :: M_mass_out(:,:)
+      TYPE(sum_opnd),        allocatable    :: Gana(:,:)
 
-      TYPE(opel)                        :: tabQpoly_Qel(mole%nb_var),tabQact_Qel(mole%nb_var)
+      integer, allocatable                  :: list_Qactiv(:)
+      integer, allocatable                  :: list_QpolytoQact(:)
+      integer, allocatable                  :: list_QactTOQpoly(:)
+      real(kind=Rkind), allocatable         :: tab_Q(:)
+      character (len=Name_len), allocatable :: tab_Qname(:)
+      TYPE (VarName_t), allocatable         :: tab_VarName(:)
 
-      integer                           :: ndim
-      logical                           :: constraint
-      logical, pointer                  :: scalar_PiPj(:,:)
-      real (kind=Rkind)                 :: Qdyn(mole%nb_var)
+      TYPE(opel)                            :: tabQpoly_Qel(mole%nb_var),tabQact_Qel(mole%nb_var)
+
+      integer                               :: ndim
+      logical                               :: constraint
+      logical, allocatable                  :: scalar_PiPj(:,:)
+      real (kind=Rkind)                     :: Qdyn(mole%nb_var)
 
       logical :: new = .FALSE.
       logical :: With_Li
@@ -104,14 +102,13 @@ MODULE mod_Tana_keo
 !===========================================================
 !===========================================================
 
-      IF (debug) THEN
-        write(out_unit,*) '================================================='
-        write(out_unit,*) ' BEGINNING Tana'
-        flush(out_unit)
-      END IF
-      ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    IF (debug) THEN
+      write(out_unit,*) '================================================='
+      write(out_unit,*) ' BEGINNING Tana'
+      flush(out_unit)
+    END IF
+    ASSOCIATE(ActiveTransfo=>mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
-      nullify(M_mass_out)
       poly = .false.
       i_transfo = -1
       do i = 1, size(mole%tab_Qtransfo)
@@ -141,27 +138,19 @@ MODULE mod_Tana_keo
 
       CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,ActiveTransfo)
 
-      nullify(tab_Q)
-      CALL alloc_array(tab_Q,shape(Qdyn),'tab_Q',routine_name)
-      nullify(list_Qactiv)
-      CALL alloc_array(list_Qactiv,shape(Qdyn),'list_Qactiv',routine_name)
-      nullify(list_QpolytoQact)
-      CALL alloc_array(list_QpolytoQact,shape(Qdyn),'list_QpolytoQact',routine_name)
-      nullify(list_QactTOQpoly)
-      CALL alloc_array(list_QactTOQpoly,shape(Qdyn),'list_QactTOQpoly',routine_name)
-      nullify(tab_Qname)
-      CALL alloc_array(tab_Qname,shape(Qdyn),'tab_Qname',routine_name)
+      CALL alloc_NParray(tab_Q,shape(Qdyn),'tab_Q',routine_name)
+      CALL alloc_NParray(list_Qactiv,shape(Qdyn),'list_Qactiv',routine_name)
+      CALL alloc_NParray(list_QpolytoQact,shape(Qdyn),'list_QpolytoQact',routine_name)
+      CALL alloc_NParray(list_QactTOQpoly,shape(Qdyn),'list_QactTOQpoly',routine_name)
+      CALL alloc_NParray(tab_Qname,shape(Qdyn),'tab_Qname',routine_name)
 
       allocate(tab_VarName(size(Qdyn)))
 
       ndim = size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
-      nullify(P_euler)
-      CALL alloc_array(P_euler,[ndim],"P_euler",routine_name)
+      CALL alloc_NParray(P_euler,[ndim],"P_euler",routine_name)
 
-      nullify(scalar_PiPj)
-      CALL alloc_array(scalar_PiPj,[ndim,ndim],'scalar_PiPj',routine_name)
+      CALL alloc_NParray(scalar_PiPj,[ndim,ndim],'scalar_PiPj',routine_name)
       scalar_PiPj(:,:) = .false.
-
 
       !-----------------------------------------------------------------
       !      DML 9/12/2012
@@ -202,279 +191,271 @@ MODULE mod_Tana_keo
         STOP
       END IF
       !-----------------------------------------------------------------
+    END ASSOCIATE
 
-      write(out_unit,*) '================================================='
-      write(out_unit,*) 'vectors indices in their subsystem to the indices in the BF'
-      flush(out_unit)
-      i_var = 1
-      call  iv_system_to_iv_BF(mole%tab_Qtransfo(i_transfo)%BFTransfo,i_var)
-      call init_tab_num_frame_Peuler(mole%tab_Qtransfo(i_transfo)%BFTransfo,P_euler)
+    write(out_unit,*) '================================================='
+    write(out_unit,*) 'vectors indices in their subsystem to the indices in the BF'
+    flush(out_unit)
+    i_var = 1
+    call  iv_system_to_iv_BF(mole%tab_Qtransfo(i_transfo)%BFTransfo,i_var)
+    call init_tab_num_frame_Peuler(mole%tab_Qtransfo(i_transfo)%BFTransfo,P_euler)
 
-      write(out_unit,*) '================================================='
-      write(out_unit,*) 'Initialization of the coordinates associated with each subsystem'
-      flush(out_unit)
-      i_var = 1
-      With_Li = .FALSE.
-      call extract_qval_F_system(mole%tab_Qtransfo(i_transfo)%BFTransfo,        &
-                                 tab_Q, list_Qactiv, tab_Qname, tab_VarName, tabQpoly_Qel,   &
-                                 i_var , With_Li)
+    write(out_unit,*) '================================================='
+    write(out_unit,*) 'Initialization of the coordinates associated with each subsystem'
+    flush(out_unit)
+    i_var = 1
+    With_Li = .FALSE.
+    call extract_qval_F_system(mole%tab_Qtransfo(i_transfo)%BFTransfo,        &
+                               tab_Q, list_Qactiv, tab_Qname, tab_VarName, tabQpoly_Qel,   &
+                               i_var , With_Li)
 
-      DO i_var=1,mole%nb_var
-        write(out_unit,*) tab_Qname(i_var)
-        CALL write_op(tabQpoly_Qel(i_var))
-        write(out_unit,*) 'Tana (generic)',i_var,': ',export_VarName(tab_VarName(i_var))
-        write(out_unit,*) 'Latex          ',i_var,': ',Latex_VarName(tab_VarName(i_var))
-      END DO
+    DO i_var=1,mole%nb_var
+      write(out_unit,*) tab_Qname(i_var)
+      CALL write_op(tabQpoly_Qel(i_var))
+      write(out_unit,*) 'Tana (generic)',i_var,': ',export_VarName(tab_VarName(i_var))
+      write(out_unit,*) 'Latex          ',i_var,': ',Latex_VarName(tab_VarName(i_var))
+    END DO
 
-      write(out_unit,*) '================================================='
-      write(out_unit,*) 'Initialization of the M_mass matrix of each subsystem'
-      flush(out_unit)
+    write(out_unit,*) '================================================='
+    write(out_unit,*) 'Initialization of the M_mass matrix of each subsystem'
+    flush(out_unit)
 
-      do k = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
-      do j = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
-        if (abs(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(k,j)) < 1.0e-13_Rkind) &
-              mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(k,j) = zero
-      end do
-      end do
-
-
-      call extract_bloc_matrix(mole%tab_Qtransfo(i_transfo)%BFTransfo,          &
-                               mole%tab_Qtransfo(1)%BunchTransfo%M_Tana)
-      call transform_M_mass_to_M_mass_opnd(                                     &
-                            mole%tab_Qtransfo(1)%BunchTransfo%M_Tana,M_mass_out)
-
-      TWOxKEO = CZERO
-      write(out_unit,*) '================================================='
-      write(out_unit,*) ' Computation of the 2xKEO (in full dimension)'
-      flush(out_unit)
-
-      call get_opKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,  TWOxKEO,          &
-                     P_Euler, M_mass_out, scalar_PiPj)
-
-      nb_terms_KEO_withoutVep = size(TWOxKEO%sum_prod_op1d)
-
-      write(out_unit,*) '================================================='
-
-      IF (debug) THEN
-        write(out_unit,*) ' Write 2xKEO (in full dimension)'
-        call write_op(TWOxKEO,header=.TRUE.)
-      END IF
-
-      IF ( para_Tnum%nrho == 1 .OR. para_Tnum%nrho == 2 ) THEN
-        ! this version with Qact, when get_KEO_for_Qactiv is BEFORE add_Vextr_new
-        !CALL add_Vextr_new(mole%tab_Qtransfo(i_transfo)%BFTransfo,TWOxKEO,&
-        !                   tabQact_Qel,para_Tnum%nrho,mole%nb_act)
-
-        ! this version with Qpoly, when get_KEO_for_Qactiv is AFTER add_Vextr_new
-        CALL add_Vextr_new(mole%tab_Qtransfo(i_transfo)%BFTransfo,TWOxKEO,&
-                           tabQpoly_Qel,para_Tnum%nrho,mole%nb_var)
-      END IF
-      nb_terms_KEO_withVep = size(TWOxKEO%sum_prod_op1d)
-
-      write(out_unit,*) '================================================='
-      write(out_unit,*) ' Add the extra potential term  KEO'
-      write(out_unit,*) '================================================='
-      write(out_unit,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
-      write(out_unit,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
-      flush(out_unit)
+    do k = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
+    do j = 1, size(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(:,1))
+      if (abs(mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(k,j)) < 1.0e-13_Rkind) &
+            mole%tab_Qtransfo(1)%BunchTransfo%M_Tana(k,j) = zero
+    end do
+    end do
 
 
-      write(out_unit,*) '================================================='
-      write(out_unit,*) ' Computation of the 2xKEO (in reduced dimension)'
-      flush(out_unit)
-      CALL get_KEO_for_Qactiv(TWOxKEO, constraint,Qact,tabQpoly_Qel,tabQact_Qel, &
-                              list_Qactiv,list_QpolytoQact)
-      IF (debug) CALL write_op(TWOxKEO,header=.TRUE.)
-      write(out_unit,*) '================================================='
-      flush(out_unit)
+    call extract_bloc_matrix(mole%tab_Qtransfo(i_transfo)%BFTransfo,          &
+                             mole%tab_Qtransfo(1)%BunchTransfo%M_Tana)
+    call transform_M_mass_to_M_mass_opnd(                                     &
+                          mole%tab_Qtransfo(1)%BunchTransfo%M_Tana,M_mass_out)
+
+    TWOxKEO = CZERO
+    write(out_unit,*) '================================================='
+    write(out_unit,*) ' Computation of the 2xKEO (in full dimension)'
+    flush(out_unit)
+
+    call get_opKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,  TWOxKEO,          &
+                   P_Euler, M_mass_out, scalar_PiPj)
+
+    nb_terms_KEO_withoutVep = size(TWOxKEO%sum_prod_op1d)
+
+    write(out_unit,*) '================================================='
+
+    IF (debug) THEN
+      write(out_unit,*) ' Write 2xKEO (in full dimension)'
+      call write_op(TWOxKEO,header=.TRUE.)
+    END IF
+
+    IF ( para_Tnum%nrho == 1 .OR. para_Tnum%nrho == 2 ) THEN
+      ! this version with Qact, when get_KEO_for_Qactiv is BEFORE add_Vextr_new
+      !CALL add_Vextr_new(mole%tab_Qtransfo(i_transfo)%BFTransfo,TWOxKEO,&
+      !                   tabQact_Qel,para_Tnum%nrho,mole%nb_act)
+
+      ! this version with Qpoly, when get_KEO_for_Qactiv is AFTER add_Vextr_new
+      CALL add_Vextr_new(mole%tab_Qtransfo(i_transfo)%BFTransfo,TWOxKEO,&
+                         tabQpoly_Qel,para_Tnum%nrho,mole%nb_var)
+    END IF
+    nb_terms_KEO_withVep = size(TWOxKEO%sum_prod_op1d)
+
+    write(out_unit,*) '================================================='
+    write(out_unit,*) ' Add the extra potential term  KEO'
+    write(out_unit,*) '================================================='
+    write(out_unit,*) 'number of terms before adding Vextr=',nb_terms_KEO_withoutVep
+    write(out_unit,*) 'number of terms after  adding Vextr=',nb_terms_KEO_withVep
+    flush(out_unit)
 
 
+    write(out_unit,*) '================================================='
+    write(out_unit,*) ' Computation of the 2xKEO (in reduced dimension)'
+    flush(out_unit)
+    CALL get_KEO_for_Qactiv(TWOxKEO, constraint,Qact,tabQpoly_Qel,tabQact_Qel, &
+                            list_Qactiv,list_QpolytoQact)
+    IF (debug) CALL write_op(TWOxKEO,header=.TRUE.)
+    write(out_unit,*) '================================================='
+    flush(out_unit)
 
-      IF (With_Li) THEN
-        CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
-        STOP
-      ELSE
-        !new = .TRUE.
-        new = .FALSE.
-        IF (new) THEN
-          write(out_unit,*) '================================================='
-          write(out_unit,*) ' GET F2 F1 (in reduced dimension)'
-          flush(out_unit)
-          CALL  Get_F2_F1_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,&
-                                       TWOxKEO,para_Tnum%ExpandTWOxKEO,       &
-                                       tabQact_Qel,mole%nb_act,mole%nb_var,   &
-                                       para_Tnum%nrho)
-          IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-          write(out_unit,*) '================================================='
-        ELSE
-          !!!! The expansion MUST be done after removing inactive terms.
-          !!!! Otherwise, the KEO can be not hermitian !
-          write(out_unit,*) '================================================='
-          write(out_unit,*) ' Expand 2xKEO (in reduced dimension)'
-          flush(out_unit)
-          CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,para_Tnum%ExpandTWOxKEO)
-          write(out_unit,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
-          !CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,out_unit,tab_Qname, para_Tnum%JJ)
-          IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
-          write(out_unit,*) '================================================='
-        END IF
-      END IF
-      !para_Tnum%TWOxKEO = TWOxKEO ! usefull ?
-
-      IF (get_Gana) THEN
-          write(out_unit,*) '================================================='
-          write(out_unit,*) ' Get Gana'
-          flush(out_unit)
-          CALL  Get_Gana_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,   &
-                                       TWOxKEO,Gana,                            &
-                                       tabQact_Qel,mole%nb_act,mole%nb_var,     &
-                                       para_Tnum%nrho)
-          CALL write_op(Gana,header=.TRUE.)
-          CALL dealloc_NParray(Gana,'Gana',routine_name)
-          write(out_unit,*) '================================================='
-      END IF
-
-      write(out_unit,*) '================================================='
-      write(out_unit,*) ' output of the analytical  KEO'
-      write(out_unit,*) ' MCTDH    Form:    ',para_Tnum%MCTDHForm
-      write(out_unit,*) ' VSCF     Form:    ',para_Tnum%VSCFForm
-      write(out_unit,*) ' MidasCpp Form:    ',para_Tnum%MidasCppForm
-      write(out_unit,*) ' LaTex    Form:    ',para_Tnum%LaTexForm
-      write(out_unit,*) ' Fortran  Form:    ',para_Tnum%FortranForm
-      write(out_unit,*) ' KEOExportVersion: ',para_Tnum%KEOExportVersion
-      write(out_unit,*) '================================================='
-      IF (allocated(mole%liste_QactTOQdyn)) THEN 
-        write(out_unit,*) 'mole%liste_QactTOQdyn ',mole%liste_QactTOQdyn
-      ELSE
-        write(out_unit,*) 'mole%liste_QactTOQdyn is not allocated'
-      END IF
-      write(out_unit,*) '================================================='
-      flush(out_unit)
-
-      tab_Qname(:) = tab_Qname(list_QactTOQpoly(:)) ! to change the order due to the "constraints"
-
-      IF (para_Tnum%MCTDHForm) THEN
-
-        CALL file_open2(name_file='keo.op',iunit=io_mctdh)
-        SELECT CASE (para_Tnum%KEOExportVersion)
-        CASE (1)
-          CALL write_keo_mctdh_form(mole,TWOxKEO,io_mctdh,tab_VarName,para_Tnum%JJ)
-        CASE (2)
-          CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,io_mctdh,tab_VarName,para_Tnum%JJ)
-        CASE Default
-          write(out_unit,*) ' ERROR in ',routine_name
-          write(out_unit,*) ' Wrong KEOExportVersion value'
-          write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
-          write(out_unit,*) ' It should be 1 or 2'
-          write(out_unit,*) ' It is not possible. Check the Fortran!'
-          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
-        END SELECT
-
-        close(io_mctdh) ! CALL file_close cannot be used
-
+    IF (With_Li) THEN
+      CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+      STOP
+    ELSE
+      !new = .TRUE.
+      new = .FALSE.
+      IF (new) THEN
         write(out_unit,*) '================================================='
-        write(out_unit,*) "output MCTDH format"
-        write(out_unit,*) '-------------------------------------------------'
-        SELECT CASE (para_Tnum%KEOExportVersion)
-        CASE (1)
-          CALL write_keo_mctdh_form(mole,TWOxKEO, out_unit, tab_VarName, para_Tnum%JJ)
-        CASE (2)
-          CALL write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_VarName, para_Tnum%JJ)
-        CASE Default
-          write(out_unit,*) ' ERROR in ',routine_name
-          write(out_unit,*) ' Wrong KEOExportVersion value'
-          write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
-          write(out_unit,*) ' It should be 1 or 2'
-          write(out_unit,*) ' It is not possible. Check the Fortran!'
-          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
-        END SELECT
-
-        write(out_unit,*) '================================================='
-      END IF
-
-      IF (para_Tnum%VSCFForm) THEN
-        write(out_unit,*) '================================================='
-        write(out_unit,*) 'VSCF form'
-        write(out_unit,*) '-------------------------------------------------'
-        !CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
-        CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
-        write(out_unit,*) '================================================='
-      END IF
-
-      IF (para_Tnum%MidasCppForm) THEN
-        write(out_unit,*) '================================================='
-        write(out_unit,*) 'MidasCpp formatted file'
-        write(out_unit,*) '-------------------------------------------------'
-        CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
-        !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
-        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
-        close(nio)  ! CALL file_close cannot be used
-
-        CALL file_open2(name_file = 'Molecule.mmol', iunit = nio) !Emil change
-        CALL write_mol_MidasCppForm(mole, nio, tab_Qname, unit='bohr')
-        close(nio) ! CALL file_close cannot be used
-
-        write(out_unit,*) '================================================='
-        write(out_unit,*) 'MidasCpp formatted KEO: T = '
-        write(out_unit,*) '-------------------------------------------------'
-        !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unit, tab_Qname, 0)
-        CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, 0)
-        write(out_unit,*) '================================================='
-      END IF
-
-      IF (para_Tnum%LaTexForm) THEN
-        write(out_unit,*) '================================================='
-        write(out_unit,*) 'LaTex file: Eq_KEO.tex'
-        write(out_unit,*) '-------------------------------------------------'
-        CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
-        SELECT CASE (para_Tnum%KEOExportVersion)
-        CASE (1)
-          CALL write_keo_Latexform(mole, TWOxKEO, nio, tab_VarName, para_Tnum%JJ)
-        CASE (2)
-          CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_VarName, para_Tnum%JJ)
-        CASE Default
-          write(out_unit,*) ' ERROR in ',routine_name
-          write(out_unit,*) ' Wrong KEOExportVersion value'
-          write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
-          write(out_unit,*) ' It should be 1 or 2'
-          write(out_unit,*) ' It is not possible. Check the Fortran!'
-          STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
-        END SELECT
-        close(nio) ! CALL file_close cannot be used
-      END IF
-
-
-      IF (para_Tnum%FortranForm) THEN
-        write(out_unit,*) '================================================='
-        write(out_unit,*) 'Fortran file: TanaF2F1Vep.f90'
-        write(out_unit,*) '-------------------------------------------------'
-        CALL file_open2(name_file = 'TanaF2F1Vep.f90', iunit = nio)
-        CALL write_keo_Fortranform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
-        close(nio) ! CALL file_close cannot be used
-      END IF
-
-      ! deallocation ...
-
-      CALL dealloc_array(P_euler,"P_euler",routine_name)
-
-      CALL dealloc_array(M_mass_out,'M_mass_out',routine_name)
-
-      CALL dealloc_array(tab_Q,'tab_Q',routine_name)
-      CALL dealloc_array(list_Qactiv,'list_Qactiv',routine_name)
-
-      CALL dealloc_array(list_QpolytoQact,'list_QpolytoQact',routine_name)
-      CALL dealloc_array(list_QactTOQpoly,'list_QactTOQpoly',routine_name)
-      CALL dealloc_array(tab_Qname,'tab_Qname',routine_name)
-
-      CALL dealloc_array(scalar_PiPj,'scalar_PiPj',routine_name)
-
-      IF (debug) THEN
-        write(out_unit,*) ' END Tana'
-        write(out_unit,*) '================================================='
+        write(out_unit,*) ' GET F2 F1 (in reduced dimension)'
         flush(out_unit)
+        CALL  Get_F2_F1_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,&
+                                     TWOxKEO,para_Tnum%ExpandTWOxKEO,       &
+                                     tabQact_Qel,mole%nb_act,mole%nb_var,   &
+                                     para_Tnum%nrho)
+        IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
+        write(out_unit,*) '================================================='
+      ELSE
+        !!!! The expansion MUST be done after removing inactive terms.
+        !!!! Otherwise, the KEO can be not hermitian !
+        write(out_unit,*) '================================================='
+        write(out_unit,*) ' Expand 2xKEO (in reduced dimension)'
+        flush(out_unit)
+        CALL Expand_Sum_OpnD_TO_Sum_OpnD(TWOxKEO,para_Tnum%ExpandTWOxKEO)
+        write(out_unit,*) 'number of terms after the expansion=',size(para_Tnum%ExpandTWOxKEO%sum_prod_op1d)
+        !CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,out_unit,tab_Qname, para_Tnum%JJ)
+        IF (debug) CALL write_op(para_Tnum%ExpandTWOxKEO,header=.TRUE.)
+        write(out_unit,*) '================================================='
       END IF
+    END IF
 
-   END SUBROUTINE compute_analytical_KEO
+    IF (get_Gana) THEN
+        write(out_unit,*) '================================================='
+        write(out_unit,*) ' Get Gana'
+        flush(out_unit)
+        CALL  Get_Gana_FROM_TWOxKEO(mole%tab_Qtransfo(i_transfo)%BFTransfo,   &
+                                     TWOxKEO,Gana,                            &
+                                     tabQact_Qel,mole%nb_act,mole%nb_var,     &
+                                     para_Tnum%nrho)
+        CALL write_op(Gana,header=.TRUE.)
+        CALL dealloc_NParray(Gana,'Gana',routine_name)
+        write(out_unit,*) '================================================='
+    END IF
+
+    write(out_unit,*) '================================================='
+    write(out_unit,*) ' output of the analytical  KEO'
+    write(out_unit,*) ' MCTDH    Form:    ',para_Tnum%MCTDHForm
+    write(out_unit,*) ' VSCF     Form:    ',para_Tnum%VSCFForm
+    write(out_unit,*) ' MidasCpp Form:    ',para_Tnum%MidasCppForm
+    write(out_unit,*) ' LaTex    Form:    ',para_Tnum%LaTexForm
+    write(out_unit,*) ' Fortran  Form:    ',para_Tnum%FortranForm
+    write(out_unit,*) ' KEOExportVersion: ',para_Tnum%KEOExportVersion
+    write(out_unit,*) '================================================='
+    IF (allocated(mole%liste_QactTOQdyn)) THEN 
+      write(out_unit,*) 'mole%liste_QactTOQdyn ',mole%liste_QactTOQdyn
+    ELSE
+      write(out_unit,*) 'mole%liste_QactTOQdyn is not allocated'
+    END IF
+    write(out_unit,*) '================================================='
+    flush(out_unit)
+
+    tab_Qname(:) = tab_Qname(list_QactTOQpoly(:)) ! to change the order due to the "constraints"
+
+    IF (para_Tnum%MCTDHForm) THEN
+      CALL file_open2(name_file='keo.op',iunit=io_mctdh)
+      SELECT CASE (para_Tnum%KEOExportVersion)
+      CASE (1)
+        CALL write_keo_mctdh_form(mole,TWOxKEO,io_mctdh,tab_VarName,para_Tnum%JJ)
+      CASE (2)
+        CALL write_keo_mctdh_form(mole,para_Tnum%ExpandTWOxKEO,io_mctdh,tab_VarName,para_Tnum%JJ)
+      CASE Default
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) ' Wrong KEOExportVersion value'
+        write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
+        write(out_unit,*) ' It should be 1 or 2'
+        write(out_unit,*) ' It is not possible. Check the Fortran!'
+        STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+      END SELECT
+
+      close(io_mctdh) ! CALL file_close cannot be used
+
+      write(out_unit,*) '================================================='
+      write(out_unit,*) "output MCTDH format"
+      write(out_unit,*) '-------------------------------------------------'
+      SELECT CASE (para_Tnum%KEOExportVersion)
+      CASE (1)
+        CALL write_keo_mctdh_form(mole,TWOxKEO, out_unit, tab_VarName, para_Tnum%JJ)
+      CASE (2)
+        CALL write_keo_mctdh_form(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_VarName, para_Tnum%JJ)
+      CASE Default
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) ' Wrong KEOExportVersion value'
+        write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
+        write(out_unit,*) ' It should be 1 or 2'
+        write(out_unit,*) ' It is not possible. Check the Fortran!'
+        STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+      END SELECT
+
+      write(out_unit,*) '================================================='
+    END IF
+
+    IF (para_Tnum%VSCFForm) THEN
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'VSCF form'
+      write(out_unit,*) '-------------------------------------------------'
+      !CALL write_keo_VSCFform(mole,TWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+      CALL write_keo_VSCFform(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, para_Tnum%JJ)
+      write(out_unit,*) '================================================='
+    END IF
+
+    IF (para_Tnum%MidasCppForm) THEN
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'MidasCpp formatted file'
+      write(out_unit,*) '-------------------------------------------------'
+      CALL file_open2(name_file = 'MidasCpp_KEO.mop', iunit = nio)
+      !CALL write_keo_MidasCppForm(mole, TWOxKEO, nio, tab_Qname, 0)
+      CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, 0)
+      close(nio)  ! CALL file_close cannot be used
+
+      CALL file_open2(name_file = 'Molecule.mmol', iunit = nio) !Emil change
+      CALL write_mol_MidasCppForm(mole, nio, tab_Qname, unit='bohr')
+      close(nio) ! CALL file_close cannot be used
+
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'MidasCpp formatted KEO: T = '
+      write(out_unit,*) '-------------------------------------------------'
+      !CALL write_keo_MidasCppForm(mole,TWOxKEO, out_unit, tab_Qname, 0)
+      CALL write_keo_MidasCppForm(mole, para_Tnum%ExpandTWOxKEO, out_unit, tab_Qname, 0)
+      write(out_unit,*) '================================================='
+    END IF
+
+    IF (para_Tnum%LaTexForm) THEN
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'LaTex file: Eq_KEO.tex'
+      write(out_unit,*) '-------------------------------------------------'
+      CALL file_open2(name_file = 'Eq_KEO.tex', iunit = nio)
+      SELECT CASE (para_Tnum%KEOExportVersion)
+      CASE (1)
+        CALL write_keo_Latexform(mole, TWOxKEO, nio, tab_VarName, para_Tnum%JJ)
+      CASE (2)
+        CALL write_keo_Latexform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_VarName, para_Tnum%JJ)
+      CASE Default
+        write(out_unit,*) ' ERROR in ',routine_name
+        write(out_unit,*) ' Wrong KEOExportVersion value'
+        write(out_unit,*) ' KEOExportVersion',para_Tnum%KEOExportVersion
+        write(out_unit,*) ' It should be 1 or 2'
+        write(out_unit,*) ' It is not possible. Check the Fortran!'
+        STOP ' ERROR in Read_CoordType: Wrong KEOExportVersion value. It should be 1 or 2'
+      END SELECT
+      close(nio) ! CALL file_close cannot be used
+    END IF
+
+
+    IF (para_Tnum%FortranForm) THEN
+      write(out_unit,*) '================================================='
+      write(out_unit,*) 'Fortran file: TanaF2F1Vep.f90'
+      write(out_unit,*) '-------------------------------------------------'
+      CALL file_open2(name_file = 'TanaF2F1Vep.f90', iunit = nio)
+      CALL write_keo_Fortranform(mole, para_Tnum%ExpandTWOxKEO, nio, tab_Qname, para_Tnum%JJ)
+      close(nio) ! CALL file_close cannot be used
+    END IF
+
+    ! deallocation ...
+    CALL dealloc_NParray(P_euler,"P_euler",routine_name)
+    CALL dealloc_NParray(M_mass_out,'M_mass_out',routine_name)
+    CALL dealloc_NParray(tab_Q,'tab_Q',routine_name)
+    CALL dealloc_NParray(list_Qactiv,'list_Qactiv',routine_name)
+    CALL dealloc_NParray(list_QpolytoQact,'list_QpolytoQact',routine_name)
+    CALL dealloc_NParray(list_QactTOQpoly,'list_QactTOQpoly',routine_name)
+    CALL dealloc_NParray(tab_Qname,'tab_Qname',routine_name)
+    CALL dealloc_NParray(scalar_PiPj,'scalar_PiPj',routine_name)
+
+    IF (debug) THEN
+      write(out_unit,*) ' END Tana'
+      write(out_unit,*) '================================================='
+      flush(out_unit)
+    END IF
+
+  END SUBROUTINE compute_analytical_KEO
 
    !! @description: Relation between the indices of the variable in
    !!               the BF frame and their indice in the intermediate frames
@@ -817,38 +798,37 @@ MODULE mod_Tana_keo
      end do
    end subroutine extract_bloc_matrix
 
-   !! @description: Transforms the mass matrix in the new data structure
-   !! @param:       M_mass_in       matrix of mass of the global system, input
-   !!                               paramater
-   !! @param:       M_mass_out      matrix of mass of the global system, input
-   !!                               paramater
-   subroutine  transform_M_mass_to_M_mass_opnd(M_mass_in, M_mass_out)
-     real(kind = Rkind), intent(in)  :: M_mass_in(:,:)
-     type(sum_opnd), pointer         :: M_mass_out(:,:)
+  !! @description: Transforms the mass matrix in the new data structure
+  !! @param:       M_mass_in       matrix of mass of the global system, input
+  !!                               paramater
+  !! @param:       M_mass_out      matrix of mass of the global system, input
+  !!                               paramater
+  SUBROUTINE transform_M_mass_to_M_mass_opnd(M_mass_in, M_mass_out)
+    real(kind = Rkind),          intent(in)    :: M_mass_in(:,:)
+    type(sum_opnd), allocatable, intent(inout) :: M_mass_out(:,:)
 
-     integer                         :: i, j
-     character (len=*), parameter    :: routine_name='transform_M_mass_to_M_mass_opnd'
+    integer                         :: i, j
+    character (len=*), parameter    :: routine_name='transform_M_mass_to_M_mass_opnd'
 
-     if(associated(M_mass_out)) then
-       do i=1,size(M_mass_out(:,1))
-         do j=1,size(M_mass_out(1,:))
-           call delete_op(M_mass_out(i,j))
-         end do
-       end do
-       CALL dealloc_array(M_mass_out,'M_mass_out',routine_name)
-     end if
-     CALL alloc_array(M_mass_out,shape(M_mass_in),'M_mass_out',routine_name)
+    if(allocated(M_mass_out)) then
+      do i=1,size(M_mass_out(:,1))
+        do j=1,size(M_mass_out(1,:))
+          call delete_op(M_mass_out(i,j))
+        end do
+      end do
+      CALL dealloc_NParray(M_mass_out,'M_mass_out',routine_name)
+    end if
+    CALL alloc_NParray(M_mass_out,shape(M_mass_in),'M_mass_out',routine_name)
 
-     do i = 1, size(M_mass_in(:,1))
-     do j = 1, size(M_mass_in(1,:))
-       if(abs(M_mass_in(i,j)) > ONETENTH**13) then
-         M_mass_out(i,j) = M_mass_in(i,j)
-       else
-         M_mass_out(i,j) = CZERO
-       end if
-     end do
-     end do
+    do i = 1, size(M_mass_in(:,1))
+    do j = 1, size(M_mass_in(1,:))
+      if(abs(M_mass_in(i,j)) > ONETENTH**13) then
+        M_mass_out(i,j) = M_mass_in(i,j)
+      else
+        M_mass_out(i,j) = CZERO
+      end if
+    end do
+    end do
 
-   end subroutine transform_M_mass_to_M_mass_opnd
-
+  END SUBROUTINE transform_M_mass_to_M_mass_opnd
 END MODULE mod_Tana_keo

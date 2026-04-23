@@ -53,14 +53,13 @@
 
 
     !----- for the CoordType and Tnum --------------------------------------
-    real (kind=Rkind),            intent(in)            :: Qact(:)
-    TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
-    TYPE (CoordType),             intent(inout), target :: mole
+    real (kind=Rkind),            intent(in)    :: Qact(:)
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
+    TYPE (CoordType),             intent(inout) :: mole
 
 
     integer                             :: i_Qact,i
     real (kind=Rkind),      allocatable :: Qit(:)
-    TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
     !-----------------------------------------------------------
     integer :: err_mem,memory
     character (len=*), parameter :: name_sub='CoordQact_TO_RPHQact1'
@@ -73,34 +72,33 @@
       flush(out_unit)
     END IF
     !-----------------------------------------------------------
-
     IF (mole%itRPH == -1) THEN
       write(out_unit,*) ' ERROR in ',name_sub
       write(out_unit,*) ' RPHTransfo is not set: itRPH=-1'
       write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in CoordQact_TO_RPHQact1: RPHTransfo is not set'
     END IF
-    RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
 
-    CALL sub_QactTOQit(Qact,Qit,mole%itRPH,mole,print_Qtransfo=.FALSE.)
-    IF (debug) write(out_unit,*) ' Qit',Qit(:)
+    ASSOCIATE(RPHTransfo=>mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
+      CALL sub_QactTOQit(Qact,Qit,mole%itRPH,mole,print_Qtransfo=.FALSE.)
+      IF (debug) write(out_unit,*) ' Qit',Qit(:)
 
-    i_Qact = 0
-    DO i=1,mole%nb_var
-      IF (RPHTransfo%list_act_OF_Qdyn(i) == 1) THEN
-        i_Qact = i_Qact + 1
-        RPHpara_AT_Qact1%RPHQact1(i_Qact) = Qit(i)
-      END IF
-    END DO
+      i_Qact = 0
+      DO i=1,mole%nb_var
+        IF (RPHTransfo%list_act_OF_Qdyn(i) == 1) THEN
+          i_Qact = i_Qact + 1
+          RPHpara_AT_Qact1%RPHQact1(i_Qact) = Qit(i)
+        END IF
+      END DO
 
-    CALL dealloc_NParray(Qit,'Qit',name_sub)
+      CALL dealloc_NParray(Qit,'Qit',name_sub)
+    END ASSOCIATE
 
     IF (debug) THEN
       write(out_unit,*) ' RPHQact1',RPHpara_AT_Qact1%RPHQact1(:)
       write(out_unit,*) 'END ',name_sub
      flush(out_unit)
     END IF
-    nullify(RPHTransfo)
 
   END SUBROUTINE CoordQact_TO_RPHQact1
   SUBROUTINE RPHQact1_TO_CoordQact(Qact,RPHpara_AT_Qact1,mole)
@@ -110,14 +108,12 @@
 
 
     !----- for the CoordType and Tnum --------------------------------------
-    real (kind=Rkind),            intent(inout)      :: Qact(:)
-    TYPE (Type_RPHpara_AT_Qact1), intent(in)         :: RPHpara_AT_Qact1
-    TYPE (CoordType),             intent(in), target :: mole
-
+    real (kind=Rkind),            intent(inout) :: Qact(:)
+    TYPE (Type_RPHpara_AT_Qact1), intent(in)    :: RPHpara_AT_Qact1
+    TYPE (CoordType),             intent(in)    :: mole
 
     integer                        :: i_Qact,i
     real (kind=Rkind), allocatable :: Qit(:)
-    TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
     !-----------------------------------------------------------
     integer :: err_mem,memory
@@ -137,23 +133,22 @@
       write(out_unit,*) ' itRPH',mole%itRPH
       STOP ' ERROR in RPHQact1_TO_CoordQact: RPHTransfo is not set'
     END IF
-    RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+    ASSOCIATE(RPHTransfo=>mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
+      CALL alloc_NParray(Qit,[mole%nb_var],'Qit',name_sub)
 
-    CALL alloc_NParray(Qit,[mole%nb_var],'Qit',name_sub)
+      i_Qact = 0
+      DO i=1,mole%nb_var
+        IF (RPHTransfo%list_act_OF_Qdyn(i) == 1) THEN
+          i_Qact = i_Qact + 1
+          Qit(i) = RPHpara_AT_Qact1%RPHQact1(i_Qact)
+        END IF
+      END DO
+      IF (debug) write(out_unit,*) ' Qit',Qit(:)
 
+      CALL sub_QinRead_TO_Qact(Qit,Qact,mole,mole%itRPH)
 
-    i_Qact = 0
-    DO i=1,mole%nb_var
-      IF (RPHTransfo%list_act_OF_Qdyn(i) == 1) THEN
-        i_Qact = i_Qact + 1
-        Qit(i) = RPHpara_AT_Qact1%RPHQact1(i_Qact)
-      END IF
-    END DO
-    IF (debug) write(out_unit,*) ' Qit',Qit(:)
-
-    CALL sub_QinRead_TO_Qact(Qit,Qact,mole,mole%itRPH)
-
-    CALL dealloc_NParray(Qit,'Qit',name_sub)
+      CALL dealloc_NParray(Qit,'Qit',name_sub)
+    END ASSOCIATE
 
     IF (debug) THEN
       write(out_unit,*) ' Qact',Qact(:)
@@ -169,44 +164,43 @@
     IMPLICIT NONE
 
     !----- for the CoordType and Tnum --------------------------------------
-    TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
-    TYPE (Tnum),                  intent(in)            :: para_Tnum
-    TYPE (CoordType),             intent(inout), target :: mole
-
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
+    TYPE (Tnum),                  intent(in)    :: para_Tnum
+    TYPE (CoordType),             intent(inout) :: mole
     real (kind=Rkind),            intent(in)    :: Qact(:)
 
-    TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
     !-----------------------------------------------------------
     integer :: err_mem,memory
     character (len=*), parameter :: name_sub='Set_RPHpara_AT_Qact1'
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
     !-----------------------------------------------------------
-    IF (debug) THEN
-      write(out_unit,*) 'BEGINNING ',name_sub
-      write(out_unit,*) 'RPHTransfo%option',RPHTransfo%option
-      flush(out_unit)
-    END IF
-   IF (mole%itRPH == -1) THEN
-      write(out_unit,*) ' ERROR in ',name_sub
-      write(out_unit,*) ' RPHTransfo is not set: itRPH=-1'
-      write(out_unit,*) ' itRPH',mole%itRPH
-      STOP ' ERROR in RPHQact1_TO_CoordQact: RPHTransfo is not set'
-    END IF
-    RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+    ASSOCIATE(RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
 
-    IF (RPHTransfo%option == 2) THEN
-      CALL Set_RPHpara_AT_Qact1_opt2(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
-    ELSE ! option 0 ou 1
-      CALL Set_RPHpara_AT_Qact1_opt01(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
-    END IF
+      IF (debug) THEN
+        write(out_unit,*) 'BEGINNING ',name_sub
+        write(out_unit,*) 'RPHTransfo%option',RPHTransfo%option
+        flush(out_unit)
+      END IF
+      IF (mole%itRPH == -1) THEN
+        write(out_unit,*) ' ERROR in ',name_sub
+        write(out_unit,*) ' RPHTransfo is not set: itRPH=-1'
+        write(out_unit,*) ' itRPH',mole%itRPH
+        STOP ' ERROR in RPHQact1_TO_CoordQact: RPHTransfo is not set'
+      END IF
 
-    IF (debug) THEN
-      CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
-      write(out_unit,*) 'END ',name_sub
-      flush(out_unit)
-    END IF
+      IF (RPHTransfo%option == 2) THEN
+        CALL Set_RPHpara_AT_Qact1_opt2(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
+      ELSE ! option 0 ou 1
+        CALL Set_RPHpara_AT_Qact1_opt01(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
+      END IF
 
+      IF (debug) THEN
+        CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
+        write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
+      END IF
+    END ASSOCIATE
   END SUBROUTINE Set_RPHpara_AT_Qact1
 
   SUBROUTINE Set_RPHpara_AT_Qact1_opt2(RPHpara_AT_Qact1,Qact_in,para_Tnum,mole)
@@ -217,10 +211,10 @@
     IMPLICIT NONE
 
     !----- for the CoordType and Tnum --------------------------------------
-    TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
-    TYPE (Tnum),                  intent(in)            :: para_Tnum
-    TYPE (CoordType),             intent(inout), target :: mole
-    real (kind=Rkind),            intent(in)            :: Qact_in(:)
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
+    TYPE (Tnum),                  intent(in)    :: para_Tnum
+    TYPE (CoordType),             intent(inout) :: mole
+    real (kind=Rkind),            intent(in)    :: Qact_in(:)
 
 
 
@@ -235,13 +229,12 @@
     integer               :: iact1,iq,jq,iQinact21,jQinact21
     integer               :: listNM_selected(mole%nb_var)
 
-    TYPE (Type_dnS), pointer         :: dnSwitch(:)
+    TYPE (Type_dnS), allocatable     :: dnSwitch(:)
     TYPE (Type_dnS)                  :: dnW1
     real (kind=Rkind)                :: sc,det
 
     TYPE (Type_dnVec)                :: dnQact
     real (kind=Rkind), allocatable   :: QrefQact(:,:)     ! QrefQact(nb_Qact1,nb_ref)
-    TYPE (Type_RPHTransfo), pointer  :: RPHTransfo => null() ! it'll point on tab_Qtransfo
 
     !-----------------------------------------------------------
     integer :: err_mem,memory
@@ -255,102 +248,96 @@
     END IF
     !-----------------------------------------------------------
 
-    RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+    ASSOCIATE(RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
 
-    auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
+      auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
-    Qact = Qact_in
+      Qact = Qact_in
 
-    nderiv     = 3
-    IF (para_Tnum%vep_type == 0) nderiv = 2
+      nderiv     = 3
+      IF (para_Tnum%vep_type == 0) nderiv = 2
 
-    nb_act1    = RPHTransfo%nb_act1
-    nb_inact21 = RPHTransfo%nb_inact21
-    nb_ref     = RPHTransfo%RPHpara2%nb_ref
+      nb_act1    = RPHTransfo%nb_act1
+      nb_inact21 = RPHTransfo%nb_inact21
+      nb_ref     = RPHTransfo%RPHpara2%nb_ref
 
-    CALL alloc_RPHpara_AT_Qact1(RPHpara_AT_Qact1,nb_act1,nb_inact21,nderiv)
+      CALL alloc_RPHpara_AT_Qact1(RPHpara_AT_Qact1,nb_act1,nb_inact21,nderiv)
 
 
-    !here it should be Qin of RPH (therefore Qdyn ?????)
-    CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+      !here it should be Qin of RPH (therefore Qdyn ?????)
+      CALL Qact_TO_Qdyn_FROM_ActiveTransfo(Qact,Qdyn,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
 
-    RPHpara_AT_Qact1%RPHQact1(:) = Qdyn(RPHTransfo%list_QactTOQdyn(1:nb_act1))
+      RPHpara_AT_Qact1%RPHQact1(:) = Qdyn(RPHTransfo%list_QactTOQdyn(1:nb_act1))
 
-    ! 1st: dnQact (derivatives, just for the active coordinates)
-    CALL alloc_dnSVM(dnQact,  nb_act1,nb_act1,           nderiv)
-    dnQact%d0(:) = RPHpara_AT_Qact1%RPHQact1(:)
-    CALL Set_AllActive(dnQact)
+      ! 1st: dnQact (derivatives, just for the active coordinates)
+      CALL alloc_dnSVM(dnQact,  nb_act1,nb_act1,           nderiv)
+      dnQact%d0(:) = RPHpara_AT_Qact1%RPHQact1(:)
+      CALL Set_AllActive(dnQact)
 
-    ! 2d: the reference Qact
-    CALL alloc_NParray(QrefQact,[nb_act1,nb_ref],'QrefQact',name_sub)
-    QrefQact(:,:) = RPHTransfo%RPHpara2%QoutRef(1:nb_act1,:)
+      ! 2d: the reference Qact
+      CALL alloc_NParray(QrefQact,[nb_act1,nb_ref],'QrefQact',name_sub)
+      QrefQact(:,:) = RPHTransfo%RPHpara2%QoutRef(1:nb_act1,:)
 
-    ! 3d: dnSwitch
-    sc = TWO ! to be changed, from Read_RPHpara2
-    nullify(dnSwitch)
-    CALL alloc_array(dnSwitch,[nb_ref],"dnSwitch",name_sub)
-    CALL alloc_VecOFdnS(dnSwitch,nb_act1,nderiv)
-    CALL Switch_RPH(dnSwitch,dnQact,QrefQact,sc,nderiv)
-    !write(out_unit,*) 'dnSwitch(:)',dnSwitch(:)%d0
+      ! 3d: dnSwitch
+      sc = TWO ! to be changed, from Read_RPHpara2
+      CALL alloc_NParray(dnSwitch,[nb_ref],"dnSwitch",name_sub)
+      CALL alloc_VecOFdnS(dnSwitch,nb_act1,nderiv)
+      CALL Switch_RPH(dnSwitch,dnQact,QrefQact,sc,nderiv)
+      !write(out_unit,*) 'dnSwitch(:)',dnSwitch(:)%d0
 
-    CALL alloc_dnSVM(dnW1,  nb_act1,           nderiv)
+      CALL alloc_dnSVM(dnW1,  nb_act1,           nderiv)
 
-    ! 4th: dnQopt
-    !old (one ref)
-    CALL sub_ZERO_TO_dnVec(RPHpara_AT_Qact1%dnQopt)
-    DO iQinact21=1,nb_inact21
-      CALL sub_ZERO_TO_dnS(dnW1)
-      DO iref=1,nb_ref
-        !dnW1 = dnW1 + dnSwitch(iref)*RPHTransfo%RPHpara2%QoutRef(nb_act1+iQinact21,iref)
-        CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnSwitch(iref),                &
-               RPHTransfo%RPHpara2%QoutRef(nb_act1+iQinact21,iref),&
-                                         dnW1,ONE)
-      END DO
-      CALL sub_dnS_TO_dnVec(dnW1,RPHpara_AT_Qact1%dnQopt,iQinact21)
-    END DO
-    !write(99,*) 'Qact,Qopt',dnQact%d0(:),RPHpara_AT_Qact1%dnQopt%d0
-
-    !5th: dnC_inv
-    CALL sub_ZERO_TO_dnMat(RPHpara_AT_Qact1%dnC_inv)
-    listNM_selected(:) = 0
-    DO iact1=1,nb_act1
-      listNM_selected(RPHTransfo%RPHpara2%listNM_act1(iact1)) = 1
-    END DO
-
-    iQinact21 = 0
-    DO iq=1,nb_act1+nb_inact21
-      IF (listNM_selected(iq) /= 0) CYCLE
-      iQinact21 = iQinact21 + 1
-
-      DO jQinact21=1,nb_inact21
-
+      ! 4th: dnQopt
+      !old (one ref)
+      CALL sub_ZERO_TO_dnVec(RPHpara_AT_Qact1%dnQopt)
+      DO iQinact21=1,nb_inact21
         CALL sub_ZERO_TO_dnS(dnW1)
         DO iref=1,nb_ref
-          CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnSwitch(iref),              &
-           RPHTransfo%RPHpara2%CinvRef(iq,nb_act1+jQinact21,iref), &
+          !dnW1 = dnW1 + dnSwitch(iref)*RPHTransfo%RPHpara2%QoutRef(nb_act1+iQinact21,iref)
+          CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnSwitch(iref),                &
+                 RPHTransfo%RPHpara2%QoutRef(nb_act1+iQinact21,iref),&
                                            dnW1,ONE)
         END DO
-        CALL sub_dnS_TO_dnMat(dnW1,RPHpara_AT_Qact1%dnC_inv,iQinact21,jQinact21)
-
-
+        CALL sub_dnS_TO_dnVec(dnW1,RPHpara_AT_Qact1%dnQopt,iQinact21)
       END DO
-    END DO
+      !write(99,*) 'Qact,Qopt',dnQact%d0(:),RPHpara_AT_Qact1%dnQopt%d0
 
-    CALL dealloc_dnSVM(dnQact)
-    CALL dealloc_NParray(QrefQact,'QrefQact',name_sub)
+      !5th: dnC_inv
+      CALL sub_ZERO_TO_dnMat(RPHpara_AT_Qact1%dnC_inv)
+      listNM_selected(:) = 0
+      DO iact1=1,nb_act1
+        listNM_selected(RPHTransfo%RPHpara2%listNM_act1(iact1)) = 1
+      END DO
 
-    CALL dealloc_VecOFdnS(dnSwitch)
-    CALL dealloc_array(dnSwitch,"dnSwitch",name_sub)
-    nullify(dnSwitch)
+      iQinact21 = 0
+      DO iq=1,nb_act1+nb_inact21
+        IF (listNM_selected(iq) /= 0) CYCLE
+        iQinact21 = iQinact21 + 1
 
-    CALL dealloc_dnSVM(dnW1)
+        DO jQinact21=1,nb_inact21
 
-    ! just dnC%d0
-    RPHpara_AT_Qact1%dnC%d0 = inv_OF_Mat_TO(RPHpara_AT_Qact1%dnC_inv%d0)
+          CALL sub_ZERO_TO_dnS(dnW1)
+          DO iref=1,nb_ref
+            CALL sub_dnS1_wPLUS_dnS2_TO_dnS2(dnSwitch(iref),              &
+             RPHTransfo%RPHpara2%CinvRef(iq,nb_act1+jQinact21,iref), &
+                                             dnW1,ONE)
+          END DO
+          CALL sub_dnS_TO_dnMat(dnW1,RPHpara_AT_Qact1%dnC_inv,iQinact21,jQinact21)
 
 
-    RPHpara_AT_Qact1%init_done = 2
+        END DO
+      END DO
 
+      CALL dealloc_dnSVM(dnQact)
+      CALL dealloc_NParray(QrefQact,'QrefQact',name_sub)
+      CALL dealloc_NParray(dnSwitch,'dnSwitch',name_sub)
+      CALL dealloc_dnSVM(dnW1)
+
+      ! just dnC%d0
+      RPHpara_AT_Qact1%dnC%d0 = inv_OF_Mat_TO(RPHpara_AT_Qact1%dnC_inv%d0)
+
+      RPHpara_AT_Qact1%init_done = 2
+    END ASSOCIATE
 
     IF (debug) THEN
        CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
@@ -361,58 +348,54 @@
   END SUBROUTINE Set_RPHpara_AT_Qact1_opt2
 
   SUBROUTINE Set_RPHpara_AT_Qact1_opt01(RPHpara_AT_Qact1,Qact,para_Tnum,mole)
-     USE TnumTana_system_m
-     USE mod_dnSVM
-     USE mod_Constant, only : get_Conv_au_TO_unit
-     USE mod_Coord_KEO
-     IMPLICIT NONE
+    USE TnumTana_system_m
+    USE mod_dnSVM
+    USE mod_Constant, only : get_Conv_au_TO_unit
+    USE mod_Coord_KEO
+    IMPLICIT NONE
 
+    TYPE (Type_RPHpara_AT_Qact1), intent(inout) :: RPHpara_AT_Qact1
+    TYPE (Tnum),                  intent(in)    :: para_Tnum
+    TYPE (CoordType),             intent(inout) :: mole
+    real (kind=Rkind),            intent(in)    :: Qact(:)
 
-     !----- for the CoordType and Tnum --------------------------------------
-     TYPE (Type_RPHpara_AT_Qact1), intent(inout)         :: RPHpara_AT_Qact1
-     TYPE (Tnum),                  intent(in)            :: para_Tnum
-     TYPE (CoordType),             intent(inout), target :: mole
-     real (kind=Rkind),            intent(in)            :: Qact(:)
+    integer               :: nderiv
+    real (kind=Rkind)     :: pot0_corgrad,auTOcm_inv
 
+    !-----------------------------------------------------------
+    integer :: err_mem,memory
+    character (len=*), parameter :: name_sub='Set_RPHpara_AT_Qact1_opt01'
+    logical, parameter :: debug = .FALSE.
+    !logical, parameter :: debug = .TRUE.
+    !-----------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'Qact: ',Qact
+      flush(out_unit)
+    END IF
+    !-----------------------------------------------------------
+    auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
 
-     integer               :: nderiv
-     real (kind=Rkind)     :: pot0_corgrad,auTOcm_inv
-    TYPE (Type_RPHTransfo), pointer     :: RPHTransfo => null() ! it'll point on tab_Qtransfo
+    ASSOCIATE(RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo)
+      nderiv     = 3
+      IF (para_Tnum%vep_type == 0) nderiv = 2
 
-     !-----------------------------------------------------------
-     integer :: err_mem,memory
-     character (len=*), parameter :: name_sub='Set_RPHpara_AT_Qact1_opt01'
-     logical, parameter :: debug = .FALSE.
-     !logical, parameter :: debug = .TRUE.
-     !-----------------------------------------------------------
-     IF (debug) THEN
-       write(out_unit,*) 'BEGINNING ',name_sub
-       write(out_unit,*) 'Qact: ',Qact
-       flush(out_unit)
-     END IF
-     !-----------------------------------------------------------
-     auTOcm_inv = get_Conv_au_TO_unit('E','cm-1')
+      CALL alloc_RPHpara_AT_Qact1(RPHpara_AT_Qact1,                &
+                                  RPHTransfo%nb_act1,              &
+                                  RPHTransfo%nb_inact21,nderiv)
 
-     RPHTransfo => mole%tab_Qtransfo(mole%itRPH)%RPHTransfo
+      CALL CoordQact_TO_RPHQact1(Qact,RPHpara_AT_Qact1,mole)
 
-    nderiv     = 3
-    IF (para_Tnum%vep_type == 0) nderiv = 2
+      CALL sub_dnfreq(RPHpara_AT_Qact1,pot0_corgrad,                &
+                      para_Tnum,mole,RPHTransfo,nderiv,             &
+                      test=.FALSE.,cHAC=.FALSE.)
 
-    CALL alloc_RPHpara_AT_Qact1(RPHpara_AT_Qact1,                     &
-                                RPHTransfo%nb_act1,              &
-                                RPHTransfo%nb_inact21,nderiv)
+      write(out_unit,11) RPHpara_AT_Qact1%RPHQact1(:),                  &
+                         RPHpara_AT_Qact1%dnEHess%d0(:)*auTOcm_inv
+ 11   format(' frequencies : ',30f10.4)
 
-    CALL CoordQact_TO_RPHQact1(Qact,RPHpara_AT_Qact1,mole)
-
-    CALL sub_dnfreq(RPHpara_AT_Qact1,pot0_corgrad,                 &
-                    para_Tnum,mole,RPHTransfo,nderiv,      &
-                    test=.FALSE.,cHAC=.FALSE.)
-
-    write(out_unit,11) RPHpara_AT_Qact1%RPHQact1(:),                  &
-                       RPHpara_AT_Qact1%dnEHess%d0(:)*auTOcm_inv
- 11 format(' frequencies : ',30f10.4)
-
-    RPHpara_AT_Qact1%init_done = 2
+      RPHpara_AT_Qact1%init_done = 2
+    END ASSOCIATE
 
     IF (debug) THEN
       CALL Write_RPHpara_AT_Qact1(RPHpara_AT_Qact1)
@@ -779,8 +762,8 @@
       nb_inact21 = RPHTransfo%nb_inact21
       IF (debug) write(out_unit,*) 'nb_act1,nb_inact21',nb_act1,nb_inact21
 
-      IF (.NOT. associated(RPHTransfo%C_ini)) THEN
-        CALL alloc_array(RPHTransfo%C_ini,[nb_inact21,nb_inact21],    &
+      IF (.NOT. allocated(RPHTransfo%C_ini)) THEN
+        CALL alloc_NParray(RPHTransfo%C_ini,[nb_inact21,nb_inact21],    &
                           "RPHTransfo%C_ini",name_sub)
         RPHTransfo%C_ini(:,:) = ZERO
       END IF
@@ -789,8 +772,6 @@
         CALL Write_Mat_MPI(RPHTransfo%C_ini,out_unit,4)
         flush(out_unit)
       END IF
-
-
 
 !-----------------------------------------------------------------
 !--------- First Qact from RPHpara_AT_Qact1 ----------------------

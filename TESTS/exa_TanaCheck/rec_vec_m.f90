@@ -23,7 +23,7 @@
  TYPE recBF_t
    character(len=:), allocatable :: vec_name
    integer                       :: layer = 0
-   TYPE(recBF_t), pointer          :: tab_BF(:) => null()
+   TYPE(recBF_t), allocatable    :: tab_BF(:)
  END TYPE recBF_t
 
 CONTAINS
@@ -40,12 +40,11 @@ RECURSIVE SUBROUTINE dealloc_recBF(BF)
     deallocate(BF%vec_name)
   END IF
   BF%layer = 0
-  IF (associated(BF%tab_BF)) THEN
+  IF (allocated(BF%tab_BF)) THEN
     DO i=1,size(BF%tab_BF)
       CALL dealloc_recBF(BF%tab_BF(i))
     END DO
     deallocate(BF%tab_BF)
-    nullify(BF%tab_BF)
   END IF
 
 END SUBROUTINE dealloc_recBF
@@ -75,7 +74,7 @@ RECURSIVE SUBROUTINE write_recBF(BF,nio,rec)
   END IF
   !write(6,*) 'asso tab_BF',associated(BF%tab_BF)
 
-  IF (associated(BF%tab_BF)) THEN
+  IF (allocated(BF%tab_BF)) THEN
     rec_loc = rec_loc + 1
     DO i=1,size(BF%tab_BF)
       CALL write_recBF(BF%tab_BF(i),nio,rec_loc)
@@ -93,7 +92,7 @@ RECURSIVE SUBROUTINE recBF2_TO_recBF1(BF1,BF2)
    BF1%vec_name = BF2%vec_name
    BF1%layer    = BF2%layer
 
-   IF (associated(BF2%tab_BF)) THEN
+   IF (allocated(BF2%tab_BF)) THEN
      allocate(BF1%tab_BF(size(BF2%tab_BF)))
      DO i=1,size(BF1%tab_BF)
        CALL recBF2_TO_recBF1(BF1%tab_BF(i),BF2%tab_BF(i))
@@ -112,7 +111,7 @@ RECURSIVE FUNCTION get_layer_OF_recBF(BF) RESULT(layer)
 
 
 
-   IF (associated(BF%tab_BF)) THEN
+   IF (allocated(BF%tab_BF)) THEN
      allocate(tab_layer(size(BF%tab_BF)))
 
      DO i=1,size(BF%tab_BF)
@@ -382,7 +381,6 @@ RECURSIVE SUBROUTINE Split_blocks_new(nv)
 
 
   END DO
-  !END DO
   write(6,*) '============================='
 
   write(6,*) 'END Split_blocks_new'

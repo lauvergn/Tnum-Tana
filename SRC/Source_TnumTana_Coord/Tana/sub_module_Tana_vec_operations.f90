@@ -140,7 +140,7 @@ MODULE mod_Tana_vec_operations
      type(opel),              intent(in)            :: fgamma ! gamma
      type(sum_opnd),          intent(inout)         :: JJ
 
-     type(sum_opnd), pointer         :: M_opnd(:,:)
+     type(sum_opnd), allocatable     :: M_opnd(:,:)
      type(vec_sum_opnd)              :: Pabg,Pabg_dag
      type(vec_sum_opnd)              :: V_tmp
      integer                         :: error,i,j
@@ -148,8 +148,6 @@ MODULE mod_Tana_vec_operations
 
 
      !write(6,*) 'Beg: ',routine_name
-
-     nullify(M_opnd)
 
      if(fbeta%idf /= 1 .or. (fbeta%idq /= 7 .and. fbeta%idq /= -7)) then
        write(out_unit,*) ' ERROR in ',routine_name
@@ -165,7 +163,7 @@ MODULE mod_Tana_vec_operations
        write(out_unit,*) "  The elementary operators should be the Id and idq = 8"
        STOP
      end if
-     CALL alloc_array(M_opnd,[3,3],'M_opnd',routine_name)
+     CALL alloc_NParray(M_opnd,[3,3],'M_opnd',routine_name)
      call allocate_op(Pabg, 3)
      call allocate_op(Pabg_dag, 3)
 
@@ -202,15 +200,11 @@ MODULE mod_Tana_vec_operations
      M_opnd(3,3) = M_opnd(1,1)
 
 
-   !CALL write_sum_Mat_OF_opnd(M_opnd)
-
     call M_opnd_times_V_in_Vres(M_opnd, Pabg, V_tmp)
 
     call V1_scalar_V2_in_F_sum_nd(V1 = Pabg_dag, V2 = V_tmp, F_sum_nd = JJ)
 
-   !CALL write_op(JJ)
-
-    CALL dealloc_array(M_opnd,'M_opnd',routine_name)
+    CALL dealloc_NParray(M_opnd,'M_opnd',routine_name)
 
     call delete_op(V_tmp)
     call delete_op(Pabg)
@@ -228,15 +222,15 @@ MODULE mod_Tana_vec_operations
    !!                          information on the \beta coordinate or cos(\beta)
    !! @param:       fgamma     an elementary op  which contains the needed
    !!                          information on the \gamma coordinate
-   SUBROUTINE Jdag_scalar_J_from_Eq122(falpha, fbeta, fgamma, JJ)
-   USE mod_Tana_VecSumOpnD
+  SUBROUTINE Jdag_scalar_J_from_Eq122(falpha, fbeta, fgamma, JJ)
+    USE mod_Tana_VecSumOpnD
 
      type(opel),              intent(in)            :: falpha
      type(opel),              intent(in)            :: fbeta
      type(opel),              intent(in)            :: fgamma
      type(sum_opnd),          intent(inout)         :: JJ
 
-     type(sum_opnd), pointer         :: M_opnd(:,:)
+     type(sum_opnd), allocatable     :: M_opnd(:,:)
      type(vec_sum_opnd)              :: Pabg,Pabg_dag
      type(vec_sum_opnd)              :: V_tmp
      integer                         :: error
@@ -246,8 +240,6 @@ MODULE mod_Tana_vec_operations
 
      !CALL Jdag_scalar_J_from_Eq122_old(falpha, fbeta, fgamma, JJ)
      !RETURN
-
-     nullify(M_opnd)
 
      if(falpha%idf /= 1 .or. falpha%idq /= 6 ) then
        write(out_unit,*) ' ERROR in ',routine_name
@@ -270,7 +262,7 @@ MODULE mod_Tana_vec_operations
        write(out_unit,*) "  The elementary operators should be the Id and idq = 8"
        STOP
      end if
-     CALL alloc_array(M_opnd,[3,3],'M_opnd',routine_name)
+     CALL alloc_NParray(M_opnd,[3,3],'M_opnd',routine_name)
      call allocate_op(Pabg, 3)
      call allocate_op(Pabg_dag, 3)
 
@@ -308,12 +300,12 @@ MODULE mod_Tana_vec_operations
 
 !     call write_op(JJ, 'test_JJ', header = .true.)
 !     stop
-    CALL dealloc_array(M_opnd,'M_opnd',routine_name)
+    CALL dealloc_NParray(M_opnd,'M_opnd',routine_name)
     call delete_op(Pabg)
     call delete_op(Pabg_dag)
     call delete_op(V_tmp)
 
-   END SUBROUTINE Jdag_scalar_J_from_Eq122
+  END SUBROUTINE Jdag_scalar_J_from_Eq122
 
    !! @description: Calculates the resulting scalar product
    !!               of Li_dag.Li, for i>=3, where is given
@@ -324,14 +316,14 @@ MODULE mod_Tana_vec_operations
    !! @param:       phi       an elementary op  which contains the needed
    !!                          information on the phi coordinate (or alpha)
    !! @param:       LiLi       operator which contains <Li I Li >.
-   SUBROUTINE Li_scalar_Li_from_Eq75(theta, phi, LiLi)
-   USE mod_Tana_VecSumOpnD
+  SUBROUTINE Li_scalar_Li_from_Eq75(theta, phi, LiLi)
+    USE mod_Tana_VecSumOpnD
 
      type(opel),              intent(in)            :: theta ! theta or beta (or utheta, ubeta)
      type(opel),              intent(in)            :: phi
      type(sum_opnd),          intent(inout)         :: LiLi
 
-     type(sum_opnd), pointer         :: M_opnd(:,:)
+     type(sum_opnd), allocatable         :: M_opnd(:,:)
      type(vec_sum_opnd)              :: Ptf
      type(vec_sum_opnd)              :: Ptf_dag
      type(vec_sum_opnd)              :: V_tmp
@@ -342,9 +334,6 @@ MODULE mod_Tana_vec_operations
      !write(6,*) 'Beg: ',routine_name
      !CALL Li_scalar_Li_from_Eq75_old(theta, phi, LiLi)
      !RETURN
-
-     nullify(M_opnd)
-
 
      if(theta%idf /= 1 .or. (theta%idq /= 3 .and. theta%idq /= -3 .and. &
        theta%idq /= 7 .and. theta%idq /= -7)) then
@@ -370,7 +359,7 @@ MODULE mod_Tana_vec_operations
      Ptf_dag%vec_sum(1) = get_Pq_dag(theta) ! theta
      Ptf_dag%vec_sum(2) = get_Pq_dag(phi) ! phi
 
-     CALL alloc_array(M_opnd,[2,2],'M_opnd',routine_name)
+     CALL alloc_NParray(M_opnd,[2,2],'M_opnd',routine_name)
 
      if( theta%idq == 3 .or. theta%idq == 7 ) then
 
@@ -392,7 +381,7 @@ MODULE mod_Tana_vec_operations
      call V1_scalar_V2_in_F_sum_nd(V1 = Ptf_dag, V2=V_tmp, F_sum_nd=LiLi)
 
 
-     CALL dealloc_array(M_opnd,'M_opnd',routine_name)
+     CALL dealloc_NParray(M_opnd,'M_opnd',routine_name)
      call delete_op(V_tmp)
      call delete_op(Ptf)
      call delete_op(Ptf_dag)
@@ -400,6 +389,6 @@ MODULE mod_Tana_vec_operations
      !write(out_unit,*) 'LiLi from ',routine_name
      !CALL write_op(LiLi)
 
-   END SUBROUTINE Li_scalar_Li_from_Eq75
+  END SUBROUTINE Li_scalar_Li_from_Eq75
 
 END MODULE mod_Tana_vec_operations

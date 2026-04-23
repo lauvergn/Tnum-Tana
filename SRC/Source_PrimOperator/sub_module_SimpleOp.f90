@@ -35,7 +35,8 @@
 !===========================================================================
   MODULE mod_SimpleOp
    use TnumTana_system_m
-   use mod_dnSVM, only: type_dns, alloc_array, alloc_dns, dealloc_array,   &
+   USE mod_dnSVM, only: type_dns, alloc_array, alloc_dns, dealloc_array,   &
+                        alloc_NParray, dealloc_NParray, &
                         Write_MatOFdnS, sub_weightder_dns
    IMPLICIT NONE
 
@@ -98,10 +99,10 @@
           integer :: nb_bie  = 0
           integer :: nderiv  = 0
 
-          TYPE(Type_dnS), pointer :: tab_dnMatOp(:,:,:)=> null() ! ...(nb_bie,nb_bie,nb_term)
-          TYPE(Type_dnS), pointer :: Im_dnMatOp(:,:)=> null()    ! ... (nb_bie,nb_bie)
+          TYPE(Type_dnS), allocatable :: tab_dnMatOp(:,:,:) ! ...(nb_bie,nb_bie,nb_term)
+          TYPE(Type_dnS), allocatable :: Im_dnMatOp(:,:)    ! ... (nb_bie,nb_bie)
 
-          real (kind=Rkind)              :: Jac,rho       ! the Jacobian and rho (for nrho=0)
+          real (kind=Rkind)           :: Jac,rho       ! the Jacobian and rho (for nrho=0)
 
        END TYPE param_dnMatOp
 
@@ -861,9 +862,8 @@
       dnMatOp%nderiv  = nderiv_loc
 
 
-      CALL alloc_array(dnMatOp%tab_dnMatOp,                             &
-                                   [nb_bie,nb_bie,dnMatOp%nb_term], &
-                      "dnMatOp%tab_dnMatOp",name_sub)
+      CALL alloc_NParray(dnMatOp%tab_dnMatOp,[nb_bie,nb_bie,dnMatOp%nb_term], &
+                        "dnMatOp%tab_dnMatOp",name_sub)
 
      DO i3=1,dnMatOp%nb_term
      DO i2=1,nb_bie
@@ -876,8 +876,8 @@
 
      IF (dnMatOp%cplx) THEN
 
-        CALL alloc_array(dnMatOp%Im_dnMatOp, [nb_bie,nb_bie],   &
-                        "dnMatOp%Im_dnMatOp",name_sub)
+        CALL alloc_NParray(dnMatOp%Im_dnMatOp, [nb_bie,nb_bie],   &
+                          "dnMatOp%Im_dnMatOp",name_sub)
 
         DO i2=1,nb_bie
         DO i1=1,nb_bie
@@ -894,31 +894,25 @@
 
       character (len=*), parameter :: name_sub='dealloc_dnMatOp'
 
-
-      IF (associated(dnMatOp%tab_dnMatOp)) THEN
-        CALL dealloc_array(dnMatOp%tab_dnMatOp,                     &
-                          "dnMatOp%tab_dnMatOp",name_sub)
+      IF (allocated(dnMatOp%tab_dnMatOp)) THEN
+        CALL dealloc_NParray(dnMatOp%tab_dnMatOp,"dnMatOp%tab_dnMatOp",name_sub)
       END IF
 
-      IF (associated(dnMatOp%Im_dnMatOp)) THEN
-        CALL dealloc_array(dnMatOp%Im_dnMatOp,                      &
-                          "dnMatOp%Im_dnMatOp",name_sub)
+      IF (allocated(dnMatOp%Im_dnMatOp)) THEN
+        CALL dealloc_NParray(dnMatOp%Im_dnMatOp,"dnMatOp%Im_dnMatOp",name_sub)
       END IF
-
 
       dnMatOp%nderiv  = 0
       dnMatOp%nb_bie  = 0
-
 
       dnMatOp%Jac     = ZERO
       dnMatOp%rho     = ZERO
 
       CALL dealloc_TypeOp(dnMatOp%param_TypeOp)
 
+  END SUBROUTINE dealloc_dnMatOp
 
-   END SUBROUTINE dealloc_dnMatOp
-
-   SUBROUTINE Init_dnMatOp(dnMatOp,type_Op,nb_Qact,nb_ie,iQact,nderiv,cplx,JRot)
+  SUBROUTINE Init_dnMatOp(dnMatOp,type_Op,nb_Qact,nb_ie,iQact,nderiv,cplx,JRot)
       TYPE (param_dnMatOp), intent(inout) :: dnMatOp
       integer, intent(in) :: type_Op,nb_Qact,nb_ie,iQact
       integer, intent(in), optional :: nderiv
@@ -964,8 +958,7 @@
         write(out_unit,*) ' END: ',name_sub
       END IF
 
-   END SUBROUTINE Init_dnMatOp
-
+  END SUBROUTINE Init_dnMatOp
 
   SUBROUTINE Write_dnMatOp(dnMatOp,With_list)
       TYPE (param_dnMatOp), intent(in) :: dnMatOp
@@ -993,11 +986,10 @@
 
 
       write(out_unit,*) ' derive_termQact + tab_dnMatOp: '
-      write(out_unit,*) ' alloc/asso ?derive_termQact + tab_dnMatOp: ',      &
-        allocated(dnMatOp%derive_termQact),associated(dnMatOp%tab_dnMatOp)
+      write(out_unit,*) ' alloc ? derive_termQact + tab_dnMatOp: ',      &
+        allocated(dnMatOp%derive_termQact),allocated(dnMatOp%tab_dnMatOp)
 
-      IF (allocated(dnMatOp%derive_termQact) .AND.              &
-          associated(dnMatOp%tab_dnMatOp) ) THEN
+      IF (allocated(dnMatOp%derive_termQact) .AND. allocated(dnMatOp%tab_dnMatOp) ) THEN
         DO iterm=1,dnMatOp%nb_term
           write(out_unit,*) ' iterm ',iterm,' : ',dnMatOp%derive_termQact(:,iterm)
           write(out_unit,*) ' tab_dnMatOp(:,:,iterm) ',iterm
@@ -1006,9 +998,9 @@
       END IF
 
       write(out_unit,*) ' complex ? ',dnMatOp%cplx
-      write(out_unit,*) ' asso Im_dnMatOp?',associated(dnMatOp%Im_dnMatOp)
+      write(out_unit,*) ' alloc Im_dnMatOp?',allocated(dnMatOp%Im_dnMatOp)
 
-      IF (dnMatOp%cplx .AND. associated(dnMatOp%Im_dnMatOp)) THEN
+      IF (dnMatOp%cplx .AND. allocated(dnMatOp%Im_dnMatOp)) THEN
         write(out_unit,*) ' Im_dnMatOp value: '
         CALL Write_MatOFdnS(dnMatOp%Im_dnMatOp)
       END IF
@@ -1025,7 +1017,6 @@
       END IF
 
       write(out_unit,*) ' END: ',name_sub
-
 
    END SUBROUTINE Write_dnMatOp
 
@@ -1112,7 +1103,7 @@
 
       DO iOp=1,size(dnMatOp)
 
-        IF (associated(dnMatOp(iOp)%Im_dnMatOp)) THEN
+        IF (allocated(dnMatOp(iOp)%Im_dnMatOp)) THEN
           DO ie=1,dnMatOp(iOp)%nb_bie
           DO je=1,dnMatOp(iOp)%nb_bie
             dnMatOp(iOp)%Im_dnMatOp(ie,je)%d0 = ZERO
@@ -1124,7 +1115,7 @@
           END DO
         END IF
 
-        IF (associated(dnMatOp(iOp)%tab_dnMatOp)) THEN
+        IF (allocated(dnMatOp(iOp)%tab_dnMatOp)) THEN
           DO iterm=1,dnMatOp(iOp)%nb_term
           DO ie=1,dnMatOp(iOp)%nb_bie
           DO je=1,dnMatOp(iOp)%nb_bie
@@ -1215,7 +1206,7 @@
       END IF
 
       IF (cplx_loc) THEN
-        IF (dnMatOp(iOp_loc)%cplx .AND. associated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
+        IF (dnMatOp(iOp_loc)%cplx .AND. allocated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
           Get_Scal_FROM_Tab_OF_dnMatOp = dnMatOp(iOp_loc)%Im_dnMatOp(ie_loc,je_loc)%d0
         ELSE
           Get_Scal_FROM_Tab_OF_dnMatOp = ZERO
@@ -1224,7 +1215,7 @@
         iterm = dnMatOp(iOp_loc)%derive_term_TO_iterm(der_loc(1),der_loc(2))
 
         IF (iterm > 0 .AND.iterm <= dnMatOp(iOp_loc)%nb_term            &
-           .AND. associated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
+           .AND. allocated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
           Get_Scal_FROM_Tab_OF_dnMatOp = dnMatOp(iOp_loc)%tab_dnMatOp(ie_loc,je_loc,iterm)%d0
         ELSE
           Get_Scal_FROM_Tab_OF_dnMatOp = ZERO
@@ -1282,7 +1273,7 @@
       END IF
 
       IF (cplx_loc) THEN
-        IF (dnMatOp(iOp_loc)%cplx .AND. associated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
+        IF (dnMatOp(iOp_loc)%cplx .AND. allocated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
           IF (size(Grad) == size(dnMatOp(iOp_loc)%Im_dnMatOp(ie_loc,je_loc)%d1)) THEN
             Grad = dnMatOp(iOp_loc)%Im_dnMatOp(ie_loc,je_loc)%d1
           END IF
@@ -1291,7 +1282,7 @@
         iterm = dnMatOp(iOp_loc)%derive_term_TO_iterm(der_loc(1),der_loc(2))
 
         IF (iterm > 0 .AND.iterm <= dnMatOp(iOp_loc)%nb_term            &
-           .AND. associated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
+           .AND. allocated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
           IF (size(Grad) == size(dnMatOp(iOp_loc)%tab_dnMatOp(ie_loc,je_loc,iterm)%d1)) THEN
             Grad = dnMatOp(iOp_loc)%tab_dnMatOp(ie_loc,je_loc,iterm)%d1
           END IF
@@ -1349,7 +1340,7 @@
       END IF
 
       IF (cplx_loc) THEN
-        IF (dnMatOp(iOp_loc)%cplx .AND. associated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
+        IF (dnMatOp(iOp_loc)%cplx .AND. allocated(dnMatOp(iOp_loc)%Im_dnMatOp)) THEN
           IF (size(Hess) == size(dnMatOp(iOp_loc)%Im_dnMatOp(ie_loc,je_loc)%d2)) THEN
             Hess = dnMatOp(iOp_loc)%Im_dnMatOp(ie_loc,je_loc)%d2
           END IF
@@ -1358,7 +1349,7 @@
         iterm = dnMatOp(iOp_loc)%derive_term_TO_iterm(der_loc(1),der_loc(2))
 
         IF (iterm > 0 .AND.iterm <= dnMatOp(iOp_loc)%nb_term            &
-           .AND. associated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
+           .AND. allocated(dnMatOp(iOp_loc)%tab_dnMatOp)) THEN
           IF (size(Hess) == size(dnMatOp(iOp_loc)%tab_dnMatOp(ie_loc,je_loc,iterm)%d2)) THEN
             Hess = dnMatOp(iOp_loc)%tab_dnMatOp(ie_loc,je_loc,iterm)%d2
           END IF

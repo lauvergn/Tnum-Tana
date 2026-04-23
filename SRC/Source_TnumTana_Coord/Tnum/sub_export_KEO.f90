@@ -34,24 +34,22 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_export_KEO
-  USE TnumTana_system_m
-  use mod_dnSVM,    only: type_dnmat, alloc_dnsvm, dealloc_dnsvm,       &
-                          alloc_array, set_zero_to_dnsvm, dealloc_array
-  use mod_Tnum,     only: CoordType, tnum
-  use mod_dnGG_dng, only: get_dng_dngg
   IMPLICIT NONE
 
   PRIVATE
 
   PUBLIC :: export3_MCTDH_T,export_Taylor_dnG,export_Taylor_dnVep
 
-  CONTAINS
-
-!===========================================================
-!     Export T for MCTDH
-!===========================================================
-      SUBROUTINE export3_MCTDH_T(Qact,para_Tnum,mole)
-      IMPLICIT NONE
+CONTAINS
+  !===========================================================
+  !     Export T for MCTDH
+  !===========================================================
+  SUBROUTINE export3_MCTDH_T(Qact,para_Tnum,mole)
+    USE TnumTana_system_m
+    USE mod_Tnum,     ONLY : CoordType, Tnum
+    USE mod_dnSVM,    ONLY : Type_dnMat, alloc_dnSVM, dealloc_dnSVM
+    USE mod_dnGG_dng, ONLY : get_dng_dngg
+    IMPLICIT NONE
 
 !     - for Tnum -------------------------------------------
       TYPE (CoordType) :: mole
@@ -153,48 +151,43 @@ MODULE mod_export_KEO
       write(out_unit,'(a)') '# =============================================='
       write(out_unit,'(a)') '# =============================================='
 
-      end subroutine export3_MCTDH_T
+  end subroutine export3_MCTDH_T
 !===========================================================
 !     Export G in 1D grid for MCTDH
 !===========================================================
-     SUBROUTINE export3_d0G_grid1D(Qact,para_Tnum,mole,dnGG,label,epsi_MCTDH)
-      IMPLICIT NONE
+  SUBROUTINE export3_d0G_grid1D(Qact,para_Tnum,mole,dnGG,label,epsi_MCTDH)
+    USE TnumTana_system_m
+    USE mod_Tnum,     ONLY : CoordType, Tnum
+    USE mod_dnSVM,    ONLY : Type_dnMat, alloc_NParray, dealloc_NParray, &
+                             alloc_dnSVM, dealloc_dnSVM, Set_ZERO_TO_dnSVM
+    USE mod_dnGG_dng, ONLY : get_dng_dngg
+    IMPLICIT NONE
 
-!----- for the CoordType and Tnum --------------------------------------
-      TYPE (CoordType) :: mole
-      TYPE (Tnum)      :: para_Tnum
+    !----- for the CoordType and Tnum --------------------------------------
+    TYPE (CoordType) :: mole
+    TYPE (Tnum)      :: para_Tnum
 
-      real (kind=Rkind), intent(inout) :: Qact(mole%nb_var)
+    real (kind=Rkind), intent(inout) :: Qact(mole%nb_var)
 
+    TYPE(Type_dnMat) :: dnGG
+    TYPE(Type_dnMat), allocatable :: dnGG_grid(:)
 
-      TYPE(Type_dnMat) :: dnGG
+    !------------------------------------------------------
+    type (File_t) :: file_Ggrid
+    character (len=Name_len) ::name_file
+    integer :: no
 
-      TYPE(Type_dnMat), pointer :: dnGG_grid(:)
-
-      !character (len=Name_len) :: name_i,name_j,name_iQact
-      !character (len=Name_len) :: name_Opi,name_Opj
-!     ------------------------------------------------------
-
-!     ------------------------------------------------------
-      type (File_t) :: file_Ggrid
-      character (len=Name_len) ::name_file
-      integer :: no
-
-!     - divers ------------------------------------------
-      integer :: i,j,iq,iQact,iiQact
-      integer :: nb_nq
-      real (kind=Rkind), pointer :: q(:)
-      real (kind=Rkind) :: Qact_ref(mole%nb_var)
-      real (kind=Rkind) :: val
-      real (kind=Rkind) :: epsi_MCTDH
-      logical :: label
-!     - function ----------------------------------------
-
+    !- divers ------------------------------------------
+    integer :: i,j,iq,iQact,iiQact
+    integer :: nb_nq
+    real (kind=Rkind), allocatable :: q(:)
+    real (kind=Rkind) :: Qact_ref(mole%nb_var)
+    real (kind=Rkind) :: val
+    real (kind=Rkind) :: epsi_MCTDH
+    logical :: label
 
 !===========================================================
 !===========================================================
-      nullify(dnGG_grid)
-      nullify(q)
 
       Qact_ref(:) = Qact(:)
 
@@ -234,10 +227,9 @@ MODULE mod_export_KEO
           STOP
         END IF
 
-        CALL alloc_array(q,[nb_nq],"q","export3_d0G_grid1D")
+        CALL alloc_NParray(q,[nb_nq],"q","export3_d0G_grid1D")
 
-        CALL alloc_array(dnGG_grid,[nb_nq],                           &
-                        "dnGG_grid","export3_d0G_grid1D")
+        CALL alloc_NParray(dnGG_grid,[nb_nq],"dnGG_grid","export3_d0G_grid1D")
         DO iq=1,nb_nq
           CALL alloc_dnSVM(dnGG_grid(iq),                               &
                            mole%ndimG,mole%ndimG,mole%nb_act,0)
@@ -261,9 +253,6 @@ MODULE mod_export_KEO
           dnGG_grid(iq)%d0(:,:) = dnGG_grid(iq)%d0(:,:) - dnGG%d0(:,:)
 
         END DO
-
-
-
 
         IF (label) THEN
         write(out_unit,'(a)') '-------------------------------------------------'
@@ -359,31 +348,32 @@ MODULE mod_export_KEO
         CALL dealloc_dnSVM(dnGG_grid(iq))
       END DO
 
-      CALL dealloc_array(q,"q","export3_d0G_grid1D")
+      CALL dealloc_NParray(q,"q","export3_d0G_grid1D")
 
-      CALL dealloc_array(dnGG_grid,"dnGG_grid","export3_d0G_grid1D")
-      END DO
+      CALL dealloc_NParray(dnGG_grid,"dnGG_grid","export3_d0G_grid1D")
+  END DO
 !==============================================
 !     END loop on active coordinates
 !==============================================
 
-      end subroutine export3_d0G_grid1D
+  END SUBROUTINE export3_d0G_grid1D
 !================================================================
 !      Export second order Taylor expansion of G for MCTDH
 !================================================================
-      SUBROUTINE export3_MCTDH_dnG(dnGG,grid1D,epsi_MCTDH)
-      IMPLICIT NONE
+  SUBROUTINE export3_MCTDH_dnG(dnGG,grid1D,epsi_MCTDH)
+    USE TnumTana_system_m
+    USE mod_dnSVM, ONLY : Type_dnMat
+    IMPLICIT NONE
 
-!     - G,g ... --------------------------------------------
-      TYPE(Type_dnMat) :: dnGG
-      real (kind=Rkind) :: epsi_MCTDH
-      logical :: grid1D
+    !- G,g ... --------------------------------------------
+    TYPE(Type_dnMat) :: dnGG
+    real (kind=Rkind) :: epsi_MCTDH
+    logical :: grid1D
 
-!     - divers ------------------------------------------
-      integer :: i,j,k,l,n0,n1,n2
+    !- divers ------------------------------------------
+    integer :: i,j,k,l,n0,n1,n2
 
-
-      IF (.NOT. grid1D) THEN
+    IF (.NOT. grid1D) THEN
 
         write(out_unit,'(a)') '-----------------------------------------------'
         write(out_unit,'(a)') '# Zero order part: -1/2*G^ij(Qref)'
@@ -395,8 +385,6 @@ MODULE mod_export_KEO
         DO j=1,dnGG%nb_var_deriv
 
           IF (abs(dnGG%d0(i,j)) < epsi_MCTDH) CYCLE
-
-          !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
 
           write(out_unit,*) real_TO_char_MCTDH( -HALF*dnGG%d0(i,j) ),  &
                          get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
@@ -417,8 +405,6 @@ MODULE mod_export_KEO
 
           IF (abs(dnGG%d1(i,j,k)) < epsi_MCTDH) CYCLE
 
-          !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
-
           write(out_unit,*) real_TO_char_MCTDH( -HALF*dnGG%d1(i,j,k) ),&
                         get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
 
@@ -427,39 +413,40 @@ MODULE mod_export_KEO
         END DO
         END DO
         END DO
-      END IF
-      write(out_unit,*)
-      write(out_unit,'(a)') '-----------------------------------------------'
-      write(out_unit,'(a)') '# Second order part:'
-      write(out_unit,'(a)') '# -1/4*d^2G^ij/dNQk^2   d./dQi * NQk*NQl * d./dQj'
-      write(out_unit,'(a)') '-----------------------------------------------'
+    END IF
 
-      n2=0
-      DO i=1,dnGG%nb_var_deriv
-      DO j=1,dnGG%nb_var_deriv
-      DO k=1,dnGG%nb_var_deriv
-      DO l=1,dnGG%nb_var_deriv
-        IF (abs(dnGG%d2(i,j,k,l)) < epsi_MCTDH) CYCLE
-        IF (k == l .AND. grid1D) CYCLE
+    write(out_unit,*)
+    write(out_unit,'(a)') '-----------------------------------------------'
+    write(out_unit,'(a)') '# Second order part:'
+    write(out_unit,'(a)') '# -1/4*d^2G^ij/dNQk^2   d./dQi * NQk*NQl * d./dQj'
+    write(out_unit,'(a)') '-----------------------------------------------'
 
-        !CALL T_Operator_MCTDH(name_Op,i,j,k,l,dnGG%nb_var_deriv)
+    n2=0
+    DO i=1,dnGG%nb_var_deriv
+    DO j=1,dnGG%nb_var_deriv
+    DO k=1,dnGG%nb_var_deriv
+    DO l=1,dnGG%nb_var_deriv
+      IF (abs(dnGG%d2(i,j,k,l)) < epsi_MCTDH) CYCLE
+      IF (k == l .AND. grid1D) CYCLE
 
-        write(out_unit,*) real_TO_char_MCTDH( -QUARTER*dnGG%d2(i,j,k,l) ),&
+      write(out_unit,*) real_TO_char_MCTDH( -QUARTER*dnGG%d2(i,j,k,l) ),&
                            get_T_Operator_MCTDH(i,j,k,l,dnGG%nb_var_deriv)
 
-        n2 = n2+1
+      n2 = n2+1
 
-      END DO
-      END DO
-      END DO
-      END DO
+    END DO
+    END DO
+    END DO
+    END DO
 
-      end subroutine export3_MCTDH_dnG
+  END SUBROUTINE export3_MCTDH_dnG
 !================================================================
 !      Export second order Taylor expansion of GG and Vep for EVR
 !================================================================
-      SUBROUTINE export_Taylor_dnG(dnGG,Qact,epsi_G,file_name,option)
-      IMPLICIT NONE
+  SUBROUTINE export_Taylor_dnG(dnGG,Qact,epsi_G,file_name,option)
+    USE TnumTana_system_m
+    USE mod_dnSVM, ONLY : Type_dnMat
+    IMPLICIT NONE
 
 !     - G,g ... --------------------------------------------
       TYPE(Type_dnMat),  intent(in)           :: dnGG
@@ -637,12 +624,13 @@ MODULE mod_export_KEO
       flush(out_unit)
 !     -----------------------------------------------------------------
 
-      end subroutine export_Taylor_dnG
-      SUBROUTINE export_Taylor_dnVep(dnVepref,Qact,epsi_Vep,file_name,option)
-        use mod_dnSVM,    only: type_dnS
-        IMPLICIT NONE
+  end subroutine export_Taylor_dnG
+  SUBROUTINE export_Taylor_dnVep(dnVepref,Qact,epsi_Vep,file_name,option)
+    USE TnumTana_system_m
+    USE mod_dnSVM,    only: type_dnS
+    IMPLICIT NONE
   
-  !     - G,g ... --------------------------------------------
+    !- G,g ... --------------------------------------------
         TYPE(Type_dnS),    intent(in)           :: dnVepref
         real (kind=Rkind), intent(in)           :: Qact(dnVepref%nb_var_deriv)
         real (kind=Rkind), intent(in)           :: epsi_Vep
@@ -791,10 +779,11 @@ MODULE mod_export_KEO
         flush(out_unit)
   !     -----------------------------------------------------------------
   
-        end subroutine export_Taylor_dnVep
-      ! The operartor is d./dQi^i * d./dQj^j Qk^k Ql^l
-      SUBROUTINE T_Operator_MCTDH(name_Op,i,j,k,l,n)
-      IMPLICIT NONE
+  END SUBROUTINE export_Taylor_dnVep
+
+  SUBROUTINE T_Operator_MCTDH(name_Op,i,j,k,l,n)
+    USE TnumTana_system_m
+    IMPLICIT NONE
 
       integer :: n
       integer :: i,j,k,l
@@ -826,11 +815,6 @@ MODULE mod_export_KEO
         Q(l) = Q(l) + 1
         T(l)   = .TRUE.
       END IF
-
-!     write(out_unit,*) 'dQi',dQi
-!     write(out_unit,*) 'dQj',dQj
-!     write(out_unit,*) ' Q ',Q
-!     write(out_unit,*) 'T: ',T
 
       name_Op = ' '
       DO iQ=1,n
@@ -869,14 +853,15 @@ MODULE mod_export_KEO
             sepa = ' '
           END IF
           IF ( dQj(iQ) == 1 ) name_Op = trim(name_Op) // sepa // 'dq'
-!         write(out_unit,*) 'iQ, Op',iQ,name_Op
+          !write(out_unit,*) 'iQ, Op',iQ,name_Op
         END IF
       END DO
 
-      end subroutine T_Operator_MCTDH
+  END SUBROUTINE T_Operator_MCTDH
 
-      FUNCTION get_T_Operator_MCTDH(i,j,k,l,n) RESULT(name_Op)
-      IMPLICIT NONE
+  FUNCTION get_T_Operator_MCTDH(i,j,k,l,n) RESULT(name_Op)
+    USE TnumTana_system_m
+    IMPLICIT NONE
 
       integer :: n
       integer :: i,j,k,l
@@ -909,11 +894,6 @@ MODULE mod_export_KEO
         Q(l) = Q(l) + 1
         T(l)   = .TRUE.
       END IF
-
-!     write(out_unit,*) 'dQi',dQi
-!     write(out_unit,*) 'dQj',dQj
-!     write(out_unit,*) ' Q ',Q
-!     write(out_unit,*) 'T: ',T
 
       name_Op = ' '
 
@@ -958,9 +938,10 @@ MODULE mod_export_KEO
         END IF
       END DO
 
-      END FUNCTION get_T_Operator_MCTDH
+  END FUNCTION get_T_Operator_MCTDH
 
   FUNCTION real_TO_char_MCTDH(r) RESULT(string)
+    USE TnumTana_system_m
     IMPLICIT NONE
 
     character (len=:), allocatable           :: string
@@ -973,7 +954,6 @@ MODULE mod_export_KEO
     ! change the D or E or e character into a "d" character for MCTDH
     ie = scan(string,'DEe')
     IF (ie > 0) string(ie:ie) = 'd'
-
 
   END FUNCTION real_TO_char_MCTDH
 

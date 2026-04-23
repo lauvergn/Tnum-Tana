@@ -214,7 +214,7 @@ MODULE mod_dnGG_dng
         END IF
       END IF
       !-----------------------------------------------------------------
-    ELSE IF (para_Tnum%Gcte .AND. associated(para_Tnum%Gref)) THEN
+    ELSE IF (para_Tnum%Gcte .AND. allocated(para_Tnum%Gref)) THEN
       !-----------------------------------------------------------------
       ! with constant metric tensor
       IF (present(dnGG)) THEN
@@ -393,7 +393,7 @@ MODULE mod_dnGG_dng
       character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_Gcte'
 !-----------------------------------------------------------
 
-      IF (associated(para_Tnum%Gref)) THEN
+      IF (allocated(para_Tnum%Gref)) THEN
         IF (present(dnGG)) THEN
           CALL sub_ZERO_TO_dnMat(dnGG,nderiv=0)
           dnGG%d0(:,:) = para_Tnum%Gref(:,:)

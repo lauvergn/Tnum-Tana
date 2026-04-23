@@ -26,17 +26,17 @@
 ! SOFTWARE.
 !===============================================================================
 !===============================================================================
-      MODULE mod_dnM
-          USE QDUtil_m
-      use mod_dnS, only: alloc_array, dealloc_array, type_dns,   &
+MODULE mod_dnM
+    USE QDUtil_m
+    use mod_dnS, only: alloc_array, dealloc_array, type_dns,   &
                          check_alloc_dns, alloc_dns, write_dns
-      use mod_dnV, only: alloc_array, dealloc_array, type_dnvec, &
+    use mod_dnV, only: alloc_array, dealloc_array, type_dnvec, &
                          check_alloc_dnvec, alloc_dnvec
-      IMPLICIT NONE
+    IMPLICIT NONE
 
-      PRIVATE
+    PRIVATE
 
-      TYPE Type_dnMat
+    TYPE Type_dnMat
           logical                     :: alloc=.FALSE.
 
           integer                     :: nderiv       = 0
@@ -48,12 +48,12 @@
           real (kind=Rkind), pointer  :: d1(:,:,:)    => null()
           real (kind=Rkind), pointer  :: d2(:,:,:,:)  => null()
           real (kind=Rkind), pointer  :: d3(:,:,:,:,:)=> null()
-     CONTAINS
+    CONTAINS
         PROCEDURE, PRIVATE, PASS(dnMat1) :: sub_dnMat2_TO_dnMat1
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnMat2_TO_dnMat1
-      END TYPE Type_dnMat
+    END TYPE Type_dnMat
 
-      TYPE Type_dnCplxMat
+    TYPE Type_dnCplxMat
           logical                     :: alloc=.FALSE.
 
           integer                     :: nderiv       = 0
@@ -65,19 +65,25 @@
           complex (kind=Rkind), pointer  :: d1(:,:,:)    => null()
           complex (kind=Rkind), pointer  :: d2(:,:,:,:)  => null()
           complex (kind=Rkind), pointer  :: d3(:,:,:,:,:)=> null()
-     CONTAINS
+    CONTAINS
         PROCEDURE, PRIVATE, PASS(dnMat1) :: sub_dnCplxMat2_TO_dnCplxMat1
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnCplxMat2_TO_dnCplxMat1
-      END TYPE Type_dnCplxMat
+    END TYPE Type_dnCplxMat
 
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_dnMatdim1
-        MODULE PROCEDURE alloc_array_OF_dnCplxMatdim1
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_dnMatdim1
-        MODULE PROCEDURE dealloc_array_OF_dnCplxMatdim1
-      END INTERFACE
+    INTERFACE alloc_array
+      MODULE PROCEDURE alloc_array_OF_dnMatdim1
+      MODULE PROCEDURE alloc_array_OF_dnCplxMatdim1
+    END INTERFACE
+    INTERFACE dealloc_array
+      MODULE PROCEDURE dealloc_array_OF_dnMatdim1
+      MODULE PROCEDURE dealloc_array_OF_dnCplxMatdim1
+    END INTERFACE
+    INTERFACE alloc_NParray
+      MODULE PROCEDURE alloc_NParray_OF_dnMatdim1
+    END INTERFACE
+    INTERFACE dealloc_NParray
+      MODULE PROCEDURE dealloc_NParray_OF_dnMatdim1
+    END INTERFACE
 
     INTERFACE Write_dnMat
       MODULE PROCEDURE EVRT_Write_dnMat,Write_dnCplxMat
@@ -89,44 +95,44 @@
       MODULE PROCEDURE EVRT_dealloc_dnMat,dealloc_dnCplxMat
     END INTERFACE
 
-      INTERFACE Write_dnSVM
-        MODULE PROCEDURE EVRT_Write_dnMat,Write_dnCplxMat
-      END INTERFACE
-      INTERFACE alloc_dnSVM
-        MODULE PROCEDURE EVRT_alloc_dnMat,alloc_dnCplxMat
-      END INTERFACE
-      INTERFACE dealloc_dnSVM
-        MODULE PROCEDURE EVRT_dealloc_dnMat,dealloc_dnCplxMat
-      END INTERFACE
-      INTERFACE Set_ZERO_TO_dnSVM
-        MODULE PROCEDURE sub_ZERO_TO_dnMat,sub_ZERO_TO_dnCplxMat
-      END INTERFACE
+    INTERFACE Write_dnSVM
+      MODULE PROCEDURE EVRT_Write_dnMat,Write_dnCplxMat
+    END INTERFACE
+    INTERFACE alloc_dnSVM
+      MODULE PROCEDURE EVRT_alloc_dnMat,alloc_dnCplxMat
+    END INTERFACE
+    INTERFACE dealloc_dnSVM
+      MODULE PROCEDURE EVRT_dealloc_dnMat,dealloc_dnCplxMat
+    END INTERFACE
+    INTERFACE Set_ZERO_TO_dnSVM
+      MODULE PROCEDURE sub_ZERO_TO_dnMat,sub_ZERO_TO_dnCplxMat
+    END INTERFACE
 
-      PUBLIC :: Type_dnMat,     alloc_dnMat,     dealloc_dnMat,     check_alloc_dnMat,     Write_dnMat
-      PUBLIC :: Type_dnCplxMat, alloc_dnCplxMat, dealloc_dnCplxMat, check_alloc_dnCplxMat, Write_dnCplxMat
+    PUBLIC :: Type_dnMat,     alloc_dnMat,     dealloc_dnMat,     check_alloc_dnMat,     Write_dnMat
+    PUBLIC :: Type_dnCplxMat, alloc_dnCplxMat, dealloc_dnCplxMat, check_alloc_dnCplxMat, Write_dnCplxMat
 
-      PUBLIC :: get_nderiv_FROM_dnMat,get_nb_var_deriv_FROM_dnMat
+    PUBLIC :: get_nderiv_FROM_dnMat,get_nb_var_deriv_FROM_dnMat
 
-      PUBLIC :: alloc_array, dealloc_array
-      PUBLIC :: sub_dnMat1_TO_dnMat2, sub_dnMat1_TO_LargerdnMat2, sub_dnMat1_TO_dnMat2_partial
-      PUBLIC :: dnVec_TO_dnMat, sub_dnMat_TO_dnS, sub_dnS_TO_dnMat
-      PUBLIC :: sub_ZERO_TO_dnMat, sub_ZERO_TO_dnCplxMat
-      PUBLIC :: Mat_wADDTO_dnMat2_ider
-      PUBLIC :: dnVec1_wPLUS_dnMat2_TO_dnMat3,dnMat1_PLUS_dnMat2_TO_dnMat3
-      PUBLIC :: dnMat1_MUL_dnMat2_TO_dnMat3, dnVec1_MUL_dnMat2_TO_dnVec3,dnMat1_MUL_dnVec2_TO_dnVec3
-      PUBLIC :: TRANS_dnMat1_TO_dnMat2,INV_dnMat1_TO_dnMat2, Det_OF_dnMat_TO_dnS
-      PUBLIC :: Write_dnSVM,alloc_dnSVM,dealloc_dnSVM,Set_ZERO_TO_dnSVM
+    PUBLIC :: alloc_array, dealloc_array
+    PUBLIC :: alloc_NParray, dealloc_NParray
 
-      CONTAINS
+    PUBLIC :: sub_dnMat1_TO_dnMat2, sub_dnMat1_TO_LargerdnMat2, sub_dnMat1_TO_dnMat2_partial
+    PUBLIC :: dnVec_TO_dnMat, sub_dnMat_TO_dnS, sub_dnS_TO_dnMat
+    PUBLIC :: sub_ZERO_TO_dnMat, sub_ZERO_TO_dnCplxMat
+    PUBLIC :: Mat_wADDTO_dnMat2_ider
+    PUBLIC :: dnVec1_wPLUS_dnMat2_TO_dnMat3,dnMat1_PLUS_dnMat2_TO_dnMat3
+    PUBLIC :: dnMat1_MUL_dnMat2_TO_dnMat3, dnVec1_MUL_dnMat2_TO_dnVec3,dnMat1_MUL_dnVec2_TO_dnVec3
+    PUBLIC :: TRANS_dnMat1_TO_dnMat2,INV_dnMat1_TO_dnMat2, Det_OF_dnMat_TO_dnS
+    PUBLIC :: Write_dnSVM,alloc_dnSVM,dealloc_dnSVM,Set_ZERO_TO_dnSVM
+CONTAINS
 !
 !================================================================
 !
 !     allocation
 !
 !================================================================
-
-
-      SUBROUTINE EVRT_alloc_dnMat(dnMat,nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv)
+!
+  SUBROUTINE EVRT_alloc_dnMat(dnMat,nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv)
         TYPE (Type_dnMat) :: dnMat
         integer, optional :: nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv
         integer :: nd,nml,nmc
@@ -179,11 +185,11 @@
           STOP
         END IF
 
-      END SUBROUTINE EVRT_alloc_dnMat
+  END SUBROUTINE EVRT_alloc_dnMat
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE EVRT_dealloc_dnMat(dnMat)
+  !!@description: TODO
+  !!@param: TODO
+  SUBROUTINE EVRT_dealloc_dnMat(dnMat)
         TYPE (Type_dnMat) :: dnMat
         integer :: nd,nml,nmc
         integer :: err_mem
@@ -216,7 +222,7 @@
         dnMat%nb_var_Matl  = 0
         dnMat%nb_var_Matc  = 0
 
-      END SUBROUTINE EVRT_dealloc_dnMat
+  END SUBROUTINE EVRT_dealloc_dnMat
 
   SUBROUTINE alloc_array_OF_dnMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
     USE QDUtil_m
@@ -279,8 +285,65 @@
        CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnMat')
        nullify(tab)
 
-      END SUBROUTINE dealloc_array_OF_dnMatdim1
+    END SUBROUTINE dealloc_array_OF_dnMatdim1
+  SUBROUTINE alloc_NParray_OF_dnMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
+    USE QDUtil_m
+    IMPLICIT NONE
 
+    TYPE (Type_dnMat), allocatable, intent(inout) :: tab(:)
+    integer, intent(in) :: tab_ub(:)
+    integer, intent(in), optional :: tab_lb(:)
+
+    character (len=*), intent(in) :: name_var,name_sub
+
+    integer, parameter :: ndim=1
+    logical :: memory_test
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_dnMatdim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !----- for debuging --------------------------------------------------
+
+    IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+    CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+    IF (present(tab_lb)) THEN
+      CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+      memory = product(tab_ub(:)-tab_lb(:)+1)
+      allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
+    ELSE
+      memory = product(tab_ub(:))
+      allocate(tab(tab_ub(1)),stat=err_mem)
+    END IF
+    CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnMat')
+
+  END SUBROUTINE alloc_NParray_OF_dnMatdim1
+  SUBROUTINE dealloc_NParray_OF_dnMatdim1(tab,name_var,name_sub)
+    USE QDUtil_m
+    IMPLICIT NONE
+
+    TYPE (Type_dnMat), allocatable, intent(inout) :: tab(:)
+    character (len=*), intent(in) :: name_var,name_sub
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_dnMatdim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !----- for debuging --------------------------------------------------
+
+    IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+    memory = size(tab)
+    deallocate(tab,stat=err_mem)
+    CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnMat')
+
+  END SUBROUTINE dealloc_NParray_OF_dnMatdim1
       SUBROUTINE alloc_dnCplxMat(dnMat,                                 &
                            nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv)
         TYPE (Type_dnCplxMat) :: dnMat
