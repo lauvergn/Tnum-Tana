@@ -1921,7 +1921,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
-!       CALL Write_mole(mole)
+!       CALL Write_CoordType(mole)
 !       write(out_unit,*)
        END IF
 !      -----------------------------------------------------------------
@@ -2335,7 +2335,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*)
-        !CALL Write_mole(mole)
+        !CALL Write_CoordType(mole)
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF
@@ -2412,9 +2412,14 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
-        !CALL Write_mole(mole)
-        !write(out_unit,*)
-       END IF
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) 'mole (before NM transfo):'
+        CALL Write_CoordType(mole)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        flush(out_unit)
+      END IF
       !-----------------------------------------------------------------
 
       write(out_unit,*) '========================================='
@@ -2547,8 +2552,12 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
 
         IF (debug) THEN
+          write(out_unit,*) '========================================='
+          write(out_unit,*) '========================================='
           write(out_unit,*) 'mole_1:'
           CALL Write_CoordType(mole_1)
+          write(out_unit,*) '========================================='
+          write(out_unit,*) '========================================='
           flush(out_unit)
         END IF
 
@@ -2794,6 +2803,15 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
 
       CALL get_Qact0(Qact,ActiveTransfo)
 
+      IF (debug) THEN
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        write(out_unit,*) 'mole (modified with the NM transfo):'
+        CALL Write_CoordType(mole)
+        write(out_unit,*) '========================================='
+        write(out_unit,*) '========================================='
+        flush(out_unit)
+      END IF
       !-----------------------------------------------------------------
       !- calc new G and hessian
       IF (print_level > 1 .OR. debug) THEN
@@ -2804,7 +2822,6 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,0)
 
         CALL get_dng_dnGG(Qact,para_Tnum,mole,dnGG=dnGG,nderiv=0)
-
         write(out_unit,*) 'New d0GG',mole%nb_act
         CALL Write_Mat_MPI(dnGG%d0,out_unit,5)
 
@@ -2837,10 +2854,8 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
-        write(out_unit,*)
-        !CALL Write_mole(mole)
-        write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
+        flush(out_unit)
       END IF
      !-----------------------------------------------------------------
     nullify(NMTransfo)
@@ -2916,7 +2931,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
         write(out_unit,*)
         write(out_unit,*) 'Qdyn0 =',ActiveTransfo%Qdyn0(:)
         write(out_unit,*)
-!       CALL Write_mole(mole)
+!       CALL Write_CoordType(mole)
 !       write(out_unit,*)
        END IF
 
@@ -3335,7 +3350,7 @@ END SUBROUTINE get_Vinact_AT_Qact_HarD
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*)
-        !CALL Write_mole(mole)
+        !CALL Write_CoordType(mole)
         write(out_unit,*)
         write(out_unit,*) 'END ',name_sub
       END IF

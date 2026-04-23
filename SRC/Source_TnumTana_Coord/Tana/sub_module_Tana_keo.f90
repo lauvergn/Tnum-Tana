@@ -343,6 +343,12 @@ MODULE mod_Tana_keo
       write(out_unit,*) ' Fortran  Form:    ',para_Tnum%FortranForm
       write(out_unit,*) ' KEOExportVersion: ',para_Tnum%KEOExportVersion
       write(out_unit,*) '================================================='
+      IF (allocated(mole%liste_QactTOQdyn)) THEN 
+        write(out_unit,*) 'mole%liste_QactTOQdyn ',mole%liste_QactTOQdyn
+      ELSE
+        write(out_unit,*) 'mole%liste_QactTOQdyn is not allocated'
+      END IF
+      write(out_unit,*) '================================================='
       flush(out_unit)
 
       tab_Qname(:) = tab_Qname(list_QactTOQpoly(:)) ! to change the order due to the "constraints"

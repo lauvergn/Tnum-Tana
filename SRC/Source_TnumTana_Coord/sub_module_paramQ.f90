@@ -622,7 +622,7 @@ CONTAINS
       write(out_unit,*) 'it_QTransfo',it_QTransfo
       !write(out_unit,*) 'Qact =',Qact
       write(out_unit,*)
-      !CALL Write_mole(mole)
+      !CALL Write_CoordType(mole)
       write(out_unit,*)
       flush(out_unit)
     END IF
@@ -769,7 +769,7 @@ CONTAINS
       write(out_unit,*) 'it_QinRead,mole%nb_Qtransfo',it_QinRead,mole%nb_Qtransfo
       write(out_unit,*) 'Qread =',Qread
       write(out_unit,*)
-      !CALL Write_mole(mole)
+      !CALL Write_CoordType(mole)
       write(out_unit,*)
     END IF
     !-----------------------------------------------------------------

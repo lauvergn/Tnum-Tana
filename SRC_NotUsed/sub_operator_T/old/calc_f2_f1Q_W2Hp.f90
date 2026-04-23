@@ -77,7 +77,7 @@
          write(out_unit,*) 'Qdyn',Qdyn
          IF (debug) THEN
            write(out_unit,*)
-           CALL Write_mole(mole)
+           CALL Write_CoordType(mole)
            write(out_unit,*)
          END IF
          write(out_unit,*)

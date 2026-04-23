@@ -32,176 +32,167 @@
 !
 !===========================================================================
 !===========================================================================
-      MODULE mod_BunchPolyTransfo
-      use TnumTana_system_m
-      use mod_dnSVM ! only all
-      use mod_Constant,     only: table_atom, get_mass_tnum
-      use mod_Lib_QTransfo, only: write_dnx, sub3_dnvec_toxf, func_ic, make_nameQ
-      USE mod_Tana_OpEl
-      USE mod_Tana_Op1D
-      USE mod_Tana_OpnD
-      USE mod_Tana_sum_opnd
-      USE mod_Tana_VecSumOpnD
-      IMPLICIT NONE
+MODULE mod_BunchPolyTransfo
+  use TnumTana_system_m
+  use mod_dnSVM ! only all
+  use mod_Constant,     only: table_atom, get_mass_tnum
+  use mod_Lib_QTransfo, only: write_dnx, sub3_dnvec_toxf, func_ic, make_nameQ
+  USE mod_Tana_OpEl
+  USE mod_Tana_Op1D
+  USE mod_Tana_OpnD
+  USE mod_Tana_sum_opnd
+  USE mod_Tana_VecSumOpnD
+  IMPLICIT NONE
 
-      PRIVATE
+  PRIVATE
 
-      TYPE Type_BunchTransfo
-          integer                              :: ncart        = 0
-          integer                              :: ncart_act    = 0
-          integer                              :: nat0         = 0
-          integer                              :: nat          = 0
-          integer                              :: nat_act      = 0
-          integer                              :: nb_var       = 0
-          integer                              :: nb_vect      = 0
-          integer                              :: nb_ExtraLFSF = 0
+  TYPE Type_BunchTransfo
+    integer                              :: ncart        = 0
+    integer                              :: ncart_act    = 0
+    integer                              :: nat0         = 0
+    integer                              :: nat          = 0
+    integer                              :: nat_act      = 0
+    integer                              :: nb_var       = 0
+    integer                              :: nb_vect      = 0
+    integer                              :: nb_ExtraLFSF = 0
 
-          integer, allocatable                 :: ind_vect(:,:)
+    integer, allocatable                 :: ind_vect(:,:)
 
-          integer                               :: nb_X        = 0         ! 0 (default) dummy atoms and centers of mass
-          integer                               :: nb_G        = 0         ! 0 (default) centers of mass
+    integer                               :: nb_X        = 0         ! 0 (default) dummy atoms and centers of mass
+    integer                               :: nb_G        = 0         ! 0 (default) centers of mass
 
-          real (kind=Rkind),        allocatable :: COM(:,:)                ! COM(nat_act,nb_centers) defined all centers of mass as function active atom (not dummy)
-          real (kind=Rkind),        allocatable :: Mat_At_TO_centers(:,:)  ! Mat_At_TO_centers(nat_act,nb_centers) (nb_centers=nat)
-          real (kind=Rkind),        allocatable :: masses(:)               ! masses (for the CC)
-          real (kind=Rkind),        allocatable :: masses_OF_At(:)         ! masses (for the atoms)
+    real (kind=Rkind),        allocatable :: COM(:,:)                ! COM(nat_act,nb_centers) defined all centers of mass as function active atom (not dummy)
+    real (kind=Rkind),        allocatable :: Mat_At_TO_centers(:,:)  ! Mat_At_TO_centers(nat_act,nb_centers) (nb_centers=nat)
+    real (kind=Rkind),        allocatable :: masses(:)               ! masses (for the CC)
+    real (kind=Rkind),        allocatable :: masses_OF_At(:)         ! masses (for the atoms)
 
-          real (kind=Rkind),        allocatable :: A(:,:)                  ! Relations between the vectors and the X
-          real (kind=Rkind),        allocatable :: A_inv(:,:)              ! Relations between the vectors and the X
-          real (kind=Rkind),        allocatable :: M_Tana(:,:)             ! M for analytical KEO
+    real (kind=Rkind),        allocatable :: A(:,:)                  ! Relations between the vectors and the X
+    real (kind=Rkind),        allocatable :: A_inv(:,:)              ! Relations between the vectors and the X
+    real (kind=Rkind),        allocatable :: M_Tana(:,:)             ! M for analytical KEO
 
-          integer,                  allocatable :: Z(:)
-          character (len=Name_len), allocatable :: symbole(:)
+    integer,                  allocatable :: Z(:)
+    character (len=Name_len), allocatable :: symbole(:)
+  END TYPE Type_BunchTransfo
 
-      END TYPE Type_BunchTransfo
+  TYPE Type_BFTransfo
+    integer                  :: nb_var                 = 0
+    integer                  :: nb_var_Rot             = 0
 
-      TYPE Type_BFTransfo
-          integer                  :: nb_var                 = 0
-          integer                  :: nb_var_Rot             = 0
+    integer                  :: nb_vect                = 0
+    integer                  :: nb_vect_tot            = 0
 
-          integer                  :: nb_vect                = 0
-          integer                  :: nb_vect_tot            = 0
+    integer                  :: num_vect_in_Frame      = 0
+    integer                  :: num_vect_in_BF         = 0
 
-          integer                  :: num_vect_in_Frame      = 0
-          integer                  :: num_vect_in_BF         = 0
+    integer                  :: num_Frame_in_BF        = 0
+    integer                  :: num_Frame_in_Container = 0
+    character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
+    integer, allocatable     :: Tab_num_Frame(:)
 
-          integer                  :: num_Frame_in_BF        = 0
-          integer                  :: num_Frame_in_Container = 0
-          character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
-          integer, allocatable     :: Tab_num_Frame(:)
+    logical                        :: Frame                   = .FALSE.
+    logical                        :: BF                      = .FALSE.
+    integer                        :: Frame_type              = 0
+    real (kind=Rkind), allocatable :: Coef_Vect_FOR_xFrame(:)
+    real (kind=Rkind), allocatable :: Coef_Vect_FOR_yFrame(:)
+    real (kind=Rkind), allocatable :: Coef_Vect_FOR_zFrame(:)
+    real (kind=Rkind), allocatable :: Coef_OF_Vect1(:)
+    real (kind=Rkind), allocatable :: Coef_OF_Vect2(:)
+    character (len=3)              :: Type_Vect = 'zxy'
+           ! correspondance between Vec1 or vec2 and the BF axis
+           ! Vect1 => Type_Vect(1) axis (default z axis)
+           ! Vect2 => Type_Vect(2) axis (default x axis)
+           ! Vect1 ^ Vect2 => Type_Vect(3) axis (default y axis)
 
-          logical                        :: Frame                   = .FALSE.
-          logical                        :: BF                      = .FALSE.
-          integer                        :: Frame_type              = 0
-          real (kind=Rkind), allocatable :: Coef_Vect_FOR_xFrame(:)
-          real (kind=Rkind), allocatable :: Coef_Vect_FOR_yFrame(:)
-          real (kind=Rkind), allocatable :: Coef_Vect_FOR_zFrame(:)
-          real (kind=Rkind), allocatable :: Coef_OF_Vect1(:)
-          real (kind=Rkind), allocatable :: Coef_OF_Vect2(:)
-          character (len=3)              :: Type_Vect = 'zxy'
-                 ! correspondance between Vec1 or vec2 and the BF axis
-                 ! Vect1 => Type_Vect(1) axis (default z axis)
-                 ! Vect2 => Type_Vect(2) axis (default x axis)
-                 ! Vect1 ^ Vect2 => Type_Vect(3) axis (default y axis)
+    logical                  :: cart                   = .FALSE.
+    character (len=6)        :: Spherical_convention   = 'zxy'
+    logical                  :: Li                     = .FALSE.
+    logical                  :: Euler(3)               = [.FALSE., .FALSE., .FALSE.]
+                        ! F,F,F => for the true BF or F1
+                        ! T,T,T => when a new BF is defined with 2 vectors
+                        ! F,T,T => when a new BF is defined with ONE vector
+                        ! Plus other cases
+    logical                  :: cos_th                   = .TRUE.
+    logical                  :: Def_cos_th               = .TRUE.
 
+    integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 centers (atoms, COM ...)
+    integer,                  allocatable :: type_Qin(:)
+    character (len=Name_len), allocatable :: name_Qin(:)
+    integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
+    integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
 
-          logical                  :: cart                   = .FALSE.
-          character (len=6)        :: Spherical_convention   = 'zxy'
-          logical                  :: Li                     = .FALSE.
-          logical                  :: Euler(3)               = [.FALSE., .FALSE., .FALSE.]
-                              ! F,F,F => for the true BF or F1
-                              ! T,T,T => when a new BF is defined with 2 vectors
-                              ! F,T,T => when a new BF is defined with ONE vector
-                              ! Plus other cases
-          logical                  :: cos_th                   = .TRUE.
-          logical                  :: Def_cos_th               = .TRUE.
+    TYPE (Type_BFTransfo),    allocatable :: tab_BFTransfo(:) ! dim: nb_vect
 
-          integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 centers (atoms, COM ...)
-          integer,                  allocatable :: type_Qin(:)
-          character (len=Name_len), allocatable :: name_Qin(:)
-          integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
-          integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
+    ! variables use for the calculation (Tana)
+    ! They are defined here, because of the recursive structure
+    type(opel)                     :: Qvec(3)        ! R,theta or u_theta, phi   or x,y,z
+    type(opel)                     :: QEuler(3)      ! alpha, beta or u_beta, gamma
+    type(vec_sum_opnd)             :: Unit_Vector
 
+    type(sum_opnd),    allocatable :: M_mass(:,:)    ! mass matrix
+    type(vec_sum_opnd)             :: J              ! total angular momentum
+    type(vec_sum_opnd)             :: Jdag           ! adjoint of J
+    integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
+    type(sum_opnd)                 :: KEO            ! Output kEO
+  END TYPE Type_BFTransfo
 
-          TYPE (Type_BFTransfo),    allocatable :: tab_BFTransfo(:) ! dim: nb_vect
+  !INTERFACE alloc_array
+  !  MODULE PROCEDURE alloc_array_OF_BFTransfodim1
+  !END INTERFACE
+  !INTERFACE dealloc_array
+  !  MODULE PROCEDURE dealloc_array_OF_BFTransfodim1
+  !END INTERFACE
+  INTERFACE alloc_NParray
+    MODULE PROCEDURE alloc_NParray_OF_BFTransfodim1
+  END INTERFACE
+  INTERFACE dealloc_NParray
+    MODULE PROCEDURE dealloc_NParray_OF_BFTransfodim1
+  END INTERFACE
 
-          ! variables use for the calculation (Tana)
-          ! They are defined here, because of the recursive structure
-          type(opel)                     :: Qvec(3)        ! R,theta or u_theta, phi   or x,y,z
-          type(opel)                     :: QEuler(3)      ! alpha, beta or u_beta, gamma
-          type(vec_sum_opnd)             :: Unit_Vector
+  PUBLIC :: Type_BunchTransfo, alloc_BunchTransfo, dealloc_BunchTransfo
+  PUBLIC :: Read_BunchTransfo, Read2_BunchTransfo
+  PUBLIC :: M_Tana_FROM_Bunch2Transfo, Write_BunchTransfo, calc_BunchTransfo
+  !PUBLIC :: BunchTransfo1TOBunchTransfo2
 
-          type(sum_opnd),    allocatable :: M_mass(:,:)    ! mass matrix
-          type(vec_sum_opnd)             :: J              ! total angular momentum
-          type(vec_sum_opnd)             :: Jdag           ! adjoint of J
-          integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
-          type(sum_opnd)                 :: KEO            ! Output kEO
-      END TYPE Type_BFTransfo
-
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_BFTransfodim1
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_BFTransfodim1
-      END INTERFACE
-      INTERFACE alloc_NParray
-        MODULE PROCEDURE alloc_NParray_OF_BFTransfodim1
-      END INTERFACE
-      INTERFACE dealloc_NParray
-        MODULE PROCEDURE dealloc_NParray_OF_BFTransfodim1
-      END INTERFACE
-
-      PUBLIC :: Type_BunchTransfo, alloc_BunchTransfo, dealloc_BunchTransfo
-      PUBLIC :: Read_BunchTransfo, Read2_BunchTransfo
-      PUBLIC :: M_Tana_FROM_Bunch2Transfo, Write_BunchTransfo, calc_BunchTransfo
-      PUBLIC :: BunchTransfo1TOBunchTransfo2
-
-      PUBLIC :: Type_BFTransfo, RecRead_BFTransfo, RecWrite_BFTransfo
-      PUBLIC :: dealloc_BFTransfo, alloc_array, dealloc_array, alloc_NParray, dealloc_NParray
-      PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin, Rec_BFTransfo1TOBFTransfo2
-
+  PUBLIC :: Type_BFTransfo, RecRead_BFTransfo, RecWrite_BFTransfo
+  PUBLIC :: dealloc_BFTransfo, alloc_NParray, dealloc_NParray
+  PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin
+  PUBLIC :: Rec_BFTransfo1TOBFTransfo2
+  !PUBLIC :: alloc_array, dealloc_array
 
 CONTAINS
 
-      SUBROUTINE alloc_FrameType(BFTransfo,nb_vect)
-      TYPE (Type_BFTransfo),intent(inout) :: BFTransfo
+  SUBROUTINE alloc_FrameType(BFTransfo,nb_vect)
+    TYPE (Type_BFTransfo), intent(inout) :: BFTransfo
+    integer,               intent(in)    :: nb_vect
 
-      integer, intent(in) :: nb_vect
+    character (len=*), parameter :: name_sub='alloc_FrameType'
 
-      character (len=*), parameter :: name_sub='alloc_FrameType'
+    !write(out_unit,*) 'BEGINNING ',name_sub
 
-      !write(out_unit,*) 'BEGINNING ',name_sub
+    CALL dealloc_FrameType(BFTransfo)
 
-      CALL dealloc_FrameType(BFTransfo)
+    IF (nb_vect > 1) THEN
+      CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_xFrame,[nb_vect],    &
+                      "BFTransfo%Coef_Vect_FOR_xFrame",name_sub)
+      BFTransfo%Coef_Vect_FOR_xFrame(:) = 0
+      CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_yFrame,[nb_vect],    &
+                      "BFTransfo%Coef_Vect_FOR_yFrame",name_sub)
+      BFTransfo%Coef_Vect_FOR_yFrame(:) = 0
+      CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_zFrame,[nb_vect],    &
+                      "BFTransfo%Coef_Vect_FOR_zFrame",name_sub)
+      BFTransfo%Coef_Vect_FOR_zFrame(:) = 0
+      CALL alloc_NParray(BFTransfo%Coef_OF_Vect1,[nb_vect],           &
+                      "BFTransfo%Coef_OF_Vect1",name_sub)
+      BFTransfo%Coef_OF_Vect1(:) = 0
+      CALL alloc_NParray(BFTransfo%Coef_OF_Vect2,[nb_vect],           &
+                      "BFTransfo%Coef_OF_Vect2",name_sub)
+      BFTransfo%Coef_OF_Vect2(:) = 0
+    END IF
 
-      IF (nb_vect > 1) THEN
+    !write(out_unit,*) 'END ',name_sub
+  END SUBROUTINE alloc_FrameType
 
-        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_xFrame,[nb_vect],    &
-                        "BFTransfo%Coef_Vect_FOR_xFrame",name_sub)
-        BFTransfo%Coef_Vect_FOR_xFrame(:) = 0
-
-        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_yFrame,[nb_vect],    &
-                        "BFTransfo%Coef_Vect_FOR_yFrame",name_sub)
-        BFTransfo%Coef_Vect_FOR_yFrame(:) = 0
-
-        CALL alloc_NParray(BFTransfo%Coef_Vect_FOR_zFrame,[nb_vect],    &
-                        "BFTransfo%Coef_Vect_FOR_zFrame",name_sub)
-        BFTransfo%Coef_Vect_FOR_zFrame(:) = 0
-
-        CALL alloc_NParray(BFTransfo%Coef_OF_Vect1,[nb_vect],           &
-                        "BFTransfo%Coef_OF_Vect1",name_sub)
-        BFTransfo%Coef_OF_Vect1(:) = 0
-
-        CALL alloc_NParray(BFTransfo%Coef_OF_Vect2,[nb_vect],           &
-                        "BFTransfo%Coef_OF_Vect2",name_sub)
-        BFTransfo%Coef_OF_Vect2(:) = 0
-      END IF
-
-
-      !write(out_unit,*) 'END ',name_sub
-      END SUBROUTINE alloc_FrameType
-
-      SUBROUTINE dealloc_FrameType(BFTransfo)
+  SUBROUTINE dealloc_FrameType(BFTransfo)
       TYPE (Type_BFTransfo),intent(inout) :: BFTransfo
 
       character (len=*), parameter :: name_sub='dealloc_FrameType'
@@ -233,9 +224,9 @@ CONTAINS
       BFTransfo%Type_Vect = 'zxy'
 
       !write(out_unit,*) 'END ',name_sub
-      END SUBROUTINE dealloc_FrameType
+  END SUBROUTINE dealloc_FrameType
 
-      SUBROUTINE Write_FrameType(BFTransfo)
+  SUBROUTINE Write_FrameType(BFTransfo)
       TYPE (Type_BFTransfo),intent(in) :: BFTransfo
 
 
@@ -267,10 +258,9 @@ CONTAINS
       END IF
 
       !write(out_unit,*) 'END ',name_sub
-      END SUBROUTINE Write_FrameType
+  END SUBROUTINE Write_FrameType
 
-
-      SUBROUTINE calc_Rot_Vect(tab_dnXVect,BFTransfo,nderiv)
+  SUBROUTINE calc_Rot_Vect(tab_dnXVect,BFTransfo,nderiv)
 
       TYPE (Type_BFTransfo), intent(in)     :: BFTransfo
       TYPE (Type_dnVec),    intent(inout)   :: tab_dnXVect(:)
@@ -398,10 +388,10 @@ CONTAINS
       END IF
 
 
-      END SUBROUTINE calc_Rot_Vect
+  END SUBROUTINE calc_Rot_Vect
       !  ez = V1 x V2
       !  ex ortho to Vx ez
-      SUBROUTINE calc_Vect_12zx(dnVeczBF,dnVecxBF,dnVecyBF,tab_dnXVect,BFTransfo,nderiv)
+  SUBROUTINE calc_Vect_12zx(dnVeczBF,dnVecxBF,dnVecyBF,tab_dnXVect,BFTransfo,nderiv)
 
       TYPE (Type_BFTransfo), intent(in)   :: BFTransfo
       TYPE (Type_dnVec),    intent(inout) :: tab_dnXVect(:)
@@ -513,8 +503,8 @@ CONTAINS
       END IF
 
 
-      END SUBROUTINE calc_Vect_12zx
-      SUBROUTINE calc_Vect_zx(dnVecxBF,dnVecyBF,dnVeczBF,tab_dnXVect,BFTransfo,nderiv)
+  END SUBROUTINE calc_Vect_12zx
+  SUBROUTINE calc_Vect_zx(dnVecxBF,dnVecyBF,dnVeczBF,tab_dnXVect,BFTransfo,nderiv)
 
       TYPE (Type_BFTransfo), intent(in)   :: BFTransfo
       TYPE (Type_dnVec),    intent(inout) :: tab_dnXVect(:)
@@ -613,9 +603,9 @@ CONTAINS
       END IF
 
 
-      END SUBROUTINE calc_Vect_zx
+  END SUBROUTINE calc_Vect_zx
 
-      SUBROUTINE FrameType1TOBFrameType2(BFTransfo1,BFTransfo2)
+  SUBROUTINE FrameType1TOBFrameType2(BFTransfo1,BFTransfo2)
       TYPE (Type_BFTransfo),intent(in)    :: BFTransfo1
       TYPE (Type_BFTransfo),intent(inout) :: BFTransfo2
 
@@ -663,7 +653,7 @@ CONTAINS
         flush(out_unit)
       END IF
 
-      END SUBROUTINE FrameType1TOBFrameType2
+  END SUBROUTINE FrameType1TOBFrameType2
 
 
       RECURSIVE SUBROUTINE dealloc_BFTransfo(BFTransfo)
@@ -882,236 +872,233 @@ CONTAINS
   END SUBROUTINE dealloc_NParray_OF_BFTransfodim1
       !!@description: TODO
       !!@param: TODO
-      RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,nb_vect_bunch,ind_vect_bunch,    &
-                                             num_Frame_in_Container,Cart_type)
+  RECURSIVE SUBROUTINE RecRead_BFTransfo(BFTransfo,nb_vect_bunch,ind_vect_bunch,    &
+                                         num_Frame_in_Container,Cart_type)
 
-      TYPE (Type_BFTransfo),   intent(inout) :: BFTransfo
-      integer,                 intent(in)    :: nb_vect_bunch
-      integer,                 intent(inout) :: ind_vect_bunch(:,:)
-      integer,                 intent(inout) :: num_Frame_in_Container
-      character (len=*),       intent(in)    :: Cart_Type
+    TYPE (Type_BFTransfo),   intent(inout) :: BFTransfo
+    integer,                 intent(in)    :: nb_vect_bunch
+    integer,                 intent(inout) :: ind_vect_bunch(:,:)
+    integer,                 intent(inout) :: num_Frame_in_Container
+    character (len=*),       intent(in)    :: Cart_Type
 
+    integer :: nb_vect,nb_var,iv,num_Frame_in_Container_rec,Frame_type
+    logical :: Frame,cos_th,cart,zmat_order,Li
+    character (len=Name_len) :: name_d,name_th,name_u,name_dih,        &
+                                name_x,name_y,name_z,                  &
+                                name_alpha,name_beta,name_gamma
+    character (len=Name_len) :: name_Frame
+    character(len=:), allocatable     :: name_F,name_v
 
-      integer :: nb_vect,nb_var,iv,num_Frame_in_Container_rec,Frame_type
-      logical :: Frame,cos_th,cart,zmat_order,Li
-      character (len=Name_len) :: name_d,name_th,name_u,name_dih,        &
-                                  name_x,name_y,name_z,                  &
-                                  name_alpha,name_beta,name_gamma
-      character (len=Name_len) :: name_Frame
+    integer       :: iAtA,iAtB
+    integer       :: i,nb_Qin,i_Qprim
+    integer       :: iQalpha_TO_ivTot,iQbeta_TO_ivTot,iQgamma_TO_ivTot
 
-      character(len=:), allocatable     :: name_F,name_v
+    logical, save :: zmat_order_save        = .FALSE.
+    integer, save :: i_Qpoly                = 0
+    integer, save :: rec_level              = 0
+    integer, save :: num_Frame_in_BF        = 0
+    integer, save :: num_vect_in_BF         = 0
+    integer, save :: iv_tot                 = 0
+    character (len=6) :: Spherical_convention
+    integer, allocatable :: tab_num_Frame(:)
 
-      integer       :: iAtA,iAtB
-      integer       :: i,nb_Qin,i_Qprim
-      integer       :: iQalpha_TO_ivTot,iQbeta_TO_ivTot,iQgamma_TO_ivTot
+    integer, parameter :: max_vect = 100
+    real (kind=Rkind) :: Coef_Vect_FOR_xFrame(max_vect)
+    real (kind=Rkind) :: Coef_Vect_FOR_yFrame(max_vect)
+    real (kind=Rkind) :: Coef_Vect_FOR_zFrame(max_vect)
+    real (kind=Rkind) :: Coef_OF_Vect1(max_vect)
+    real (kind=Rkind) :: Coef_OF_Vect2(max_vect)
+    character (len=3) :: Type_Vect
 
-      logical, save :: zmat_order_save        = .FALSE.
-      integer, save :: i_Qpoly                = 0
-      integer, save :: rec_level              = 0
-      integer, save :: num_Frame_in_BF        = 0
-      integer, save :: num_vect_in_BF         = 0
-      integer, save :: iv_tot                 = 0
-      character (len=6) :: Spherical_convention
-      integer, allocatable :: tab_num_Frame(:)
+    NAMELIST /vector/ nb_vect,Frame,Frame_type,name_Frame,                    &
+                      zmat_order,                                             &
+                      cos_th,name_d,name_th,name_u,name_dih,                  &
+                      Spherical_convention,cart,Li,                           &
+                      name_x,name_y,name_z,                                   &
+                      name_alpha,name_beta,name_gamma,                        &
+                      iAtA,iAtB
 
-      integer, parameter :: max_vect = 100
-      real (kind=Rkind) :: Coef_Vect_FOR_xFrame(max_vect)
-      real (kind=Rkind) :: Coef_Vect_FOR_yFrame(max_vect)
-      real (kind=Rkind) :: Coef_Vect_FOR_zFrame(max_vect)
-      real (kind=Rkind) :: Coef_OF_Vect1(max_vect)
-      real (kind=Rkind) :: Coef_OF_Vect2(max_vect)
-      character (len=3) :: Type_Vect
+    NAMELIST /Vect_FOR_AxisFrame / Coef_OF_Vect1,Coef_OF_Vect2,       &
+                                   Type_Vect,Coef_Vect_FOR_xFrame,    &
+                             Coef_Vect_FOR_yFrame,Coef_Vect_FOR_zFrame
 
-      NAMELIST /vector/ nb_vect,Frame,Frame_type,name_Frame,                    &
-                        zmat_order,                                             &
-                        cos_th,name_d,name_th,name_u,name_dih,                  &
-                        Spherical_convention,cart,Li,                           &
-                        name_x,name_y,name_z,                                   &
-                        name_alpha,name_beta,name_gamma,                        &
-                        iAtA,iAtB
+    !----- for debuging --------------------------------------------------
+    integer :: err_mem,memory,err_io
+    character (len=*), parameter :: name_sub = "RecRead_BFTransfo"
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !-----------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+    END IF
+    !-----------------------------------------------------------
 
-      NAMELIST /Vect_FOR_AxisFrame / Coef_OF_Vect1,Coef_OF_Vect2,       &
-                                     Type_Vect,Coef_Vect_FOR_xFrame,    &
-                               Coef_Vect_FOR_yFrame,Coef_Vect_FOR_zFrame
+    IF (nb_vect_bunch > max_vect) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) 'max_vect is too small',max_vect
+      write(out_unit,*) ' it MUST be larger than',nb_vect_bunch
+      STOP
+    END IF
 
-!----- for debuging --------------------------------------------------
-      integer :: err_mem,memory,err_io
-      character (len=*), parameter :: name_sub = "RecRead_BFTransfo"
-      logical, parameter :: debug=.FALSE.
-      !logical, parameter :: debug=.TRUE.
-!-----------------------------------------------------------
-       IF (debug) THEN
-         write(out_unit,*) 'BEGINNING ',name_sub
-       END IF
-!-----------------------------------------------------------
-      IF (nb_vect_bunch > max_vect) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) 'max_vect is too small',max_vect
-        write(out_unit,*) ' it MUST be larger than',nb_vect_bunch
-        STOP
-      END IF
-
-      IF (iv_tot == 0) THEN
-        nb_Qin = size(BFTransfo%type_Qin)
-        CALL alloc_NParray(BFTransfo%list_Qpoly_TO_Qprim,[nb_Qin],      &
+    IF (iv_tot == 0) THEN
+      nb_Qin = size(BFTransfo%type_Qin)
+      CALL alloc_NParray(BFTransfo%list_Qpoly_TO_Qprim,[nb_Qin],      &
                         "BFTransfo%list_Qpoly_TO_Qprim",name_sub)
-        BFTransfo%list_Qpoly_TO_Qprim(:) = [(i,i=1,nb_Qin)]
+      BFTransfo%list_Qpoly_TO_Qprim(:) = [(i,i=1,nb_Qin)]
 
-        CALL alloc_NParray(BFTransfo%list_Qprim_TO_Qpoly,[nb_Qin],      &
+      CALL alloc_NParray(BFTransfo%list_Qprim_TO_Qpoly,[nb_Qin],      &
                         "BFTransfo%list_Qprim_TO_Qpoly",name_sub)
-        BFTransfo%list_Qprim_TO_Qpoly(:) = [(i,i=1,nb_Qin)]
-      END IF
+      BFTransfo%list_Qprim_TO_Qpoly(:) = [(i,i=1,nb_Qin)]
+    END IF
 
-      ! initialization for the namelist "vector"
-      iv_tot        = iv_tot + 1
-      iAtA          = 0
-      iAtB          = 0
-      nb_vect       = 0
-      Frame         = .FALSE.
-      Frame_type    = 0
-      cos_th        = BFTransfo%Def_cos_th
-      cart          = .FALSE.
-      Spherical_convention = 'zxy'
-      Li            = .FALSE.
-      zmat_order    = .FALSE.
-      name_x        = "x"
-      name_y        = "y"
-      name_z        = "z"
-      name_d        = "R"
-      name_th       = "th"
-      name_u        = "u"
-      name_dih      = "phi"
-      name_alpha    = "alpha_"
-      name_beta     = "beta_"
-      name_gamma    = "gamma_"
-      name_Frame    = ""
+    ! initialization for the namelist "vector"
+    iv_tot        = iv_tot + 1
+    iAtA          = 0
+    iAtB          = 0
+    nb_vect       = 0
+    Frame         = .FALSE.
+    Frame_type    = 0
+    cos_th        = BFTransfo%Def_cos_th
+    cart          = .FALSE.
+    Spherical_convention = 'zxy'
+    Li            = .FALSE.
+    zmat_order    = .FALSE.
+    name_x        = "x"
+    name_y        = "y"
+    name_z        = "z"
+    name_d        = "R"
+    name_th       = "th"
+    name_u        = "u"
+    name_dih      = "phi"
+    name_alpha    = "alpha_"
+    name_beta     = "beta_"
+    name_gamma    = "gamma_"
+    name_Frame    = ""
 
-      read(in_unit,vector,IOSTAT=err_io)
+    read(in_unit,vector,IOSTAT=err_io)
+    IF (err_io < 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "vector"'
+      write(out_unit,*) ' end of file or end of record'
+      write(out_unit,*) ' Probably, nb_vect is to large ...'
+      write(out_unit,*) '   or you have forgotten the namelist.'
+      write(out_unit,*) ' Check your data !!'
+      STOP 'ERROR in RecRead_BFTransfo: end of file or end of record while eading the namelist "vector"'
+    END IF
+    IF (err_io > 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) '  while reading the namelist "vector"'
+      write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
+      write(out_unit,*) ' Check your data !!'
+      STOP 'ERROR in RecRead_BFTransfo: wrong argument in the namelist "vector"'
+    END IF
+
+    IF (debug .OR. print_level > 1) write(out_unit,vector)
+    flush(out_unit)
+
+    IF (iv_tot == 1) zmat_order_save = zmat_order
+
+    IF (ind_vect_bunch(3,iv_tot) == 0 .OR. ind_vect_bunch(4,iv_tot) == 0) THEN
+      ind_vect_bunch(3,iv_tot) = iAtA
+      ind_vect_bunch(4,iv_tot) = iAtB
+    END IF
+
+    IF (len_trim(name_Frame) > 0) name_F = trim("  " // trim(name_Frame))
+    BFTransfo%Frame             = Frame
+    IF (.NOT. Frame .AND. Frame_type /= 0) THEN
+      write(out_unit,*) ' WARNING in ',name_sub
+      write(out_unit,*) ' Frame=F and Frame_type /= 0'
+      write(out_unit,*) ' Check your DATA !!'
+    END IF
+    IF (.NOT. Frame) Frame_type = 0
+    IF (Frame_type /= 0) THEN
+      Coef_Vect_FOR_xFrame(:) = ZERO
+      Coef_Vect_FOR_yFrame(:) = ZERO
+      Coef_Vect_FOR_zFrame(:) = ZERO
+      Coef_OF_Vect1(:) = ZERO
+      Coef_OF_Vect2(:) = ZERO
+      Type_Vect        = 'zxy'
+
+      read(in_unit,Vect_FOR_AxisFrame,IOSTAT=err_io)
       IF (err_io < 0) THEN
         write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  while reading the namelist "vector"'
+        write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
         write(out_unit,*) ' end of file or end of record'
-        write(out_unit,*) ' Probably, nb_vect is to large ...'
-        write(out_unit,*) '   or you have forgotten the namelist.'
+        write(out_unit,*) ' Probably, you have forgotten the namelist.'
         write(out_unit,*) ' Check your data !!'
-        STOP
+        STOP 'ERROR in RecRead_BFTransfo: end of file or end of record while eading the namelist "Vect_FOR_AxisFrame"'
       END IF
       IF (err_io > 0) THEN
         write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) '  while reading the namelist "vector"'
+        write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
         write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
         write(out_unit,*) ' Check your data !!'
-        STOP
+        STOP 'ERROR in RecRead_BFTransfo: wrong argument in the namelist "Vect_FOR_AxisFrame"'
       END IF
 
-      IF (debug .OR. print_level > 1) write(out_unit,vector)
-      flush(out_unit)
+      CALL alloc_FrameType(BFTransfo,nb_vect_bunch)
 
-      IF (iv_tot == 1) zmat_order_save = zmat_order
+      BFTransfo%Coef_Vect_FOR_xFrame = Coef_Vect_FOR_xFrame(1:nb_vect_bunch)
+      BFTransfo%Coef_Vect_FOR_yFrame = Coef_Vect_FOR_yFrame(1:nb_vect_bunch)
+      BFTransfo%Coef_Vect_FOR_zFrame = Coef_Vect_FOR_zFrame(1:nb_vect_bunch)
 
-      IF (ind_vect_bunch(3,iv_tot) == 0 .OR.                     &
-          ind_vect_bunch(4,iv_tot) == 0) THEN
-        ind_vect_bunch(3,iv_tot) = iAtA
-        ind_vect_bunch(4,iv_tot) = iAtB
-      END IF
+      BFTransfo%Coef_OF_Vect1 = Coef_OF_Vect1(1:nb_vect_bunch)
+      BFTransfo%Coef_OF_Vect2 = Coef_OF_Vect2(1:nb_vect_bunch)
 
-      IF (len_trim(name_Frame) > 0) name_F = trim("  " // trim(name_Frame))
-      BFTransfo%Frame             = Frame
-      IF (.NOT. Frame .AND. Frame_type /= 0) THEN
-        write(out_unit,*) ' WARNING in ',name_sub
-        write(out_unit,*) ' Frame=F and Frame_type /= 0'
-        write(out_unit,*) ' Check your DATA !!'
-      END IF
-      IF (.NOT. Frame) Frame_type = 0
-      IF (Frame_type /= 0) THEN
-        Coef_Vect_FOR_xFrame(:) = ZERO
-        Coef_Vect_FOR_yFrame(:) = ZERO
-        Coef_Vect_FOR_zFrame(:) = ZERO
-        Coef_OF_Vect1(:) = ZERO
-        Coef_OF_Vect2(:) = ZERO
-        Type_Vect        = 'zxy'
-
-        read(in_unit,Vect_FOR_AxisFrame,IOSTAT=err_io)
-        IF (err_io < 0) THEN
-          write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
-          write(out_unit,*) ' end of file or end of record'
-          write(out_unit,*) ' Probably, you have forgotten the namelist.'
-          write(out_unit,*) ' Check your data !!'
-          STOP
-        END IF
-        IF (err_io > 0) THEN
-          write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) '  while reading the namelist "Vect_FOR_AxisFrame"'
-          write(out_unit,*) ' Probably, some arguments of namelist are wrong.'
-          write(out_unit,*) ' Check your data !!'
-          STOP
-        END IF
-
-        CALL alloc_FrameType(BFTransfo,nb_vect_bunch)
-
-        BFTransfo%Coef_Vect_FOR_xFrame = Coef_Vect_FOR_xFrame(1:nb_vect_bunch)
-        BFTransfo%Coef_Vect_FOR_yFrame = Coef_Vect_FOR_yFrame(1:nb_vect_bunch)
-        BFTransfo%Coef_Vect_FOR_zFrame = Coef_Vect_FOR_zFrame(1:nb_vect_bunch)
-
-        BFTransfo%Coef_OF_Vect1 = Coef_OF_Vect1(1:nb_vect_bunch)
-        BFTransfo%Coef_OF_Vect2 = Coef_OF_Vect2(1:nb_vect_bunch)
-
-        CALL string_uppercase_TO_lowercase(Type_Vect)
-        BFTransfo%Type_Vect = Type_Vect
-        SELECT CASE(Type_Vect)
-        CASE ("zxy","zyx","xyz","xzy","yzx","yxz")
-          CONTINUE
-        CASE default
-          write(out_unit,*) ' ERROR in ',name_sub
-          write(out_unit,*) ' Wrong "Type_Vect": ',Type_Vect
-          write(out_unit,*) ' The 6 possibilities are "zxy", "zyx", "xyz", "xzy", "yzx" and "yxz"'
-          write(out_unit,*) ' Check your data !!'
-          STOP
-        END SELECT
-
-      END IF
-
-      BFTransfo%cart              = cart
-      BFTransfo%Li                = Li
-      CALL string_uppercase_TO_lowercase(Spherical_convention)
-      BFTransfo%Spherical_convention = Spherical_convention
-      SELECT CASE(Spherical_convention)
-      CASE ("zxy","x-zy")
+      CALL string_uppercase_TO_lowercase(Type_Vect)
+      BFTransfo%Type_Vect = Type_Vect
+      SELECT CASE(Type_Vect)
+      CASE ("zxy","zyx","xyz","xzy","yzx","yxz")
         CONTINUE
       CASE default
         write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' Wrong "Spherical_convention": ',Spherical_convention
-        write(out_unit,*) ' The possibilities are "zxy", "x-zy"'
+        write(out_unit,*) ' Wrong "Type_Vect": ',Type_Vect
+        write(out_unit,*) ' The 6 possibilities are "zxy", "zyx", "xyz", "xzy", "yzx" and "yxz"'
         write(out_unit,*) ' Check your data !!'
         STOP
       END SELECT
 
-      BFTransfo%nb_vect           = nb_vect
-      num_vect_in_BF              = num_vect_in_BF + 1
-      BFTransfo%num_vect_in_BF    = num_vect_in_BF
-      BFTransfo%cos_th            = cos_th
+    END IF
 
-      IF (nb_vect < 0) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' the number of vector is < 0!!',nb_vect
-        STOP
-      END IF
+    BFTransfo%cart              = cart
+    BFTransfo%Li                = Li
+    CALL string_uppercase_TO_lowercase(Spherical_convention)
+    BFTransfo%Spherical_convention = Spherical_convention
+    SELECT CASE(Spherical_convention)
+    CASE ("zxy","x-zy")
+      CONTINUE
+    CASE default
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' Wrong "Spherical_convention": ',Spherical_convention
+      write(out_unit,*) ' The possibilities are "zxy", "x-zy"'
+      write(out_unit,*) ' Check your data !!'
+      STOP
+    END SELECT
 
-      IF (.NOT. BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
-        write(out_unit,*) ' ERROR in ',name_sub
-        write(out_unit,*) ' The first vector MUST defined a Frame (BF)'
-        write(out_unit,*) ' Frame, num_vect_in_BF',Frame,BFTransfo%num_vect_in_BF
-        STOP
-      END IF
-      IF (BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
-        BFTransfo%BF = .TRUE.
-      ELSE
-        BFTransfo%BF = .FALSE.
-      END IF
+    BFTransfo%nb_vect           = nb_vect
+    num_vect_in_BF              = num_vect_in_BF + 1
+    BFTransfo%num_vect_in_BF    = num_vect_in_BF
+    BFTransfo%cos_th            = cos_th
 
+    IF (nb_vect < 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' the number of vector is < 0!!',nb_vect
+      STOP
+    END IF
 
-      IF (BFTransfo%Frame) THEN
+    IF (.NOT. BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' The first vector MUST defined a Frame (BF)'
+      write(out_unit,*) ' Frame, num_vect_in_BF',Frame,BFTransfo%num_vect_in_BF
+      STOP
+    END IF
+    IF (BFTransfo%Frame .AND. BFTransfo%num_vect_in_BF == 1) THEN
+      BFTransfo%BF = .TRUE.
+    ELSE
+      BFTransfo%BF = .FALSE.
+    END IF
+
+    IF (BFTransfo%Frame) THEN
         BFTransfo%num_vect_in_Frame      = 1
         num_Frame_in_Container           = num_Frame_in_Container  + 1 ! recursive number of the frame
         rec_level                        = rec_level + 1               ! recursive index
@@ -1158,7 +1145,6 @@ CONTAINS
         name_v = trim( TO_string(BFTransfo%num_vect_in_Frame) // &
                                   "_" // trim(adjustl(BFTransfo%name_Frame)))
 
-
         IF (debug .OR. print_level > 1) THEN
           write(out_unit,*) '.................................................'
           write(out_unit,*) ' NEW Frame, rec_level: ',rec_level
@@ -1170,7 +1156,6 @@ CONTAINS
           write(out_unit,*) '   num_vect_in_Frame,num_vect_in_BF',BFTransfo%num_vect_in_Frame,BFTransfo%num_vect_in_BF
           write(out_unit,*) '   name_v: ',trim(adjustl(name_v))
         END IF
-
 
         i_Qpoly = i_Qpoly + 1
 
@@ -1455,144 +1440,150 @@ CONTAINS
 
       IF (allocated(name_v)) deallocate(name_v)
 
+    END IF
+
+    IF (rec_level == 0) THEN
+      BFTransfo%QEuler(1) = set_opel(idf=1, idq=6, alfa=1, indexq=BFTransfo%nb_var+1, coeff=CONE) ! alpha (true Euler)
+      IF (cos_th) THEN
+        BFTransfo%QEuler(2) = set_opel(idf=1, idq=-7, alfa=1, indexq=BFTransfo%nb_var+2, coeff=CONE) ! beta or cos(beta) (true Euler)
+      ELSE
+        BFTransfo%QEuler(2) = set_opel(idf=1, idq=7, alfa=1, indexq=BFTransfo%nb_var+2, coeff=CONE) ! beta or cos(beta) (true Euler)
       END IF
+      BFTransfo%QEuler(3) = set_opel(idf=1, idq=8, alfa=1, indexq=BFTransfo%nb_var+3, coeff=CONE) ! gamma (true Euler)
+      !CALL write_op(BFTransfo%QEuler(1))
+      !CALL write_op(BFTransfo%QEuler(2))
+      !CALL write_op(BFTransfo%QEuler(3))
+    END IF
 
+    IF (debug) THEN 
+      CALL RecWrite_BFTransfo(BFTransfo,recur=.FALSE.)
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
 
-
-      IF (rec_level == 0) THEN
-
-        BFTransfo%QEuler(1) = set_opel(idf=1, idq=6, alfa=1, indexq=BFTransfo%nb_var+1, coeff=CONE) ! alpha (true Euler)
-        IF (cos_th) THEN
-          BFTransfo%QEuler(2) = set_opel(idf=1, idq=-7, alfa=1, indexq=BFTransfo%nb_var+2, coeff=CONE) ! beta or cos(beta) (true Euler)
-        ELSE
-          BFTransfo%QEuler(2) = set_opel(idf=1, idq=7, alfa=1, indexq=BFTransfo%nb_var+2, coeff=CONE) ! beta or cos(beta) (true Euler)
-        END IF
-        BFTransfo%QEuler(3) = set_opel(idf=1, idq=8, alfa=1, indexq=BFTransfo%nb_var+3, coeff=CONE) ! gamma (true Euler)
-
-        !CALL write_op(BFTransfo%QEuler(1))
-        !CALL write_op(BFTransfo%QEuler(2))
-        !CALL write_op(BFTransfo%QEuler(3))
-      END IF
-
-      IF (debug) CALL RecWrite_BFTransfo(BFTransfo,recur=.FALSE.)
-      IF (debug) write(out_unit,*) 'END ',name_sub
-
-      END SUBROUTINE RecRead_BFTransfo
+  END SUBROUTINE RecRead_BFTransfo
 
       !!@description: TODO
       !!@param: TODO
-      RECURSIVE SUBROUTINE RecWrite_BFTransfo(BFTransfo,recur)
+  RECURSIVE SUBROUTINE RecWrite_BFTransfo(BFTransfo,recur)
+    TYPE (Type_BFTransfo),intent(in)  :: BFTransfo
+    logical,intent(in), optional      :: recur
 
-      TYPE (Type_BFTransfo),intent(in)  :: BFTransfo
-      logical,intent(in), optional      :: recur
+    integer :: iv,iq
+    logical :: recur_loc
+    character (len=*), parameter :: name_sub='RecWrite_BFTransfo'
 
-      integer :: iv,iq
-      logical :: recur_loc
-      character (len=*), parameter :: name_sub='RecWrite_BFTransfo'
+    recur_loc = .TRUE.
+    IF (present(recur)) recur_loc = recur
 
-      !IF (.NOT. BFTransfo%Frame) RETURN
-      recur_loc = .TRUE.
-      IF (present(recur)) recur_loc = recur
+    write(out_unit,*) 'BEGINNING ',name_sub
 
-      write(out_unit,*) 'BEGINNING ',name_sub
+    CALL Write_FrameType(BFTransfo)
 
-      CALL Write_FrameType(BFTransfo)
+    write(out_unit,*) 'num_vect_in_Frame     ',BFTransfo%num_vect_in_Frame
+    write(out_unit,*) 'num_vect_in_BF        ',BFTransfo%num_vect_in_BF
 
-      write(out_unit,*) 'num_vect_in_Frame',BFTransfo%num_vect_in_Frame
-      write(out_unit,*) 'num_vect_in_BF',BFTransfo%num_vect_in_BF
+    write(out_unit,*) 'num_Frame_in_BF       ',BFTransfo%num_Frame_in_BF
+    write(out_unit,*) 'num_Frame_in_Container',BFTransfo%num_Frame_in_Container
+    write(out_unit,*) 'name_Frame:           ',BFTransfo%name_Frame
+    IF (allocated(BFTransfo%tab_num_Frame)) THEN
+      write(out_unit,*) 'tab_num_Frame         ',BFTransfo%tab_num_Frame(:)
+    ELSE
+      write(out_unit,*) 'tab_num_Frame NOT allocated'
+    END IF
 
-      write(out_unit,*) 'num_Frame_in_BF',BFTransfo%num_Frame_in_BF
-      write(out_unit,*) 'num_Frame_in_Container',BFTransfo%num_Frame_in_Container
-      write(out_unit,*) 'name_Frame: ',BFTransfo%name_Frame
-      IF (allocated(BFTransfo%tab_num_Frame))                          &
-           write(out_unit,*) 'tab_num_Frame',BFTransfo%tab_num_Frame(:)
+    write(out_unit,*) 'nb_vect,nb_vect_tot   ',BFTransfo%nb_vect,BFTransfo%nb_vect_tot
+    write(out_unit,*) 'nb_var,nb_var_Rot     ',BFTransfo%nb_var,BFTransfo%nb_var_Rot
 
-      write(out_unit,*) 'nb_vect,nb_vect_tot',                         &
-                         BFTransfo%nb_vect,BFTransfo%nb_vect_tot
+    write(out_unit,*) 'BF Frame,local Frame: ',BFTransfo%BF,BFTransfo%Frame
+    write(out_unit,*) 'euler angles:         ',BFTransfo%euler(:)
 
-      write(out_unit,*) 'nb_var,nb_var_Rot',                           &
-                         BFTransfo%nb_var,BFTransfo%nb_var_Rot
+    write(out_unit,*) 'Cart                  ',BFTransfo%cart
+    write(out_unit,*) 'Li                    ',BFTransfo%Li
+    write(out_unit,*) 'Spherical_convention: ',BFTransfo%Spherical_convention
 
-      write(out_unit,*) 'BF,local Frame,euler',BFTransfo%BF,BFTransfo%Frame,BFTransfo%euler(:)
+    write(out_unit,*) 'Def_cos_th,cos_th     ',BFTransfo%Def_cos_th,BFTransfo%cos_th
+    write(out_unit,*) ' Elementary operators for Tana:'
+    write(out_unit,*) ' R, theta ( or u_theta), phi or x, y, z:'
+    CALL write_op(BFTransfo%Qvec(1))
+    CALL write_op(BFTransfo%Qvec(2))
+    CALL write_op(BFTransfo%Qvec(3))
+    write(out_unit,*) ' alpha, beta ( or u_beta), gamma:'
+    CALL write_op(BFTransfo%QEuler(1))
+    CALL write_op(BFTransfo%QEuler(2))
+    CALL write_op(BFTransfo%QEuler(3))
+    write(out_unit,*) ' Unit_vector:'
+    CALL write_op(BFTransfo%Unit_Vector)
 
-      write(out_unit,*) 'Cart',BFTransfo%cart
-      write(out_unit,*) 'Li',BFTransfo%Li
-      write(out_unit,*) 'Spherical_convention',BFTransfo%Spherical_convention
+    IF (allocated(BFTransfo%type_Qin) .AND. allocated(BFTransfo%name_Qin)) THEN
+      write(out_unit,*) 'type_Qin',BFTransfo%type_Qin(:)
+      write(out_unit,*) 'name_Qin: ',                                &
+            (trim(BFTransfo%name_Qin(iq))," ",iq=1,BFTransfo%nb_var)
+    ELSE
+      write(out_unit,*) 'type_Qin or name_Qin NOT allocated'
+    END IF
 
-      write(out_unit,*) 'Def_cos_th,cos_th',BFTransfo%Def_cos_th,BFTransfo%cos_th
-      write(out_unit,*) ' Elementary operators for Tana:'
-      write(out_unit,*) ' R, theta ( or u_theta), phi or x, y, z:'
-      CALL write_op(BFTransfo%Qvec(1))
-      CALL write_op(BFTransfo%Qvec(2))
-      CALL write_op(BFTransfo%Qvec(3))
-      write(out_unit,*) ' alpha, beta ( or u_beta), gamma:'
-      CALL write_op(BFTransfo%QEuler(1))
-      CALL write_op(BFTransfo%QEuler(2))
-      CALL write_op(BFTransfo%QEuler(3))
-      write(out_unit,*) ' Unit_vector:'
-      CALL write_op(BFTransfo%Unit_Vector)
+    IF (allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
+      write(out_unit,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
+    ELSE
+      write(out_unit,*) 'list_Qpoly_TO_Qprim NOT allocated'
+    END IF
 
-      IF (allocated(BFTransfo%type_Qin) .AND.                          &
-          allocated(BFTransfo%name_Qin)  )      THEN
-        write(out_unit,*) 'type_Qin',BFTransfo%type_Qin(:)
-        write(out_unit,*) 'name_Qin: ',                                &
-              (trim(BFTransfo%name_Qin(iq))," ",iq=1,BFTransfo%nb_var)
-      END IF
+    IF (allocated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
+      write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
+    ELSE
+      write(out_unit,*) 'list_Qprim_TO_Qpoly NOT allocated'
+    END IF
 
-      IF (allocated(BFTransfo%list_Qpoly_TO_Qprim)) THEN
-        write(out_unit,*) 'list_Qpoly_TO_Qprim',BFTransfo%list_Qpoly_TO_Qprim(:)
-      END IF
-
-      IF (allocated(BFTransfo%list_Qprim_TO_Qpoly)) THEN
-        write(out_unit,*) 'list_Qprim_TO_Qpoly',BFTransfo%list_Qprim_TO_Qpoly(:)
-      END IF
-
-      IF (recur_loc .AND. allocated(BFTransfo%tab_BFTransfo)) THEN
+    IF (recur_loc) THEN
+      IF (allocated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,ubound(BFTransfo%tab_BFTransfo,dim=1)
           CALL RecWrite_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
+      ELSE
+         write(out_unit,*) 'tab_BFTransfo NOT allocated'
       END IF
+    END IF
 
-      write(out_unit,*) 'END ',name_sub
-      flush(out_unit)
+    write(out_unit,*) 'END ',name_sub
+    flush(out_unit)
 
-      END SUBROUTINE RecWrite_BFTransfo
+  END SUBROUTINE RecWrite_BFTransfo
 
-      RECURSIVE SUBROUTINE calc_PolyTransfo(dnQin,i_Qpoly,dnQout,tab_dnXVect,iv_in,   &
-                                            BFTransfo,nderiv)
+  RECURSIVE SUBROUTINE calc_PolyTransfo(dnQin,i_Qpoly,dnQout,tab_dnXVect,iv_in,BFTransfo,nderiv)
+    TYPE (Type_BFTransfo), intent(in)     :: BFTransfo
+    TYPE (Type_dnVec),     intent(inout)  :: dnQin,dnQout
+    TYPE (Type_dnVec),     intent(inout) :: tab_dnXVect(:)
 
-      TYPE (Type_BFTransfo), intent(in)     :: BFTransfo
-      TYPE (Type_dnVec),     intent(inout)  :: dnQin,dnQout
-      TYPE (Type_dnVec),     intent(inout) :: tab_dnXVect(:)
+    integer, intent (inout) :: i_Qpoly ! index for dnQin
+    integer, intent (in) :: iv_in
 
-      integer, intent (inout) :: i_Qpoly ! index for dnQin
-      integer, intent (in) :: iv_in
+    integer, intent(in) :: nderiv
 
-      integer, intent(in) :: nderiv
+    TYPE (Type_dnS)   :: dnd,dnQval,dnCval,dnSval,dnQdih,dnCdih,dnSdih ! one coordinate
+    TYPE (Type_dnS)   :: dnf1,dnf2,dnf3,dnfx,dnfy,dnfz
+    TYPE (Type_dnS)   :: dna,dnCa,dnSa
 
+    integer :: i_q,i_qv,iv,liv,uiv,ieuler,i_Qprim,dnErr
+    logical :: check
+    integer :: nb_var_deriv
 
-      TYPE (Type_dnS)   :: dnd,dnQval,dnCval,dnSval,dnQdih,dnCdih,dnSdih ! one coordinate
-      TYPE (Type_dnS)   :: dnf1,dnf2,dnf3,dnfx,dnfy,dnfz
-      TYPE (Type_dnS)   :: dna,dnCa,dnSa
-
-      integer :: i_q,i_qv,iv,liv,uiv,ieuler,i_Qprim,dnErr
-      logical :: check
-      integer :: nb_var_deriv
-
-!      -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       integer :: nderiv_debug = 0
       logical, parameter :: debug = .FALSE.
       !logical, parameter :: debug = .TRUE.
       character (len=*), parameter :: name_sub='calc_PolyTransfo'
-!      -----------------------------------------------------------------
+      !-----------------------------------------------------------------
       IF (debug) THEN
         write(out_unit,*)
         write(out_unit,*) 'BEGINNING RECURSIVE ',name_sub
         write(out_unit,*) 'nderiv',nderiv
         write(out_unit,*) 'i_Qpoly,iv_in',i_Qpoly,iv_in
         CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
+        flush(out_unit)
       END IF
-!      -----------------------------------------------------------------
+ 
+      !-----------------------------------------------------------------
       nb_var_deriv = dnQin%nb_var_deriv
 
       ! initialization : allocation....
@@ -1621,7 +1612,7 @@ CONTAINS
           write(out_unit,*) '  "list_Qpoly_TO_Qprim" is not allocated'
           CALL RecWrite_BFTransfo(BFTransfo,.FALSE.)
           write(out_unit,*) ' Check the fortran source !!'
-          STOP
+          STOP 'ERROR calc_PolyTransfo in: BFTransfo%list_Qpoly_TO_Qprim NOT allocated'
         END IF
         i_Qprim = BFTransfo%list_Qpoly_TO_Qprim(i_Qpoly)
         CALL Set_ZERO_TO_dnSVM(tab_dnXVect(iv+1))
@@ -1940,7 +1931,7 @@ CONTAINS
       END IF
 
 
-      END SUBROUTINE calc_PolyTransfo
+  END SUBROUTINE calc_PolyTransfo
 
   SUBROUTINE calc_PolyTransfo_outTOin(dnQin,dnQout,BFTransfo,nderiv)
     TYPE (Type_BFTransfo), intent(in)    :: BFTransfo

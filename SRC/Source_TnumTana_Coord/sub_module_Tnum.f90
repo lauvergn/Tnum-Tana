@@ -168,8 +168,8 @@ MODULE mod_Tnum
 
     TYPE (CurviRPH_type)                   :: CurviRPH
 
-    integer, pointer :: liste_QactTOQdyn(:) => null()   ! true pointer
-    integer, pointer :: liste_QdynTOQact(:) => null()   ! true pointer
+    integer, allocatable :: liste_QactTOQdyn(:)
+    integer, allocatable :: liste_QdynTOQact(:)
     integer, allocatable :: nrho_OF_Qact(:)             ! enables to define the volume element
     integer, allocatable :: nrho_OF_Qdyn(:)             ! enables to define the volume element
 
@@ -383,32 +383,20 @@ MODULE mod_Tnum
       write(out_unit,*) 'nb_act,nb_var',mole%nb_act,mole%nb_var
       write(out_unit,*) 'nb_extra_Coord',mole%nb_extra_Coord
       write(out_unit,*) 'Number of variables of type...'
-      write(out_unit,*) 'type  1: active                       (nb_act1):',  &
-                  mole%nb_act1
-      write(out_unit,*) 'type 31: for gaussian WP           (nb_inact31):',  &
-                  mole%nb_inact31
-      write(out_unit,*) 'type 21: inactive harmonic         (nb_inact21):',  &
-                  mole%nb_inact21
-      write(out_unit,*) 'type 22: inactive non harmonic     (nb_inact22):',  &
-                  mole%nb_inact22
-      write(out_unit,*) 'type 20: adiabatically constrained (nb_inact20):',  &
-                  mole%nb_inact20
-      write(out_unit,*) 'type  0: rigid                      (nb_rigid0):',  &
-                  mole%nb_rigid0
-      write(out_unit,*) 'type100: rigid                    (nb_rigid100):',  &
-                  mole%nb_rigid100
+      write(out_unit,*) 'type  1: active                       (nb_act1):',mole%nb_act1
+      write(out_unit,*) 'type 31: for gaussian WP           (nb_inact31):',mole%nb_inact31
+      write(out_unit,*) 'type 21: inactive harmonic         (nb_inact21):',mole%nb_inact21
+      write(out_unit,*) 'type 22: inactive non harmonic     (nb_inact22):',mole%nb_inact22
+      write(out_unit,*) 'type 20: adiabatically constrained (nb_inact20):',mole%nb_inact20
+      write(out_unit,*) 'type  0: rigid                      (nb_rigid0):',mole%nb_rigid0
+      write(out_unit,*) 'type100: rigid                    (nb_rigid100):',mole%nb_rigid100
       write(out_unit,*)
-      write(out_unit,*) 'nb_inact2n = nb_inact21 + nb_inact22  :',   &
-                  mole%nb_inact2n
-      write(out_unit,*) 'nb_act= nb_act1+nb_inact31+nb_inact2n :',   &
-                  mole%nb_act
-      write(out_unit,*) 'nb_inact   = nb_inact20 + nb_inact2n  :',   &
-                  mole%nb_inact
-      write(out_unit,*) 'nb_rigid   = nb_rigid0 + nb_rigid100  :',   &
-                  mole%nb_rigid
+      write(out_unit,*) 'nb_inact2n = nb_inact21 + nb_inact22  :',mole%nb_inact2n
+      write(out_unit,*) 'nb_act= nb_act1+nb_inact31+nb_inact2n :',mole%nb_act
+      write(out_unit,*) 'nb_inact   = nb_inact20 + nb_inact2n  :', mole%nb_inact
+      write(out_unit,*) 'nb_rigid   = nb_rigid0 + nb_rigid100  :',mole%nb_rigid
       write(out_unit,*) '------------------------------------------'
-      write(out_unit,*) 'ndimG = nb_act+6 + nb_act+3 or nb_act :',   &
-                  mole%ndimG
+      write(out_unit,*) 'ndimG = nb_act+6 + nb_act+3 or nb_act :',mole%ndimG
       write(out_unit,*) '------------------------------------------'
       write(out_unit,*)
       write(out_unit,*)
@@ -491,7 +479,7 @@ MODULE mod_Tnum
 
     character (len=*), parameter :: name_sub='dealloc_CoordType'
 
-!write(out_unit,*) 'BEGINNING ',name_sub
+    !write(out_unit,*) 'BEGINNING ',name_sub
     !flush(out_unit)
 
         mole%WriteCC      = .FALSE.
@@ -568,8 +556,8 @@ MODULE mod_Tnum
                             'mole%RPHTransfo_inact2n',name_sub)
       END IF
 
-        nullify(mole%liste_QactTOQdyn)   ! true pointer
-        nullify(mole%liste_QdynTOQact)   ! true pointer
+      IF (allocated(mole%liste_QactTOQdyn)) deallocate(mole%liste_QactTOQdyn)
+      IF (allocated(mole%liste_QdynTOQact)) deallocate(mole%liste_QdynTOQact)
 
         IF (allocated(mole%nrho_OF_Qact))  THEN
           CALL dealloc_NParray(mole%nrho_OF_Qact,"mole%nrho_OF_Qact",name_sub)
@@ -1116,8 +1104,8 @@ MODULE mod_Tnum
         END IF
         !=======================================================================
 
-        mole%liste_QactTOQdyn => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QdynTOQact => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
+        !mole%liste_QactTOQdyn = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
+        !mole%liste_QdynTOQact = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
@@ -1367,8 +1355,8 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
         mole%tab_Qtransfo(it)%ActiveTransfo%QMLib            = QMLib
 
-        mole%liste_QactTOQdyn => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QdynTOQact => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
+        mole%liste_QactTOQdyn = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
+        mole%liste_QdynTOQact = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
 
         CALL alloc_NParray(mole%nrho_OF_Qact,[mole%nb_var],"mole%nrho_OF_Qact",name_sub)
         mole%nrho_OF_Qact(:) = 0
@@ -1423,8 +1411,8 @@ MODULE mod_Tnum
         mole%tab_Qtransfo(it)%ActiveTransfo%QMLib            = QMLib
         mole%tab_Qtransfo(it)%ActiveTransfo%With_Tab_dnQflex = With_Tab_dnQflex
 
-        mole%liste_QactTOQdyn => mole%tab_Qtransfo(it)%ActiveTransfo%list_QactTOQdyn
-        mole%liste_QdynTOQact => mole%tab_Qtransfo(it)%ActiveTransfo%list_QdynTOQact
+        mole%liste_QactTOQdyn = mole%tab_Qtransfo(it)%ActiveTransfo%list_QactTOQdyn
+        mole%liste_QdynTOQact = mole%tab_Qtransfo(it)%ActiveTransfo%list_QdynTOQact
 
         mole%tab_Qtransfo(it)%ActiveTransfo%list_QactTOQdyn(:) = 1
 
@@ -1781,7 +1769,6 @@ MODULE mod_Tnum
         END DO
       END IF
 
-      ! the 2 tables are true pointers
       IF (mole1%itActive < 1) THEN
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%itActive < 1'
       END IF
@@ -1792,8 +1779,8 @@ MODULE mod_Tnum
         STOP 'ERROR in CoordType2_TO_CoordType1: mole1%...%ActiveTransfo%list_QdynTOQact is not allocated'
       END IF
 
-      mole1%liste_QactTOQdyn => mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn
-      mole1%liste_QdynTOQact => mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact
+      mole1%liste_QactTOQdyn = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn
+      mole1%liste_QdynTOQact = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact
 
       CALL alloc_NParray(mole1%nrho_OF_Qact,[mole1%nb_var],"mole1%nrho_OF_Qact",name_sub)
       mole1%nrho_OF_Qact(:)  = mole2%nrho_OF_Qact(:)
@@ -2088,6 +2075,9 @@ MODULE mod_Tnum
         ActiveTransfo%list_QdynTOQact(ActiveTransfo%list_QactTOQdyn(i)) = i
       END DO
 
+      mole%liste_QactTOQdyn = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QactTOQdyn
+      mole%liste_QdynTOQact = mole%tab_Qtransfo(mole%itActive)%ActiveTransfo%list_QdynTOQact
+
       mole%nb_inact2n = mole%nb_inact21 + mole%nb_inact22
       mole%nb_act     = mole%nb_act1    + mole%nb_inact31 + mole%nb_inact2n
       mole%nb_inact   = mole%nb_inact20 + mole%nb_inact2n
@@ -2145,6 +2135,8 @@ MODULE mod_Tnum
       END DO
 
       mole%tab_Qtransfo(:)%nb_act = mole%nb_act
+
+
 
       IF (print_loc) THEN
         write(out_unit,*) 'mole%nrho_OF_Qact(:)    ',mole%nrho_OF_Qact(:)

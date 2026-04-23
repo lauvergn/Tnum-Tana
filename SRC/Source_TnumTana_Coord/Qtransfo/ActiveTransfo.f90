@@ -309,6 +309,7 @@ CONTAINS
         STOP
       END IF
 
+      flex = .FALSE.
       DO i=1,nb_Qin
         flex = ActiveTransfo%list_act_OF_Qdyn(i) == 20  .OR.                  &
                ActiveTransfo%list_act_OF_Qdyn(i) == 200 .OR.                  &
