@@ -74,12 +74,6 @@ MODULE mod_ActiveTransfo
           GENERIC,   PUBLIC  :: assignment(=) => ActiveTransfo2_TO_ActiveTransfo1
       END TYPE Type_ActiveTransfo
 
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_ActiveTransfodim0
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_ActiveTransfodim0
-      END INTERFACE
       INTERFACE alloc_NParray
         MODULE PROCEDURE alloc_NParray_OF_ActiveTransfodim0
       END INTERFACE
@@ -188,55 +182,6 @@ CONTAINS
 
     END SUBROUTINE dealloc_ActiveTransfo
 
-    SUBROUTINE alloc_array_OF_ActiveTransfodim0(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      TYPE (Type_ActiveTransfo), pointer, intent(inout) :: tab
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=0
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_ActiveTransfodim0'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       memory = 1
-       allocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_ActiveTransfo')
-
-      END SUBROUTINE alloc_array_OF_ActiveTransfodim0
-      SUBROUTINE dealloc_array_OF_ActiveTransfodim0(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      TYPE (Type_ActiveTransfo), pointer, intent(inout) :: tab
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_ActiveTransfodim0'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = 1
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_ActiveTransfo')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_ActiveTransfodim0
     SUBROUTINE alloc_NParray_OF_ActiveTransfodim0(tab,name_var,name_sub)
       IMPLICIT NONE
 

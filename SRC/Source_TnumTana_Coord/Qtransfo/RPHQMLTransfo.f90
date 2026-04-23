@@ -59,12 +59,6 @@ MODULE mod_RPHQMLTransfo
     !   in a similar way to the active coordinates (active transfo)
   END TYPE Type_RPHQMLTransfo
 
-  INTERFACE alloc_array
-    MODULE PROCEDURE alloc_array_OF_RPHQMLTransfodim0
-  END INTERFACE
-  INTERFACE dealloc_array
-    MODULE PROCEDURE dealloc_array_OF_RPHQMLTransfodim0
-  END INTERFACE
   INTERFACE alloc_NParray
     MODULE PROCEDURE alloc_NParray_OF_RPHQMLTransfodim0
   END INTERFACE
@@ -75,7 +69,6 @@ MODULE mod_RPHQMLTransfo
   PUBLIC :: Type_RPHQMLTransfo, Read_RPHQMLTransfo, Write_RPHQMLTransfo,              &
             dealloc_RPHQMLTransfo, calc_RPHQMLTransfo,RPHQMLTransfo1TORPHQMLTransfo2
 
-  PUBLIC :: alloc_array, dealloc_array
   PUBLIC :: alloc_NParray, dealloc_NParray
 
 CONTAINS
@@ -221,55 +214,6 @@ SUBROUTINE dealloc_RPHQMLTransfo(RPHQMLTransfo)
     CALL dealloc_NParray(RPHQMLTransfo%list_QMLMapping,'RPHQMLTransfo%list_QMLMapping',name_sub)
   END IF
 END SUBROUTINE dealloc_RPHQMLTransfo
-
-SUBROUTINE alloc_array_OF_RPHQMLTransfodim0(tab,name_var,name_sub)
-  IMPLICIT NONE
-
-  TYPE (Type_RPHQMLTransfo), pointer, intent(inout) :: tab
-
-  character (len=*), intent(in) :: name_var,name_sub
-
-  integer, parameter :: ndim=0
-  logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-  character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_RPHQMLTransfodim0'
-  integer :: err_mem,memory
-  logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-   IF (associated(tab))                                             &
-         CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-   memory = 1
-   allocate(tab,stat=err_mem)
-   CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_RPHQMLTransfo')
-
-END SUBROUTINE alloc_array_OF_RPHQMLTransfodim0
-SUBROUTINE dealloc_array_OF_RPHQMLTransfodim0(tab,name_var,name_sub)
-  IMPLICIT NONE
-
-  TYPE (Type_RPHQMLTransfo), pointer, intent(inout) :: tab
-  character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-  character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_RPHQMLTransfodim0'
-  integer :: err_mem,memory
-  logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-   IF (.NOT. associated(tab))                                       &
-         CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-   memory = 1
-   deallocate(tab,stat=err_mem)
-   CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_RPHQMLTransfo')
-   nullify(tab)
-
-END SUBROUTINE dealloc_array_OF_RPHQMLTransfodim0
 
 SUBROUTINE alloc_NParray_OF_RPHQMLTransfodim0(tab,name_var,name_sub)
   IMPLICIT NONE

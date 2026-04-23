@@ -103,7 +103,6 @@
 
           real (kind=Rkind)              :: Jac,rho       ! the Jacobian and rho (for nrho=0)
 
-
        END TYPE param_dnMatOp
 
 

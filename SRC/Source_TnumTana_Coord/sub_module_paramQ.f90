@@ -100,7 +100,6 @@ CONTAINS
 
 
     !----- The coordinates which are read --------------------------------
-    character (len=Name_len), pointer :: QnameRead(:)
     real(kind=Rkind), allocatable     :: Qread(:)
     real(kind=Rkind)                  :: Qact(mole%nb_var)
     real(kind=Rkind)                  :: Qdyn(mole%nb_var)

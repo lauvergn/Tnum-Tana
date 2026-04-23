@@ -418,21 +418,19 @@ MODULE mod_dnGG_dng
     real (kind=Rkind), intent(in)               :: Qact(:)
     TYPE(Type_dnMat),  intent(inout), optional  :: dng,dnGG
 
-!----- for the CoordType and Tnum --------------------------------------
+    !----- for the CoordType and Tnum --------------------------------------
     TYPE (CoordType),  intent(in), target       :: mole
     TYPE (Tnum),       intent(in)               :: para_Tnum
 
-
     real (kind=Rkind), allocatable    :: DQ(:)
     integer                           :: i,j
-    TYPE(Type_ActiveTransfo), pointer :: ActiveTransfo ! true pointer
 
-!----- for debuging --------------------------------------------------
+    !----- for debuging --------------------------------------------------
     logical, parameter :: debug = .FALSE.
     !logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_GTaylor'
-!-----------------------------------------------------------
-    ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo
+    !-----------------------------------------------------------
+    ASSOCIATE(ActiveTransfo => mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
     IF (debug) THEN
       write(out_unit,*) 'BEGINNING ',name_sub
       write(out_unit,*)
@@ -530,7 +528,7 @@ MODULE mod_dnGG_dng
       write(out_unit,*) 'END ',name_sub
       flush(out_unit)
     END IF
-
+    END ASSOCIATE
   END SUBROUTINE get_dng_dnGG_WITH_GTaylor
 
 

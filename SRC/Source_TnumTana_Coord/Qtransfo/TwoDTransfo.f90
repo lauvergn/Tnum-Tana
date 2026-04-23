@@ -442,16 +442,10 @@ CONTAINS
     USE ADdnSVM_m
     IMPLICIT NONE
 
-    TYPE (dnS_t),           target,   intent(inout) :: dntQ1,dntQ2
-    TYPE (dnS_t),           target,   intent(in)    :: dnQ1,dnQ2
-    TYPE (TwoDTransfo_t),             intent(in)    :: TwoDTransfo
-    integer,                          intent(in)    :: Type_2D
-
-
-    TYPE (dnS_t), pointer :: dnR,dnZ,dnRp,dnZp         ! true pointers (alias) for the zundel transformation
-    TYPE (dnS_t), pointer :: dnthn,dnphin,dntho,dnphio ! true pointers (alias) for the spherical transformation
-    TYPE (dnS_t), pointer :: dncthn,dnctho             ! true pointers (alias) for the spherical transformation (with cos(th))
-    TYPE (dnS_t), pointer :: dnrho,dns,dnR1,dnR2       ! true pointers (alias) for the reactive transformation
+    TYPE (dnS_t),              intent(inout) :: dntQ1,dntQ2
+    TYPE (dnS_t),              intent(in)    :: dnQ1,dnQ2
+    TYPE (TwoDTransfo_t),      intent(in)    :: TwoDTransfo
+    integer,                   intent(in)    :: Type_2D
 
     TYPE (dnS_t)          :: dnXo,dnYo,dnZo,dnXn,dnYn,dnZn
     TYPE (dnS_t)          :: dnth
@@ -478,148 +472,82 @@ CONTAINS
     CASE (0) ! identity
       ! nothing
     CASE (2) ! Zundel: z=z'*(R'-2d0) and R=R'
-      dnZ  => dntQ1
-      dnR  => dntQ2
-      dnZp => dnQ1
-      dnRp => dnQ2
-
-      dnZ = dnZp*(dnRp-TwoDTransfo%Twod0)
-      dnR = dnRp
- 
-      nullify(dnZ)
-      nullify(dnR)
-      nullify(dnZp)
-      nullify(dnRp)
+      ASSOCIATE(dnZ=>dntQ1, dnR=>dntQ2, dnZp=>dnQ1, dnRp=>dnQ2)
+        dnZ = dnZp*(dnRp-TwoDTransfo%Twod0)
+        dnR = dnRp
+      END ASSOCIATE
     CASE (-2) ! Zundel: z,R => z'= z/(R-2d0) and R'=R
-      dnZ  => dnQ1
-      dnR  => dnQ2
-      dnZp => dntQ1
-      dnRp => dntQ2
-
-      dnZp = dnZ/(dnR-TwoDTransfo%Twod0)
-      dnRp = dnR
-
-      nullify(dnZ)
-      nullify(dnR)
-      nullify(dnZp)
-      nullify(dnRp)
+      ASSOCIATE(dnZ=>dnQ1, dnR=>dnQ2, dnZp=>dntQ1, dnRp=>dntQ2)
+        dnZp = dnZ/(dnR-TwoDTransfo%Twod0)
+        dnRp = dnR
+      END ASSOCIATE
     CASE (3) ! spherical
-      dnthn  => dnQ1
-      dnphin => dnQ2
-      dntho  => dntQ1
-      dnphio => dntQ2
+      ASSOCIATE(dnthn=>dnQ1, dnphin=>dnQ2,dntho=>dntQ1,dnphio=>dntQ2)
+        dnXn = cos(dnphin) * sin(dnthn)
+        dnYn = sin(dnphin) * sin(dnthn)
+        dnZn = cos(dnthn)
 
-      dnXn = cos(dnphin) * sin(dnthn)
-      dnYn = sin(dnphin) * sin(dnthn)
-      dnZn = cos(dnthn)
+        dnXo = cos(TwoDTransfo%theta) * dnXn - sin(TwoDTransfo%theta) * dnZn
+        dnYo = dnYn
+        dnZo = sin(TwoDTransfo%theta) * dnXn + cos(TwoDTransfo%theta) * dnZn
 
-      dnXo = cos(TwoDTransfo%theta) * dnXn - sin(TwoDTransfo%theta) * dnZn
-      dnYo = dnYn
-      dnZo = sin(TwoDTransfo%theta) * dnXn + cos(TwoDTransfo%theta) * dnZn
-
-      dntho  = acos(dnZo)
-      dnphio = atan2(dnYo,dnXo)
-
-      nullify(dnthn)
-      nullify(dnphin)
-      nullify(dntho)
-      nullify(dnphio)
+        dntho  = acos(dnZo)
+        dnphio = atan2(dnYo,dnXo)
+      END ASSOCIATE
     CASE (-3) ! spherical
-      dnthn  => dntQ1
-      dnphin => dntQ2
-      dntho  => dnQ1
-      dnphio => dnQ2
+      ASSOCIATE(dnthn=>dntQ1, dnphin=>dntQ2, dntho=>dnQ1, dnphio=>dnQ2)
+        dnXo = cos(dnphio) * sin(dntho)
+        dnYo = sin(dnphio) * sin(dntho)
+        dnZo = cos(dntho)
 
-      dnXo = cos(dnphio) * sin(dntho)
-      dnYo = sin(dnphio) * sin(dntho)
-      dnZo = cos(dntho)
+        dnXn = cos(-TwoDTransfo%theta) * dnXo - sin(-TwoDTransfo%theta) * dnZo
+        dnYn = dnYo
+        dnZn = sin(-TwoDTransfo%theta) * dnXo + cos(-TwoDTransfo%theta) * dnZo
 
-      dnXn = cos(-TwoDTransfo%theta) * dnXo - sin(-TwoDTransfo%theta) * dnZo
-      dnYn = dnYo
-      dnZn = sin(-TwoDTransfo%theta) * dnXo + cos(-TwoDTransfo%theta) * dnZo
-
-      dnthn  = acos(dnZn)
-      dnphin = atan2(dnYn,dnXn)
-
-      nullify(dnthn)
-      nullify(dnphin)
-      nullify(dntho)
-      nullify(dnphio)
+        dnthn  = acos(dnZn)
+        dnphin = atan2(dnYn,dnXn)
+      END ASSOCIATE
     CASE (31) ! spherical with cos(theta)
-      dncthn => dnQ1
-      dnphin => dnQ2
-      dnctho => dntQ1
-      dnphio => dntQ2
+      ASSOCIATE(dncthn=>dnQ1, dnphin=>dnQ2, dnctho=>dntQ1,dnphio=>dntQ2)
+        dnXn = cos(dnphin) * sqrt(ONE-dncthn*dncthn)
+        dnYn = sin(dnphin) * sqrt(ONE-dncthn*dncthn)
+        dnZn = dncthn
 
-      dnXn = cos(dnphin) * sqrt(ONE-dncthn*dncthn)
-      dnYn = sin(dnphin) * sqrt(ONE-dncthn*dncthn)
-      dnZn = dncthn
+        dnXo = cos(TwoDTransfo%theta) * dnXn - sin(TwoDTransfo%theta) * dnZn
+        dnYo = dnYn
+        dnZo = sin(TwoDTransfo%theta) * dnXn + cos(TwoDTransfo%theta) * dnZn
 
-      dnXo = cos(TwoDTransfo%theta) * dnXn - sin(TwoDTransfo%theta) * dnZn
-      dnYo = dnYn
-      dnZo = sin(TwoDTransfo%theta) * dnXn + cos(TwoDTransfo%theta) * dnZn
-
-      dnctho  = dnZo
-      dnphio = atan2(dnYo,dnXo)
-
-      nullify(dncthn)
-      nullify(dnphin)
-      nullify(dnctho)
-      nullify(dnphio)
+        dnctho  = dnZo
+        dnphio = atan2(dnYo,dnXo)
+      END ASSOCIATE
     CASE (-31) ! spherical with cos(theta)
-      dncthn => dntQ1
-      dnphin => dntQ2
-      dnctho => dnQ1
-      dnphio => dnQ2
+      ASSOCIATE(dncthn=>dntQ1, dnphin=>dntQ2, dnctho=>dnQ1, dnphio=>dnQ2)
+        dnXo = cos(dnphio) * sqrt(ONE-dnctho*dnctho)
+        dnYo = sin(dnphio) * sqrt(ONE-dnctho*dnctho)
+        dnZo = dnctho
 
-      dnXo = cos(dnphio) * sqrt(ONE-dnctho*dnctho)
-      dnYo = sin(dnphio) * sqrt(ONE-dnctho*dnctho)
-      dnZo = dnctho
+        dnXn = cos(-TwoDTransfo%theta) * dnXo - sin(-TwoDTransfo%theta) * dnZo
+        dnYn = dnYo
+        dnZn = sin(-TwoDTransfo%theta) * dnXo + cos(-TwoDTransfo%theta) * dnZo
 
-      dnXn = cos(-TwoDTransfo%theta) * dnXo - sin(-TwoDTransfo%theta) * dnZo
-      dnYn = dnYo
-      dnZn = sin(-TwoDTransfo%theta) * dnXo + cos(-TwoDTransfo%theta) * dnZo
-
-      dnthn  = dnZn
-      dnphin = atan2(dnYn,dnXn)
-
-      nullify(dncthn)
-      nullify(dnphin)
-      nullify(dnctho)
-      nullify(dnphio)
+        dncthn = dnZn
+        dnphin = atan2(dnYn,dnXn)
+      END ASSOCIATE
     CASE (4) ! rho-s_x1-x2x: Reactive collision, (rho,s) -> (R1,R2)
-      dnrho => dnQ1
-      dns   => dnQ2
-      dnR1  => dntQ1
-      dnR2  => dntQ2
+      ASSOCIATE(dnrho=>dnQ1, dns=>dnQ2, dnR1=>dntQ1, dnR2=>dntQ2)
+        dnth = atan(HALF*dns/dnrho)*HALF+PI/FOUR
 
-      dnth = atan(HALF*dns/dnrho)*HALF+PI/FOUR
-
-      dnR1 = dnrho / cos(dnth)
-      dnR2 = dnrho / sin(dnth)
-
-
-      nullify(dnrho)
-      nullify(dns)
-      nullify(dnR1)
-      nullify(dnR2)
+        dnR1 = dnrho / cos(dnth)
+        dnR2 = dnrho / sin(dnth)
+      END ASSOCIATE
     CASE (-4) ! x1-x2_rho-s: Reactive collision, (R1,R2) -> (rho,s)
-      dnrho => dntQ1
-      dns   => dntQ2
-      dnR1  => dnQ1
-      dnR2  => dnQ2
+      ASSOCIATE(dnrho=>dntQ1, dns=>dntQ2, dnR1=>dnQ1, dnR2=>dnQ2)
+        !dnth = atan2(ONE/dnR2,ONE/dnR1)
+        dnth = atan2(dnR1,dnR2)
+        dnrho = dnR1*dnR2 / sqrt(dnR1*dnR1 + dnR2*dnR2)
 
-      !dnth = atan2(ONE/dnR2,ONE/dnR1)
-      dnth = atan2(dnR1,dnR2)
-
-      dnrho = dnR1*dnR2 / sqrt(dnR1*dnR1 + dnR2*dnR2)
-
-      dns  = TWO*dnrho * tan(TWO*dnth - PI/TWO)
-
-      nullify(dnrho)
-      nullify(dns)
-      nullify(dnR1)
-      nullify(dnR2)
+        dns  = TWO*dnrho * tan(TWO*dnth - PI/TWO)
+      END ASSOCIATE
     CASE default ! ERROR: wrong transformation !
       write(out_unit,*) ' ERROR in ',name_sub
       write(out_unit,*) ' The type of TwoD transformation is UNKNOWN: ',Type_2D

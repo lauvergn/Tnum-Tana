@@ -93,28 +93,18 @@
           GENERIC,   PUBLIC  :: assignment(=) => NMTransfo2_TO_NMTransfo1
       END TYPE Type_NMTransfo
 
-      INTERFACE alloc_array
-        ! for RPHTransfo
-        MODULE PROCEDURE alloc_array_OF_NMTransfodim0
-      END INTERFACE
-      INTERFACE dealloc_array
-        ! for RPHTransfo
-        MODULE PROCEDURE dealloc_array_OF_NMTransfodim0
-      END INTERFACE
+      ! for RPHTransfo
       INTERFACE alloc_NParray
-        ! for RPHTransfo
         MODULE PROCEDURE alloc_NParray_OF_NMTransfodim0
       END INTERFACE
       INTERFACE dealloc_NParray
-        ! for RPHTransfo
         MODULE PROCEDURE dealloc_NParray_OF_NMTransfodim0
       END INTERFACE
 
       PUBLIC :: Type_LinearTransfo, alloc_LinearTransfo, dealloc_LinearTransfo, &
                 Read_linearTransfo, Read_LC_projectionTransfo, calc_LinearTransfo
-      PUBLIC :: Type_NMTransfo, alloc_array, dealloc_array, Read_NMTransfo,     &
-                Write_NMTransfo, dealloc_NMTransfo,     &
-                alloc_NParray, dealloc_NParray
+      PUBLIC :: Type_NMTransfo, Read_NMTransfo, Write_NMTransfo, dealloc_NMTransfo
+      PUBLIC :: alloc_NParray, dealloc_NParray
 
 CONTAINS
 
@@ -195,57 +185,8 @@ CONTAINS
       LinearTransfo1%check_LinearTransfo = LinearTransfo2%check_LinearTransfo
 
   END SUBROUTINE linearTransfo2_TO_linearTransfo1
-    SUBROUTINE alloc_array_OF_NMTransfodim0(tab,name_var,name_sub)
-      IMPLICIT NONE
 
-      TYPE (Type_NMTransfo), pointer, intent(inout) :: tab
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=0
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_NMTransfodim0'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       memory = 1
-       allocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_NMTransfo')
-
-      END SUBROUTINE alloc_array_OF_NMTransfodim0
-      SUBROUTINE dealloc_array_OF_NMTransfodim0(tab,name_var,name_sub)
-      IMPLICIT NONE
-
-      TYPE (Type_NMTransfo), pointer, intent(inout) :: tab
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_NMTransfodim0'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = 1
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_NMTransfo')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_NMTransfodim0
-
-    SUBROUTINE alloc_NParray_OF_NMTransfodim0(tab,name_var,name_sub)
+  SUBROUTINE alloc_NParray_OF_NMTransfodim0(tab,name_var,name_sub)
       IMPLICIT NONE
 
       TYPE (Type_NMTransfo), allocatable, intent(inout) :: tab

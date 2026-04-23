@@ -99,14 +99,7 @@ MODULE mod_Qtransfo
           character (len=Name_len),     allocatable :: name_Qin(:)        ! size nb_Qin
           integer,                      allocatable :: type_Qout(:)       ! size nb_Qout
           character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
-        END TYPE Type_Qtransfo
-
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_Qtransfodim1
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_Qtransfodim1
-      END INTERFACE
+      END TYPE Type_Qtransfo
 
       INTERFACE alloc_NParray
         MODULE PROCEDURE alloc_NParray_OF_Qtransfodim1
@@ -953,66 +946,6 @@ MODULE mod_Qtransfo
         END IF
   END SUBROUTINE dealloc_Qtransfo
 
-  SUBROUTINE alloc_array_OF_Qtransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
-  IMPLICIT NONE
-
-      TYPE (Type_Qtransfo), pointer, intent(inout)        :: tab(:)
-      integer,                       intent(in)           :: tab_ub(:)
-      integer,                       intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_Qtransfodim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab)) CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_Qtransfo')
-
-  END SUBROUTINE alloc_array_OF_Qtransfodim1
-  SUBROUTINE dealloc_array_OF_Qtransfodim1(tab,name_var,name_sub)
-    IMPLICIT NONE
-
-      TYPE (Type_Qtransfo), pointer, intent(inout) :: tab(:)
-      character (len=*),             intent(in)    :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_Qtransfodim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_Qtransfo')
-       nullify(tab)
-
-  END SUBROUTINE dealloc_array_OF_Qtransfodim1
-
   SUBROUTINE alloc_NParray_OF_Qtransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
   IMPLICIT NONE
 
@@ -1215,9 +1148,9 @@ MODULE mod_Qtransfo
         Qtransfo2%RectilinearNM_Transfo%name_Qin = Qtransfo2%name_Qin
 
       CASE ('bunch','bunch_poly')
-        Qtransfo2%BunchTransfo = Qtransfo1%BunchTransfo
-        !CALL BunchTransfo1TOBunchTransfo2(Qtransfo1%BunchTransfo,       &
-        !                                  Qtransfo2%BunchTransfo)
+        !Qtransfo2%BunchTransfo = Qtransfo1%BunchTransfo
+        CALL BunchTransfo1TOBunchTransfo2(Qtransfo1%BunchTransfo,       &
+                                          Qtransfo2%BunchTransfo)
 
       CASE ('poly')
         !Qtransfo2%BFTransfo = Qtransfo1%BFTransfo
