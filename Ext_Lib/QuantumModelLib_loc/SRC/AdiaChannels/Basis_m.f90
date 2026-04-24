@@ -264,8 +264,8 @@ CONTAINS
     IF (allocated(Basis%d1gb))      deallocate(Basis%d1gb)
     IF (allocated(Basis%d2gb))      deallocate(Basis%d2gb)
 
-    !IF (associated(Basis%tab_basis)) THEN
     IF (allocated(Basis%tab_basis)) THEN
+    !IF (associated(Basis%tab_basis)) THEN
       DO ib=1,size(Basis%tab_basis)
         CALL dealloc_Basis(Basis%tab_basis(ib))
       END DO
