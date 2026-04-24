@@ -968,24 +968,6 @@
           END DO
         CASE (2)
           CALL sub_Qmodel_VGH(mat_V,mat_g,mat_h,Qit(PrimOp%Qit_TO_QQMLib))
-
-          ! write(6,*) 'shape list_QactTOQML',shape(list_QactTOQML)
-          ! write(6,*) 'list_QactTOQML',list_QactTOQML
-          ! write(6,*) 'shape mat_g',shape(mat_g)
-          ! write(6,*) 'mat_g',mat_g(1,1,list_QactTOQML)
-          ! write(6,*) 'shape mat_h',shape(mat_h)
-          ! write(6,*) 'mat_h',mat_h(1,1,list_QactTOQML,list_QactTOQML)
-          ! write(6,*) 'asso Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1', &
-          !       associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1), &
-          !       associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)
-          ! IF (associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1)) &
-          !       write(6,*) 'shape Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1', &
-          !       shape(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d1)
-          ! IF (associated(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)) &
-          !       write(6,*) 'shape Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2', &
-          !       shape(Tab_dnMatOp(iOpE)%tab_dnMatOp(1,1,itermE)%d2)
-          ! flush(6)
-
           DO ie=1,PrimOp%nb_elec
           DO je=1,PrimOp%nb_elec
             Tab_dnMatOp(iOpE)%tab_dnMatOp(je,ie,itermE)%d0 = mat_V(je,ie)
@@ -3750,13 +3732,12 @@
           CALL get_Qact0(Qact,ActiveTransfo)
 
           ! for tab_RPHpara_AT_Qact1(0)
-          IF (.NOT. associated(RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
+          IF (.NOT. allocated(RPHTransfo%tab_RPHpara_AT_Qact1)) THEN
             nb_act1_RPH    = RPHTransfo%nb_act1
             nb_inact21_RPH = RPHTransfo%nb_inact21
             nb_pts         = nb_act1_RPH ! to be able to deal with displacment along Qact1
-            CALL alloc_array(RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
-                            'RPHTransfo%tab_RPHpara_AT_Qact1',             &
-                                                         name_sub,[-nb_pts])
+            CALL alloc_NParray(RPHTransfo%tab_RPHpara_AT_Qact1,[0],          &
+                              'RPHTransfo%tab_RPHpara_AT_Qact1',name_sub,[-nb_pts])
           END IF
           write(out_unit,*) 'in ',name_sub,' QMLib,',RPHTransfo%QMlib
 
@@ -3790,8 +3771,8 @@
           ! END DO
 
         END IF
-        Gref = Gref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
-        Qref = Qref .AND. associated(RPHTransfo%tab_RPHpara_AT_Qact1)
+        Gref = Gref .AND. allocated(RPHTransfo%tab_RPHpara_AT_Qact1)
+        Qref = Qref .AND. allocated(RPHTransfo%tab_RPHpara_AT_Qact1)
       END ASSOCIATE
     END IF
 

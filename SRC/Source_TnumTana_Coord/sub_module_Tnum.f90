@@ -47,7 +47,6 @@ MODULE mod_Tnum
                                   alloc_NParray, read_lineartransfo,&
                                   read_nmtransfo, alloc_lineartransfo
   USE mod_RPHTransfo,       only: type_rphtransfo, write_rphtransfo,&
-                                  dealloc_array, alloc_array,       &
                                   rphtransfo1torphtransfo2,         &
                                   dealloc_rphtransfo
   USE CurviRPH_mod,         only: curvirph_type, dealloc_curvirph,  &

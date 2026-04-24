@@ -47,7 +47,6 @@ MODULE mod_Coord_KEO
                                   Qdyn_TO_Qact_FROM_ActiveTransfo,       &
                                   Qinact2n_TO_Qact_FROM_ActiveTransfo
   USE mod_RPHTransfo,      ONLY : Type_RPHpara_AT_Qact1,Type_RPHTransfo, &
-                                  alloc_array,dealloc_array,             &
                                   alloc_NParray,dealloc_NParray,         &
                                   alloc_rphpara_at_qact1,switch_rph,     &
                                   write_rphtransfo,set_rphtransfo,       &
