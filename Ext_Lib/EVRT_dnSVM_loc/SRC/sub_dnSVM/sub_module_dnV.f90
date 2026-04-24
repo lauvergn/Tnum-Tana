@@ -42,21 +42,14 @@ MODULE mod_dnV
           integer                     :: nb_var_deriv = 0
           integer                     :: nb_var_vec   = 0
 
-          real (kind=Rkind), pointer  :: d0(:)        => null()
-          real (kind=Rkind), pointer  :: d1(:,:)      => null()
-          real (kind=Rkind), pointer  :: d2(:,:,:)    => null()
-          real (kind=Rkind), pointer  :: d3(:,:,:,:)  => null()
+          real (kind=Rkind), allocatable  :: d0(:)
+          real (kind=Rkind), allocatable  :: d1(:,:)
+          real (kind=Rkind), allocatable  :: d2(:,:,:)
+          real (kind=Rkind), allocatable  :: d3(:,:,:,:)
       CONTAINS
         PROCEDURE, PRIVATE, PASS(dnVec1) :: sub_dnVec2_TO_dnVec1
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnVec2_TO_dnVec1
       END TYPE Type_dnVec
-
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_dnVecdim1,alloc_array_OF_dnVecdim2
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_dnVecdim1,dealloc_array_OF_dnVecdim2
-      END INTERFACE
 
       INTERFACE Write_dnVec
         MODULE PROCEDURE EVRT_Write_dnVec
@@ -80,8 +73,7 @@ MODULE mod_dnV
         MODULE PROCEDURE sub_ZERO_TO_dnVec
       END INTERFACE
 
-      PUBLIC :: Type_dnVec, alloc_array, dealloc_array
-      PUBLIC :: alloc_dnVec, dealloc_dnVec, check_alloc_dnVec
+      PUBLIC :: Type_dnVec, alloc_dnVec, dealloc_dnVec, check_alloc_dnVec
       PUBLIC :: Write_dnVec, sub_Normalize_dnVec
 
       PUBLIC :: get_nderiv_FROM_dnVec,get_nb_var_deriv_FROM_dnVec
@@ -138,21 +130,21 @@ MODULE mod_dnV
 
 
         IF (nv > 0) THEN
-          CALL alloc_array(dnVec%d0,[nv],'dnVec%d0','EVRT_alloc_dnVec')
+          CALL alloc_NParray(dnVec%d0,[nv],'dnVec%d0','EVRT_alloc_dnVec')
           dnVec%d0(:) = ZERO
 
           IF (dnVec%nderiv >= 1) THEN
-            CALL alloc_array(dnVec%d1,[nv,nd],'dnVec%d1','EVRT_alloc_dnVec')
+            CALL alloc_NParray(dnVec%d1,[nv,nd],'dnVec%d1','EVRT_alloc_dnVec')
             dnVec%d1(:,:) = ZERO
           END IF
 
           IF (dnVec%nderiv >= 2) THEN
-            CALL alloc_array(dnVec%d2,[nv,nd,nd],'dnVec%d2','EVRT_alloc_dnVec')
+            CALL alloc_NParray(dnVec%d2,[nv,nd,nd],'dnVec%d2','EVRT_alloc_dnVec')
             dnVec%d2(:,:,:) = ZERO
           END IF
 
           IF (dnVec%nderiv >= 3) THEN
-            CALL alloc_array(dnVec%d3,[nv,nd,nd,nd],'dnVec%d3','EVRT_alloc_dnVec')
+            CALL alloc_NParray(dnVec%d3,[nv,nd,nd,nd],'dnVec%d3','EVRT_alloc_dnVec')
             dnVec%d3(:,:,:,:) = ZERO
           END IF
 
@@ -167,10 +159,6 @@ MODULE mod_dnV
           STOP
         END IF
 
-!       write(out_unit,*) 'associated(d0)',associated(dnVec%d0)
-!       write(out_unit,*) 'associated(d1)',associated(dnVec%d1)
-!       write(out_unit,*) 'associated(d2)',associated(dnVec%d2)
-!       write(out_unit,*) 'associated(d3)',associated(dnVec%d3)
 !        write(out_unit,*) 'END alloc_dnVec'
 
       END SUBROUTINE EVRT_alloc_dnVec
@@ -190,20 +178,20 @@ MODULE mod_dnV
 !        write(out_unit,*) 'nb_var_deriv',dnVec%nb_var_deriv
 !        write(out_unit,*) 'nb_var_vec',dnVec%nb_var_vec
 
-        IF (associated(dnVec%d0)) THEN
-          CALL dealloc_array(dnVec%d0,'dnVec%d0','EVRT_dealloc_dnVec')
+        IF (allocated(dnVec%d0)) THEN
+          CALL dealloc_NParray(dnVec%d0,'dnVec%d0','EVRT_dealloc_dnVec')
         END IF
 
-        IF (associated(dnVec%d1)) THEN
-          CALL dealloc_array(dnVec%d1,'dnVec%d1','EVRT_dealloc_dnVec')
+        IF (allocated(dnVec%d1)) THEN
+          CALL dealloc_NParray(dnVec%d1,'dnVec%d1','EVRT_dealloc_dnVec')
         END IF
 
-        IF (associated(dnVec%d2)) THEN
-          CALL dealloc_array(dnVec%d2,'dnVec%d2','EVRT_dealloc_dnVec')
+        IF (allocated(dnVec%d2)) THEN
+          CALL dealloc_NParray(dnVec%d2,'dnVec%d2','EVRT_dealloc_dnVec')
         END IF
 
-        IF (associated(dnVec%d3)) THEN
-          CALL dealloc_array(dnVec%d3,'dnVec%d3','EVRT_dealloc_dnVec')
+        IF (allocated(dnVec%d3)) THEN
+          CALL dealloc_NParray(dnVec%d3,'dnVec%d3','EVRT_dealloc_dnVec')
         END IF
 
 
@@ -217,134 +205,6 @@ MODULE mod_dnV
 
       END SUBROUTINE EVRT_dealloc_dnVec
 
-      SUBROUTINE alloc_array_OF_dnVecdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnVec), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnVecdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnVec')
-
-      END SUBROUTINE alloc_array_OF_dnVecdim1
-      SUBROUTINE dealloc_array_OF_dnVecdim1(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnVec), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnVecdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnVec')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_dnVecdim1
-
-      SUBROUTINE alloc_array_OF_dnVecdim2(tab,tab_ub,name_var,name_sub,tab_lb)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnVec), pointer, intent(inout) :: tab(:,:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-
-      integer, parameter :: ndim=2
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnVecdim2'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1),                              &
-                      tab_lb(2):tab_ub(2)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1),tab_ub(2)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnVec')
-
-      END SUBROUTINE alloc_array_OF_dnVecdim2
-      SUBROUTINE dealloc_array_OF_dnVecdim2(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnVec), pointer, intent(inout) :: tab(:,:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnVecdim2'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-
-       IF (.NOT. associated(tab))                                       &
-                 CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnVec')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_dnVecdim2
-
 !================================================================
 !
 !     check if alloc has been done
@@ -352,7 +212,7 @@ MODULE mod_dnV
 !================================================================
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE check_alloc_dnVec(A,name_A,name_sub)
+  SUBROUTINE check_alloc_dnVec(A,name_A,name_sub)
         TYPE (Type_dnVec), intent(in) :: A
         character (len=*), intent(in) :: name_A
         character (len=*), intent(in) :: name_sub
@@ -363,7 +223,7 @@ MODULE mod_dnV
           write(out_unit,*) ' CHECK the source!!!!!'
           STOP
         END IF
-      END SUBROUTINE check_alloc_dnVec
+  END SUBROUTINE check_alloc_dnVec
 
   FUNCTION get_nderiv_FROM_dnVec(Vec) RESULT(nderiv)
 
@@ -372,13 +232,13 @@ MODULE mod_dnV
 
     nderiv = Vec%nderiv
 
-    IF (.NOT. associated(Vec%d0)) THEN
+    IF (.NOT. allocated(Vec%d0)) THEN
       nderiv = -1
-    ELSE IF (.NOT. associated(Vec%d1)) THEN
+    ELSE IF (.NOT. allocated(Vec%d1)) THEN
       nderiv = 0
-    ELSE IF (.NOT. associated(Vec%d2)) THEN
+    ELSE IF (.NOT. allocated(Vec%d2)) THEN
       nderiv = 1
-    ELSE IF (.NOT. associated(Vec%d3)) THEN
+    ELSE IF (.NOT. allocated(Vec%d3)) THEN
       nderiv = 2
     ELSE
       nderiv = 3
@@ -399,7 +259,7 @@ MODULE mod_dnV
 
     nb_var_deriv = Vec%nb_var_deriv
 
-    IF (.NOT. associated(Vec%d1)) THEN
+    IF (.NOT. allocated(Vec%d1)) THEN
       nb_var_deriv = 0
     ELSE
       nb_var_deriv = size(Vec%d1,dim=2)
@@ -435,19 +295,19 @@ MODULE mod_dnV
         write(out_unit,*) 'nderiv',dnVec%nderiv
         write(out_unit,*) 'nb_var_vec,nb_var_deriv',                           &
                           dnVec%nb_var_vec,dnVec%nb_var_deriv
-        IF (nderiv_loc >= 0 .AND. associated(dnVec%d0)) THEN
+        IF (nderiv_loc >= 0 .AND. allocated(dnVec%d0)) THEN
           write(out_unit,*) 'd0'
           !write(out_unit,*) dnVec%d0
           CALL Write_VecMat(dnVec%d0,out_unit,10)
         END IF
-        IF (nderiv_loc > 0 .AND. associated(dnVec%d1)) THEN
+        IF (nderiv_loc > 0 .AND. allocated(dnVec%d1)) THEN
           DO i=1,dnVec%nb_var_deriv
             write(out_unit,*) 'd1',i
             !write(out_unit,*) dnVec%d1(:,i)
             CALL Write_VecMat(dnVec%d1(:,i),out_unit,10)
           END DO
         END IF
-        IF (nderiv_loc > 1 .AND. associated(dnVec%d2)) THEN
+        IF (nderiv_loc > 1 .AND. allocated(dnVec%d2)) THEN
           DO i=1,dnVec%nb_var_deriv
           DO j=i,dnVec%nb_var_deriv
             write(out_unit,*) 'd2',i,j
@@ -456,7 +316,7 @@ MODULE mod_dnV
           END DO
           END DO
         END IF
-        IF (nderiv_loc > 2 .AND. associated(dnVec%d3)) THEN
+        IF (nderiv_loc > 2 .AND. allocated(dnVec%d3)) THEN
           DO i=1,dnVec%nb_var_deriv
           DO j=i,dnVec%nb_var_deriv
           DO k=j,dnVec%nb_var_deriv

@@ -1107,9 +1107,9 @@
           DO ie=1,dnMatOp(iOp)%nb_bie
           DO je=1,dnMatOp(iOp)%nb_bie
             dnMatOp(iOp)%Im_dnMatOp(ie,je)%d0 = ZERO
-            IF (associated(dnMatOp(iOp)%Im_dnMatOp(ie,je)%d1))          &
+            IF (allocated(dnMatOp(iOp)%Im_dnMatOp(ie,je)%d1))          &
                             dnMatOp(iOp)%Im_dnMatOp(ie,je)%d1 = ZERO
-            IF (associated(dnMatOp(iOp)%Im_dnMatOp(ie,je)%d2))          &
+            IF (allocated(dnMatOp(iOp)%Im_dnMatOp(ie,je)%d2))          &
                             dnMatOp(iOp)%Im_dnMatOp(ie,je)%d2 = ZERO
           END DO
           END DO
@@ -1120,9 +1120,9 @@
           DO ie=1,dnMatOp(iOp)%nb_bie
           DO je=1,dnMatOp(iOp)%nb_bie
             dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d0 = ZERO
-            IF (associated(dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d1))   &
+            IF (allocated(dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d1))   &
                      dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d1 = ZERO
-            IF (associated(dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d2))   &
+            IF (allocated(dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d2))   &
                      dnMatOp(iOp)%tab_dnMatOp(ie,je,iterm)%d2 = ZERO
           END DO
           END DO

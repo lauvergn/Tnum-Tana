@@ -522,7 +522,7 @@ CONTAINS
       SELECT CASE (option_loc)
       CASE (1)
         ! Zero order (cte)
-        IF (associated(dnGG%d0)) THEN
+        IF (allocated(dnGG%d0)) THEN
           n0 = 0
           DO i=1,nb_act
           DO j=i,nb_act
@@ -539,7 +539,7 @@ CONTAINS
         END IF
 
         !     First order
-        IF (associated(dnGG%d1)) THEN
+        IF (allocated(dnGG%d1)) THEN
           n1 = 0
           DO i=1,nb_act
           DO j=i,nb_act
@@ -560,7 +560,7 @@ CONTAINS
           END DO
         END IF
         ! second order
-        IF (associated(dnGG%d2)) THEN
+        IF (allocated(dnGG%d2)) THEN
           n2 = 0
           DO i=1,nb_act
           DO j=i,nb_act
@@ -587,12 +587,12 @@ CONTAINS
         END IF
       CASE DEFAULT
           ! Zero order (cte)
-        IF (associated(dnGG%d0)) THEN
+        IF (allocated(dnGG%d0)) THEN
           write(nio,'(a,i0,a)') 'Zero order'
           write(nio,*) dnGG%d0(:,:)
         END IF
           ! First order
-        IF (associated(dnGG%d1)) THEN
+        IF (allocated(dnGG%d1)) THEN
           write(nio,'(a,i0,a)') 'First order'
           DO k=1,nb_act
             write(nio,*) k
@@ -600,7 +600,7 @@ CONTAINS
           END DO
         END IF
           ! second order
-        IF (associated(dnGG%d2)) THEN
+        IF (allocated(dnGG%d2)) THEN
           write(nio,'(a,i0,a)') 'Second order'
           DO k=1,nb_act
           DO l=k,nb_act
@@ -711,7 +711,7 @@ CONTAINS
           IF (abs(dnVepref%d0) > epsi_Vep) write(nio,*) dnVepref%d0
   
           !     First order
-          IF (associated(dnVepref%d1)) THEN
+          IF (allocated(dnVepref%d1)) THEN
             n1 = 0
             DO k=1,nb_act
               IF (abs(dnVepref%d1(k)) > epsi_Vep) n1 = n1+1
@@ -725,7 +725,7 @@ CONTAINS
           END IF
 
           ! second order
-          IF (associated(dnVepref%d2)) THEN
+          IF (allocated(dnVepref%d2)) THEN
             n2 = 0
             DO k=1,nb_act
             DO l=k,nb_act
@@ -747,7 +747,7 @@ CONTAINS
           write(nio,'(a,i0,a)') 'Zero order'
           write(nio,*) dnVepref%d0
           ! First order
-          IF (associated(dnVepref%d1)) THEN
+          IF (allocated(dnVepref%d1)) THEN
             write(nio,'(a,i0,a)') 'First order'
             DO k=1,nb_act
               write(nio,*) k
@@ -755,7 +755,7 @@ CONTAINS
             END DO
           END IF
           ! second order
-          IF (associated(dnVepref%d2)) THEN
+          IF (allocated(dnVepref%d2)) THEN
             write(nio,'(a,i0,a)') 'Second order'
             DO k=1,nb_act
             DO l=k,nb_act

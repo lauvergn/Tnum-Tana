@@ -28,10 +28,8 @@
 !===============================================================================
 MODULE mod_dnM
     USE QDUtil_m
-    use mod_dnS, only: alloc_array, dealloc_array, type_dns,   &
-                         check_alloc_dns, alloc_dns, write_dns
-    use mod_dnV, only: alloc_array, dealloc_array, type_dnvec, &
-                         check_alloc_dnvec, alloc_dnvec
+    use mod_dnS, only:  type_dns, check_alloc_dns, alloc_dns, write_dns
+    use mod_dnV, only: type_dnvec, check_alloc_dnvec, alloc_dnvec
     IMPLICIT NONE
 
     PRIVATE
@@ -44,10 +42,10 @@ MODULE mod_dnM
           integer                     :: nb_var_Matl  = 0
           integer                     :: nb_var_Matc  = 0
 
-          real (kind=Rkind), pointer  :: d0(:,:)      => null()
-          real (kind=Rkind), pointer  :: d1(:,:,:)    => null()
-          real (kind=Rkind), pointer  :: d2(:,:,:,:)  => null()
-          real (kind=Rkind), pointer  :: d3(:,:,:,:,:)=> null()
+          real (kind=Rkind), allocatable  :: d0(:,:)
+          real (kind=Rkind), allocatable  :: d1(:,:,:)
+          real (kind=Rkind), allocatable  :: d2(:,:,:,:)
+          real (kind=Rkind), allocatable  :: d3(:,:,:,:,:)
     CONTAINS
         PROCEDURE, PRIVATE, PASS(dnMat1) :: sub_dnMat2_TO_dnMat1
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnMat2_TO_dnMat1
@@ -61,10 +59,10 @@ MODULE mod_dnM
           integer                     :: nb_var_Matl  = 0
           integer                     :: nb_var_Matc  = 0
 
-          complex (kind=Rkind), pointer  :: d0(:,:)      => null()
-          complex (kind=Rkind), pointer  :: d1(:,:,:)    => null()
-          complex (kind=Rkind), pointer  :: d2(:,:,:,:)  => null()
-          complex (kind=Rkind), pointer  :: d3(:,:,:,:,:)=> null()
+          complex (kind=Rkind), allocatable  :: d0(:,:)
+          complex (kind=Rkind), allocatable  :: d1(:,:,:)
+          complex (kind=Rkind), allocatable  :: d2(:,:,:,:)
+          complex (kind=Rkind), allocatable  :: d3(:,:,:,:,:)
     CONTAINS
         PROCEDURE, PRIVATE, PASS(dnMat1) :: sub_dnCplxMat2_TO_dnCplxMat1
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnCplxMat2_TO_dnCplxMat1
@@ -154,21 +152,21 @@ CONTAINS
 
 
         IF (nml > 0 .AND. nmc > 0) THEN
-          CALL alloc_array(dnMat%d0,[nml,nmc],'dnMat%d0','EVRT_alloc_dnMat')
+          CALL alloc_NParray(dnMat%d0,[nml,nmc],'dnMat%d0','EVRT_alloc_dnMat')
           dnMat%d0(:,:) = ZERO
 
           IF (dnMat%nderiv >= 1) THEN
-            CALL alloc_array(dnMat%d1,[nml,nmc,nd],'dnMat%d1','EVRT_alloc_dnMat')
+            CALL alloc_NParray(dnMat%d1,[nml,nmc,nd],'dnMat%d1','EVRT_alloc_dnMat')
             dnMat%d1(:,:,:) = ZERO
           END IF
 
           IF (dnMat%nderiv >= 2) THEN
-            CALL alloc_array(dnMat%d2,[nml,nmc,nd,nd],'dnMat%d2','EVRT_alloc_dnMat')
+            CALL alloc_NParray(dnMat%d2,[nml,nmc,nd,nd],'dnMat%d2','EVRT_alloc_dnMat')
             dnMat%d2(:,:,:,:) = ZERO
           END IF
 
           IF (dnMat%nderiv >= 3) THEN
-            CALL alloc_array(dnMat%d3,[nml,nmc,nd,nd,nd],'dnMat%d3','EVRT_alloc_dnMat')
+            CALL alloc_NParray(dnMat%d3,[nml,nmc,nd,nd,nd],'dnMat%d3','EVRT_alloc_dnMat')
             dnMat%d3(:,:,:,:,:) = ZERO
           END IF
 
@@ -199,20 +197,20 @@ CONTAINS
         nmc = dnMat%nb_var_Matc
 
 
-        IF (associated(dnMat%d0)) THEN
-          CALL dealloc_array(dnMat%d0,'dnMat%d0','EVRT_dealloc_dnMat')
+        IF (allocated(dnMat%d0)) THEN
+          CALL dealloc_NParray(dnMat%d0,'dnMat%d0','EVRT_dealloc_dnMat')
         END IF
 
-        IF (associated(dnMat%d1)) THEN
-          CALL dealloc_array(dnMat%d1,'dnMat%d1','EVRT_dealloc_dnMat')
+        IF (allocated(dnMat%d1)) THEN
+          CALL dealloc_NParray(dnMat%d1,'dnMat%d1','EVRT_dealloc_dnMat')
         END IF
 
-        IF (associated(dnMat%d2)) THEN
-          CALL dealloc_array(dnMat%d2,'dnMat%d2','EVRT_dealloc_dnMat')
+        IF (allocated(dnMat%d2)) THEN
+          CALL dealloc_NParray(dnMat%d2,'dnMat%d2','EVRT_dealloc_dnMat')
         END IF
 
-        IF (associated(dnMat%d3)) THEN
-          CALL dealloc_array(dnMat%d3,'dnMat%d3','EVRT_dealloc_dnMat')
+        IF (allocated(dnMat%d3)) THEN
+          CALL dealloc_NParray(dnMat%d3,'dnMat%d3','EVRT_dealloc_dnMat')
         END IF
 
         dnMat%alloc    = .FALSE.
@@ -344,8 +342,7 @@ CONTAINS
     CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnMat')
 
   END SUBROUTINE dealloc_NParray_OF_dnMatdim1
-      SUBROUTINE alloc_dnCplxMat(dnMat,                                 &
-                           nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv)
+  SUBROUTINE alloc_dnCplxMat(dnMat,nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv)
         TYPE (Type_dnCplxMat) :: dnMat
         integer, optional :: nb_var_Matl,nb_var_Matc,nb_var_deriv,nderiv
         integer :: nd,nml,nmc
@@ -367,11 +364,11 @@ CONTAINS
 
 
         IF (nml > 0 .AND. nmc > 0) THEN
-          CALL alloc_array(dnMat%d0,[nml,nmc],'dnMat%d0','alloc_dnCplxMat')
+          CALL alloc_NParray(dnMat%d0,[nml,nmc],'dnMat%d0','alloc_dnCplxMat')
           dnMat%d0(:,:) = CZERO
 
           IF (dnMat%nderiv >= 1) THEN
-            CALL alloc_array(dnMat%d1,[nml,nmc,nd],'dnMat%d1','alloc_dnCplxMat')
+            CALL alloc_NParray(dnMat%d1,[nml,nmc,nd],'dnMat%d1','alloc_dnCplxMat')
             dnMat%d1(:,:,:) = CZERO
           END IF
 
@@ -381,7 +378,7 @@ CONTAINS
           END IF
 
           IF (dnMat%nderiv >= 3) THEN
-            CALL alloc_array(dnMat%d3,[nml,nmc,nd,nd,nd],'dnMat%d3','alloc_dnCplxMat')
+            CALL alloc_NParray(dnMat%d3,[nml,nmc,nd,nd,nd],'dnMat%d3','alloc_dnCplxMat')
             dnMat%d3(:,:,:,:,:) = CZERO
           END IF
 
@@ -397,11 +394,11 @@ CONTAINS
           STOP
         END IF
 
-      END SUBROUTINE alloc_dnCplxMat
+  END SUBROUTINE alloc_dnCplxMat
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE dealloc_dnCplxMat(dnMat)
+  SUBROUTINE dealloc_dnCplxMat(dnMat)
         TYPE (Type_dnCplxMat) :: dnMat
         integer :: nd,nml,nmc
         integer :: err_mem
@@ -410,20 +407,20 @@ CONTAINS
         nml = dnMat%nb_var_Matl
         nmc = dnMat%nb_var_Matc
 
-        IF (associated(dnMat%d0)) THEN
-          CALL dealloc_array(dnMat%d0,'dnMat%d0','dealloc_dnCplxMat')
+        IF (allocated(dnMat%d0)) THEN
+          CALL dealloc_NParray(dnMat%d0,'dnMat%d0','dealloc_dnCplxMat')
         END IF
 
-        IF (associated(dnMat%d1)) THEN
-          CALL dealloc_array(dnMat%d1,'dnMat%d1','dealloc_dnCplxMat')
+        IF (allocated(dnMat%d1)) THEN
+          CALL dealloc_NParray(dnMat%d1,'dnMat%d1','dealloc_dnCplxMat')
         END IF
 
-        IF (associated(dnMat%d2)) THEN
-          CALL dealloc_array(dnMat%d2,'dnMat%d2','dealloc_dnCplxMat')
+        IF (allocated(dnMat%d2)) THEN
+          CALL dealloc_NParray(dnMat%d2,'dnMat%d2','dealloc_dnCplxMat')
         END IF
 
-        IF (associated(dnMat%d3)) THEN
-          CALL dealloc_array(dnMat%d3,'dnMat%d3','dealloc_dnCplxMat')
+        IF (allocated(dnMat%d3)) THEN
+          CALL dealloc_NParray(dnMat%d3,'dnMat%d3','dealloc_dnCplxMat')
         END IF
 
         dnMat%alloc    = .FALSE.
@@ -433,7 +430,7 @@ CONTAINS
         dnMat%nb_var_Matl  = 0
         dnMat%nb_var_Matc  = 0
 
-      END SUBROUTINE dealloc_dnCplxMat
+  END SUBROUTINE dealloc_dnCplxMat
 
       SUBROUTINE alloc_array_OF_dnCplxMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
         USE QDUtil_m
@@ -507,7 +504,7 @@ CONTAINS
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE check_alloc_dnMat(A,name_A,name_sub)
+  SUBROUTINE check_alloc_dnMat(A,name_A,name_sub)
         TYPE (Type_dnMat), intent(in) :: A
         character (len=*), intent(in) :: name_A
         character (len=*), intent(in) :: name_sub
@@ -518,9 +515,9 @@ CONTAINS
           write(out_unit,*) ' CHECK the source!!!!!'
           STOP
         END IF
-      END SUBROUTINE check_alloc_dnMat
+  END SUBROUTINE check_alloc_dnMat
 
-      SUBROUTINE check_alloc_dnCplxMat(A,name_A,name_sub)
+  SUBROUTINE check_alloc_dnCplxMat(A,name_A,name_sub)
         TYPE (Type_dnCplxMat), intent(in) :: A
         character (len=*), intent(in) :: name_A
         character (len=*), intent(in) :: name_sub
@@ -531,7 +528,7 @@ CONTAINS
           write(out_unit,*) ' CHECK the source!!!!!'
           STOP
         END IF
-      END SUBROUTINE check_alloc_dnCplxMat
+  END SUBROUTINE check_alloc_dnCplxMat
 
   FUNCTION get_nderiv_FROM_dnMat(Mat) RESULT(nderiv)
 
@@ -540,13 +537,13 @@ CONTAINS
 
     nderiv = Mat%nderiv
 
-    IF (.NOT. associated(Mat%d0)) THEN
+    IF (.NOT. allocated(Mat%d0)) THEN
       nderiv = -1
-    ELSE IF (.NOT. associated(Mat%d1)) THEN
+    ELSE IF (.NOT. allocated(Mat%d1)) THEN
       nderiv = 0
-    ELSE IF (.NOT. associated(Mat%d2)) THEN
+    ELSE IF (.NOT. allocated(Mat%d2)) THEN
       nderiv = 1
-    ELSE IF (.NOT. associated(Mat%d3)) THEN
+    ELSE IF (.NOT. allocated(Mat%d3)) THEN
       nderiv = 2
     ELSE
       nderiv = 3
@@ -567,7 +564,7 @@ CONTAINS
 
     nb_var_deriv = Mat%nb_var_deriv
 
-    IF (.NOT. associated(Mat%d1)) THEN
+    IF (.NOT. allocated(Mat%d1)) THEN
       nb_var_deriv = 0
     ELSE
       nb_var_deriv = size(Mat%d1,dim=3)
@@ -612,17 +609,17 @@ CONTAINS
         nl = dnMat%nb_var_Matl
         nc = dnMat%nb_var_Matc
 
-        IF (nderiv_loc >= 0 .AND. associated(dnMat%d0)) THEN
+        IF (nderiv_loc >= 0 .AND. allocated(dnMat%d0)) THEN
           write(out_unit,*) 'd0'
           CALL Write_Mat(dnMat%d0(:,:),out_unit,5)
         END IF
-        IF (nderiv_loc > 0 .AND. associated(dnMat%d1)) THEN
+        IF (nderiv_loc > 0 .AND. allocated(dnMat%d1)) THEN
           DO i=1,dnMat%nb_var_deriv
             write(out_unit,*) 'd1',i
             CALL Write_Mat(dnMat%d1(:,:,i),out_unit,5)
           END DO
         END IF
-        IF (nderiv_loc > 1 .AND. associated(dnMat%d2)) THEN
+        IF (nderiv_loc > 1 .AND. allocated(dnMat%d2)) THEN
           DO i=1,dnMat%nb_var_deriv
           DO j=i,dnMat%nb_var_deriv
             write(out_unit,*) 'd2',i,j
@@ -630,7 +627,7 @@ CONTAINS
           END DO
           END DO
         END IF
-        IF (nderiv_loc > 2 .AND. associated(dnMat%d3)) THEN
+        IF (nderiv_loc > 2 .AND. allocated(dnMat%d3)) THEN
           DO i=1,dnMat%nb_var_deriv
           DO j=i,dnMat%nb_var_deriv
           DO k=j,dnMat%nb_var_deriv
@@ -670,17 +667,17 @@ CONTAINS
         nl = dnMat%nb_var_Matl
         nc = dnMat%nb_var_Matc
 
-        IF (nderiv_loc >= 0 .AND. associated(dnMat%d0)) THEN
+        IF (nderiv_loc >= 0 .AND. allocated(dnMat%d0)) THEN
           write(out_unit,*) 'd0'
           CALL Write_Mat(dnMat%d0(:,:),out_unit,5)
         END IF
-        IF (nderiv_loc > 0 .AND. associated(dnMat%d1)) THEN
+        IF (nderiv_loc > 0 .AND. allocated(dnMat%d1)) THEN
           DO i=1,dnMat%nb_var_deriv
             write(out_unit,*) 'd1',i
             CALL Write_Mat(dnMat%d1(:,:,i),out_unit,5)
           END DO
         END IF
-        IF (nderiv_loc > 1 .AND. associated(dnMat%d2)) THEN
+        IF (nderiv_loc > 1 .AND. allocated(dnMat%d2)) THEN
           DO i=1,dnMat%nb_var_deriv
           DO j=i,dnMat%nb_var_deriv
             write(out_unit,*) 'd2',i,j
@@ -688,7 +685,7 @@ CONTAINS
           END DO
           END DO
         END IF
-        IF (nderiv_loc > 2 .AND. associated(dnMat%d3)) THEN
+        IF (nderiv_loc > 2 .AND. allocated(dnMat%d3)) THEN
           DO i=1,dnMat%nb_var_deriv
           DO j=i,dnMat%nb_var_deriv
           DO k=j,dnMat%nb_var_deriv

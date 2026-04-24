@@ -282,7 +282,8 @@ MODULE mod_MatOFdnS
         TYPE (Type_dnS) :: MatOFdnS(:,:)
         integer, optional :: nderiv
         integer :: i,j,id,jd,kd,nb_var_deriv,nderiv_loc
-        real (kind=Rkind), pointer :: mat(:,:)
+        real (kind=Rkind), allocatable :: mat(:,:)
+
         logical :: old = .FALSE.
         !logical :: old = .TRUE.
 
@@ -302,8 +303,7 @@ MODULE mod_MatOFdnS
           END DO
           END DO
         ELSE
-          nullify(mat)
-          CALL alloc_array(mat,ubound(MatOFdnS),'mat','Write_MatOFdnS',lbound(MatOFdnS))
+          CALL alloc_NParray(mat,ubound(MatOFdnS),'mat','Write_MatOFdnS',lbound(MatOFdnS))
 
           IF (nderiv_loc >= 0) THEN
             mat(:,:) = MatOFdnS(:,:)%d0
@@ -349,7 +349,7 @@ MODULE mod_MatOFdnS
             END DO
             END DO
           END IF
-          CALL dealloc_array(mat,'mat','Write_MatOFdnS')
+          CALL dealloc_NParray(mat,'mat','Write_MatOFdnS')
         END IF
         flush(out_unit)
       END SUBROUTINE Write_MatOFdnS
@@ -489,12 +489,11 @@ MODULE mod_MatOFdnS
 
         integer             :: N
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:),Vec1dnS(:),Vec2dnS(:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:),Vec1dnS(:),Vec2dnS(:)
 
         integer, parameter           :: max_it = 200
         real (kind=Rkind), parameter :: tresh  = tiny(ONE)
-        !real (kind=Rkind), parameter :: tresh  = TEN**(-30)
         real (kind=Rkind) :: d0,d1,d2,d3
         integer :: i,j
 
@@ -542,8 +541,7 @@ MODULE mod_MatOFdnS
 
         IF (check) THEN
           N = ubound(MatdnS,dim=2)
-          nullify(MatdnS_save)
-          CALL alloc_array(MatdnS_save,[N,N],'MatdnS_save',name_sub)
+          CALL alloc_NParray(MatdnS_save,[N,N],'MatdnS_save',name_sub)
           CALL alloc_MatOFdnS(MatdnS_save,MatdnS(1,1)%nb_var_deriv,nderiv_loc)
           CALL sub_Mat1OFdnS_TO_Mat2OFdnS(MatdnS,MatdnS_save)
         END IF
@@ -583,21 +581,17 @@ MODULE mod_MatOFdnS
 
         IF (check) THEN
           ! allocation
-          nullify(MatPdnS)
-          CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
-          nullify(MatWorkdnS)
-          CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+          CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
+          CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
 
           write(out_unit,*) '=========================================='
           write(out_unit,*) '======= CHECK DIAGO ======================'
           write(out_unit,*) '=========================================='
 
           ! check line or column
-          nullify(Vec1dnS)
-          CALL alloc_array(Vec1dnS,[N],'Vec1dnS',name_sub)
+          CALL alloc_NParray(Vec1dnS,[N],'Vec1dnS',name_sub)
           CALL alloc_VecOFdnS(Vec1dnS,MatdnS(1,1)%nb_var_deriv,nderiv_loc)
-          nullify(Vec2dnS)
-          CALL alloc_array(Vec2dnS,[N],'Vec2dnS',name_sub)
+          CALL alloc_NParray(Vec2dnS,[N],'Vec2dnS',name_sub)
           CALL alloc_VecOFdnS(Vec2dnS,MatdnS(1,1)%nb_var_deriv,nderiv_loc)
 
 
@@ -662,15 +656,15 @@ MODULE mod_MatOFdnS
 
 !         write(out_unit,*) 'diff mat',MatdnS(:,:)%d0-MatdnS_save(:,:)%d0
           CALL dealloc_MatOFdnS(MatdnS_save)
-          CALL dealloc_array(MatdnS_save,'MatdnS_save',name_sub)
+          CALL dealloc_NParray(MatdnS_save,'MatdnS_save',name_sub)
           CALL dealloc_MatOFdnS(MatPdnS)
-          CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
+          CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
           CALL dealloc_MatOFdnS(MatWorkdnS)
-          CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+          CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
           CALL dealloc_VecOFdnS(Vec1dnS)
-          CALL dealloc_array(Vec1dnS,'Vec1dnS',name_sub)
+          CALL dealloc_NParray(Vec1dnS,'Vec1dnS',name_sub)
           CALL dealloc_VecOFdnS(Vec2dnS)
-          CALL dealloc_array(Vec2dnS,'Vec2dnS',name_sub)
+          CALL dealloc_NParray(Vec2dnS,'Vec2dnS',name_sub)
 
           !write(out_unit,*) 'STOP: check DIAG ', name_sub
           !STOP
@@ -678,8 +672,6 @@ MODULE mod_MatOFdnS
           write(out_unit,*) '=========================================='
 
         END IF
-
-
 
 
         IF (debug) THEN
@@ -699,8 +691,8 @@ MODULE mod_MatOFdnS
         real (kind=Rkind), intent (in) :: tresh
         integer, intent(in)            :: type_cs
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:)
 
 
         integer             :: it,i,j,ip,iq,max_ip,max_iq,N
@@ -723,11 +715,9 @@ MODULE mod_MatOFdnS
 
         ! allocation
         N = ubound(MatdnS,dim=2)
-        nullify(MatPdnS)
-        CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
+        CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
         CALL alloc_MatOFdnS(MatPdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
-        nullify(MatWorkdnS)
-        CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+        CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
         CALL alloc_MatOFdnS(MatWorkdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
 
         ! initialization
@@ -826,8 +816,8 @@ MODULE mod_MatOFdnS
         CALL dealloc_dnS(dnWork3)
         CALL dealloc_MatOFdnS(MatPdnS)
         CALL dealloc_MatOFdnS(MatWorkdnS)
-        CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
-        CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+        CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
+        CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
 
         IF (debug) THEN
           write(out_unit,*) 'diagonal Matrix of dnS'
@@ -847,8 +837,8 @@ MODULE mod_MatOFdnS
         real (kind=Rkind), intent (in) :: tresh
         integer, intent(in)            :: type_cs
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:)
 
 
         integer             :: it,i,j,ip,iq,max_ip,max_iq,N
@@ -871,11 +861,9 @@ MODULE mod_MatOFdnS
 
         ! allocation
         N = ubound(MatdnS,dim=2)
-        nullify(MatPdnS)
-        CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
+        CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
         CALL alloc_MatOFdnS(MatPdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
-        nullify(MatWorkdnS)
-        CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+        CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
         CALL alloc_MatOFdnS(MatWorkdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
 
 
@@ -996,8 +984,8 @@ MODULE mod_MatOFdnS
         CALL dealloc_dnS(dnWork3)
         CALL dealloc_MatOFdnS(MatPdnS)
         CALL dealloc_MatOFdnS(MatWorkdnS)
-        CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
-        CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+        CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
+        CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
 
         IF (debug) THEN
           write(out_unit,*) 'diagonal Matrix of dnS'
@@ -1016,8 +1004,8 @@ MODULE mod_MatOFdnS
         real (kind=Rkind), intent (in) :: tresh
         integer, intent(in)            :: type_cs
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:)
 
 
         integer             :: it,i,j,ip,iq,max_ip,max_iq,N
@@ -1038,9 +1026,9 @@ MODULE mod_MatOFdnS
 
         ! allocation
         N = ubound(MatdnS,dim=2)
-        CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
+        CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
         CALL alloc_MatOFdnS(MatPdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
-        CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+        CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
         CALL alloc_MatOFdnS(MatWorkdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
 
 
@@ -1164,8 +1152,8 @@ MODULE mod_MatOFdnS
         CALL dealloc_dnS(dnWork3)
         CALL dealloc_MatOFdnS(MatPdnS)
         CALL dealloc_MatOFdnS(MatWorkdnS)
-        CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
-        CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+        CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
+        CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
 
       END SUBROUTINE DIAG2_MatOFdnS
 
@@ -1176,8 +1164,8 @@ MODULE mod_MatOFdnS
         real (kind=Rkind), intent (in) :: tresh
         integer, intent(in)            :: type_cs
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:)
 
 
         integer             :: it,i,j,ip,iq,max_ip,max_iq,N
@@ -1209,11 +1197,9 @@ MODULE mod_MatOFdnS
           RETURN
         END IF
 
-        nullify(MatPdnS)
-        CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
+        CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
         CALL alloc_MatOFdnS(MatPdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
-        nullify(MatWorkdnS)
-        CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+        CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
         CALL alloc_MatOFdnS(MatWorkdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
 
 
@@ -1318,8 +1304,8 @@ MODULE mod_MatOFdnS
         CALL dealloc_dnS(dnWork3)
         CALL dealloc_MatOFdnS(MatPdnS)
         CALL dealloc_MatOFdnS(MatWorkdnS)
-        CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
-        CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+        CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
+        CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
 
       END SUBROUTINE DIAG1_MatOFdnS
 
@@ -1329,8 +1315,8 @@ MODULE mod_MatOFdnS
         real (kind=Rkind), intent (in) :: tresh
         integer, intent(in)            :: type_cs
 
-        TYPE (Type_dnS), pointer :: MatPdnS(:,:),MatWorkdnS(:,:)
-        TYPE (Type_dnS), pointer :: MatdnS_save(:,:)
+        TYPE (Type_dnS), allocatable :: MatPdnS(:,:),MatWorkdnS(:,:)
+        TYPE (Type_dnS), allocatable :: MatdnS_save(:,:)
 
 
         integer             :: it,i,j,ip,iq,max_ip,max_iq,N
@@ -1351,11 +1337,9 @@ MODULE mod_MatOFdnS
 
         ! allocation
         N = ubound(MatdnS,dim=2)
-        nullify(MatPdnS)
-        CALL alloc_array(MatPdnS,[N,N],'MatPdnS',name_sub)
+        CALL alloc_NParray(MatPdnS,[N,N],'MatPdnS',name_sub)
         CALL alloc_MatOFdnS(MatPdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
-        nullify(MatWorkdnS)
-        CALL alloc_array(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
+        CALL alloc_NParray(MatWorkdnS,[N,N],'MatWorkdnS',name_sub)
         CALL alloc_MatOFdnS(MatWorkdnS,MatdnS(1,1)%nb_var_deriv,nderiv)
 
         ! initialization
@@ -1464,8 +1448,8 @@ MODULE mod_MatOFdnS
         CALL dealloc_dnS(dnWork3)
         CALL dealloc_MatOFdnS(MatPdnS)
         CALL dealloc_MatOFdnS(MatWorkdnS)
-        CALL dealloc_array(MatPdnS,'MatPdnS',name_sub)
-        CALL dealloc_array(MatWorkdnS,'MatWorkdnS',name_sub)
+        CALL dealloc_NParray(MatPdnS,'MatPdnS',name_sub)
+        CALL dealloc_NParray(MatWorkdnS,'MatWorkdnS',name_sub)
 
       END SUBROUTINE DIAG01_MatOFdnS
 

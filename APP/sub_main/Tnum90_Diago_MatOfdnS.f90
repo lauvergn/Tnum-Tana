@@ -40,12 +40,12 @@
 
 !     - parameters for para_Tnum -----------------------
       TYPE (CoordType)   :: mole
-      TYPE (Tnum)      :: para_Tnum
-      TYPE (PrimOp_t)  :: PrimOp
+      TYPE (Tnum)        :: para_Tnum
+      TYPE (PrimOp_t)    :: PrimOp
 
-      TYPE(Type_dnMat) :: dng,dnGG
-      TYPE(Type_dnS), pointer :: GOFdnS(:,:),EigenVecOFdnS(:,:)
-      TYPE(Type_dnS)   :: dnS
+      TYPE(Type_dnMat)            :: dng,dnGG
+      TYPE(Type_dnS), allocatable :: GOFdnS(:,:),EigenVecOFdnS(:,:)
+      TYPE(Type_dnS)               :: dnS
 
       integer :: nderiv,nb_act
 !     ------------------------------------------------------
@@ -108,10 +108,8 @@
 
       nb_act = mole%nb_act
 
-      nullify(GOFdnS)
-      nullify(EigenVecOFdnS)
-      CALL alloc_array(GOFdnS,[nb_act,nb_act],'GOFdnS','main')
-      CALL alloc_array(EigenVecOFdnS,[nb_act,nb_act],'EigenVecOFdnS','main')
+      CALL alloc_NParray(GOFdnS,[nb_act,nb_act],'GOFdnS','main')
+      CALL alloc_NParray(EigenVecOFdnS,[nb_act,nb_act],'EigenVecOFdnS','main')
       CALL alloc_MatOFdnS(GOFdnS,nb_act,nderiv)
       CALL alloc_MatOFdnS(EigenVecOFdnS,nb_act,nderiv)
       CALL alloc_dnS(dnS,nb_act,nderiv)
@@ -151,8 +149,8 @@
 
       CALL dealloc_MatOFdnS(EigenVecOFdnS)
       CALL dealloc_MatOFdnS(GOFdnS)
-      CALL dealloc_array(GOFdnS,'GOFdnS','main')
-      CALL dealloc_array(EigenVecOFdnS,'EigenVecOFdnS','main')
+      CALL dealloc_NParray(GOFdnS,'GOFdnS','main')
+      CALL dealloc_NParray(EigenVecOFdnS,'EigenVecOFdnS','main')
       CALL dealloc_dnSVM(dnS)
       CALL dealloc_dnSVM(dng)
       CALL dealloc_dnSVM(dnGG)

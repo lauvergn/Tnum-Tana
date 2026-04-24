@@ -38,17 +38,10 @@ MODULE mod_dnS
       integer                     :: nderiv       = 0
       integer                     :: nb_var_deriv = 0
       real (kind=Rkind)           :: d0           = ZERO
-      real (kind=Rkind), pointer  :: d1(:)        => null()
-      real (kind=Rkind), pointer  :: d2(:,:)      => null()
-      real (kind=Rkind), pointer  :: d3(:,:,:)    => null()
+      real (kind=Rkind), allocatable  :: d1(:)
+      real (kind=Rkind), allocatable  :: d2(:,:)
+      real (kind=Rkind), allocatable  :: d3(:,:,:)
   END TYPE Type_dnS
-
-  INTERFACE alloc_array
-    MODULE PROCEDURE alloc_array_OF_dnSdim3
-  END INTERFACE
-  INTERFACE dealloc_array
-    MODULE PROCEDURE dealloc_array_OF_dnSdim3
-  END INTERFACE
 
   INTERFACE alloc_NParray
     MODULE PROCEDURE alloc_NParray_OF_dnSdim3
@@ -89,7 +82,6 @@ MODULE mod_dnS
   PUBLIC :: sub_dnS1_PROD_w_TO_dnS2,sub_dnS1_PROD_dnS2_TO_dnS3
   PUBLIC :: sub_dnS1_TO_dntR2,sub_dntf,sub_dnf2_O_dnf3_TO_dnf1, sub_dntf_WITH_INV
   PUBLIC :: sub_ZERO_TO_dnS,sub_Weight_dnS,sub_WeightDer_dnS
-  PUBLIC :: alloc_array, dealloc_array
   PUBLIC :: alloc_NParray, dealloc_NParray
   PUBLIC :: R_wADDTO_dnS2_ider
   PUBLIC :: check_dnS_IsZERO
@@ -97,81 +89,6 @@ MODULE mod_dnS
   PUBLIC :: sub_dnS_TO_dnSt,sub_dnSt_TO_dnS
 
 CONTAINS
-
-  SUBROUTINE alloc_array_OF_dnSdim3(tab,tab_ub,name_var,name_sub,tab_lb)
-    USE QDUtil_m
-    IMPLICIT NONE
-
-      TYPE (Type_dnS), pointer, intent(inout) :: tab(:,:,:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-
-      integer, parameter :: ndim=3
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnSdim3'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1),                              &
-                      tab_lb(2):tab_ub(2),                              &
-                      tab_lb(3):tab_ub(3)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1),tab_ub(2),tab_ub(3)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnS')
-
-      END SUBROUTINE alloc_array_OF_dnSdim3
-      SUBROUTINE dealloc_array_OF_dnSdim3(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnS), pointer, intent(inout) :: tab(:,:,:)
-      character (len=*), intent(in) :: name_var,name_sub
-      integer :: i1,i2,i3
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnSdim3'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-
-       IF (.NOT. associated(tab))                                       &
-                 CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       DO i1=ubound(tab,dim=1),lbound(tab,dim=1)
-       DO i2=ubound(tab,dim=2),lbound(tab,dim=2)
-       DO i3=ubound(tab,dim=3),lbound(tab,dim=3)
-         CALL dealloc_dnS(tab(i1,i2,i3))
-       END DO
-       END DO
-       END DO
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnS')
-       nullify(tab)
-
-  END SUBROUTINE dealloc_array_OF_dnSdim3
 
   SUBROUTINE alloc_NParray_OF_dnSdim3(tab,tab_ub,name_var,name_sub,tab_lb)
     USE QDUtil_m
@@ -321,16 +238,16 @@ CONTAINS
 
         dnS%d0           = ZERO
 
-        IF (associated(dnS%d1)) THEN
-          CALL dealloc_array(dnS%d1,'dnS%d1','EVRT_dealloc_dnS')
+        IF (allocated(dnS%d1)) THEN
+          CALL dealloc_NParray(dnS%d1,'dnS%d1','EVRT_dealloc_dnS')
         END IF
 
-        IF (associated(dnS%d2)) THEN
-          CALL dealloc_array(dnS%d2,'dnS%d2','EVRT_dealloc_dnS')
+        IF (allocated(dnS%d2)) THEN
+          CALL dealloc_NParray(dnS%d2,'dnS%d2','EVRT_dealloc_dnS')
         END IF
 
-        IF (associated(dnS%d3)) THEN
-          CALL dealloc_array(dnS%d3,'dnS%d3','EVRT_dealloc_dnS')
+        IF (allocated(dnS%d3)) THEN
+          CALL dealloc_NParray(dnS%d3,'dnS%d3','EVRT_dealloc_dnS')
         END IF
 
         dnS%alloc    = .FALSE.
@@ -380,13 +297,13 @@ CONTAINS
         TYPE (Type_dnS), intent(in) :: dnS
 
         check_dnS_IsZERO = abs(dnS%d0) < ONETENTH**10
-        IF (associated(dnS%d1)) THEN
+        IF (allocated(dnS%d1)) THEN
           check_dnS_IsZERO = check_dnS_IsZERO .AND. all(abs(dnS%d1) < ONETENTH**10)
         END IF
-        IF (associated(dnS%d2)) THEN
+        IF (allocated(dnS%d2)) THEN
           check_dnS_IsZERO = check_dnS_IsZERO .AND. all(abs(dnS%d2) < ONETENTH**10)
         END IF
-        IF (associated(dnS%d3)) THEN
+        IF (allocated(dnS%d3)) THEN
           check_dnS_IsZERO = check_dnS_IsZERO .AND. all(abs(dnS%d3) < ONETENTH**10)
         END IF
 
@@ -401,11 +318,11 @@ CONTAINS
 
     nderiv = dnS%nderiv
 
-    IF (.NOT. associated(dnS%d1)) THEN
+    IF (.NOT. allocated(dnS%d1)) THEN
       nderiv = 0
-    ELSE IF (.NOT. associated(dnS%d2)) THEN
+    ELSE IF (.NOT. allocated(dnS%d2)) THEN
       nderiv = 1
-    ELSE IF (.NOT. associated(dnS%d3)) THEN
+    ELSE IF (.NOT. allocated(dnS%d3)) THEN
       nderiv = 2
     ELSE
       nderiv = 3
@@ -428,7 +345,7 @@ CONTAINS
 
     nb_var_deriv = dnS%nb_var_deriv
 
-    IF (.NOT. associated(dnS%d1)) THEN
+    IF (.NOT. allocated(dnS%d1)) THEN
       nb_var_deriv = 0
     ELSE
       nb_var_deriv = size(dnS%d1,dim=1)
@@ -466,13 +383,13 @@ CONTAINS
         write(out_unit,*) 'nderiv,nb_var_deriv',dnS%nderiv,dnS%nb_var_deriv
         write(out_unit,*) 'd0'
         write(out_unit,*) dnS%d0
-        IF (nderiv_loc > 0 .AND. associated(dnS%d1)) THEN
+        IF (nderiv_loc > 0 .AND. allocated(dnS%d1)) THEN
           DO i=1,dnS%nb_var_deriv
             write(out_unit,*) 'd1',i
             write(out_unit,*) dnS%d1(i)
           END DO
         END IF
-        IF (nderiv_loc > 1 .AND. associated(dnS%d2)) THEN
+        IF (nderiv_loc > 1 .AND. allocated(dnS%d2)) THEN
           DO i=1,dnS%nb_var_deriv
           DO j=i,dnS%nb_var_deriv
             write(out_unit,*) 'd2',i,j
@@ -480,7 +397,7 @@ CONTAINS
           END DO
           END DO
         END IF
-        IF (nderiv_loc > 2 .AND. associated(dnS%d3)) THEN
+        IF (nderiv_loc > 2 .AND. allocated(dnS%d3)) THEN
           DO i=1,dnS%nb_var_deriv
           DO j=i,dnS%nb_var_deriv
           DO k=j,dnS%nb_var_deriv

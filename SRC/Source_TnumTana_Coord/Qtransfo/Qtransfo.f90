@@ -33,95 +33,95 @@
 !===========================================================================
 !===========================================================================
 MODULE mod_Qtransfo
-      use TnumTana_system_m
-      USE mod_dnSVM
-      use mod_Constant, only: table_atom
+  USE TnumTana_system_m
+  USE mod_dnSVM
+  USE mod_Constant, only: table_atom
 
-      USE mod_CartesianTransfo
-      USE mod_QTOXanaTransfo
-      USE mod_BunchPolyTransfo
-      USE mod_ZmatTransfo
-      USE mod_RectilinearNM_Transfo
-      USE mod_OneDTransfo
-      USE TwoDTransfo_m
-      USE Rot2CoordTransfo_m
-      USE mod_FlexibleTransfo
-      USE mod_HyperSpheTransfo
-      USE mod_LinearNMTransfo
-      USE mod_RPHTransfo
-      USE mod_RPHQMLTransfo
-      USE mod_ActiveTransfo
+  USE mod_CartesianTransfo
+  USE mod_QTOXanaTransfo
+  USE mod_BunchPolyTransfo
+  USE mod_ZmatTransfo
+  USE mod_RectilinearNM_Transfo
+  USE mod_OneDTransfo
+  USE TwoDTransfo_m
+  USE Rot2CoordTransfo_m
+  USE mod_FlexibleTransfo
+  USE mod_HyperSpheTransfo
+  USE mod_LinearNMTransfo
+  USE mod_RPHTransfo
+  USE mod_RPHQMLTransfo
+  USE mod_ActiveTransfo
 
-      IMPLICIT NONE
+  IMPLICIT NONE
 
-      PRIVATE
+  PRIVATE
 
-        TYPE, PUBLIC :: Type_Qtransfo
-          logical                           :: print_done      = .FALSE.
-          character (len=:), allocatable, private :: name_transfo
-          integer                           :: num_transfo     = 0
-          logical                           :: BeforeActive    = .FALSE. ! .TRUE. when it (or num_transfo) is nb_Qtransfo-1
-          logical                           :: inTOout         = .TRUE.
-          integer                           :: nb_var          = 0
-          integer                           :: nb_act          = 0
-          integer                           :: nb_ExtraLFSF    = 0
-          integer                           :: ncart_act       = 0
-          integer                           :: nb_transfo      = 0
-          integer                           :: opt_transfo     = 0 ! option for the transformation
-          logical                           :: skip_transfo    = .FALSE.
-          integer                           :: opt_param       = 0
-          logical                           :: Primitive_coord = .FALSE.
+  TYPE, PUBLIC :: Type_Qtransfo
+    logical                                   :: print_done      = .FALSE.
+    character (len=:), allocatable, private   :: name_transfo
+    integer                                   :: num_transfo     = 0
+    logical                                   :: BeforeActive    = .FALSE. ! .TRUE. when it (or num_transfo) is nb_Qtransfo-1
+    logical                                   :: inTOout         = .TRUE.
+    integer                                   :: nb_var          = 0
+    integer                                   :: nb_act          = 0
+    integer                                   :: nb_ExtraLFSF    = 0
+    integer                                   :: ncart_act       = 0
+    integer                                   :: nb_transfo      = 0
+    integer                                   :: opt_transfo     = 0 ! option for the transformation
+    logical                                   :: skip_transfo    = .FALSE.
+    integer                                   :: opt_param       = 0
+    logical                                   :: Primitive_coord = .FALSE.
 
-          TYPE (Type_CartesianTransfo)              :: CartesianTransfo
-          TYPE (Type_QTOXanaTransfo)                :: QTOXanaTransfo
-          TYPE (Type_ZmatTransfo)                   :: ZmatTransfo
-          TYPE (Type_RectilinearNM_Transfo)         :: RectilinearNM_Transfo
-          TYPE (Type_BunchTransfo),     allocatable :: BunchTransfo
-          TYPE (Type_BFTransfo)                     :: BFTransfo
+    TYPE (Type_CartesianTransfo)              :: CartesianTransfo
+    TYPE (Type_QTOXanaTransfo)                :: QTOXanaTransfo
+    TYPE (Type_ZmatTransfo)                   :: ZmatTransfo
+    TYPE (Type_RectilinearNM_Transfo)         :: RectilinearNM_Transfo
+    TYPE (Type_BunchTransfo),     allocatable :: BunchTransfo
+    TYPE (Type_BFTransfo)                     :: BFTransfo
 
-          TYPE (Type_LinearTransfo)                 :: LinearTransfo
-          TYPE (Type_FlexibleTransfo)               :: FlexibleTransfo
+    TYPE (Type_LinearTransfo)                 :: LinearTransfo
+    TYPE (Type_FlexibleTransfo)               :: FlexibleTransfo
 
-          TYPE (Type_oneDTransfo),      allocatable :: oneDTransfo(:)
-          TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
-          TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
-          TYPE (Type_HyperSpheTransfo)              :: HyperSpheTransfo
-          integer,                      allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
+    TYPE (Type_oneDTransfo),      allocatable :: oneDTransfo(:)
+    TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
+    TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
+    TYPE (Type_HyperSpheTransfo)              :: HyperSpheTransfo
+    integer,                      allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
 
-          TYPE (Type_NMTransfo),        allocatable :: NMTransfo
-          TYPE (Type_RPHTransfo),       allocatable :: RPHTransfo
-          TYPE (Type_RPHQMLTransfo),    allocatable :: RPHQMLTransfo
-          TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
+    TYPE (Type_NMTransfo),        allocatable :: NMTransfo
+    TYPE (Type_RPHTransfo),       allocatable :: RPHTransfo
+    TYPE (Type_RPHQMLTransfo),    allocatable :: RPHQMLTransfo
+    TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
 
-          integer                                   :: nb_Qin       = 0   ! size the input coordinates
-          integer                                   :: nb_Qout      = 0   ! size the output coordinates
-          integer,                      allocatable :: type_Qin(:)        ! size nb_Qin
-          character (len=Name_len),     allocatable :: name_Qin(:)        ! size nb_Qin
-          integer,                      allocatable :: type_Qout(:)       ! size nb_Qout
-          character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
-      END TYPE Type_Qtransfo
+    integer                                   :: nb_Qin       = 0   ! size the input coordinates
+    integer                                   :: nb_Qout      = 0   ! size the output coordinates
+    integer,                      allocatable :: type_Qin(:)        ! size nb_Qin
+    character (len=Name_len),     allocatable :: name_Qin(:)        ! size nb_Qin
+    integer,                      allocatable :: type_Qout(:)       ! size nb_Qout
+    character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
+  END TYPE Type_Qtransfo
 
-      INTERFACE alloc_NParray
-        MODULE PROCEDURE alloc_NParray_OF_Qtransfodim1
-      END INTERFACE
-      INTERFACE dealloc_NParray
-        MODULE PROCEDURE dealloc_NParray_OF_Qtransfodim1
-      END INTERFACE
+  INTERFACE alloc_NParray
+    MODULE PROCEDURE alloc_NParray_OF_Qtransfodim1
+  END INTERFACE
+  INTERFACE dealloc_NParray
+    MODULE PROCEDURE dealloc_NParray_OF_Qtransfodim1
+  END INTERFACE
 
-      PUBLIC alloc_array,dealloc_array,alloc_NParray,dealloc_NParray,dealloc_Qtransfo
-      PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
-      PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
-      PUBLIC set_name_Qtransfo,get_name_Qtransfo
+  PUBLIC alloc_array,dealloc_array,alloc_NParray,dealloc_NParray,dealloc_Qtransfo
+  PUBLIC read_Qtransfo,Write_Qtransfo,Sub_Check_LinearTransfo,sub_Type_Name_OF_Qin
+  PUBLIC Qtransfo1TOQtransfo2,calc_Qtransfo
+  PUBLIC set_name_Qtransfo,get_name_Qtransfo
 
-      CONTAINS
+CONTAINS
 
       !!@description: TODO
       !!@param: TODO
-      SUBROUTINE read_Qtransfo(Qtransfo,Qtransfo_itm1,nb_Qin,nb_extra_Coord,    &
-                               With_Tab_dnQflex,QMLib_in,mendeleev,             &
-                               Tana_Is_Possible,Cart_Type)
+  SUBROUTINE read_Qtransfo(Qtransfo,Qtransfo_itm1,nb_Qin,nb_extra_Coord,    &
+                           With_Tab_dnQflex,QMLib_in,mendeleev,             &
+                           Tana_Is_Possible,Cart_Type)
         
-        USE mod_Lib_QTransfo, ONLY : make_nameQ
+    USE mod_Lib_QTransfo, ONLY : make_nameQ
 
         TYPE (Type_Qtransfo), intent(inout)    :: Qtransfo,Qtransfo_itm1
         integer,              intent(inout)    :: nb_Qin,nb_extra_Coord
