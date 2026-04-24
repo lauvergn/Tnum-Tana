@@ -34,7 +34,7 @@
 !===========================================================================
 MODULE mod_ActiveTransfo
       use TnumTana_system_m
-      use mod_dnSVM, only: alloc_array, dealloc_array, type_dnvec,   &
+      use mod_dnSVM, only: type_dnvec,   &
                            type_dns, write_dnsvm, alloc_dnsvm,       &
                            set_zero_to_dnsvm, sub_dns_to_dnvec,      &
                            dealloc_dnsvm, sub_dnS1_TO_dnS2

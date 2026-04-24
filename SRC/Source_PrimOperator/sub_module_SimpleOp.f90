@@ -35,7 +35,7 @@
 !===========================================================================
   MODULE mod_SimpleOp
    use TnumTana_system_m
-   USE mod_dnSVM, only: type_dns, alloc_array, alloc_dns, dealloc_array,   &
+   USE mod_dnSVM, only: type_dns, alloc_dns,   &
                         alloc_NParray, dealloc_NParray, &
                         Write_MatOFdnS, sub_weightder_dns
    IMPLICIT NONE

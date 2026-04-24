@@ -30,7 +30,7 @@ MODULE mod_dnV
   USE QDUtil_m
   IMPLICIT NONE
 
-      PRIVATE
+  PRIVATE
 
       !==============================================
       !!@description: TODO
@@ -51,6 +51,13 @@ MODULE mod_dnV
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnVec2_TO_dnVec1
       END TYPE Type_dnVec
 
+      INTERFACE alloc_NParray
+        MODULE PROCEDURE alloc_NParray_OF_dnVecdim1,alloc_NParray_OF_dnVecdim2
+      END INTERFACE
+      INTERFACE dealloc_NParray
+        MODULE PROCEDURE dealloc_NParray_OF_dnVecdim1,dealloc_NParray_OF_dnVecdim2
+      END INTERFACE
+
       INTERFACE Write_dnVec
         MODULE PROCEDURE EVRT_Write_dnVec
       END INTERFACE
@@ -66,13 +73,14 @@ MODULE mod_dnV
       INTERFACE alloc_dnVec
       MODULE PROCEDURE EVRT_alloc_dnVec
       END INTERFACE
-    INTERFACE dealloc_dnVec
-      MODULE PROCEDURE EVRT_dealloc_dnVec
-    END INTERFACE
+      INTERFACE dealloc_dnVec
+        MODULE PROCEDURE EVRT_dealloc_dnVec
+      END INTERFACE
       INTERFACE Set_ZERO_TO_dnSVM
         MODULE PROCEDURE sub_ZERO_TO_dnVec
       END INTERFACE
 
+      PUBLIC :: alloc_NParray, dealloc_NParray
       PUBLIC :: Type_dnVec, alloc_dnVec, dealloc_dnVec, check_alloc_dnVec
       PUBLIC :: Write_dnVec, sub_Normalize_dnVec
 
@@ -204,6 +212,133 @@ MODULE mod_dnV
         !write(out_unit,*) 'END EVRT_dealloc_dnVec'
 
       END SUBROUTINE EVRT_dealloc_dnVec
+
+
+      SUBROUTINE alloc_NParray_OF_dnVecdim1(tab,tab_ub,name_var,name_sub,tab_lb)
+        USE QDUtil_m
+      IMPLICIT NONE
+
+      TYPE (Type_dnVec), allocatable, intent(inout)        :: tab(:)
+      integer,                        intent(in)           :: tab_ub(:)
+      integer,                        intent(in), optional :: tab_lb(:)
+
+      character (len=*), intent(in) :: name_var,name_sub
+
+      integer, parameter :: ndim=1
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_dnVecdim1'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+       IF (present(tab_lb)) THEN
+         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+         memory = product(tab_ub(:)-tab_lb(:)+1)
+         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
+       ELSE
+         memory = product(tab_ub(:))
+         allocate(tab(tab_ub(1)),stat=err_mem)
+       END IF
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnVec')
+
+      END SUBROUTINE alloc_NParray_OF_dnVecdim1
+      SUBROUTINE dealloc_NParray_OF_dnVecdim1(tab,name_var,name_sub)
+        USE QDUtil_m
+      IMPLICIT NONE
+
+      TYPE (Type_dnVec), allocatable, intent(inout) :: tab(:)
+      character (len=*),              intent(in)    :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_dnVecdim1'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+       IF (.NOT. allocated(tab))                                       &
+             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = size(tab)
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnVec')
+
+      END SUBROUTINE dealloc_NParray_OF_dnVecdim1
+
+      SUBROUTINE alloc_NParray_OF_dnVecdim2(tab,tab_ub,name_var,name_sub,tab_lb)
+        USE QDUtil_m
+      IMPLICIT NONE
+
+      TYPE (Type_dnVec), allocatable, intent(inout)        :: tab(:,:)
+      integer,                        intent(in)           :: tab_ub(:)
+      integer,                        intent(in), optional :: tab_lb(:)
+
+      character (len=*), intent(in) :: name_var,name_sub
+
+
+      integer, parameter :: ndim=2
+      logical :: memory_test
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'alloc_NParray_OF_dnVecdim2'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       IF (allocated(tab))                                             &
+             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+       IF (present(tab_lb)) THEN
+         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+         memory = product(tab_ub(:)-tab_lb(:)+1)
+         allocate(tab(tab_lb(1):tab_ub(1),                              &
+                      tab_lb(2):tab_ub(2)),stat=err_mem)
+       ELSE
+         memory = product(tab_ub(:))
+         allocate(tab(tab_ub(1),tab_ub(2)),stat=err_mem)
+       END IF
+       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnVec')
+
+      END SUBROUTINE alloc_NParray_OF_dnVecdim2
+      SUBROUTINE dealloc_NParray_OF_dnVecdim2(tab,name_var,name_sub)
+        USE QDUtil_m
+      IMPLICIT NONE
+
+      TYPE (Type_dnVec), allocatable, intent(inout) :: tab(:,:)
+      character (len=*),              intent(in)    :: name_var,name_sub
+
+!----- for debuging --------------------------------------------------
+      character (len=*), parameter :: name_sub_alloc = 'dealloc_NParray_OF_dnVecdim2'
+      integer :: err_mem,memory
+      logical,parameter :: debug=.FALSE.
+!      logical,parameter :: debug=.TRUE.
+!----- for debuging --------------------------------------------------
+
+       !IF (.NOT. allocated(tab)) RETURN
+
+       IF (.NOT. allocated(tab))                                       &
+                 CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+       memory = size(tab)
+       deallocate(tab,stat=err_mem)
+       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnVec')
+
+      END SUBROUTINE dealloc_NParray_OF_dnVecdim2
 
 !================================================================
 !

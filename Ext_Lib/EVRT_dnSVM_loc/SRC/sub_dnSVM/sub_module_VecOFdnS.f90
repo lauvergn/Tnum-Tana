@@ -32,12 +32,6 @@ MODULE mod_VecOFdnS
 
       PRIVATE
 
-      INTERFACE alloc_array
-        MODULE PROCEDURE alloc_array_OF_dnSdim1
-      END INTERFACE
-      INTERFACE dealloc_array
-        MODULE PROCEDURE dealloc_array_OF_dnSdim1
-      END INTERFACE
       INTERFACE alloc_NParray
         MODULE PROCEDURE alloc_NParray_OF_dnSdim1
       END INTERFACE
@@ -45,7 +39,6 @@ MODULE mod_VecOFdnS
         MODULE PROCEDURE dealloc_NParray_OF_dnSdim1
       END INTERFACE
 
-      PUBLIC :: alloc_array, dealloc_array
       PUBLIC :: alloc_NParray, dealloc_NParray
       PUBLIC :: alloc_VecOFdnS, dealloc_VecOFdnS, check_alloc_VecOFdnS, Write_VecOFdnS
       PUBLIC :: Vec1OFdnS_CROSSPRODUCT_Vec2OFdnS_TO_Vec3OFdnS
@@ -89,74 +82,6 @@ MODULE mod_VecOFdnS
         END DO
 
       END SUBROUTINE dealloc_VecOFdnS
-
-      SUBROUTINE alloc_array_OF_dnSdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnS), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnSdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnS')
-
-      END SUBROUTINE alloc_array_OF_dnSdim1
-      SUBROUTINE dealloc_array_OF_dnSdim1(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnS), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer :: i1
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnSdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       DO i1=ubound(tab,dim=1),lbound(tab,dim=1)
-         CALL dealloc_dnS(tab(i1))
-       END DO
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnS')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_dnSdim1
 
       SUBROUTINE alloc_NParray_OF_dnSdim1(tab,tab_ub,name_var,name_sub,tab_lb)
         USE QDUtil_m

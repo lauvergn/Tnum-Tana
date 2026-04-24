@@ -68,14 +68,6 @@ MODULE mod_dnM
         GENERIC,   PUBLIC  :: assignment(=) => sub_dnCplxMat2_TO_dnCplxMat1
     END TYPE Type_dnCplxMat
 
-    INTERFACE alloc_array
-      MODULE PROCEDURE alloc_array_OF_dnMatdim1
-      MODULE PROCEDURE alloc_array_OF_dnCplxMatdim1
-    END INTERFACE
-    INTERFACE dealloc_array
-      MODULE PROCEDURE dealloc_array_OF_dnMatdim1
-      MODULE PROCEDURE dealloc_array_OF_dnCplxMatdim1
-    END INTERFACE
     INTERFACE alloc_NParray
       MODULE PROCEDURE alloc_NParray_OF_dnMatdim1
     END INTERFACE
@@ -111,7 +103,6 @@ MODULE mod_dnM
 
     PUBLIC :: get_nderiv_FROM_dnMat,get_nb_var_deriv_FROM_dnMat
 
-    PUBLIC :: alloc_array, dealloc_array
     PUBLIC :: alloc_NParray, dealloc_NParray
 
     PUBLIC :: sub_dnMat1_TO_dnMat2, sub_dnMat1_TO_LargerdnMat2, sub_dnMat1_TO_dnMat2_partial
@@ -222,68 +213,6 @@ CONTAINS
 
   END SUBROUTINE EVRT_dealloc_dnMat
 
-  SUBROUTINE alloc_array_OF_dnMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-    USE QDUtil_m
-    IMPLICIT NONE
-
-      TYPE (Type_dnMat), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnMatdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnMat')
-
-      END SUBROUTINE alloc_array_OF_dnMatdim1
-      SUBROUTINE dealloc_array_OF_dnMatdim1(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnMat), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnMatdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnMat')
-       nullify(tab)
-
-    END SUBROUTINE dealloc_array_OF_dnMatdim1
   SUBROUTINE alloc_NParray_OF_dnMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
     USE QDUtil_m
     IMPLICIT NONE
@@ -431,70 +360,6 @@ CONTAINS
         dnMat%nb_var_Matc  = 0
 
   END SUBROUTINE dealloc_dnCplxMat
-
-      SUBROUTINE alloc_array_OF_dnCplxMatdim1(tab,tab_ub,name_var,name_sub,tab_lb)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnCplxMat), pointer, intent(inout) :: tab(:)
-      integer, intent(in) :: tab_ub(:)
-      integer, intent(in), optional :: tab_lb(:)
-
-      character (len=*), intent(in) :: name_var,name_sub
-
-      integer, parameter :: ndim=1
-      logical :: memory_test
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_dnCplxMatdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-
-       IF (associated(tab))                                             &
-             CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
-
-       CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
-
-       IF (present(tab_lb)) THEN
-         CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
-
-         memory = product(tab_ub(:)-tab_lb(:)+1)
-         allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
-       ELSE
-         memory = product(tab_ub(:))
-         allocate(tab(tab_ub(1)),stat=err_mem)
-       END IF
-       CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_dnCplxMat')
-
-      END SUBROUTINE alloc_array_OF_dnCplxMatdim1
-      SUBROUTINE dealloc_array_OF_dnCplxMatdim1(tab,name_var,name_sub)
-        USE QDUtil_m
-      IMPLICIT NONE
-
-      TYPE (Type_dnCplxMat), pointer, intent(inout) :: tab(:)
-      character (len=*), intent(in) :: name_var,name_sub
-
-!----- for debuging --------------------------------------------------
-      character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_dnCplxMatdim1'
-      integer :: err_mem,memory
-      logical,parameter :: debug=.FALSE.
-!      logical,parameter :: debug=.TRUE.
-!----- for debuging --------------------------------------------------
-
-       !IF (.NOT. associated(tab)) RETURN
-       IF (.NOT. associated(tab))                                       &
-             CALL Write_error_null(name_sub_alloc,name_var,name_sub)
-
-       memory = size(tab)
-       deallocate(tab,stat=err_mem)
-       CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_dnCplxMat')
-       nullify(tab)
-
-      END SUBROUTINE dealloc_array_OF_dnCplxMatdim1
-
 
 !================================================================
 !

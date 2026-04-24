@@ -26,31 +26,25 @@
 ! SOFTWARE.
 !===============================================================================
 !===============================================================================
-      MODULE mod_cart
-      USE FOR_EVRT_system_m
-      USE mod_dnSVM
-      IMPLICIT NONE
+MODULE mod_cart
+  USE FOR_EVRT_system_m
+  USE mod_dnSVM
+  IMPLICIT NONE
 
-      !!@description: TODO
-      !!@param: TODO
-        TYPE Type_cart
+  TYPE Type_cart
+    integer                    :: nb_at     = 0
+    integer                    :: nb_vect   = 0
 
-          integer                    :: nb_at     = 0
-          integer                    :: nb_vect   = 0
+    TYPE (Type_dnVec), allocatable :: dnAt(:)   ! table of vectors (ndim=3)
+                                                ! for cartesian coordinates of the atoms
+    TYPE (Type_dnVec), allocatable :: dnVect(:) ! table of vectors (ndim=3)
+                                                ! for cartesian coordinates of the vectors
+    real(kind=Rkind), allocatable :: masses(:)  ! masses(nb_at)
+    real(kind=Rkind)              :: Mtot = ZERO
 
-          TYPE (Type_dnVec), pointer :: dnAt(:)   => null() ! table of vectors (ndim=3)
-                                                            ! for cartesian coordinates of the atoms
-          TYPE (Type_dnVec), pointer :: dnVect(:) => null() ! table of vectors (ndim=3)
-                                                            ! for cartesian coordinates of the vectors
-          real(kind=Rkind), pointer :: masses(:)  => null() ! masses(nb_at)
-          real(kind=Rkind)          :: Mtot       = ZERO
-
-        END TYPE Type_cart
-      CONTAINS
-
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE alloc_Type_cart(para_cart,nb_at,nb_vect)
+  END TYPE Type_cart
+CONTAINS
+  SUBROUTINE alloc_Type_cart(para_cart,nb_at,nb_vect)
         TYPE (Type_cart), intent(inout) :: para_cart
         integer, optional :: nb_at,nb_vect
 
@@ -68,7 +62,7 @@
                           "para_cart%masses","alloc_Type_cart")
           para_cart%masses(:) = ZERO
 
-          CALL alloc_array(para_cart%dnAt,[nb_at],                    &
+          CALL alloc_NParray(para_cart%dnAt,[nb_at],                    &
                           "para_cart%dnAt","alloc_Type_cart")
           DO i=1,nb_at
             CALL alloc_dnSVM(para_cart%dnAt(i),nb_var_vec=3,nderiv=0)
@@ -83,44 +77,39 @@
           END IF
           para_cart%nb_vect = nb_vect
 
-          CALL alloc_array(para_cart%dnVect,[nb_vect],                &
-                          "para_cart%dnVect","alloc_Type_cart")
+          CALL alloc_NParray(para_cart%dnVect,[nb_vect],                &
+                            "para_cart%dnVect","alloc_Type_cart")
           DO i=1,nb_vect
             CALL alloc_dnSVM(para_cart%dnVect(i),nb_var_vec=3,nderiv=0)
           END DO
         END IF
 
 
-      END SUBROUTINE alloc_Type_cart
+  END SUBROUTINE alloc_Type_cart
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE dealloc_Type_cart(para_cart)
+  SUBROUTINE dealloc_Type_cart(para_cart)
         TYPE (Type_cart), intent(inout) :: para_cart
 
         integer :: i
         integer :: err_mem,memory
 
 
-        IF (associated(para_cart%masses))  THEN
-          CALL dealloc_array(para_cart%masses,                          &
-                            "para_cart%masses","dealloc_Type_cart")
+        IF (allocated(para_cart%masses))  THEN
+          CALL dealloc_NParray(para_cart%masses,"para_cart%masses","dealloc_Type_cart")
         END IF
 
-        IF (associated(para_cart%dnAt)) THEN
+        IF (allocated(para_cart%dnAt)) THEN
           DO i=1,para_cart%nb_at
             CALL dealloc_dnSVM(para_cart%dnAt(i))
           END DO
-          CALL dealloc_array(para_cart%dnAt,                            &
-                            "para_cart%dnAt","dealloc_Type_cart")
+          CALL dealloc_NParray(para_cart%dnAt,"para_cart%dnAt","dealloc_Type_cart")
         END IF
 
-        IF (associated(para_cart%dnVect)) THEN
+        IF (allocated(para_cart%dnVect)) THEN
           DO i=1,para_cart%nb_vect
             CALL dealloc_dnSVM(para_cart%dnVect(i))
           END DO
-          CALL dealloc_array(para_cart%dnVect,                          &
-                            "para_cart%dnVect","dealloc_Type_cart")
+          CALL dealloc_NParray(para_cart%dnVect,"para_cart%dnVect","dealloc_Type_cart")
         END IF
 
         para_cart%nb_at     = 0
@@ -128,11 +117,9 @@
         para_cart%Mtot      = ZERO
 
 
-      END SUBROUTINE dealloc_Type_cart
+  END SUBROUTINE dealloc_Type_cart
 
-      !!@description: TODO
-      !!@param: TODO
-      SUBROUTINE write_Type_cart(para_cart)
+  SUBROUTINE write_Type_cart(para_cart)
       TYPE (Type_cart), intent(in) :: para_cart
 
       integer           :: i
@@ -158,7 +145,6 @@
       write(out_unit,*) 'END WRITE Type_cart'
 
 
-      END SUBROUTINE write_Type_cart
-
-      END MODULE mod_cart
+  END SUBROUTINE write_Type_cart
+END MODULE mod_cart
 
