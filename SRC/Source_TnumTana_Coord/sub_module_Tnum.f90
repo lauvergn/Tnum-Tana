@@ -188,9 +188,9 @@ MODULE mod_Tnum
     real (kind=Rkind), allocatable :: d0sm(:)
     real (kind=Rkind)              :: Mtot = ZERO
     real (kind=Rkind)              :: Mtot_inv = ZERO
-  CONTAINS
-    PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
-    GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
+  !CONTAINS
+    !PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
+    !GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
   END TYPE CoordType
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------
@@ -255,6 +255,7 @@ MODULE mod_Tnum
       PUBLIC :: Write_f2f1vep, Write_TcorTrot
 
       PUBLIC :: CoordType, Write_CoordType, Read_CoordType, dealloc_CoordType
+      PUBLIC :: CoordType2_TO_CoordType1
       PUBLIC :: check_charge, type_var_analysis_OF_CoordType
       PUBLIC :: Sub_paraRPH_TO_CoordType, Sub_CoordType_TO_paraRPH,     &
                                             Sub_CoordType_TO_paraRPH_new
@@ -263,7 +264,7 @@ MODULE mod_Tnum
 
       PUBLIC :: get_CurviRPH
 
-      CONTAINS
+CONTAINS
 !================================================================
 ! Transfert data from the 1st Qtransfo to the CoordType
 !================================================================
@@ -1667,142 +1668,140 @@ MODULE mod_Tnum
       STOP
     END IF
 
-      mole1%stepQ        = mole2%stepQ
-      mole1%num_x        = mole2%num_x
+    mole1%stepQ        = mole2%stepQ
+    mole1%num_x        = mole2%num_x
 
-      mole1%nb_act          = mole2%nb_act
-      mole1%nb_var          = mole2%nb_var
-      mole1%nb_extra_Coord  = mole2%nb_extra_Coord
+    mole1%nb_act          = mole2%nb_act
+    mole1%nb_var          = mole2%nb_var
+    mole1%nb_extra_Coord  = mole2%nb_extra_Coord
 
-      mole1%ndimG        = mole2%ndimG
-      mole1%ncart        = mole2%ncart
-      mole1%ncart_act    = mole2%ncart_act
-      mole1%nat          = mole2%nat
-      mole1%nat0         = mole2%nat0
-      mole1%nat_act      = mole2%nat_act
+    mole1%ndimG        = mole2%ndimG
+    mole1%ncart        = mole2%ncart
+    mole1%ncart_act    = mole2%ncart_act
+    mole1%nat          = mole2%nat
+    mole1%nat0         = mole2%nat0
+    mole1%nat_act      = mole2%nat_act
 
-      ! for the ab initio calculation
-      mole1%charge       = mole2%charge
-      mole1%multiplicity = mole2%multiplicity
-      mole1%nb_elec      = mole2%nb_elec
+    ! for the ab initio calculation
+    mole1%charge       = mole2%charge
+    mole1%multiplicity = mole2%multiplicity
+    mole1%nb_elec      = mole2%nb_elec
 
-      mole1%WriteCC      = mole2%WriteCC
+    mole1%WriteCC      = mole2%WriteCC
 
-      mole1%With_VecCOM     = mole2%With_VecCOM
-      mole1%Without_Rot     = mole2%Without_Rot
-      mole1%Centered_ON_CoM = mole2%Centered_ON_CoM
-      mole1%cos_th          = mole2%cos_th
-      IF (allocated(mole2%Cart_Type)) mole1%Cart_Type       = mole2%Cart_Type
+    mole1%With_VecCOM     = mole2%With_VecCOM
+    mole1%Without_Rot     = mole2%Without_Rot
+    mole1%Centered_ON_CoM = mole2%Centered_ON_CoM
+    mole1%cos_th          = mole2%cos_th
+    IF (allocated(mole2%Cart_Type)) mole1%Cart_Type       = mole2%Cart_Type
 
-      mole1%Old_Qtransfo     = mole2%Old_Qtransfo
-      mole1%Cart_transfo     = mole2%Cart_transfo
-      mole1%nb_Qtransfo      = mole2%nb_Qtransfo
-      mole1%itActive         = mole2%itActive
-      mole1%itNM             = mole2%itNM
-      mole1%itRPH            = mole2%itRPH
-      mole1%itPrim           = mole2%itPrim
-      mole1%opt_param        = mole2%opt_param
+    mole1%Old_Qtransfo     = mole2%Old_Qtransfo
+    mole1%Cart_transfo     = mole2%Cart_transfo
+    mole1%nb_Qtransfo      = mole2%nb_Qtransfo
+    mole1%itActive         = mole2%itActive
+    mole1%itNM             = mole2%itNM
+    mole1%itRPH            = mole2%itRPH
+    mole1%itPrim           = mole2%itPrim
+    mole1%opt_param        = mole2%opt_param
 
-      IF (allocated(mole2%opt_Qdyn)) THEN
-        CALL alloc_NParray(mole1%opt_Qdyn,shape(mole2%opt_Qdyn),"mole1%opt_Qdyn",name_sub)
-        mole1%opt_Qdyn(:) = mole2%opt_Qdyn(:)
+    IF (allocated(mole2%opt_Qdyn)) THEN
+      CALL alloc_NParray(mole1%opt_Qdyn,shape(mole2%opt_Qdyn),"mole1%opt_Qdyn",name_sub)
+      mole1%opt_Qdyn(:) = mole2%opt_Qdyn(:)
+    END IF
+
+
+    CALL alloc_NParray(mole1%tab_Qtransfo,[mole1%nb_Qtransfo],"mole1%tab_Qtransfo",name_sub)
+    DO it=1,mole1%nb_Qtransfo
+      !write(out_unit,*) 'it',it ; flush(out_unit)
+      CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),mole1%tab_Qtransfo(it))
+      !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
+
+      SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
+      CASE ('zmat') ! it can be one of the last one
+        mole1%Z       = mole1%tab_Qtransfo(it)%ZmatTransfo%Z
+        mole1%symbole = mole1%tab_Qtransfo(it)%ZmatTransfo%symbole
+        mole1%masses  = mole1%tab_Qtransfo(it)%ZmatTransfo%masses
+      CASE ('bunch','bunch_poly') ! it has to be one of the last one
+        mole1%Z       = mole1%tab_Qtransfo(it)%BunchTransfo%Z
+        mole1%symbole = mole1%tab_Qtransfo(it)%BunchTransfo%symbole
+        mole1%masses  = mole1%tab_Qtransfo(it)%BunchTransfo%masses
+      CASE ('qtox_ana') ! it has to be one of the last one
+        mole1%Z       = mole1%tab_Qtransfo(it)%QTOXanaTransfo%Z
+        mole1%symbole = mole1%tab_Qtransfo(it)%QTOXanaTransfo%symbole
+        mole1%masses  = mole1%tab_Qtransfo(it)%QTOXanaTransfo%masses
+      CASE default
+        CONTINUE
+      END SELECT
+
+      IF (it > 1) THEN
+        mole1%tab_Qtransfo(it)%type_Qout = mole1%tab_Qtransfo(it-1)%type_Qin
+        mole1%tab_Qtransfo(it)%name_Qout = mole1%tab_Qtransfo(it-1)%name_Qin
       END IF
 
+    END DO
 
-      CALL alloc_NParray(mole1%tab_Qtransfo,[mole1%nb_Qtransfo],"mole1%tab_Qtransfo",name_sub)
-      DO it=1,mole1%nb_Qtransfo
-        !write(out_unit,*) 'it',it ; flush(out_unit)
-        CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),mole1%tab_Qtransfo(it))
-        !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
 
-        SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
-        CASE ('zmat') ! it can be one of the last one
-          mole1%Z       = mole1%tab_Qtransfo(it)%ZmatTransfo%Z
-          mole1%symbole = mole1%tab_Qtransfo(it)%ZmatTransfo%symbole
-          mole1%masses  = mole1%tab_Qtransfo(it)%ZmatTransfo%masses
-        CASE ('bunch','bunch_poly') ! it has to be one of the last one
-          mole1%Z       = mole1%tab_Qtransfo(it)%BunchTransfo%Z
-          mole1%symbole = mole1%tab_Qtransfo(it)%BunchTransfo%symbole
-          mole1%masses  = mole1%tab_Qtransfo(it)%BunchTransfo%masses
-        CASE ('qtox_ana') ! it has to be one of the last one
-          mole1%Z       = mole1%tab_Qtransfo(it)%QTOXanaTransfo%Z
-          mole1%symbole = mole1%tab_Qtransfo(it)%QTOXanaTransfo%symbole
-          mole1%masses  = mole1%tab_Qtransfo(it)%QTOXanaTransfo%masses
-        CASE default
-          CONTINUE
-        END SELECT
+    IF (allocated(mole2%RPHTransfo_inact2n)) THEN
+      CALL alloc_NParray(mole1%RPHTransfo_inact2n,                    &
+                      'mole1%RPHTransfo_inact2n',name_sub)
+      CALL RPHTransfo1TORPHTransfo2(mole2%RPHTransfo_inact2n,         &
+                                    mole1%RPHTransfo_inact2n)
+    END IF
 
-        IF (it > 1) THEN
-          mole1%tab_Qtransfo(it)%type_Qout = mole1%tab_Qtransfo(it-1)%type_Qin
-          mole1%tab_Qtransfo(it)%name_Qout = mole1%tab_Qtransfo(it-1)%name_Qin
-        END IF
+    CALL CurviRPH1_TO_CurviRPH2(mole2%CurviRPH,mole1%CurviRPH)
 
+    IF (allocated(mole2%tab_Cart_transfo)) THEN
+      CALL alloc_NParray(mole1%tab_Cart_transfo,                        &
+                                       shape(mole2%tab_Cart_transfo), &
+                      "mole1%tab_Cart_transfo",name_sub)
+      DO it=1,size(mole2%tab_Cart_transfo)
+        CALL Qtransfo1TOQtransfo2(mole2%tab_Cart_transfo(it),mole1%tab_Cart_transfo(it))
       END DO
+    END IF
+
+    IF (mole1%itActive < 1) THEN
+      STOP 'ERROR in CoordType2_TO_CoordType1: mole1%itActive < 1'
+    END IF
+    IF (.NOT. allocated(mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn)) THEN
+      STOP 'ERROR in CoordType2_TO_CoordType1: mole1%...%ActiveTransfo%list_QactTOQdyn is not allocated'
+    END IF
+    IF (.NOT. allocated(mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact)) THEN
+      STOP 'ERROR in CoordType2_TO_CoordType1: mole1%...%ActiveTransfo%list_QdynTOQact is not allocated'
+    END IF
+
+    mole1%liste_QactTOQdyn = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn
+    mole1%liste_QdynTOQact = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact
+
+    CALL alloc_NParray(mole1%nrho_OF_Qact,[mole1%nb_var],"mole1%nrho_OF_Qact",name_sub)
+    mole1%nrho_OF_Qact(:)  = mole2%nrho_OF_Qact(:)
+
+    CALL alloc_NParray(mole1%nrho_OF_Qdyn,[mole1%nb_var],"mole1%nrho_OF_Qdyn",name_sub)
+    mole1%nrho_OF_Qdyn(:)  = mole2%nrho_OF_Qdyn(:)
+
+    mole1%nb_act1          = mole2%nb_act1
+    mole1%nb_inact2n       = mole2%nb_inact2n
+    mole1%nb_inact21       = mole2%nb_inact21
+    mole1%nb_inact22       = mole2%nb_inact22
+    mole1%nb_inact20       = mole2%nb_inact20
+    mole1%nb_inact         = mole2%nb_inact
+    mole1%nb_inact31       = mole2%nb_inact31
+    mole1%nb_rigid0        = mole2%nb_rigid0
+    mole1%nb_rigid100      = mole2%nb_rigid100
+    mole1%nb_rigid         = mole2%nb_rigid
+
+    CALL alloc_NParray(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
+    mole1%active_masses    = mole2%active_masses
+
+    CALL alloc_NParray(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
+    mole1%d0sm             = mole2%d0sm
+    mole1%Mtot             = mole2%Mtot
+    mole1%Mtot_inv         = mole2%Mtot_inv
 
 
-      IF (allocated(mole2%RPHTransfo_inact2n)) THEN
-        CALL alloc_NParray(mole1%RPHTransfo_inact2n,                    &
-                        'mole1%RPHTransfo_inact2n',name_sub)
-        CALL RPHTransfo1TORPHTransfo2(mole2%RPHTransfo_inact2n,         &
-                                      mole1%RPHTransfo_inact2n)
-      END IF
-
-      CALL CurviRPH1_TO_CurviRPH2(mole2%CurviRPH,mole1%CurviRPH)
-
-      IF (allocated(mole2%tab_Cart_transfo)) THEN
-
-        CALL alloc_NParray(mole1%tab_Cart_transfo,                        &
-                                         shape(mole2%tab_Cart_transfo), &
-                        "mole1%tab_Cart_transfo",name_sub)
-
-        DO it=1,size(mole2%tab_Cart_transfo)
-          CALL Qtransfo1TOQtransfo2(mole2%tab_Cart_transfo(it),mole1%tab_Cart_transfo(it))
-        END DO
-      END IF
-
-      IF (mole1%itActive < 1) THEN
-        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%itActive < 1'
-      END IF
-      IF (.NOT. allocated(mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn)) THEN
-        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%...%ActiveTransfo%list_QactTOQdyn is not allocated'
-      END IF
-      IF (.NOT. allocated(mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact)) THEN
-        STOP 'ERROR in CoordType2_TO_CoordType1: mole1%...%ActiveTransfo%list_QdynTOQact is not allocated'
-      END IF
-
-      mole1%liste_QactTOQdyn = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QactTOQdyn
-      mole1%liste_QdynTOQact = mole1%tab_Qtransfo(mole1%itActive)%ActiveTransfo%list_QdynTOQact
-
-      CALL alloc_NParray(mole1%nrho_OF_Qact,[mole1%nb_var],"mole1%nrho_OF_Qact",name_sub)
-      mole1%nrho_OF_Qact(:)  = mole2%nrho_OF_Qact(:)
-
-      CALL alloc_NParray(mole1%nrho_OF_Qdyn,[mole1%nb_var],"mole1%nrho_OF_Qdyn",name_sub)
-      mole1%nrho_OF_Qdyn(:)  = mole2%nrho_OF_Qdyn(:)
-
-      mole1%nb_act1          = mole2%nb_act1
-      mole1%nb_inact2n       = mole2%nb_inact2n
-      mole1%nb_inact21       = mole2%nb_inact21
-      mole1%nb_inact22       = mole2%nb_inact22
-      mole1%nb_inact20       = mole2%nb_inact20
-      mole1%nb_inact         = mole2%nb_inact
-      mole1%nb_inact31       = mole2%nb_inact31
-      mole1%nb_rigid0        = mole2%nb_rigid0
-      mole1%nb_rigid100      = mole2%nb_rigid100
-      mole1%nb_rigid         = mole2%nb_rigid
-
-      CALL alloc_NParray(mole1%active_masses,[mole1%ncart],"mole1%active_masses",name_sub)
-      mole1%active_masses    = mole2%active_masses
-
-      CALL alloc_NParray(mole1%d0sm,[mole1%ncart],"mole1%d0sm",name_sub)
-      mole1%d0sm             = mole2%d0sm
-      mole1%Mtot             = mole2%Mtot
-      mole1%Mtot_inv         = mole2%Mtot_inv
-
-
-      IF (debug) THEN
-        write(out_unit,*) 'END ',name_sub
-        flush(out_unit)
-      END IF
+    IF (debug) THEN
+      write(out_unit,*) 'END ',name_sub
+      flush(out_unit)
+    END IF
 
   END SUBROUTINE CoordType2_TO_CoordType1
 

@@ -37,7 +37,7 @@ MODULE mod_dnGG_dng
   use TnumTana_system_m
   use mod_dnSVM
   use mod_paramQ,  only: sub_QactTOdnMWx, Write_dnx, analyze_dnx
-  use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType
+  use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType, CoordType2_TO_CoordType1
   USE mod_dnRho ! all
 
   IMPLICIT NONE
@@ -652,9 +652,8 @@ MODULE mod_dnGG_dng
       !-----------------------------------------------------------------
       IF (present(dnGG) .OR. present(dng)) THEN ! with type100 we need to calculate dnGG100 first
                                                 ! then we can calculate dng form the inversion of dnGG
-        mole100 = mole
-
-
+        CALL CoordType2_TO_CoordType1(mole100,mole)
+        !mole100 = mole
 
         DO i=1,mole100%nb_var
           IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)  &
@@ -766,7 +765,9 @@ MODULE mod_dnGG_dng
       !-----------------------------------------------------------------
       IF (present(dnGG) .OR. present(dng)) THEN ! with type100 we need to calculate dnGG100 first
                                                 ! then we can calculate dng form the inversion of dnGG
-        mole100 = mole
+        CALL CoordType2_TO_CoordType1(mole100,mole)
+        !mole100 = mole
+
         DO i=1,mole100%nb_var
           IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
                            mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) = 1

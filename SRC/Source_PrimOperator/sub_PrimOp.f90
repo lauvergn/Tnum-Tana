@@ -1928,7 +1928,8 @@
 
       ELSE ! both are false
         !- create mole_1 (type=-1 => type=1)
-        mole_1 = mole
+        CALL CoordType2_TO_CoordType1(mole_1,mole)
+        !mole_1 = mole
         ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
 
           DO i=1,mole_1%nb_var
@@ -2481,7 +2482,8 @@
         flush(out_unit)
 
         !- create mole_1 (type=-1 => type=1)
-        mole_1 = mole
+        CALL CoordType2_TO_CoordType1(mole_1,mole)
+        !mole_1 = mole
         ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
 
           mole_1%tab_Qtransfo(mole_1%itNM)%skip_transfo = .TRUE.
@@ -2995,7 +2997,8 @@
 
         ELSE
           !- create mole_1 (type=-1 => type=1)
-          mole_1 = mole
+          CALL CoordType2_TO_CoordType1(mole_1,mole)
+          !mole_1 = mole
           ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
  
           ! a changer (utilisation de Qread_TO_Qact !!!

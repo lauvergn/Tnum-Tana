@@ -9,6 +9,7 @@ ifeq ($(FFC),$(filter $(FFC),gfortran gfortran-11 gfortran-12 gfortran-13 gfortr
     CFLAGS = -O5 -g             -funroll-loops -ftree-vectorize -falign-loops=16
   else
     FFLAGS = -Og -g -fbacktrace -fcheck=all -fwhole-file -fcheck=pointer -Wuninitialized -finit-real=nan -finit-integer=nan
+    # -fdump-fortran-original
     CFLAGS = -O0 -g                         -fwhole-file -Wuninitialized
   endif
 

@@ -33,205 +33,291 @@
 !
 !===========================================================================
 !===========================================================================
-  PROGRAM Tnum_f90
-      use mod_dnSVM
-      use mod_Constant
-      USE TnumTana_system_m
-      ! in the use mod_Coord_KEO, we have to use "only", because "calc_freq" is
-      !   a subroutine in mod_Coord_KEO and also a variable in the namelist.
-      use mod_Coord_KEO,  ONLY: CoordType,Tnum,Read_CoordType,              &
-                                read_RefGeom,get_Qact0,sub_QactTOdnx,       &
-                                Write_Cartg98,Write_dnx,calc3_f2_f1Q_num,   &
-                                get_dng_dnGG,sub_QplusDQ_TO_Cart,           &
-                                sub_dnFCC_TO_dnFcurvi,dealloc_CoordType
-      use mod_PrimOp
-      USE ADdnSVM_m
+PROGRAM Tnum_f90
+  USE mod_dnSVM
+  USE mod_Constant
+  USE TnumTana_system_m
+  USE mod_Coord_KEO, ONLY : CoordType, Read_CoordType, dealloc_CoordType, CoordType2_TO_CoordType1, Write_CoordType, &
+       read_RefGeom, get_Qact0, sub_QactTOdnx, &
+       write_dnx, Write_Cartg98, calc3_f2_f1Q_num, get_dng_dnGG
+  USE mod_Coord_KEO, ONLY : Tnum
+  USE mod_PrimOp
+  USE ADdnSVM_m
+  IMPLICIT NONE
 
-      IMPLICIT NONE
+  !- parameters for para_Tnum -----------------------
+  TYPE (constant)  :: const_phys
+  logical          :: Read_PhysConst
+  TYPE (CoordType) :: mole,mole_1
+  TYPE (Tnum)      :: para_Tnum
+  TYPE (PrimOp_t)  :: PrimOp
 
-!     - parameters for para_Tnum -----------------------
-      TYPE (constant)  :: const_phys
-      logical          :: Read_PhysConst
-      TYPE (CoordType) :: mole
-      TYPE (Tnum)      :: para_Tnum
-      TYPE (PrimOp_t)  :: PrimOp
+  real (kind=Rkind) :: vep,rho
+  real (kind=Rkind), allocatable :: Tdef2(:,:)
+  real (kind=Rkind), allocatable :: Tdef1(:)
+  real (kind=Rkind), allocatable :: Tcor2(:,:)
+  real (kind=Rkind), allocatable :: Tcor1(:)
+  real (kind=Rkind), allocatable :: Trot(:,:)
 
-      real (kind=Rkind) :: vep,rho
-      real (kind=Rkind), allocatable :: Tdef2(:,:)
-      real (kind=Rkind), allocatable :: Tdef1(:)
-      real (kind=Rkind), allocatable :: Tcor2(:,:)
-      real (kind=Rkind), allocatable :: Tcor1(:)
-      real (kind=Rkind), allocatable :: Trot(:,:)
+  real (kind=Rkind), allocatable :: T2Grid(:,:,:)
+  real (kind=Rkind), allocatable :: T1Grid(:,:)
+  real (kind=Rkind), allocatable :: VepGrid(:)
 
-      real (kind=Rkind), allocatable :: T2Grid(:,:,:)
-      real (kind=Rkind), allocatable :: T1Grid(:,:)
-      real (kind=Rkind), allocatable :: VepGrid(:)
+  TYPE(Type_dnMat) :: dng,dnGG
+  TYPE(Type_dnVec) :: dnx
+  integer          :: nderiv
+  !------------------------------------------------------
 
-      TYPE(Type_dnMat) :: dng,dnGG
-      TYPE(Type_dnVec) :: dnx
+  !- for the coordinate values ----------------------------------
+  real (kind=Rkind), allocatable :: Qact(:),Qact0(:)
 
-
-!     ------------------------------------------------------
-
-!     - for the coordinate values ----------------------------------
-      real (kind=Rkind), allocatable :: Qact(:)
-
-!     - working parameters ------------------------------------------
-      integer :: err_mem,memory,err_read
-
-      logical :: calc_Tnum,calc_gG,test
-      integer :: nderivGg,n_eval
-      integer :: i
-      character (len=*), parameter :: name_sub='Tnum90_OMP'
+  !- working parameters ------------------------------------------
+  integer :: err_mem,memory,err_read
+  logical :: calc_QTOx,calc_Tnum,calc_gG,calc_Test
+  integer :: nderivGg,n_eval
+  integer :: i
+  character (len=*), parameter :: name_sub='Tnum90_OMP'
 
 
-      NAMELIST /calculation/ calc_Tnum,calc_gG,nderivGg,n_eval
+  NAMELIST /calculation/ calc_Test,calc_QTOx,calc_Tnum,calc_gG,nderivGg,n_eval
 
-!=======================================================================
-!=======================================================================
-      CALL TnumTana_version(.TRUE.)
-      CALL set_print_level(2)
+  !=======================================================================
+  !=======================================================================
+  CALL TnumTana_version(.TRUE.)
+  CALL set_print_level(2)
 
-      CALL read_arg(Read_PhysConst)
-      IF (Read_PhysConst) THEN
-        CALL sub_constantes(const_phys,Read_Namelist=.TRUE.)
-      END IF
+  CALL read_arg(Read_PhysConst)
+  IF (Read_PhysConst) THEN
+    CALL sub_constantes(const_phys,Read_Namelist=.TRUE.)
+  END IF
 
-      !-----------------------------------------------------------------
-      !     - read the coordinate transformations :
-      !     -   zmatrix, polysperical, bunch...
-      !     ------------------------------------------------------------
-      CALL Read_CoordType(mole,para_Tnum,const_phys)
-      !     ------------------------------------------------------------
-      !-----------------------------------------------------------------
+  !-----------------------------------------------------------------
+  !     - read the coordinate transformations :
+  !     -   zmatrix, polysperical, bunch...
+  !     ------------------------------------------------------------
+  CALL Read_CoordType(mole,para_Tnum,const_phys)
+  !     ------------------------------------------------------------
+  !-----------------------------------------------------------------
 
-      !-----------------------------------------------------------------
-      !     - read coordinate values -----------------------------------
-      !     ------------------------------------------------------------
-      CALL read_RefGeom(mole,para_Tnum)
-      !     ------------------------------------------------------------
-      !-----------------------------------------------------------------
-      !-----------------------------------------------------------------
-      !     ---- TO finalize the coordinates (NM) and the KEO ----------
-      !     ------------------------------------------------------------
-      CALL Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp)
-      !-----------------------------------------------------------------
-!=======================================================================
-!=======================================================================
+  !-----------------------------------------------------------------
+  !     - read coordinate values -----------------------------------
+  !     ------------------------------------------------------------
+  CALL read_RefGeom(mole,para_Tnum)
+  !     ------------------------------------------------------------
+  !-----------------------------------------------------------------
+  !-----------------------------------------------------------------
+  !     ---- TO finalize the coordinates (NM) and the KEO ----------
+  !     ------------------------------------------------------------
+  CALL Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp)
+  !     ------------------------------------------------------------
+  allocate(Qact0(mole%nb_var))
+  CALL get_Qact0(Qact0,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+  !-----------------------------------------------------------------
+  !=======================================================================
+  !=======================================================================
 
-!===========================================================
-!===========================================================
+  !===========================================================
+  !===========================================================
+  write(out_unit,*) "======================================"
+  calc_QTOx    = .FALSE.
+  calc_Tnum    = .FALSE.
+  calc_gG      = .FALSE.
+  calc_Test    = .FALSE.
+  nderivGg     = 2
+  n_eval       = 1000
+  read(in_unit,calculation,IOSTAT=err_read)
+  write(out_unit,calculation)
+  IF (err_read /= 0) THEN
+    write(out_unit,*) ' NO namelist "calculation"!'
+    write(out_unit,*) ' => calc_Tnum=t with 1000 evaluations'
+    calc_Tnum = .TRUE.
+  END IF
+  write(out_unit,*) "======================================"
+  !===========================================================
+  !===========================================================
 
-      write(out_unit,*) "======================================"
-      calc_Tnum    = .TRUE.
-      calc_gG      = .FALSE.
-      nderivGg     = 2
-      n_eval       = 1000
-      read(in_unit,calculation,IOSTAT=err_read)
-      write(out_unit,calculation)
-      IF (err_read /= 0) THEN
-        write(out_unit,*) ' NO namelist "calculation"!'
-        write(out_unit,*) ' => calc_Tnum=t with 1000 evaluations'
-      END IF
-      write(out_unit,*) "======================================"
-
-      !===========================================================
-      !===========================================================
-
-!-------------------------------------------------
-!-------------------------------------------------
-!     - calculation of f2, f1, vep, rho ----------
-!     --------------------------------------------
-      allocate(T2Grid(mole%nb_act,mole%nb_act,n_eval))
-      allocate(T1Grid(mole%nb_act,n_eval))
-      allocate(VepGrid(n_eval))
-
-      IF (calc_Tnum) THEN
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "====== calc3_f2_f1Q_num =============="
-        write(out_unit,*) "======================================"
-        CALL time_perso('calc3_f2_f1Q_num')
-        para_Tnum%WriteT = .FALSE.
+  !-------------------------------------------------
+  !     - Cartesian coordinates --------------------
+  !-------------------------------------------------
+  IF (calc_QTOx) THEN
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    CALL time_perso('sub_QactTOdnx')
+    nderiv = 0
+    write(out_unit,*) "======================================"
 
 !$OMP   PARALLEL &
 !$OMP   DEFAULT(NONE) &
-!$OMP   SHARED(n_eval,para_Tnum,mole,T2Grid,T1Grid,VepGrid) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,nderiv) &
+!$OMP   PRIVATE(i,Qact,dnx)
+    CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
+    allocate(Qact(mole%nb_var))
+!$OMP   BARRIER
+
+    !$OMP   DO SCHEDULE(STATIC)
+    DO i=1,n_eval
+      Qact(:) = Qact0
+      Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
+      IF (mod(i,10000) == 0) write(*,*) i,Qact
+      CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,.FALSE.)
+    END DO
+!$OMP   END DO
+
+    deallocate(Qact)
+    CALL dealloc_dnSVM(dnx)
+!$OMP   END PARALLEL
+
+    allocate(Qact(mole%nb_var))
+    Qact(:) = Qact0
+    CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
+    
+    write(out_unit,*) 'dnx: ',mole%ncart
+    mole%WriteCC = .TRUE.
+    CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,.FALSE.)
+    mole%WriteCC = .FALSE.
+    CALL write_dnx(1,mole%ncart,dnx,nderiv)
+    CALL Write_Cartg98(dnx%d0,mole)
+    CALL dealloc_dnSVM(dnx)
+    write(out_unit,*) "======================================"
+    CALL time_perso('sub_QactTOdnx')
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+  END IF
+  !-------------------------------------------------
+  !-------------------------------------------------
+
+  !-------------------------------------------------
+  !-------------------------------------------------
+  !     - calculation of f2, f1, vep, rho ----------
+  !-------------------------------------------------
+  allocate(T2Grid(mole%nb_act,mole%nb_act,n_eval))
+  allocate(T1Grid(mole%nb_act,n_eval))
+  allocate(VepGrid(n_eval))
+
+  IF (calc_Tnum) THEN
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "====== calc3_f2_f1Q_num =============="
+    write(out_unit,*) "======================================"
+    CALL time_perso('calc3_f2_f1Q_num')
+    para_Tnum%WriteT = .FALSE.
+!$OMP   PARALLEL &
+!$OMP   DEFAULT(NONE) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,T2Grid,T1Grid,VepGrid) &
 !$OMP   PRIVATE(i,rho,Tcor2,Tcor1,Trot,Qact)
 
-        allocate(Tcor2(mole%nb_act,3))
-        allocate(Tcor1(3))
-        allocate(Trot(3,3))
-        allocate(Qact(mole%nb_var))
-        CALL get_Qact0(Qact,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+    allocate(Tcor2(mole%nb_act,3))
+    allocate(Tcor1(3))
+    allocate(Trot(3,3))
+    allocate(Qact(mole%nb_var))
 !$OMP   BARRIER
 
 !$OMP   DO SCHEDULE(STATIC)
-        DO i=1,n_eval
-          Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
-          IF (mod(i,10000) == 0) write(*,*) i,Qact
-          CALL  calc3_f2_f1Q_num(Qact,                                  &
-                                 T2Grid(:,:,i),T1Grid(:,i),VepGrid(i),rho,                   &
-                                 Tcor2,Tcor1,Trot,                      &
-                                 para_Tnum,mole)
-        END DO
+    DO i=1,n_eval
+      Qact(:) = Qact0
+      Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
+      IF (mod(i,10000) == 0) write(*,*) i,Qact
+      CALL  calc3_f2_f1Q_num(Qact,                                     &
+                             T2Grid(:,:,i),T1Grid(:,i),VepGrid(i),rho, &
+                             Tcor2,Tcor1,Trot,para_Tnum,mole)
+    END DO
 !$OMP   END DO
 
-        deallocate(Tcor2)
-        deallocate(Tcor1)
-        deallocate(Trot)
-        deallocate(Qact)
+    deallocate(Tcor2)
+    deallocate(Tcor1)
+    deallocate(Trot)
+    deallocate(Qact)
+!$OMP   END PARALLEL
+
+    CALL time_perso('calc3_f2_f1Q_num')
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+  END IF
+  !-------------------------------------------------
+  !-------------------------------------------------
+
+ IF (calc_Test) THEN
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "====== OMP Test ======================"
+    write(out_unit,*) "======================================"
+    CALL time_perso('OMP_Test')
+    para_Tnum%WriteT = .FALSE.
+!$OMP   PARALLEL &
+!$OMP   DEFAULT(NONE) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole) &
+!$OMP   PRIVATE(i,mole_1,Qact)
+
+    allocate(Qact(mole%nb_var))
+!$OMP   BARRIER
+
+!$OMP   DO SCHEDULE(STATIC)
+    DO i=1,n_eval
+      Qact(:) = Qact0
+      Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
+      IF (mod(i,10000) == 0) write(*,*) i,Qact
+      !mole_1%nb_act = mole%nb_act
+      CALL CoordType2_TO_CoordType1(mole_1,mole)
+      !mole_1 = mole
+      CALL dealloc_CoordType(mole_1)
+    END DO
+!$OMP   END DO
 
 !$OMP   END PARALLEL
 
+    CALL time_perso('OMP_Test')
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+  END IF
+  !-------------------------------------------------
+  !-------------------------------------------------
+  !-------------------------------------------------
+  !-------------------------------------------------
+  !     FOR G and g metric tensors
+  !-------------------------------------------------
+  IF (calc_gG) THEN
+    CALL alloc_dnSVM(dng ,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
+    CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
 
-        CALL time_perso('calc3_f2_f1Q_num')
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "====== get_dng_dnGG =================="
+    write(out_unit,*) "======================================"
+    CALL time_perso('get_dng_dnGG')
 
-      END IF
+    DO i=1,n_eval
+      para_Tnum%WriteT    = .FALSE.
+      CALL get_dng_dnGG(Qact,para_Tnum,mole,dng,dnGG,nderiv=nderivGg)
+    END DO
+    write(out_unit,*) ' dng'
+    CALL Write_dnSVM(dng,0)
+    write(out_unit,*) ' dnG'
+    CALL Write_dnSVM(dnGG,0)
 
-!-------------------------------------------------
-!-------------------------------------------------
-!     FOR G and g metric tensors
-      IF (calc_gG) THEN
-        CALL alloc_dnSVM(dng ,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
-        CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
+    CALL time_perso('get_dng_dnGG')
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    write(out_unit,*) "======================================"
+    CALL dealloc_dnSVM(dng)
+    CALL dealloc_dnSVM(dnGG)
+  END IF
+  !-------------------------------------------------
+  !-------------------------------------------------
 
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "====== get_dng_dnGG =================="
-        write(out_unit,*) "======================================"
-        CALL time_perso('get_dng_dnGG')
-
-        DO i=1,n_eval
-          para_Tnum%WriteT    = .FALSE.
-          CALL get_dng_dnGG(Qact,para_Tnum,mole,dng,dnGG,nderiv=nderivGg)
-        END DO
-        write(out_unit,*) ' dng'
-        CALL Write_dnSVM(dng,0)
-        write(out_unit,*) ' dnG'
-        CALL Write_dnSVM(dnGG,0)
-
-        CALL time_perso('get_dng_dnGG')
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-        write(out_unit,*) "======================================"
-
-        CALL dealloc_dnSVM(dng)
-        CALL dealloc_dnSVM(dnGG)
-      END IF
-!-------------------------------------------------
-!-------------------------------------------------
-
-      CALL dealloc_CoordType(mole)
-      IF (allocated(Qact)) CALL dealloc_NParray(Qact,'Qact',name_sub)
+  CALL dealloc_CoordType(mole)
+  IF (allocated(Qact)) CALL dealloc_NParray(Qact,'Qact',name_sub)
 
 
-      write(out_unit,*) 'END Tnum'
+  write(out_unit,*) 'END Tnum'
 
 END PROGRAM Tnum_f90
 

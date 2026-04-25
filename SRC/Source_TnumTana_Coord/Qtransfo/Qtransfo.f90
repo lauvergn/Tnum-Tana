@@ -51,7 +51,6 @@ MODULE mod_Qtransfo
   USE mod_RPHTransfo
   USE mod_RPHQMLTransfo
   USE mod_ActiveTransfo
-
   IMPLICIT NONE
 
   PRIVATE
@@ -1010,8 +1009,8 @@ CONTAINS
     character (len=:), allocatable :: name_transfo
 
     !-----------------------------------------------------------------
-    logical, parameter :: debug = .FALSE.
-    !logical, parameter :: debug = .TRUE.
+    !logical, parameter :: debug = .FALSE.
+    logical, parameter :: debug = .TRUE.
     character (len=*), parameter :: name_sub='Qtransfo1TOQtransfo2'
     !-----------------------------------------------------------------
 

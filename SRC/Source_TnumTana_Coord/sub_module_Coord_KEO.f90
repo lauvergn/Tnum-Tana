@@ -65,7 +65,8 @@ MODULE mod_Coord_KEO
                                   sub_pararph_to_coordtype,             &
                                   type_var_analysis_of_coordtype,       &
                                   CoordTypeRPH_TO_CoordTypeFlex,        &
-                                  Set_OptimizationPara_FROM_CoordType
+                                  Set_OptimizationPara_FROM_CoordType,  &
+                                  CoordType2_TO_CoordType1
 
   USE mod_paramQ,          ONLY : sub_dnFCC_TO_dnFcurvi,sub_QactTOdnx,  &
                                   sub_QactTOQit,sub_QplusdQ_TO_cart,    &
