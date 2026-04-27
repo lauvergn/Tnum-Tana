@@ -41,6 +41,7 @@ PROGRAM Tnum_f90
        read_RefGeom, get_Qact0, sub_QactTOdnx, &
        write_dnx, Write_Cartg98, calc3_f2_f1Q_num, get_dng_dnGG
   USE mod_Coord_KEO, ONLY : Tnum
+  USE mod_Coord_KEO, ONLY : CoordTypeOK
   USE mod_PrimOp
   USE ADdnSVM_m
   IMPLICIT NONE
@@ -49,6 +50,8 @@ PROGRAM Tnum_f90
   TYPE (constant)  :: const_phys
   logical          :: Read_PhysConst
   TYPE (CoordType) :: mole,mole_1
+  TYPE (CoordTypeOK) :: moleOK,moleOK_1
+
   TYPE (Tnum)      :: para_Tnum
   TYPE (PrimOp_t)  :: PrimOp
 
@@ -247,11 +250,14 @@ PROGRAM Tnum_f90
     write(out_unit,*) "======================================"
     write(out_unit,*) "====== OMP Test ======================"
     write(out_unit,*) "======================================"
+moleOK%nb_act = 2
+moleOK%nb_var = 3
+
     CALL time_perso('OMP_Test')
     para_Tnum%WriteT = .FALSE.
 !$OMP   PARALLEL &
 !$OMP   DEFAULT(NONE) &
-!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,moleOK) &
 !$OMP   PRIVATE(i,mole_1,Qact)
 
     allocate(Qact(mole%nb_var))
@@ -262,10 +268,11 @@ PROGRAM Tnum_f90
       Qact(:) = Qact0
       Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
       IF (mod(i,10000) == 0) write(*,*) i,Qact
+      !moleOK_1%nb_act = moleOK%nb_act
       !mole_1%nb_act = mole%nb_act
       CALL CoordType2_TO_CoordType1(mole_1,mole)
       !mole_1 = mole
-      CALL dealloc_CoordType(mole_1)
+      !CALL dealloc_CoordType(mole_1)
     END DO
 !$OMP   END DO
 

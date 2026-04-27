@@ -120,7 +120,8 @@ MODULE mod_BunchPolyTransfo
     integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
     integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
 
-    TYPE (Type_BFTransfo),    allocatable :: tab_BFTransfo(:) ! dim: nb_vect
+    !TYPE (Type_BFTransfo),    allocatable :: tab_BFTransfo(:)  ! dim: nb_vect
+    TYPE (Type_BFTransfo),    pointer     :: tab_BFTransfo(:) => null() ! dim: nb_vect
 
     ! variables use for the calculation (Tana)
     ! They are defined here, because of the recursive structure
@@ -134,12 +135,79 @@ MODULE mod_BunchPolyTransfo
     integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
     type(sum_opnd)                 :: KEO            ! Output kEO
   END TYPE Type_BFTransfo
+ TYPE Type_BFTransfoOK
+    ! integer                  :: nb_var                 = 0
+    ! integer                  :: nb_var_Rot             = 0
+
+    ! integer                  :: nb_vect                = 0
+    ! integer                  :: nb_vect_tot            = 0
+
+    ! integer                  :: num_vect_in_Frame      = 0
+    ! integer                  :: num_vect_in_BF         = 0
+
+    ! integer                  :: num_Frame_in_BF        = 0
+    ! integer                  :: num_Frame_in_Container = 0
+    ! character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
+    ! integer, allocatable     :: Tab_num_Frame(:)
+
+    ! logical                        :: Frame                   = .FALSE.
+    ! logical                        :: BF                      = .FALSE.
+    ! integer                        :: Frame_type              = 0
+    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_xFrame(:)
+    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_yFrame(:)
+    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_zFrame(:)
+    ! real (kind=Rkind), allocatable :: Coef_OF_Vect1(:)
+    ! real (kind=Rkind), allocatable :: Coef_OF_Vect2(:)
+    ! character (len=3)              :: Type_Vect = 'zxy'
+    !        ! correspondance between Vec1 or vec2 and the BF axis
+    !        ! Vect1 => Type_Vect(1) axis (default z axis)
+    !        ! Vect2 => Type_Vect(2) axis (default x axis)
+    !        ! Vect1 ^ Vect2 => Type_Vect(3) axis (default y axis)
+
+    ! logical                  :: cart                   = .FALSE.
+    ! character (len=6)        :: Spherical_convention   = 'zxy'
+    ! logical                  :: Li                     = .FALSE.
+    ! logical                  :: Euler(3)               = [.FALSE., .FALSE., .FALSE.]
+    !                     ! F,F,F => for the true BF or F1
+    !                     ! T,T,T => when a new BF is defined with 2 vectors
+    !                     ! F,T,T => when a new BF is defined with ONE vector
+    !                     ! Plus other cases
+    ! logical                  :: cos_th                   = .TRUE.
+    ! logical                  :: Def_cos_th               = .TRUE.
+
+    ! integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 centers (atoms, COM ...)
+    ! integer,                  allocatable :: type_Qin(:)
+    ! character (len=Name_len), allocatable :: name_Qin(:)
+    ! integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
+    ! integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
+
+    TYPE (Type_BFTransfoOK),    pointer :: tab_BFTransfo(:)=>null() ! dim: nb_vect
+
+    ! ! variables use for the calculation (Tana)
+    ! ! They are defined here, because of the recursive structure
+    ! type(opel)                     :: Qvec(3)        ! R,theta or u_theta, phi   or x,y,z
+    ! type(opel)                     :: QEuler(3)      ! alpha, beta or u_beta, gamma
+    ! type(vec_sum_opnd)             :: Unit_Vector
+
+    ! type(sum_opnd),    allocatable :: M_mass(:,:)    ! mass matrix
+    ! type(vec_sum_opnd)             :: J              ! total angular momentum
+    ! type(vec_sum_opnd)             :: Jdag           ! adjoint of J
+    ! integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
+    ! type(sum_opnd)                 :: KEO            ! Output kEO
+  END TYPE Type_BFTransfoOK
 
   INTERFACE alloc_NParray
     MODULE PROCEDURE alloc_NParray_OF_BFTransfodim1
   END INTERFACE
   INTERFACE dealloc_NParray
     MODULE PROCEDURE dealloc_NParray_OF_BFTransfodim1
+  END INTERFACE
+
+  INTERFACE alloc_array
+    MODULE PROCEDURE alloc_array_OF_BFTransfodim1
+  END INTERFACE
+  INTERFACE dealloc_array
+    MODULE PROCEDURE dealloc_array_OF_BFTransfodim1
   END INTERFACE
 
   PUBLIC :: Type_BunchTransfo, alloc_BunchTransfo, dealloc_BunchTransfo
@@ -151,8 +219,8 @@ MODULE mod_BunchPolyTransfo
   PUBLIC :: dealloc_BFTransfo, alloc_NParray, dealloc_NParray
   PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin
   PUBLIC :: Rec_BFTransfo1TOBFTransfo2
-  !PUBLIC :: alloc_array, dealloc_array
-
+  PUBLIC :: alloc_array, dealloc_array
+PUBLIC :: Type_BFTransfoOK
 CONTAINS
 
   SUBROUTINE alloc_FrameType(BFTransfo,nb_vect)
@@ -650,7 +718,7 @@ CONTAINS
   END SUBROUTINE FrameType1TOBFrameType2
 
 
-      RECURSIVE SUBROUTINE dealloc_BFTransfo(BFTransfo)
+  RECURSIVE SUBROUTINE dealloc_BFTransfo(BFTransfo)
       TYPE (Type_BFTransfo),intent(inout) :: BFTransfo
 
       integer :: iv,jv
@@ -665,11 +733,13 @@ CONTAINS
         CALL dealloc_NParray(BFTransfo%name_Qin,"BFTransfo%name_Qin",name_sub)
       END IF
 
-      IF (allocated(BFTransfo%tab_BFTransfo)) THEN
+      !IF (allocated(BFTransfo%tab_BFTransfo)) THEN
+      IF (associated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,BFTransfo%nb_vect
           CALL dealloc_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
-        CALL dealloc_NParray(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
+        !CALL dealloc_NParray(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
+        CALL dealloc_array(BFTransfo%tab_BFTransfo,"BFTransfo%tab_BFTransfo",name_sub)
       END IF
 
       IF (BFTransfo%BF) THEN
@@ -747,6 +817,64 @@ CONTAINS
 
   END SUBROUTINE dealloc_TanaVar_FROM_BFTransfo
 
+  SUBROUTINE alloc_array_OF_BFTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
+    IMPLICIT NONE
+
+    TYPE (Type_BFTransfo), pointer, intent(inout)        :: tab(:)
+    integer,                            intent(in)           :: tab_ub(:)
+    integer,                            intent(in), optional :: tab_lb(:)
+
+    character (len=*), intent(in) :: name_var,name_sub
+    integer, parameter :: ndim=1
+    logical :: memory_test
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'alloc_array_OF_BFTransfodim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !----- for debuging --------------------------------------------------
+
+    IF (associated(tab))                                             &
+          CALL Write_error_NOT_null(name_sub_alloc,name_var,name_sub)
+
+    CALL sub_test_tab_ub(tab_ub,ndim,name_sub_alloc,name_var,name_sub)
+
+    IF (present(tab_lb)) THEN
+      CALL sub_test_tab_lb(tab_lb,ndim,name_sub_alloc,name_var,name_sub)
+
+      memory = product(tab_ub(:)-tab_lb(:)+1)
+      allocate(tab(tab_lb(1):tab_ub(1)),stat=err_mem)
+    ELSE
+      memory = product(tab_ub(:))
+      allocate(tab(tab_ub(1)),stat=err_mem)
+    END IF
+    CALL error_memo_allo(err_mem,memory,name_var,name_sub,'Type_BFTransfo')
+
+  END SUBROUTINE alloc_array_OF_BFTransfodim1
+  SUBROUTINE dealloc_array_OF_BFTransfodim1(tab,name_var,name_sub)
+    IMPLICIT NONE
+
+    TYPE (Type_BFTransfo), pointer, intent(inout) :: tab(:)
+    character (len=*),              intent(in)    :: name_var,name_sub
+
+    !----- for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub_alloc = 'dealloc_array_OF_BFTransfodim1'
+    integer :: err_mem,memory
+    logical,parameter :: debug=.FALSE.
+    !logical,parameter :: debug=.TRUE.
+    !---- for debuging --------------------------------------------------
+
+    !IF (.NOT. associated(tab)) RETURN
+    IF (.NOT. associated(tab))                                       &
+      CALL Write_error_null(name_sub_alloc,name_var,name_sub)
+
+    memory = size(tab)
+    deallocate(tab,stat=err_mem)
+    nullify(tab)
+    CALL error_memo_allo(err_mem,-memory,name_var,name_sub,'Type_BFTransfo')
+
+  END SUBROUTINE dealloc_array_OF_BFTransfodim1
   SUBROUTINE alloc_NParray_OF_BFTransfodim1(tab,tab_ub,name_var,name_sub,tab_lb)
     IMPLICIT NONE
 
@@ -1129,8 +1257,8 @@ CONTAINS
           STOP
         END IF
         IF (nb_vect > 0) THEN
-          CALL alloc_NParray(BFTransfo%tab_BFTransfo,[nb_vect],         &
-                            "BFTransfo%tab_BFTransfo",name_sub)
+          !CALL alloc_NParray(BFTransfo%tab_BFTransfo,[nb_vect],"BFTransfo%tab_BFTransfo",name_sub)
+          CALL alloc_array(BFTransfo%tab_BFTransfo,[nb_vect],"BFTransfo%tab_BFTransfo",name_sub)
           num_Frame_in_Container_rec = 0
 
           DO iv=1,nb_vect
@@ -1470,12 +1598,13 @@ CONTAINS
     END IF
 
     IF (recur_loc) THEN
-      IF (allocated(BFTransfo%tab_BFTransfo)) THEN
+      !IF (allocated(BFTransfo%tab_BFTransfo)) THEN
+      IF (associated(BFTransfo%tab_BFTransfo)) THEN
         DO iv=1,ubound(BFTransfo%tab_BFTransfo,dim=1)
           CALL RecWrite_BFTransfo(BFTransfo%tab_BFTransfo(iv))
         END DO
       ELSE
-         write(out_unit,*) 'tab_BFTransfo NOT allocated'
+         write(out_unit,*) 'tab_BFTransfo NOT allocated/associated'
       END IF
     END IF
 
@@ -2660,10 +2789,11 @@ CONTAINS
       IF (allocated(BFTransfo1%type_Qin)) BFTransfo2%type_Qin = BFTransfo1%type_Qin
       IF (allocated(BFTransfo1%name_Qin)) BFTransfo2%name_Qin = BFTransfo1%name_Qin
 
-
-      IF (BFTransfo2%Frame .AND. allocated(BFTransfo1%tab_BFTransfo)) THEN
+      !IF (BFTransfo2%Frame .AND. allocated(BFTransfo1%tab_BFTransfo)) THEN
+      IF (BFTransfo2%Frame .AND. associated(BFTransfo1%tab_BFTransfo)) THEN
         n = size(BFTransfo1%tab_BFTransfo)
-        CALL alloc_NParray(BFTransfo2%tab_BFTransfo,[n],"BFTransfo2%tab_BFTransfo",name_sub)
+        !CALL alloc_NParray(BFTransfo2%tab_BFTransfo,[n],"BFTransfo2%tab_BFTransfo",name_sub)
+        CALL alloc_array(BFTransfo2%tab_BFTransfo,[n],"BFTransfo2%tab_BFTransfo",name_sub)
         DO i=1,n
           !CALL RecWrite_BFTransfo(BFTransfo1%tab_BFTransfo(i),.FALSE.)
           BFTransfo2%tab_BFTransfo(i)%list_Qpoly_TO_Qprim = BFTransfo2%list_Qpoly_TO_Qprim

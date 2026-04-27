@@ -266,7 +266,7 @@ app: $(APPEXE)
 #===============================================
 #
 .PHONY: ut
-ut: Tnum90.exe
+ut: Tnum90.exe Tnum90_MidasCpp.exe
 	@echo "---------------------------------------"
 	@echo "Unitary tests for the Tnum"
 	@cd TESTS ; ./run_tests_WithoutComp

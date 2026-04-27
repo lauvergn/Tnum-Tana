@@ -67,6 +67,7 @@ MODULE mod_Coord_KEO
                                   CoordTypeRPH_TO_CoordTypeFlex,        &
                                   Set_OptimizationPara_FROM_CoordType,  &
                                   CoordType2_TO_CoordType1
+  USE mod_Tnum,            ONLY : CoordTypeOK
 
   USE mod_paramQ,          ONLY : sub_dnFCC_TO_dnFcurvi,sub_QactTOdnx,  &
                                   sub_QactTOQit,sub_QplusdQ_TO_cart,    &

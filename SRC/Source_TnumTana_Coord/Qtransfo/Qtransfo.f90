@@ -100,6 +100,51 @@ MODULE mod_Qtransfo
     character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
   END TYPE Type_Qtransfo
 
+  TYPE, PUBLIC :: Type_QtransfoOK
+    logical                                   :: print_done      = .FALSE.
+    character (len=:), allocatable, private   :: name_transfo
+    integer                                   :: num_transfo     = 0
+    logical                                   :: BeforeActive    = .FALSE. ! .TRUE. when it (or num_transfo) is nb_Qtransfo-1
+    logical                                   :: inTOout         = .TRUE.
+    integer                                   :: nb_var          = 0
+    integer                                   :: nb_act          = 0
+    integer                                   :: nb_ExtraLFSF    = 0
+    integer                                   :: ncart_act       = 0
+    integer                                   :: nb_transfo      = 0
+    integer                                   :: opt_transfo     = 0 ! option for the transformation
+    logical                                   :: skip_transfo    = .FALSE.
+    integer                                   :: opt_param       = 0
+    logical                                   :: Primitive_coord = .FALSE.
+
+    TYPE (Type_CartesianTransfo)              :: CartesianTransfo !ok
+    TYPE (Type_QTOXanaTransfo)                :: QTOXanaTransfo    !ok
+    TYPE (Type_ZmatTransfo)                   :: ZmatTransfo   !ok
+    TYPE (Type_RectilinearNM_Transfo)         :: RectilinearNM_Transfo !ok
+    TYPE (Type_BunchTransfo),     allocatable :: BunchTransfo!ok
+    !TYPE (Type_BFTransfo)                     :: BFTransfo !err
+    TYPE (Type_BFTransfoOK)                     :: BFTransfo
+
+    TYPE (Type_LinearTransfo)                 :: LinearTransfo!ok
+    TYPE (Type_FlexibleTransfo)               :: FlexibleTransfo!ok
+
+    TYPE (Type_oneDTransfo),      allocatable :: oneDTransfo(:)
+    TYPE (TwoDTransfo_t),         allocatable :: TwoDTransfo(:)
+    TYPE (Rot2CoordTransfo_t),    allocatable :: Rot2CoordTransfo(:)
+    TYPE (Type_HyperSpheTransfo)              :: HyperSpheTransfo
+    integer,                      allocatable :: list_Qin_TO_Qout(:) ! "order" transfo
+
+    TYPE (Type_NMTransfo),        allocatable :: NMTransfo
+    TYPE (Type_RPHTransfo),       allocatable :: RPHTransfo
+    TYPE (Type_RPHQMLTransfo),    allocatable :: RPHQMLTransfo
+    TYPE (Type_ActiveTransfo),    allocatable :: ActiveTransfo
+
+    integer                                   :: nb_Qin       = 0   ! size the input coordinates
+    integer                                   :: nb_Qout      = 0   ! size the output coordinates
+    integer,                      allocatable :: type_Qin(:)        ! size nb_Qin
+    character (len=Name_len),     allocatable :: name_Qin(:)        ! size nb_Qin
+    integer,                      allocatable :: type_Qout(:)       ! size nb_Qout
+    character (len=Name_len),     allocatable :: name_Qout(:)       ! size nb_Qout
+  END TYPE Type_QtransfoOK
   INTERFACE alloc_NParray
     MODULE PROCEDURE alloc_NParray_OF_Qtransfodim1
   END INTERFACE
