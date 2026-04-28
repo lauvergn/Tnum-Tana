@@ -262,7 +262,6 @@ CONTAINS
         IF (flex) EXIT
       END DO
 
-      !write(6,*) 'ActiveTransfo%QMLib,flex',ActiveTransfo%QMLib,flex
       IF (ActiveTransfo%QMLib .AND. flex) THEN
         read(in_unit,*,IOSTAT=err) ActiveTransfo%list_QMLMapping(:)
         IF (err /= 0) THEN

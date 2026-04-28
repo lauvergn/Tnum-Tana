@@ -135,66 +135,6 @@ MODULE mod_BunchPolyTransfo
     integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
     type(sum_opnd)                 :: KEO            ! Output kEO
   END TYPE Type_BFTransfo
- TYPE Type_BFTransfoOK
-    ! integer                  :: nb_var                 = 0
-    ! integer                  :: nb_var_Rot             = 0
-
-    ! integer                  :: nb_vect                = 0
-    ! integer                  :: nb_vect_tot            = 0
-
-    ! integer                  :: num_vect_in_Frame      = 0
-    ! integer                  :: num_vect_in_BF         = 0
-
-    ! integer                  :: num_Frame_in_BF        = 0
-    ! integer                  :: num_Frame_in_Container = 0
-    ! character (len=Name_len) :: name_Frame             = "F^(BF)"   ! BF
-    ! integer, allocatable     :: Tab_num_Frame(:)
-
-    ! logical                        :: Frame                   = .FALSE.
-    ! logical                        :: BF                      = .FALSE.
-    ! integer                        :: Frame_type              = 0
-    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_xFrame(:)
-    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_yFrame(:)
-    ! real (kind=Rkind), allocatable :: Coef_Vect_FOR_zFrame(:)
-    ! real (kind=Rkind), allocatable :: Coef_OF_Vect1(:)
-    ! real (kind=Rkind), allocatable :: Coef_OF_Vect2(:)
-    ! character (len=3)              :: Type_Vect = 'zxy'
-    !        ! correspondance between Vec1 or vec2 and the BF axis
-    !        ! Vect1 => Type_Vect(1) axis (default z axis)
-    !        ! Vect2 => Type_Vect(2) axis (default x axis)
-    !        ! Vect1 ^ Vect2 => Type_Vect(3) axis (default y axis)
-
-    ! logical                  :: cart                   = .FALSE.
-    ! character (len=6)        :: Spherical_convention   = 'zxy'
-    ! logical                  :: Li                     = .FALSE.
-    ! logical                  :: Euler(3)               = [.FALSE., .FALSE., .FALSE.]
-    !                     ! F,F,F => for the true BF or F1
-    !                     ! T,T,T => when a new BF is defined with 2 vectors
-    !                     ! F,T,T => when a new BF is defined with ONE vector
-    !                     ! Plus other cases
-    ! logical                  :: cos_th                   = .TRUE.
-    ! logical                  :: Def_cos_th               = .TRUE.
-
-    ! integer                               :: iAtA=0,iAtB=0 ! enables to define the vector from 2 centers (atoms, COM ...)
-    ! integer,                  allocatable :: type_Qin(:)
-    ! character (len=Name_len), allocatable :: name_Qin(:)
-    ! integer, allocatable                  :: list_Qpoly_TO_Qprim(:)
-    ! integer, allocatable                  :: list_Qprim_TO_Qpoly(:)
-
-    TYPE (Type_BFTransfoOK),    pointer :: tab_BFTransfo(:)=>null() ! dim: nb_vect
-
-    ! ! variables use for the calculation (Tana)
-    ! ! They are defined here, because of the recursive structure
-    ! type(opel)                     :: Qvec(3)        ! R,theta or u_theta, phi   or x,y,z
-    ! type(opel)                     :: QEuler(3)      ! alpha, beta or u_beta, gamma
-    ! type(vec_sum_opnd)             :: Unit_Vector
-
-    ! type(sum_opnd),    allocatable :: M_mass(:,:)    ! mass matrix
-    ! type(vec_sum_opnd)             :: J              ! total angular momentum
-    ! type(vec_sum_opnd)             :: Jdag           ! adjoint of J
-    ! integer,           allocatable :: listVFr(:)     ! index of the vector in the BF
-    ! type(sum_opnd)                 :: KEO            ! Output kEO
-  END TYPE Type_BFTransfoOK
 
   INTERFACE alloc_NParray
     MODULE PROCEDURE alloc_NParray_OF_BFTransfodim1
@@ -220,7 +160,6 @@ MODULE mod_BunchPolyTransfo
   PUBLIC :: calc_PolyTransfo, calc_PolyTransfo_outTOin
   PUBLIC :: Rec_BFTransfo1TOBFTransfo2
   PUBLIC :: alloc_array, dealloc_array
-PUBLIC :: Type_BFTransfoOK
 CONTAINS
 
   SUBROUTINE alloc_FrameType(BFTransfo,nb_vect)

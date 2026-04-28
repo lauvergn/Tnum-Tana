@@ -1915,9 +1915,9 @@ CONTAINS
         END IF
         ibeta = dnx%nb_var_vec-3
       END IF
-      IF (debug) write(6,*) 'euler',euler
-      IF (debug) write(6,*) 'ibeta',ibeta
-      IF (debug) write(6,*) 'type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      IF (debug) write(out_unit,*) 'euler',euler
+      IF (debug) write(out_unit,*) 'ibeta',ibeta
+      IF (debug) write(out_unit,*) 'type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
       CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
 
       ix = 0
@@ -1989,9 +1989,9 @@ CONTAINS
         END IF
         ibeta = dnx%nb_var_vec-3
       END IF
-      IF (debug) write(6,*) 'coucou euler',euler
-      IF (debug) write(6,*) 'coucou ibeta',ibeta
-      IF (debug) write(6,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
+      IF (debug) write(out_unit,*) 'coucou euler',euler
+      IF (debug) write(out_unit,*) 'coucou ibeta',ibeta
+      IF (debug) write(out_unit,*) 'coucou type_Qout(ibeta)',mole%tab_Qtransfo(1)%type_Qout(ibeta)
       flush(6)
       CALL dnxBF_TO_dnxSF(dnCart_OF_dnSt,dnAlpha,dnTBeta,dnGamma,mole%tab_Qtransfo(1)%type_Qout(ibeta),euler)
 
@@ -2287,7 +2287,7 @@ CONTAINS
 
       !=================================================
       !write(out_unit,*) 'COUCOU: Gcenter, mole%Centered_ON_CoM',Gcenter, mole%Centered_ON_CoM ; flush(out_unit)
-      !write(out_unit,*) 'COUCOU: allo mole%masses',allocated(mole%masses)
+      !write(out_unit,*) 'COUCOU: allo mole%masses',allocated(mole%masses) ; flush(out_unit)
       IF (Gcenter .AND. mole%Centered_ON_CoM) THEN
         icG = mole%ncart-2
         CALL sub3_dncentre_masse(mole%ncart_act,mole%nb_act,mole%ncart, &
@@ -2883,21 +2883,21 @@ CONTAINS
         DO i=1,size(Q)
            ! read the first word: it can be the variable name or its value
            CALL read_name_advNo(in_unit,Read_name,err_io)
-           !write(6,*) i,'Read_name: ',Read_name
+           !write(out_unit,*) i,'Read_name: ',Read_name
            ! try to read its value
            read(Read_name,*,IOSTAT=err_ioQ) Q(i)
-           !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ
+           !write(out_unit,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ
 
            IF (err_ioQ /= 0) THEN ! an error, it should be the variable name or a true error
              name_Q(i) = trim(adjustl(Read_name))
 
-             !write(6,*) i,'name_Q(i): ',name_Q(i)
+             !write(out_unit,*) i,'name_Q(i): ',name_Q(i)
 
              !now we read the value
              CALL read_name_advNo(in_unit,Read_name,err_io)
-             !write(6,*) i,'Read_name: ',Read_name
+             !write(out_unit,*) i,'Read_name: ',Read_name
              read(Read_name,*,IOSTAT=err_ioQ) Q(i)
-             !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
+             !write(out_unit,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
              IF (err_ioQ /= 0) THEN
                write(out_unit,*) ' ERROR in ',name_sub
                write(out_unit,*) '  while reading the curvilinear reference geometry '
@@ -2959,7 +2959,7 @@ CONTAINS
                write(out_unit,*) ' Check your data !!'
                STOP 'ERROR in Get_Qread: Wrong unit'
              END IF
-             ! write(6,*) 'read with unit:'
+             ! write(out_unit,*) 'read with unit:'
              ! SELECT CASE (type_Q(i))
              ! CASE (3,4)
              !   QWU = REAL_WU(Q(i),trim(adjustl(Read_name)),'angle')

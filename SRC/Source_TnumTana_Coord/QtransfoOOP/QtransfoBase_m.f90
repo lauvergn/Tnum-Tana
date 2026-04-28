@@ -187,21 +187,21 @@ CONTAINS
     DO i=1,size(Q)
       ! read the first word: it can be the variable name or its value
       CALL read_name_advNo(in_unit,Read_name,err_io)
-      !write(6,*) i,'Read_name: ',Read_name
+      !write(out_unit,*) i,'Read_name: ',Read_name
       ! try to read its value
       read(Read_name,*,IOSTAT=err_ioQ) Q(i)
-      !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ
+      !write(out_unit,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ
 
       IF (err_ioQ /= 0) THEN ! an error, it should be the variable name or a true error
         this%name_Qin(i) = trim(adjustl(Read_name))
 
-        !write(6,*) i,'this%name_Qin(i): ',this%name_Qin(i)
+        !write(out_unit,*) i,'this%name_Qin(i): ',this%name_Qin(i)
 
         !now we read the value
         CALL read_name_advNo(in_unit,Read_name,err_io)
-        !write(6,*) i,'Read_name: ',Read_name
+        !write(out_unit,*) i,'Read_name: ',Read_name
         read(Read_name,*,IOSTAT=err_ioQ) Q(i)
-        !write(6,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
+        !write(out_unit,*) i,'Read_name: ',Read_name,'err_ioQ',err_ioQ ; flush(6)
         IF (err_ioQ /= 0) THEN
           write(out_unit,*) ' ERROR in ',name_sub
           write(out_unit,*) '  while reading the curvilinear reference geometry '
@@ -413,11 +413,7 @@ SUBROUTINE Write_Q_WU_QtransfoBase_Tnum(Q,name_Q,type_Q,info)
 
     character (len=*), parameter :: name_sub = "QinTOQout_QtransfoBase_Tnum"
 
-    !write(6,*) ' IN ',name_sub
-
     Qout = Qin
-
-    !write(6,*) ' END ',name_sub
 
   END FUNCTION QinTOQout_QtransfoBase_Tnum
   FUNCTION QoutTOQin_QtransfoBase_Tnum(this,Qout) RESULT(Qin)

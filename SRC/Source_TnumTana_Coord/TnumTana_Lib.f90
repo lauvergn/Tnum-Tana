@@ -348,12 +348,6 @@ SUBROUTINE Tnum_Set_active_masses(active_masses,ncart_act)
 
   CALL Check_TnumInit(name_sub)
 
-  write(6,*) 'size(mole%active_masses)',size(mole%active_masses)
-  write(6,*) 'mole%ncart_act',mole%ncart_act
-  write(6,*) 'size(active_masses)',size(active_masses)
-  write(6,*) 'ncart_act',ncart_act
-  flush(6)
-
   IF (ncart_act == mole%ncart_act) THEN
     mole%active_masses(1:ncart_act) = active_masses
   ELSE

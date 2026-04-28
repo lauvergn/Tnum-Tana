@@ -37,11 +37,7 @@ PROGRAM Tnum_f90
   USE mod_dnSVM
   USE mod_Constant
   USE TnumTana_system_m
-  USE mod_Coord_KEO, ONLY : CoordType, Read_CoordType, dealloc_CoordType, CoordType2_TO_CoordType1, Write_CoordType, &
-       read_RefGeom, get_Qact0, sub_QactTOdnx, &
-       write_dnx, Write_Cartg98, calc3_f2_f1Q_num, get_dng_dnGG
-  USE mod_Coord_KEO, ONLY : Tnum
-  USE mod_Coord_KEO, ONLY : CoordTypeOK
+  USE mod_Coord_KEO
   USE mod_PrimOp
   USE ADdnSVM_m
   IMPLICIT NONE
@@ -50,7 +46,6 @@ PROGRAM Tnum_f90
   TYPE (constant)  :: const_phys
   logical          :: Read_PhysConst
   TYPE (CoordType) :: mole,mole_1
-  TYPE (CoordTypeOK) :: moleOK,moleOK_1
 
   TYPE (Tnum)      :: para_Tnum
   TYPE (PrimOp_t)  :: PrimOp
@@ -66,7 +61,10 @@ PROGRAM Tnum_f90
   real (kind=Rkind), allocatable :: T1Grid(:,:)
   real (kind=Rkind), allocatable :: VepGrid(:)
 
-  TYPE(Type_dnMat) :: dng,dnGG
+  real (kind=Rkind), allocatable :: GG_Grid(:,:,:)
+  real (kind=Rkind), allocatable :: g_Grid(:,:,:)
+
+
   TYPE(Type_dnVec) :: dnx
   integer          :: nderiv
   !------------------------------------------------------
@@ -148,7 +146,7 @@ PROGRAM Tnum_f90
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     CALL time_perso('sub_QactTOdnx')
-    nderiv = 0
+    nderiv = 2
     write(out_unit,*) "======================================"
 
 !$OMP   PARALLEL &
@@ -156,19 +154,18 @@ PROGRAM Tnum_f90
 !$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,nderiv) &
 !$OMP   PRIVATE(i,Qact,dnx)
     CALL alloc_dnSVM(dnx,mole%ncart,mole%nb_act,nderiv)
-    allocate(Qact(mole%nb_var))
 !$OMP   BARRIER
 
     !$OMP   DO SCHEDULE(STATIC)
     DO i=1,n_eval
-      Qact(:) = Qact0
+      Qact = Qact0
       Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
       IF (mod(i,10000) == 0) write(*,*) i,Qact
       CALL sub_QactTOdnx(Qact,dnx,mole,nderiv,.FALSE.)
+      deallocate(Qact)
     END DO
 !$OMP   END DO
 
-    deallocate(Qact)
     CALL dealloc_dnSVM(dnx)
 !$OMP   END PARALLEL
 
@@ -183,6 +180,7 @@ PROGRAM Tnum_f90
     CALL write_dnx(1,mole%ncart,dnx,nderiv)
     CALL Write_Cartg98(dnx%d0,mole)
     CALL dealloc_dnSVM(dnx)
+    deallocate(Qact)
     write(out_unit,*) "======================================"
     CALL time_perso('sub_QactTOdnx')
     write(out_unit,*) "======================================"
@@ -197,10 +195,6 @@ PROGRAM Tnum_f90
   !-------------------------------------------------
   !     - calculation of f2, f1, vep, rho ----------
   !-------------------------------------------------
-  allocate(T2Grid(mole%nb_act,mole%nb_act,n_eval))
-  allocate(T1Grid(mole%nb_act,n_eval))
-  allocate(VepGrid(n_eval))
-
   IF (calc_Tnum) THEN
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
@@ -208,6 +202,9 @@ PROGRAM Tnum_f90
     write(out_unit,*) "======================================"
     CALL time_perso('calc3_f2_f1Q_num')
     para_Tnum%WriteT = .FALSE.
+    allocate(T2Grid(mole%nb_act,mole%nb_act,n_eval))
+    allocate(T1Grid(mole%nb_act,n_eval))
+    allocate(VepGrid(n_eval))
 !$OMP   PARALLEL &
 !$OMP   DEFAULT(NONE) &
 !$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,T2Grid,T1Grid,VepGrid) &
@@ -216,24 +213,23 @@ PROGRAM Tnum_f90
     allocate(Tcor2(mole%nb_act,3))
     allocate(Tcor1(3))
     allocate(Trot(3,3))
-    allocate(Qact(mole%nb_var))
 !$OMP   BARRIER
 
 !$OMP   DO SCHEDULE(STATIC)
     DO i=1,n_eval
-      Qact(:) = Qact0
+      Qact = Qact0
       Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
       IF (mod(i,10000) == 0) write(*,*) i,Qact
       CALL  calc3_f2_f1Q_num(Qact,                                     &
                              T2Grid(:,:,i),T1Grid(:,i),VepGrid(i),rho, &
                              Tcor2,Tcor1,Trot,para_Tnum,mole)
+      deallocate(Qact)
     END DO
 !$OMP   END DO
 
     deallocate(Tcor2)
     deallocate(Tcor1)
     deallocate(Trot)
-    deallocate(Qact)
 !$OMP   END PARALLEL
 
     CALL time_perso('calc3_f2_f1Q_num')
@@ -250,14 +246,12 @@ PROGRAM Tnum_f90
     write(out_unit,*) "======================================"
     write(out_unit,*) "====== OMP Test ======================"
     write(out_unit,*) "======================================"
-moleOK%nb_act = 2
-moleOK%nb_var = 3
 
     CALL time_perso('OMP_Test')
     para_Tnum%WriteT = .FALSE.
 !$OMP   PARALLEL &
 !$OMP   DEFAULT(NONE) &
-!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,moleOK) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole) &
 !$OMP   PRIVATE(i,mole_1,Qact)
 
     allocate(Qact(mole%nb_var))
@@ -268,13 +262,11 @@ moleOK%nb_var = 3
       Qact(:) = Qact0
       Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
       IF (mod(i,10000) == 0) write(*,*) i,Qact
-      !moleOK_1%nb_act = moleOK%nb_act
-      !mole_1%nb_act = mole%nb_act
-      CALL CoordType2_TO_CoordType1(mole_1,mole)
-      !mole_1 = mole
-      !CALL dealloc_CoordType(mole_1)
+      mole_1 = mole
+      CALL dealloc_CoordType(mole_1)
     END DO
 !$OMP   END DO
+    deallocate(Qact)
 
 !$OMP   END PARALLEL
 
@@ -291,31 +283,38 @@ moleOK%nb_var = 3
   !     FOR G and g metric tensors
   !-------------------------------------------------
   IF (calc_gG) THEN
-    CALL alloc_dnSVM(dng ,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
-    CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderivGg)
-
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "====== get_dng_dnGG =================="
     write(out_unit,*) "======================================"
     CALL time_perso('get_dng_dnGG')
+    para_Tnum%WriteT = .FALSE.
+    allocate(GG_Grid(mole%ndimG,mole%ndimG,n_eval))
+    allocate( g_Grid(mole%ndimG,mole%ndimG,n_eval))
 
+!$OMP   PARALLEL &
+!$OMP   DEFAULT(NONE) &
+!$OMP   SHARED(n_eval,Qact0,para_Tnum,mole,nderivGg,GG_Grid,g_Grid) &
+!$OMP   PRIVATE(i,Qact)
+
+!$OMP   DO  SCHEDULE(STATIC)
     DO i=1,n_eval
+      Qact = Qact0
+      Qact(mole%nb_var) = HALF*(ONE + real(i,kind=Rkind)/n_eval)
+      IF (mod(i,10000) == 0) write(*,*) i,Qact
       para_Tnum%WriteT    = .FALSE.
-      CALL get_dng_dnGG(Qact,para_Tnum,mole,dng,dnGG,nderiv=nderivGg)
+      CALL calc_d0g_d0GG(Qact,g_Grid(:,:,i),GG_Grid(:,:,i),mole)
+      deallocate(Qact)
     END DO
-    write(out_unit,*) ' dng'
-    CALL Write_dnSVM(dng,0)
-    write(out_unit,*) ' dnG'
-    CALL Write_dnSVM(dnGG,0)
+!$OMP   END DO
+
+!$OMP   END PARALLEL
 
     CALL time_perso('get_dng_dnGG')
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
     write(out_unit,*) "======================================"
-    CALL dealloc_dnSVM(dng)
-    CALL dealloc_dnSVM(dnGG)
   END IF
   !-------------------------------------------------
   !-------------------------------------------------
@@ -325,6 +324,32 @@ moleOK%nb_var = 3
 
 
   write(out_unit,*) 'END Tnum'
+CONTAINS
+  SUBROUTINE calc_d0g_d0GG(Qact,g,GG,mole)
+    USE mod_dnSVM
+    USE TnumTana_system_m
+    USE mod_Coord_KEO
+    IMPLICIT NONE
+
+    real (kind=Rkind), allocatable, intent(in)    :: Qact(:)
+    TYPE (CoordType),               intent(in)    :: mole
+    real(kind=Rkind),               intent(inout) :: GG(:,:),g(:,:)
+
+    TYPE(Type_dnMat) :: dng,dnGG
+    integer :: nderivG
+
+    nderivG = 2
+    CALL alloc_dnSVM(dng ,mole%ndimG,mole%ndimG,mole%nb_act,nderivG)
+    CALL alloc_dnSVM(dnGG,mole%ndimG,mole%ndimG,mole%nb_act,nderivG)
+
+    CALL get_dng_dnGG(Qact,para_Tnum,mole,dng=dng,dnGG=dnGG,nderiv=nderivG)
+    GG(:,:) = dnGG%d0
+     g(:,:) = dng%d0
+
+    CALL dealloc_dnSVM(dng)
+    CALL dealloc_dnSVM(dnGG)
+
+  END SUBROUTINE calc_d0g_d0GG
 
 END PROGRAM Tnum_f90
 

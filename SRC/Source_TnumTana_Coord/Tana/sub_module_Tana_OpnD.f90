@@ -889,7 +889,6 @@ subroutine check_allocate_opnd(F_nd)
 
    character (len = *), parameter :: routine_name = 'Export_VSCF_Opnd'
 
-   !write(6,*) 'Export_VSCF_Opnd'
    !CALL write_op(Fnd)
    FndName_loc = trim('')
 
@@ -899,7 +898,6 @@ subroutine check_allocate_opnd(F_nd)
        qname = trim('Q' // TO_string(m) )
 
        CALL Export_VSCF_Op1D(Fnd%prod_op1d(j),qname,F1dName)
-       !write(6,*) 'F1d',j,' ',qname,' ',F1dName
        FndName_loc = trim( FndName_loc // mult // F1dName)
      END DO
      IF (allocated(F1dName)) deallocate(F1dName)
@@ -931,7 +929,6 @@ subroutine check_allocate_opnd(F_nd)
 
    character (len = *), parameter :: routine_name = 'Export_Fortran_Opnd'
 
-   !write(6,*) 'Export_VSCF_Opnd'
    !CALL write_op(Fnd)
    FndName_loc = ''
    First       = .TRUE.
@@ -944,7 +941,6 @@ subroutine check_allocate_opnd(F_nd)
        CALL Export_Fortran_Op1D(Fnd%prod_op1d(j),qname,F1dName)
        IF (len_trim(F1dName) == 0) CYCLE
 
-       !write(6,*) 'F1d',j,' ',qname,' ',F1dName
        IF (.NOT. First) FndName_loc = FndName_loc // mult
        FndName_loc = FndName_loc // F1dName
        First = .FALSE.

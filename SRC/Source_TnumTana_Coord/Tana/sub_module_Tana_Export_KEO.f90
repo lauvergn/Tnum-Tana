@@ -592,8 +592,6 @@
        Cn_new = TWOxKEO%Cn(i) * get_coeff_OF_OpnD(TWOxKEO%sum_prod_op1d(i)) * CHALF
 
        write(i_out, '(A)') '     & ' // (get_Coef_name(Cn_new,With_format=.TRUE.) // FnDname) // ' \\'
-
-       !write(6,*) 'coucou: Op term',i,'coef',Cn_new,get_Coef_name(Cn_new,With_format=.TRUE.)
      END DO
 
      !  vep

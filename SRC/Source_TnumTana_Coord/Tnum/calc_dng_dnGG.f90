@@ -37,7 +37,8 @@ MODULE mod_dnGG_dng
   use TnumTana_system_m
   use mod_dnSVM
   use mod_paramQ,  only: sub_QactTOdnMWx, Write_dnx, analyze_dnx
-  use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType, CoordType2_TO_CoordType1
+  use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType
+  !use mod_Tnum,    only: CoordType2_TO_CoordType1
   USE mod_dnRho ! all
 
   IMPLICIT NONE
@@ -298,7 +299,6 @@ MODULE mod_dnGG_dng
         END IF
       END IF
       !-----------------------------------------------------------------
-      !write(6,*) 'vep_type,vep_done',para_Tnum%vep_type,vep_done
     ELSE
       !-----------------------------------------------------------------
       ! Normal computation ...
@@ -638,7 +638,7 @@ MODULE mod_dnGG_dng
     character (len=*), parameter :: name_sub = 'get_dng_dnGG_WITH_type100'
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unit,*) 'BEGINNIG ',name_sub
+      write(out_unit,*) 'BEGINNING ',name_sub
       flush(out_unit)
     END IF
     vep      = ZERO
@@ -652,8 +652,8 @@ MODULE mod_dnGG_dng
       !-----------------------------------------------------------------
       IF (present(dnGG) .OR. present(dng)) THEN ! with type100 we need to calculate dnGG100 first
                                                 ! then we can calculate dng form the inversion of dnGG
-        CALL CoordType2_TO_CoordType1(mole100,mole)
-        !mole100 = mole
+        !CALL CoordType2_TO_CoordType1(mole100,mole)
+        mole100 = mole
 
         DO i=1,mole100%nb_var
           IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)  &
@@ -765,8 +765,8 @@ MODULE mod_dnGG_dng
       !-----------------------------------------------------------------
       IF (present(dnGG) .OR. present(dng)) THEN ! with type100 we need to calculate dnGG100 first
                                                 ! then we can calculate dng form the inversion of dnGG
-        CALL CoordType2_TO_CoordType1(mole100,mole)
-        !mole100 = mole
+        !CALL CoordType2_TO_CoordType1(mole100,mole)
+        mole100 = mole
 
         DO i=1,mole100%nb_var
           IF (mole100%tab_Qtransfo(mole100%itActive)%ActiveTransfo%list_act_OF_Qdyn(i) == 100)         &
@@ -2272,12 +2272,10 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
     END IF
 
     vep = para_Tnum%dnVepref%d0
-    !write(666,*) '0 order',para_Tnum%dnVepref%d0
 
     IF (para_Tnum%vepTaylor_Order > 0) THEN
       DO i=1,mole%nb_act
         vep = vep + para_Tnum%dnVepref%d1(i)*DQ(i)
-        !write(666,*) '1st order',i,para_Tnum%dnVepref%d1(i)
       END DO
     END IF
 
@@ -2285,7 +2283,6 @@ FUNCTION get_vepTaylor(Qact,mole,para_Tnum) RESULT (vep)
       DO i=1,mole%nb_act
       DO j=1,mole%nb_act
         vep = vep + HALF*para_Tnum%dnVepref%d2(j,i)*DQ(i)*DQ(j)
-        !write(666,*) '2d order',i,j,para_Tnum%dnVepref%d2(i,j)
       END DO
       END DO
     END IF
@@ -2989,7 +2986,6 @@ SUBROUTINE Calc_vep_rho_from_dnGG(vep,rho,Qact,dnGG,mole,para_Tnum)
         j100 = j
         IF (i > mole%nb_act) i100 = i + mole%nb_rigid100
         IF (j > mole%nb_act) j100 = j + mole%nb_rigid100
-        !IF (j==1) write(6,*) 'gG100TOgG',i,i100
         d0G(i,j)  = d0G100(i100,j100)
       END DO
       END DO

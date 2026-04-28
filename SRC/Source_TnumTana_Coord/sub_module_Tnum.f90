@@ -37,7 +37,6 @@ MODULE mod_Tnum
   USE TnumTana_system_m
   use mod_dnSVM,            only: Type_dnMat,Type_dnS
   USE mod_nDFit,            only: param_nDFit
-  USE mod_QTransfo,         only: type_qtransfoOK
   USE mod_QTransfo,         only: type_qtransfo, write_qtransfo,    &
                                   dealloc_qtransfo, dealloc_NParray,&
                                   alloc_NParray, read_qtransfo,     &
@@ -189,89 +188,10 @@ MODULE mod_Tnum
     real (kind=Rkind), allocatable :: d0sm(:)
     real (kind=Rkind)              :: Mtot = ZERO
     real (kind=Rkind)              :: Mtot_inv = ZERO
-  !CONTAINS
-    !PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
-    !GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
+  CONTAINS
+    PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
+    GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
   END TYPE CoordType
-  TYPE CoordTypeOK
-    logical            :: WriteCC    = .FALSE.
-
-    real (kind=Rkind)  :: stepQ = ONETENTH**4
-    logical            :: num_x = .FALSE.
-
-
-    integer :: nb_act           = 0
-    integer :: nb_var           = 0         ! nb_var= 3*nat-6 + nb_extra_Coord
-    integer :: ndimG            = 0
-    integer :: nb_extra_Coord   = 0
-    integer :: ncart            = 0
-    integer :: ncart_act        = 0
-    integer :: nat0             = 0
-    integer :: nat              = 0
-    integer :: nat_act          = 0
-
-    ! for the ab initio calculation
-    integer                          :: charge       = 0
-    integer                          :: multiplicity = -1
-    integer                          :: nb_elec      = -1      ! here it is the number of electrons
-
-    integer,                  allocatable :: Z(:)
-    character (len=Name_len), allocatable :: symbole(:)
-
-    logical                          :: cos_th       = .FALSE.  ! T => coordinate (valence angle) => cos(th)
-                                                                ! F => coordinate (valence angle) => th
-
-    logical                          :: Without_Rot         = .FALSE.
-    logical                          :: Centered_ON_CoM     = .TRUE.
-    logical                          :: With_VecCOM         = .FALSE.
-    character (len=:), allocatable   :: Cart_Type
-
-    logical                          :: Old_Qtransfo        = .FALSE.
-    logical                          :: Cart_transfo        = .FALSE.
-    logical                          :: Rot_Dip_with_EC     = .FALSE.
-
-    integer                                :: nb_Qtransfo         = -1
-    integer                                :: opt_param           =  0
-    integer, allocatable                   :: opt_Qdyn(:)
-
-    integer                                :: itActive             = -1
-    integer                                :: itPrim               = -1
-    integer                                :: itNM                 = -1
-    integer                                :: itRPH                = -1
-
-    TYPE (Type_QtransfoOK)       :: Qtransfo
-    !TYPE (Type_Qtransfo),      allocatable :: tab_Qtransfo(:)
-    !TYPE (Type_Qtransfo),      allocatable :: tab_Cart_transfo(:)
-
-    TYPE (Type_RPHTransfo),    allocatable :: RPHTransfo_inact2n ! For the inactive coordinates (type 21)
-    TYPE (CurviRPH_type)                   :: CurviRPH
-
-    integer, allocatable :: liste_QactTOQdyn(:)
-    integer, allocatable :: liste_QdynTOQact(:)
-    integer, allocatable :: nrho_OF_Qact(:)             ! enables to define the volume element
-    integer, allocatable :: nrho_OF_Qdyn(:)             ! enables to define the volume element
-
-
-    integer :: nb_act1     = 0
-    integer :: nb_inact2n  = 0
-    integer :: nb_inact21  = 0
-    integer :: nb_inact22  = 0
-    integer :: nb_inact20  = 0
-    integer :: nb_inact    = 0
-    integer :: nb_inact31  = 0
-    integer :: nb_rigid0   = 0
-    integer :: nb_rigid100 = 0
-    integer :: nb_rigid    = 0
-
-    real (kind=Rkind), allocatable :: masses(:)
-    integer,           allocatable :: active_masses(:) ! for partial hessian (PVSCF)
-    real (kind=Rkind), allocatable :: d0sm(:)
-    real (kind=Rkind)              :: Mtot = ZERO
-    real (kind=Rkind)              :: Mtot_inv = ZERO
-  !CONTAINS
-    !PROCEDURE, PRIVATE, PASS(mole1) :: CoordType2_TO_CoordType1
-    !GENERIC,   PUBLIC  :: assignment(=) => CoordType2_TO_CoordType1
-  END TYPE CoordTypeOK
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------
@@ -335,7 +255,7 @@ MODULE mod_Tnum
       PUBLIC :: Write_f2f1vep, Write_TcorTrot
 
       PUBLIC :: CoordType, Write_CoordType, Read_CoordType, dealloc_CoordType
-      PUBLIC :: CoordType2_TO_CoordType1
+      !PUBLIC :: CoordType2_TO_CoordType1
       PUBLIC :: check_charge, type_var_analysis_OF_CoordType
       PUBLIC :: Sub_paraRPH_TO_CoordType, Sub_CoordType_TO_paraRPH,     &
                                             Sub_CoordType_TO_paraRPH_new
@@ -343,9 +263,6 @@ MODULE mod_Tnum
       PUBLIC :: Set_OptimizationPara_FROM_CoordType
 
       PUBLIC :: get_CurviRPH
-
-      PUBLIC :: CoordTypeOK
-
 CONTAINS
 !================================================================
 ! Transfert data from the 1st Qtransfo to the CoordType
@@ -1798,30 +1715,41 @@ CONTAINS
       CALL Qtransfo1TOQtransfo2(mole2%tab_Qtransfo(it),mole1%tab_Qtransfo(it))
       !write(out_unit,*) 'Qtransfo1TOQtransfo2 done, it',it ; flush(out_unit)
 
-      SELECT CASE (get_name_Qtransfo(mole1%tab_Qtransfo(it)))
-      CASE ('zmat') ! it can be one of the last one
-        mole1%Z       = mole1%tab_Qtransfo(it)%ZmatTransfo%Z
-        mole1%symbole = mole1%tab_Qtransfo(it)%ZmatTransfo%symbole
-        mole1%masses  = mole1%tab_Qtransfo(it)%ZmatTransfo%masses
-      CASE ('bunch','bunch_poly') ! it has to be one of the last one
-        mole1%Z       = mole1%tab_Qtransfo(it)%BunchTransfo%Z
-        mole1%symbole = mole1%tab_Qtransfo(it)%BunchTransfo%symbole
-        mole1%masses  = mole1%tab_Qtransfo(it)%BunchTransfo%masses
-      CASE ('qtox_ana') ! it has to be one of the last one
-        mole1%Z       = mole1%tab_Qtransfo(it)%QTOXanaTransfo%Z
-        mole1%symbole = mole1%tab_Qtransfo(it)%QTOXanaTransfo%symbole
-        mole1%masses  = mole1%tab_Qtransfo(it)%QTOXanaTransfo%masses
-      CASE default
-        CONTINUE
-      END SELECT
-
       IF (it > 1) THEN
         mole1%tab_Qtransfo(it)%type_Qout = mole1%tab_Qtransfo(it-1)%type_Qin
         mole1%tab_Qtransfo(it)%name_Qout = mole1%tab_Qtransfo(it-1)%name_Qin
       END IF
-
     END DO
 
+    IF (.NOT. allocated(mole1%tab_Qtransfo(1)%name_transfo)) THEN
+      write(out_unit,*) 'ERROR in',name_sub
+      write(out_unit,*) 'name_transfo is not allocated'
+      STOP 'ERROR in CoordType2_TO_CoordType1: name_transfo is not allocated'
+    END IF
+
+    SELECT CASE (mole1%tab_Qtransfo(1)%name_transfo)
+    CASE ('zmat') ! it can be one of the last one
+      mole1%Z       = mole1%tab_Qtransfo(1)%ZmatTransfo%Z
+      mole1%symbole = mole1%tab_Qtransfo(1)%ZmatTransfo%symbole
+      mole1%masses  = mole1%tab_Qtransfo(1)%ZmatTransfo%masses
+    CASE ('bunch','bunch_poly') ! it has to be one of the last one
+      mole1%Z       = mole1%tab_Qtransfo(1)%BunchTransfo%Z
+      mole1%symbole = mole1%tab_Qtransfo(1)%BunchTransfo%symbole
+      mole1%masses  = mole1%tab_Qtransfo(1)%BunchTransfo%masses
+    CASE ('qtox_ana') ! it has to be one of the last one
+      mole1%Z       = mole1%tab_Qtransfo(1)%QTOXanaTransfo%Z
+      mole1%symbole = mole1%tab_Qtransfo(1)%QTOXanaTransfo%symbole
+      mole1%masses  = mole1%tab_Qtransfo(1)%QTOXanaTransfo%masses
+    CASE default
+      CONTINUE
+    END SELECT
+    IF (.NOT. allocated(mole1%masses)) THEN
+      write(out_unit,*) 'ERROR in',name_sub
+      write(out_unit,*) 'transfo name: ',mole1%tab_Qtransfo(1)%name_transfo
+      write(out_unit,*) 'masses is not allocated'
+      write(out_unit,*) allocated(mole1%Z),allocated(mole1%symbole),allocated(mole1%masses)
+      STOP 'ERROR in CoordType2_TO_CoordType1: masses is not allocated'
+    END IF
 
     IF (allocated(mole2%RPHTransfo_inact2n)) THEN
       CALL alloc_NParray(mole1%RPHTransfo_inact2n,                    &

@@ -147,8 +147,6 @@ MODULE mod_Tana_vec_operations
      character (len = *), parameter  :: routine_name='Jdag_scalar_J_from_Eq171'
 
 
-     !write(6,*) 'Beg: ',routine_name
-
      if(fbeta%idf /= 1 .or. (fbeta%idq /= 7 .and. fbeta%idq /= -7)) then
        write(out_unit,*) ' ERROR in ',routine_name
        write(out_unit,*) 'idf=', fbeta%idf
@@ -235,8 +233,6 @@ MODULE mod_Tana_vec_operations
      type(vec_sum_opnd)              :: V_tmp
      integer                         :: error
      character (len = *), parameter :: routine_name='Jdag_scalar_J_from_Eq122'
-
-     !write(6,*) 'Beg: ',routine_name
 
      !CALL Jdag_scalar_J_from_Eq122_old(falpha, fbeta, fgamma, JJ)
      !RETURN
@@ -331,7 +327,6 @@ MODULE mod_Tana_vec_operations
      integer                         :: error
      character (len = *), parameter :: routine_name='Li_scalar_Li_from_Eq75'
 
-     !write(6,*) 'Beg: ',routine_name
      !CALL Li_scalar_Li_from_Eq75_old(theta, phi, LiLi)
      !RETURN
 

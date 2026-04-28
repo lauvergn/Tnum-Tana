@@ -1928,8 +1928,8 @@
 
       ELSE ! both are false
         !- create mole_1 (type=-1 => type=1)
-        CALL CoordType2_TO_CoordType1(mole_1,mole)
-        !mole_1 = mole
+        !CALL CoordType2_TO_CoordType1(mole_1,mole)
+        mole_1 = mole
         ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
 
           DO i=1,mole_1%nb_var
@@ -2482,8 +2482,8 @@
         flush(out_unit)
 
         !- create mole_1 (type=-1 => type=1)
-        CALL CoordType2_TO_CoordType1(mole_1,mole)
-        !mole_1 = mole
+        !CALL CoordType2_TO_CoordType1(mole_1,mole)
+        mole_1 = mole
         ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
 
           mole_1%tab_Qtransfo(mole_1%itNM)%skip_transfo = .TRUE.
@@ -2997,8 +2997,8 @@
 
         ELSE
           !- create mole_1 (type=-1 => type=1)
-          CALL CoordType2_TO_CoordType1(mole_1,mole)
-          !mole_1 = mole
+          !CALL CoordType2_TO_CoordType1(mole_1,mole)
+          mole_1 = mole
           ASSOCIATE(ActiveTransfo_1 => mole_1%tab_Qtransfo(mole_1%itActive)%ActiveTransfo)
  
           ! a changer (utilisation de Qread_TO_Qact !!!
@@ -3801,7 +3801,6 @@
       IF (QMLib_G) THEN
         write(out_unit,*) ' Gref from QML'
         ndim = get_Qmodel_ndim()
-        write(6,*) 'ndim QML',ndim
         CALL alloc_NPArray(GGdef_Qmodel,[ndim,ndim],'GGdef_Qmodel',name_sub)
         CALL get_Qmodel_GGdef(GGdef_Qmodel)
         IF (print_level > 1) THEN
@@ -3810,7 +3809,6 @@
         END IF
         IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo) THEN ! Qact
           DO i=1,ndim
-            write(6,*) 'iQML,iact',i,PrimOp%Qit_TO_QQMLib(i)
           DO j=1,ndim
             iact = PrimOp%Qit_TO_QQMLib(i)
             jact = PrimOp%Qit_TO_QQMLib(j)
@@ -3822,7 +3820,6 @@
         END IF
         IF (PrimOp%pot_itQtransfo == mole%nb_Qtransfo-1) THEN ! Qdyn
           DO i=1,ndim
-            write(6,*) 'iQML,iact',i,mole%liste_QdynTOQact(PrimOp%Qit_TO_QQMLib(i))
             DO j=1,ndim
               iact = mole%liste_QdynTOQact(PrimOp%Qit_TO_QQMLib(i))
               jact = mole%liste_QdynTOQact(PrimOp%Qit_TO_QQMLib(j))

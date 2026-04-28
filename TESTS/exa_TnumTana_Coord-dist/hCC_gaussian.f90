@@ -11,7 +11,7 @@
      END DO
 
      DO j=1,ncart_act
-       write(6,*) j,Hcc(:,j)
+       write(*,*) j,Hcc(:,j)
      END DO
 
 END

@@ -472,7 +472,6 @@ CONTAINS
 
     character (len=*), parameter :: name_sub = "QinTOQout_ActiveTransfo_Tnum"
 
-    !write(6,*) ' IN ',name_sub
     IF (get_size(Qin) /= this%nb_act) STOP 'ERROR in QinTOQout_ActiveTransfo_Tnum: Qact size and nb_act differ'
 
 
@@ -529,8 +528,6 @@ CONTAINS
       deallocate(Tab_dnQflex)
     END IF
 
-    !write(6,*) ' END ',name_sub
-
   END FUNCTION QinTOQout_ActiveTransfo_Tnum
   FUNCTION QoutTOQin_ActiveTransfo_Tnum(this,Qout) RESULT(Qin)
     USE ADdnSVM_m
@@ -547,8 +544,6 @@ CONTAINS
     integer :: i_Qact,i_Qdyn,nderiv
     TYPE (dnS_t) :: dnQ
 
-
-    !write(6,*) ' IN ',name_sub
     IF (get_size(Qout) /= this%nb_var) STOP 'ERROR in QoutTOQin_ActiveTransfo_Tnum: Qdyn size and nb_var differ'
 
     nderiv  = get_nderiv(Qout)
@@ -569,9 +564,6 @@ CONTAINS
     END DO
 
     CALL dealloc_dnS(dnQ)
-
-
-    !write(6,*) ' END ',name_sub
 
   END FUNCTION QoutTOQin_ActiveTransfo_Tnum
 

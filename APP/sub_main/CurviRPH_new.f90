@@ -316,7 +316,6 @@ CONTAINS
                                     STOP 'ERROR in check_gnew: inconsistent size'
 
     DO j=1,n
-      write(6,*) 'g1j new',j,dot_product(alphaON(:,j),betaO)
     END DO
 
   END SUBROUTINE check_gnew
