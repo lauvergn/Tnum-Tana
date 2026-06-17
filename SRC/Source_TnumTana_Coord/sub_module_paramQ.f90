@@ -2575,8 +2575,8 @@ CONTAINS
 
     !-----------------------------------------------------------------
     integer :: nderiv_debug = 0
-    !logical, parameter :: debug=.FALSE.
-    logical, parameter :: debug=.TRUE.
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
     !-----------------------------------------------------------------
     nderiv = 0
     IF (debug) THEN
