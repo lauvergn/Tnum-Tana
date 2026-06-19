@@ -1,0 +1,15 @@
+ # Reference geometry (xyz, Angstrom)
+ 3
+
+ O  0. 0. 0.
+H  1. 0. 1.
+H -1. 0. 1.
+# masses
+16. 1. 1.
+# Current geometry (xyz, Angstrom)
+3
+
+O  0. 0. 0.
+H  1.1 0. 1.
+H -1. 0. 1.
+

@@ -107,3 +107,48 @@ fpm run Tnum90_MCTDH    --< TESTS/exa_TnumDriver/dat_driver0
 ## 2) Documentation
 
 See [Tnum-Tana](https://github.com/lauvergn/Tnum-Tana/wiki) Wiki (uncomplete)
+
+## 3) Some driver examples
+
+Main programs are in the APP directory.
+
+### 3a) Eckart transformation
+
+The Fortran main is "APP/Main_Eckart.f90".
+To compile the code :
+
+```
+make OPT=0 app
+```
+or
+```
+make OPT=0 app APPSRC=Main_Eckart.f90
+```
+
+The code reads two geometry the reference one and then the current one. 
+Remark: If masses are read (--read_masses t), the list of masses must be given after the reference geometry (the first one).
+
+Then, the code computes the Eckart rotation matrix.
+Depending of the argumant options:
+
+- masses can be read (-m or --read_masses)
+- the current transformed geometry is printed (-t or --coord_transfo)
+
+Example, without reading the masses. Therefore, Tnum masses are used (CODATA2006 physical constants and NIST2012 masses).
+
+```
+Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE.
+```
+or
+```
+Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses f
+```
+The Eckart rotation matrix and the transformed Cartessian geometry are given in "APP_OutputFiles/res"
+
+Example, with reading the masses.
+
+```
+Main_Eckart.exe -i APP_InputFiles/dat_Eckart2 -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses t
+```
+
+The Eckart rotation matrix and the transformed Cartessian geometry are given in "APP_OutputFiles/res"

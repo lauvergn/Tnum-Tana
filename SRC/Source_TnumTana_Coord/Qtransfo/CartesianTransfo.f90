@@ -97,8 +97,8 @@ MODULE mod_CartesianTransfo
       PUBLIC :: Read_CartesianTransfo, Write_CartesianTransfo
       PUBLIC :: CartesianTransfo1TOCartesianTransfo2, calc_CartesianTransfo_new
       PUBLIC :: Set_P_Axis_CartesianTransfo, Set_Eckart_CartesianTransfo
-      PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_dnTEckart, dnMWX_MultiRef
-      PUBLIC :: centre_masse, sub3_dncentre_masse, sub3_NOdncentre_masse
+      PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_EckartRot_SingleRef, calc_EckartRot_old, calc_dnTEckart, dnMWX_MultiRef
+      PUBLIC :: centre_masse, sub3_dncentre_masse, sub3_NOdncentre_masse, recentered_COM
       PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight, dnTErr
 
       CONTAINS
@@ -1431,9 +1431,9 @@ MODULE mod_CartesianTransfo
 
       END SUBROUTINE calc_Analysis_dnMWXout
 
-      SUBROUTINE calc_EckartRot(dnx,T,CartesianTransfo,Qact)
+  SUBROUTINE calc_EckartRot_old(dnx,T,CartesianTransfo,Qact)
 
-        TYPE (Type_dnVec),            intent(inout)  :: dnx
+        TYPE (Type_dnVec),            intent(inout)  :: dnx ! mass-weighted
         TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
         real (kind=Rkind),            intent(in)     :: Qact(:)
 
@@ -1451,7 +1451,7 @@ MODULE mod_CartesianTransfo
 
 
 !------ for debuging --------------------------------------------------
-        character (len=*), parameter :: name_sub='calc_EckartRot'
+        character (len=*), parameter :: name_sub='calc_EckartRot_old'
         logical, parameter :: debug=.FALSE.
         !logical, parameter :: debug=.TRUE.
 !-----------------------------------------------------------
@@ -1564,8 +1564,207 @@ MODULE mod_CartesianTransfo
           write(out_unit,*) 'END ',name_sub
         END IF
 
-      END SUBROUTINE calc_EckartRot
+      END SUBROUTINE calc_EckartRot_old
 
+  SUBROUTINE calc_EckartRot(dnx,T,CartesianTransfo,Qact)
+
+        TYPE (Type_dnVec),            intent(inout)  :: dnx ! mass-weighted
+        TYPE (Type_CartesianTransfo), intent(inout)  :: CartesianTransfo
+        real (kind=Rkind),            intent(in)     :: Qact(:)
+
+        real (kind=Rkind) :: T(3,3)
+        real (kind=Rkind) :: MWxyz(3,CartesianTransfo%ncart_act/3)     ! mass weighted CC
+        real (kind=Rkind) :: MWxyz_ref(3,CartesianTransfo%ncart_act/3) ! mass weighted reference CC
+        real (kind=Rkind) :: RotMWxyz(3,CartesianTransfo%ncart_act/3) ! mass weighted reference CC
+
+        real (kind=Rkind) :: Rot_Eckart(3)
+
+        integer           :: i,j,ic,ix,iy,iz,iref
+
+        ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
+        real (kind=Rkind) :: A(3,3),A1(3,3),A2(3,3)
+        real (kind=Rkind) :: vec1(3,3),vec2(3,3),eig1(3),eig2(3)
+        real (kind=Rkind) :: normx,normy,normz,norm
+
+        TYPE(Type_dnS) :: dnMWXref(3,CartesianTransfo%ncart_act/3)
+
+
+!------ for debuging --------------------------------------------------
+        character (len=*), parameter :: name_sub='calc_EckartRot'
+        logical, parameter :: debug=.FALSE.
+        !logical, parameter :: debug=.TRUE.
+!-----------------------------------------------------------
+        IF (debug) THEN
+          write(out_unit,*) 'BEGINNING ',name_sub
+          write(out_unit,*) 'ncart_act ',CartesianTransfo%ncart_act
+          write(out_unit,*) 'Qxyz (ref) ',CartesianTransfo%Qxyz
+          write(out_unit,*) 'dnx%d0 ',dnx%d0(1:CartesianTransfo%ncart_act)
+        END IF
+!-----------------------------------------------------------
+
+        CALL check_alloc_dnVec(dnx,'dnx',name_sub)
+
+        !==============================================================
+        ! rotation of the CC with an initial and constant matrix
+        DO ic=1,CartesianTransfo%ncart_act,3
+          ix = ic+0
+          iz = ic+2
+          dnx%d0(ix:iz) = dnx%d0(ix:iz)/CartesianTransfo%d0sm(ix)
+          dnx%d0(ix:iz) = matmul(CartesianTransfo%Rot_initial,dnx%d0(ix:iz))
+          dnx%d0(ix:iz) = dnx%d0(ix:iz)*CartesianTransfo%d0sm(ix)
+        END DO
+
+        CALL alloc_MatOFdnS(dnMWXref,dnx%nb_var_deriv,0)
+
+        CALL dnMWX_MultiRef(dnMWXref,CartesianTransfo,Qact,dnx)
+ 
+        MWxyz_ref = dnMWXref(:,1:CartesianTransfo%ncart_act/3)%d0
+        MWxyz     = reshape(dnx%d0(1:CartesianTransfo%ncart_act),shape=[3,CartesianTransfo%ncart_act/3])
+   
+
+        ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
+        CALL calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref)
+
+        ! Check the rotational Eckart condition
+        IF (debug) THEN
+          RotMWxyz(:,:) = matmul(T,MWxyz)
+          DO iref=1,CartesianTransfo%nb_RefGeometry
+            Rot_Eckart(:) = ZERO
+            DO i=1,CartesianTransfo%ncart_act/3
+
+              Rot_Eckart(1) = Rot_Eckart(1)  +                          &
+                             RotMWxyz(2,i)*CartesianTransfo%MWQxyz(3,i,iref) - &
+                             RotMWxyz(3,i)*CartesianTransfo%MWQxyz(2,i,iref)
+
+              Rot_Eckart(2) = Rot_Eckart(2) -                           &
+                             RotMWxyz(1,i)*CartesianTransfo%MWQxyz(3,i,iref) + &
+                             RotMWxyz(3,i)*CartesianTransfo%MWQxyz(1,i,iref)
+
+              Rot_Eckart(3) = Rot_Eckart(3) +                           &
+                             RotMWxyz(1,i)*CartesianTransfo%MWQxyz(2,i,iref) - &
+                             RotMWxyz(2,i)*CartesianTransfo%MWQxyz(1,i,iref)
+            END DO
+            norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
+            write(out_unit,*) 'Norm Rot_Eckart',iref,Qact(1),norm
+          END DO
+        END IF
+
+        IF (debug) write(out_unit,*) 'Rot EC diff ID?',sum(abs(T(:,1)))+sum(abs(T(:,2)))+sum(abs(T(:,3)))-THREE
+
+        IF (debug) THEN
+          write(out_unit,*) 'eig1 ',eig1
+          write(out_unit,*) 'eig2 ',eig2
+          write(out_unit,*) 'Eckart rotational matrix, T'
+          CALL Write_Mat_MPI(T,out_unit,3)
+          write(out_unit,*) 'END ',name_sub
+        END IF
+
+  END SUBROUTINE calc_EckartRot
+
+  SUBROUTINE calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref)
+ 
+
+    real (kind=Rkind),            intent(in)    :: MWxyz(:,:)     ! mass weighted CC
+    real (kind=Rkind),            intent(in)    :: MWxyz_ref(:,:) ! mass weighted reference CC
+    real (kind=Rkind),            intent(inout) :: T(3,3) ! Eckart rotation matrix
+
+    real (kind=Rkind) :: Rot_Eckart(3)
+    real (kind=Rkind), allocatable :: RotMWxyz(:,:)     ! Rotated mass weighted CC (for the test)
+
+    integer           :: nat,iat,i
+
+    ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
+    real (kind=Rkind) :: A(3,3),A1(3,3),A2(3,3)
+    real (kind=Rkind) :: vec1(3,3),vec2(3,3),eig1(3),eig2(3)
+    real (kind=Rkind) :: normx,normy,normz,norm
+
+    !------ for debuging --------------------------------------------------
+    character (len=*), parameter :: name_sub='calc_EckartRot_SingleRef'
+    logical, parameter :: debug=.FALSE.
+    !logical, parameter :: debug=.TRUE.
+    !-----------------------------------------------------------
+    IF (debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+      write(out_unit,*) 'MWxyz_ref ',MWxyz_ref(:,:)
+      write(out_unit,*) 'MWxyz     ',MWxyz(:,:)
+    END IF
+    !-----------------------------------------------------------
+
+    nat = ubound(MWxyz,dim=2)
+
+    ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
+    A(:,:) = ZERO
+    DO iat=1,nat ! loop on atoms
+      A(:,1) = A(:,1) + MWxyz(:,iat)*MWxyz_ref(1,iat)
+      A(:,2) = A(:,2) + MWxyz(:,iat)*MWxyz_ref(2,iat)
+      A(:,3) = A(:,3) + MWxyz(:,iat)*MWxyz_ref(3,iat)
+    END DO
+
+    A1 = matmul(transpose(A),A)
+    A2 = matmul(A,transpose(A))
+
+    IF (debug) THEN
+      write(out_unit,*) 'A'
+      CALL Write_Mat_MPI(A,out_unit,3)
+      write(out_unit,*) 'A1'
+      CALL Write_Mat_MPI(A1,out_unit,3)
+      write(out_unit,*) 'A2'
+      CALL Write_Mat_MPI(A2,out_unit,3)
+    END IF
+
+    CALL diagonalization(A1,eig1,Vec1,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
+    CALL diagonalization(A2,eig2,Vec2,diago_type=1,sort=1,phase=.FALSE.) ! jacobi + sort
+
+    ! change the sign of eig2(:,i)
+    DO i=1,2
+      IF (dot_product(Vec1(:,i),Vec2(:,i)) < ZERO) Vec2(:,i) = -Vec2(:,i)
+    END DO
+    CALL calc_cross_product(Vec1(:,1),normx,Vec1(:,2),normy,Vec1(:,3),normz)
+    CALL calc_cross_product(Vec2(:,1),normx,Vec2(:,2),normy,Vec2(:,3),normz)
+
+    IF (debug) THEN
+      write(out_unit,*) 'Vec1'
+      CALL Write_Mat_MPI(Vec1,out_unit,3)
+      write(out_unit,*) 'Vec2'
+      CALL Write_Mat_MPI(Vec2,out_unit,3)
+    END IF
+
+    T(1,1) = sum(Vec1(1,:)*Vec2(1,:))
+    T(1,2) = sum(Vec1(1,:)*Vec2(2,:))
+    T(1,3) = sum(Vec1(1,:)*Vec2(3,:))
+    T(2,1) = sum(Vec1(2,:)*Vec2(1,:))
+    T(2,2) = sum(Vec1(2,:)*Vec2(2,:))
+    T(2,3) = sum(Vec1(2,:)*Vec2(3,:))
+    T(3,1) = sum(Vec1(3,:)*Vec2(1,:))
+    T(3,2) = sum(Vec1(3,:)*Vec2(2,:))
+    T(3,3) = sum(Vec1(3,:)*Vec2(3,:))
+
+
+    ! Check the rotational Eckart condition
+    IF (debug) THEN
+      RotMWxyz = MWxyz
+      RotMWxyz(:,:) = matmul(T,MWxyz)
+      Rot_Eckart(:) = ZERO
+      DO iat=1,nat
+        Rot_Eckart(1) = Rot_Eckart(1) + RotMWxyz(2,iat)*MWxyz_ref(3,iat) - RotMWxyz(3,iat)*MWxyz_ref(2,iat)
+        Rot_Eckart(2) = Rot_Eckart(2) - RotMWxyz(1,iat)*MWxyz_ref(3,iat) + RotMWxyz(3,iat)*MWxyz_ref(1,iat)
+        Rot_Eckart(3) = Rot_Eckart(3) + RotMWxyz(1,iat)*MWxyz_ref(2,iat) - RotMWxyz(2,iat)*MWxyz_ref(1,iat)
+      END DO
+      norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
+      write(out_unit,*) 'Norm Rot_Eckart',norm
+    END IF
+
+    IF (debug) write(out_unit,*) 'Rot EC diff ID?',sum(abs(T(:,1)))+sum(abs(T(:,2)))+sum(abs(T(:,3)))-THREE
+
+    IF (debug) THEN
+      write(out_unit,*) 'eig1 ',eig1
+      write(out_unit,*) 'eig2 ',eig2
+      write(out_unit,*) 'Eckart rotational matrix, T'
+      CALL Write_Mat_MPI(T,out_unit,3)
+      write(out_unit,*) 'END ',name_sub
+    END IF
+
+  END SUBROUTINE calc_EckartRot_SingleRef
       SUBROUTINE calc_dnTEckart(dnXin,dnT,dnMWXref,CartesianTransfo,nderiv)
 
         TYPE (Type_dnVec),            intent(in)     :: dnXin
@@ -2405,6 +2604,26 @@ MODULE mod_CartesianTransfo
 !         => molecule centers on G
 !       can be use for d1G d2G ...
 !================================================================
+  SUBROUTINE recentered_COM(XYZ,masses_at,Mtot_inv,COM)
+    USE TnumTana_system_m
+    IMPLICIT NONE
+
+    real (kind=Rkind), intent(in)              :: Mtot_inv,masses_at(:)
+    real (kind=Rkind), intent(inout)           :: XYZ(:,:)
+    real (kind=Rkind), intent(inout), optional :: COM(3)
+
+    integer :: i
+    real (kind=Rkind) ::  xG(3)
+
+    DO i=1,3
+      xG(i) = dot_product(XYZ(i,:),masses_at) * Mtot_inv
+    END DO
+    DO i=1,size(XYZ,dim=2)
+      XYZ(:,i) = XYZ(:,i) - xG
+    END DO
+    IF (present(COM))  COM(:) = xG(:)
+
+  END SUBROUTINE recentered_COM
       SUBROUTINE centre_masse(ncart_act,ncart,d0x,                      &
                               masses,Mtot_inv,icG,VG)
       USE TnumTana_system_m

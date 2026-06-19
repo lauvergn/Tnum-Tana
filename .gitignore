@@ -5,6 +5,7 @@ obj/*
 *.exe
 *.a 
 *.log
+APP_OutputFiles/res*
 sub_pot/sub_system.f
 sub_pot/sub_system.f90
 res

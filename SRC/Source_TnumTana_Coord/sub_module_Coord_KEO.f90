@@ -55,7 +55,8 @@ MODULE mod_Coord_KEO
                                   RPHpara1_AT_Qact1_TO_RPHpara2_AT_Qact1,&
                                   Find_iQa_OF_RPHpara_AT_Qact1
   USE mod_CartesianTransfo, ONLY: calc_dnteckart,calc_dntxdnxin_to_dnxout,&
-                                  calc_eckartrot,dnmwx_multiref,dnTErr
+                                  calc_eckartrot,calc_EckartRot_SingleRef,dnmwx_multiref,dnTErr, &
+                                  recentered_COM
   USE mod_LinearNMTransfo,  ONLY: Type_NMTransfo
   USE mod_export_KEO
   USE mod_Tnum,             ONLY: Tnum,param_PES_FromTnum,dealloc_Tnum, &
