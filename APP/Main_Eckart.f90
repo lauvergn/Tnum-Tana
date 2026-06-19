@@ -108,7 +108,6 @@ PROGRAM Main_Eckart
   END DO
   Mtot_inv = 1._Rk/sum(masses)
 
-  XYZ       = XYZ / (const_phys%a0*1.e10_Rk) ! conversion in bohr
   MWXYZ_ref = XYZ
 
   CALL recentered_COM(XYZ,masses,Mtot_inv,COM)
@@ -158,7 +157,7 @@ PROGRAM Main_Eckart
   write(ResUnit,*) '3 ',EckartRot(:,3)
 
   IF (coord_transfo) THEN
-    write(ResUnit,*) 'New current geometry (bohr)'
+    write(ResUnit,*) 'New current geometry (input unit)'
 
     XYZ = matmul(EckartRot,XYZ)
     DO i=1,nat
