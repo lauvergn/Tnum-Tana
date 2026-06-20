@@ -1306,8 +1306,6 @@ MODULE mod_CartesianTransfo
 
       END DO
 
-      !write(out_unit,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
-
       IF (debug) THEN
         write(out_unit,*) 'RMS_min',irot_min,RMS_min,sign_Vec(:)
         write(out_unit,*) 'END ',name_sub
@@ -1622,8 +1620,8 @@ MODULE mod_CartesianTransfo
         MWxyz     = reshape(dnx%d0(1:CartesianTransfo%ncart_act),shape=[3,CartesianTransfo%ncart_act/3])
    
 
-        ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
-        CALL calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref)
+        ! from Dymarsky and Kudin ref JCP v122, p124103, 2005 (the sign modifications of the vec2 are done after)
+        CALL calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref,Dymarsky_only=.TRUE.)
 
         ! Check the rotational Eckart condition
         IF (debug) THEN
@@ -1661,12 +1659,13 @@ MODULE mod_CartesianTransfo
 
   END SUBROUTINE calc_EckartRot
 
-  SUBROUTINE calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref)
+  SUBROUTINE calc_EckartRot_SingleRef(MWxyz,T,MWxyz_ref,Dymarsky_only)
  
 
     real (kind=Rkind),            intent(in)    :: MWxyz(:,:)     ! mass weighted CC
     real (kind=Rkind),            intent(in)    :: MWxyz_ref(:,:) ! mass weighted reference CC
     real (kind=Rkind),            intent(inout) :: T(3,3) ! Eckart rotation matrix
+    logical,                      intent(in)    :: Dymarsky_only
 
     real (kind=Rkind) :: Rot_Eckart(3)
     real (kind=Rkind), allocatable :: RotMWxyz(:,:)     ! Rotated mass weighted CC (for the test)
@@ -1675,7 +1674,7 @@ MODULE mod_CartesianTransfo
 
     ! from Dymarsky and Kudin ref JCP v122, p124103, 2005
     real (kind=Rkind) :: A(3,3),A1(3,3),A2(3,3)
-    real (kind=Rkind) :: vec1(3,3),vec2(3,3),eig1(3),eig2(3)
+    real (kind=Rkind) :: vec1(3,3),vec2(3,3),eig1(3),eig2(3),sign_Vec(3)
     real (kind=Rkind) :: normx,normy,normz,norm
 
     !------ for debuging --------------------------------------------------
@@ -1684,9 +1683,10 @@ MODULE mod_CartesianTransfo
     !logical, parameter :: debug=.TRUE.
     !-----------------------------------------------------------
     IF (debug) THEN
-      write(out_unit,*) 'BEGINNING ',name_sub
-      write(out_unit,*) 'MWxyz_ref ',MWxyz_ref(:,:)
-      write(out_unit,*) 'MWxyz     ',MWxyz(:,:)
+      write(out_unit,*) 'BEGINNING     ',name_sub
+      write(out_unit,*) 'MWxyz_ref     ',MWxyz_ref(:,:)
+      write(out_unit,*) 'MWxyz         ',MWxyz(:,:)
+      write(out_unit,*) 'Dymarsky_only ',Dymarsky_only
     END IF
     !-----------------------------------------------------------
 
@@ -1721,6 +1721,15 @@ MODULE mod_CartesianTransfo
     END DO
     CALL calc_cross_product(Vec1(:,1),normx,Vec1(:,2),normy,Vec1(:,3),normz)
     CALL calc_cross_product(Vec2(:,1),normx,Vec2(:,2),normy,Vec2(:,3),normz)
+
+    IF (.NOT. Dymarsky_only) THEN
+      sign_Vec(:) = ONE
+      CALL calc_RMS_d0MWXout(sign_Vec,MWxyz,Vec1,Vec2,MWxyz_ref,nat)
+      Vec2(:,1) =  Vec2(:,1) * sign_Vec(1)
+      Vec2(:,2) =  Vec2(:,2) * sign_Vec(2)
+      Vec2(:,3) =  Vec2(:,3) * sign_Vec(3)
+      IF (debug) write(out_unit,*) 'sign_Vec',sign_Vec(:)
+    END IF
 
     IF (debug) THEN
       write(out_unit,*) 'Vec1'

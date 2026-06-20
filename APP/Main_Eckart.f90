@@ -42,14 +42,16 @@ PROGRAM Main_Eckart
 
   integer, parameter :: Rk  = real64 ! 8
 
-  integer                         :: nat
-  real (kind=Rk), allocatable     :: XYZ(:,:),MWXYZ(:,:),MWXYZ_ref(:,:),masses(:)
-  real (kind=Rk)                  :: Mtot_inv
-  real (kind=Rk)                  :: EckartRot(3,3),COM(3)
-  integer                         :: InputUnit,ResUnit
-  character (len=:), allocatable  :: InputName,OutputName
+  integer                               :: nat
+  real (kind=Rk), allocatable           :: XYZ(:,:),MWXYZ(:,:),MWXYZ_ref(:,:),masses(:)
+  character (len=Name_len), allocatable :: At(:)
+  real (kind=Rk)                        :: Mtot_inv,norm
+  real (kind=Rk)                        :: EckartRot(3,3),COM(3),Rot_Eckart(3)
+  integer                               :: InputUnit,ResUnit
+  character (len=:), allocatable        :: InputName,OutputName
 
-  character (len=Name_len)        :: name_xyz
+
+  character (len=Name_len)  :: name_xyz
   integer :: i,err_io
   logical :: read_masses,coord_transfo
 
@@ -75,10 +77,11 @@ PROGRAM Main_Eckart
   read(InputUnit,*,IOSTAT=err_io)
   allocate(XYZ(3,nat))
   allocate(masses(nat))
+  allocate(At(nat))
 
   DO i=1,nat
 
-    read(InputUnit,*,IOSTAT=err_io) name_xyz,XYZ(:,i)
+    read(InputUnit,*,IOSTAT=err_io) At(i),XYZ(:,i)
 
     IF (err_io /= 0) THEN
       write(OUTPUT_UNIT,*) ' ERROR in ',name_sub
@@ -88,7 +91,7 @@ PROGRAM Main_Eckart
       STOP 'ERRRO while reading the Cartessian reference geometry'
     END IF
 
-    IF (.NOT. read_masses) masses(i) = get_mass_Tnum(const_phys%mendeleev,name=name_xyz)
+    IF (.NOT. read_masses) masses(i) = get_mass_Tnum(const_phys%mendeleev,name=At(i))
 
   END DO
 
@@ -149,7 +152,8 @@ PROGRAM Main_Eckart
   !========================================================================
   !========================================================================
 
-  CALL calc_EckartRot_SingleRef(MWXYZ,EckartRot,MWXYZ_ref)
+
+  CALL calc_EckartRot_SingleRef(MWXYZ,EckartRot,MWXYZ_ref,Dymarsky_only=.FALSE.)
 
   write(ResUnit,*) 'Eckart Rotation matrix'
   write(ResUnit,*) '1 ',EckartRot(:,1)
@@ -159,10 +163,27 @@ PROGRAM Main_Eckart
   IF (coord_transfo) THEN
     write(ResUnit,*) 'New current geometry (input unit)'
 
-    XYZ = matmul(EckartRot,XYZ)
+    MWXYZ = matmul(EckartRot,MWXYZ)
+
+    Rot_Eckart(:) = ZERO
     DO i=1,nat
-      XYZ(:,i) = XYZ(:,i) + COM
-      write(ResUnit,"(1x,4(2x,f20.9))") masses(i),XYZ(:,i)
+      Rot_Eckart(1) = Rot_Eckart(1) + MWXYZ(2,i)*MWXYZ_ref(3,i) - MWXYZ(3,i)*MWXYZ_ref(2,i)
+      Rot_Eckart(2) = Rot_Eckart(2) - MWXYZ(1,i)*MWXYZ_ref(3,i) + MWXYZ(3,i)*MWXYZ_ref(1,i)
+      Rot_Eckart(3) = Rot_Eckart(3) + MWXYZ(1,i)*MWXYZ_ref(2,i) - MWXYZ(2,i)*MWXYZ_ref(1,i)
+    END DO
+    norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
+    write(out_unit,*) 'Norm Rot_Eckart',norm
+
+    XYZ(1,:) = MWXYZ(1,:)/sqrt(masses) + COM(1)
+    XYZ(2,:) = MWXYZ(2,:)/sqrt(masses) + COM(3)
+    XYZ(3,:) = MWXYZ(3,:)/sqrt(masses) + COM(3)
+
+
+    write(ResUnit,*,IOSTAT=err_io)
+    write(ResUnit,*,IOSTAT=err_io) nat
+    write(ResUnit,*,IOSTAT=err_io)
+    DO i=1,nat
+      write(ResUnit,"(1x,A,3(2x,f20.9))") At(i),XYZ(:,i)
     END DO
   END IF
 
