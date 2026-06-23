@@ -339,6 +339,8 @@ clean:
 	rm -fr *.dSYM
 	rm -fr build
 	cd APP_OutputFiles && ./clean
+	rm -f res*
+	rm -f *.xyz
 	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.mod $(OBJ_DIR)/*.MOD
 	@echo "  done cleaning for "$(LIB_NAME)
 cleanall: clean

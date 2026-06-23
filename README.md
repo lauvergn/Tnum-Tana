@@ -125,30 +125,75 @@ or
 make OPT=0 app APPSRC=Main_Eckart.f90
 ```
 
-The code reads two geometry the reference one and then the current one. 
+The code reads two geometries: the reference one and then the current one. 
 Remark: If masses are read (--read_masses t), the list of masses must be given after the reference geometry (the first one).
 
 Then, the code computes the Eckart rotation matrix.
 Depending of the argumant options:
 
-- masses can be read (-m or --read_masses)
+- masses can be read (-m or --read_masses). They are read in g.mol$^{-1}$ or unified atomic mass unit (u or AMU) or Dalton (Da).
 - the current transformed geometry is printed (-t or --coord_transfo)
 
 Example, without reading the masses. Therefore, Tnum masses are used (CODATA2006 physical constants and NIST2012 masses).
 
 ```
-Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE.
+./Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE.
 ```
 or
 ```
-Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses f
+./Main_Eckart.exe -i APP_InputFiles/dat_Eckart -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses f
 ```
 The Eckart rotation matrix and the transformed Cartessian geometry are given in "APP_OutputFiles/res"
 
-Example, with reading the masses.
+Example: reading the masses.
 
 ```
-Main_Eckart.exe -i APP_InputFiles/dat_Eckart2 -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses t
+./Main_Eckart.exe -i APP_InputFiles/dat_Eckart2 -o APP_OutputFiles/res --coord_transfo .TRUE. --read_masses t
 ```
 
 The Eckart rotation matrix and the transformed Cartessian geometry are given in "APP_OutputFiles/res"
+
+
+### 3b) Inter-fragment coordinates
+
+The Fortran main is "APP/Main_NMdimer.f90".
+To compile the code :
+
+```
+make OPT=0 app
+```
+or
+```
+make OPT=0 app APPSRC=Main_NMdimer.f90
+```
+
+The code reads two fragment geometries (A and B) to form a dimer (AB). 
+Remark: If masses are read (--read_masses t), the list of masses must be given after each geometry.
+
+Then, the code computes the coordinates associated to the inter-fragment coordinates.
+Depending of the argument options:
+
+- masses can be read (-m or --read_masses). They are read in g.mol$^{-1}$ or unified atomic mass unit (u or AMU) or Dalton (Da).
+
+Example, without reading the masses. Therefore, Tnum masses are used (CODATA2006 physical constants and NIST2012 masses).
+
+```
+./Main_NMdimer.exe -i APP_InputFiles/dat_dimer -o APP_OutputFiles/res
+```
+or
+```
+./Main_NMdimer.exe -i APP_InputFiles/dat_dimer -o APP_OutputFiles/res --read_masses f
+```
+
+The code also generates several coordinate motions (can be visual with jmol as vibrations):
+
+- The translational and rotational motions of fragments, A and B.
+- The inter-fragment motions (6 coordinates) of dimer AB.
+
+Example: reading the masses.
+
+```
+./Main_NMdimer.exe -i APP_InputFiles/dat_dimer2 -o APP_OutputFiles/res --read_masses f
+```
+
+The inter-fragment coordinates of dimer AB are given at the end of "APP_OutputFiles/res" (search *Inter_dimAB*) as 6 linear combinations (in column) of Cartesian coordinates.

@@ -5,10 +5,13 @@ obj/*
 *.exe
 *.a 
 *.log
+APP/NotUsed
+APP/NotUsed/*
 APP_OutputFiles/res*
+*.xyz
+res*
 sub_pot/sub_system.f
 sub_pot/sub_system.f90
-res
 TESTS/Taylor*.keo
 TESTS/*log
 TESTS/err_Tnum

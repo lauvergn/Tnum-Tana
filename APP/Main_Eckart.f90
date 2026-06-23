@@ -114,6 +114,7 @@ PROGRAM Main_Eckart
   MWXYZ_ref = XYZ
 
   CALL recentered_COM(XYZ,masses,Mtot_inv,COM)
+  write(OUTPUT_UNIT,*) 'COM ref',COM
 
   MWXYZ_ref(1,:) = XYZ(1,:)*sqrt(masses)
   MWXYZ_ref(2,:) = XYZ(2,:)*sqrt(masses)
@@ -145,6 +146,7 @@ PROGRAM Main_Eckart
   MWXYZ = XYZ
 
   CALL recentered_COM(XYZ,masses,Mtot_inv,COM)
+  write(OUTPUT_UNIT,*) 'COM current',COM
 
   MWXYZ(1,:) = XYZ(1,:)*sqrt(masses)
   MWXYZ(2,:) = XYZ(2,:)*sqrt(masses)
@@ -175,7 +177,7 @@ PROGRAM Main_Eckart
     write(out_unit,*) 'Norm Rot_Eckart',norm
 
     XYZ(1,:) = MWXYZ(1,:)/sqrt(masses) + COM(1)
-    XYZ(2,:) = MWXYZ(2,:)/sqrt(masses) + COM(3)
+    XYZ(2,:) = MWXYZ(2,:)/sqrt(masses) + COM(2)
     XYZ(3,:) = MWXYZ(3,:)/sqrt(masses) + COM(3)
 
 
