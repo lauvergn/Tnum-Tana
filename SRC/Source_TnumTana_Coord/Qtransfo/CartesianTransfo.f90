@@ -97,7 +97,8 @@ MODULE mod_CartesianTransfo
       PUBLIC :: Read_CartesianTransfo, Write_CartesianTransfo
       PUBLIC :: CartesianTransfo1TOCartesianTransfo2, calc_CartesianTransfo_new
       PUBLIC :: Set_P_Axis_CartesianTransfo, Set_Eckart_CartesianTransfo
-      PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_EckartRot_SingleRef, calc_EckartRot_old, calc_dnTEckart, dnMWX_MultiRef
+      PUBLIC :: calc_dnTxdnXin_TO_dnXout, calc_EckartRot, calc_EckartRot_SingleRef, &
+                calc_EckartRot_old, calc_dnTEckart, dnMWX_MultiRef
       PUBLIC :: centre_masse, sub3_dncentre_masse, sub3_NOdncentre_masse, recentered_COM
       PUBLIC :: sub_dnxMassWeight, sub_dnxNOMassWeight, dnTErr
 
