@@ -63,15 +63,20 @@ MODULE QML_Morse_m
 !! @param req            real: Equilibrium distance (in bohr)
 !! @param mu             real: Reduced mass of HF (in au)
   TYPE, EXTENDS (QML_Empty_t) :: QML_Morse_t ! V(R) = D*(1-exp(-a*(r-Req))**2
-     PRIVATE
-     real (kind=Rkind) :: D   = 0.225_Rkind  !< Dissociation energy for HF (in Hartree)
-     real (kind=Rkind) :: a   = 1.1741_Rkind !< Scaling parameter for HF (in bohr^-1)
-     real (kind=Rkind) :: req = 1.7329_Rkind !< Equilibrium HF distance (in bohr)
-     real (kind=Rkind), PUBLIC :: mu  = 1744.60504565084306291455_Rkind !< Reduced mass of HF (in au)
+    PRIVATE
+    real (kind=Rkind) :: D    = 0.225_Rkind  !< Dissociation energy for HF (in Hartree)
+    real (kind=Rkind) :: a    = 1.1741_Rkind !< Scaling parameter for HF (in bohr^-1)
+    real (kind=Rkind) :: req  = 1.7329_Rkind !< Equilibrium HF distance (in bohr)
+    real (kind=Rkind), PUBLIC :: mu  = 1744.60504565084306291455_Rkind !< Reduced mass of HF (in au)
+    ! dipole moment (MP2/631G** with gaussian, 1 e.a0 -> 2.541746 Debye (gaussian value)
+    ! finite difference with dR=0.01 bohr
+    real (kind=Rkind) :: dip0 = 0.740160503842634_Rkind
+    real (kind=Rkind) :: dip1 = 0.283269846790356_Rkind
   CONTAINS
-    PROCEDURE :: EvalPot_QModel   => EvalPot_QML_Morse
-    PROCEDURE :: Write_QModel     => Write_QML_Morse
-    PROCEDURE :: RefValues_QModel => RefValues_QML_Morse
+    PROCEDURE :: EvalPot_QModel    => EvalPot_QML_Morse
+    PROCEDURE :: EvalScalOp_QModel => EvalScalOp_QML_Morse
+    PROCEDURE :: Write_QModel      => Write_QML_Morse
+    PROCEDURE :: RefValues_QModel  => RefValues_QML_Morse
   END TYPE QML_Morse_t
 
   PUBLIC :: QML_Morse_t,Init_QML_Morse,Init0_QML_Morse,Write_QML_Morse,QML_dnMorse,QML_dnbeta
@@ -149,7 +154,7 @@ CONTAINS
   SUBROUTINE Init0_QML_Morse(QModel,D,a,req,model_name)
   IMPLICIT NONE
 
-    TYPE (QML_Morse_t),           intent(inout)   :: QModel
+    TYPE (QML_Morse_t),            intent(inout)   :: QModel
     real (kind=Rkind), optional,   intent(in)      :: D,a,req
     character (len=*), optional,   intent(in)      :: model_name
 
@@ -238,8 +243,17 @@ CONTAINS
 !! pot_name  = 'Morse'
 !! ndim      = 1
 !! nsurf     = 1
+!! nb_ScalOp = 2
+!!
 !! reduced mass      = 1744.60504565084306291455 au
+!!
+!! Dipole moment $Dip(R) = dip0 + dip1 \cdot (R-Req)$
+!!    Obtained from MP2/6-31G** with gaussian09
+!!
 !! remark: Default parameters for H-F
+!! Scalar Operotors:
+!! iOp=1 => potential
+!! iOp=2 => Dipole moment
 !! === END README ==
 !> @brief Subroutine wich prints the Morse current parameters.
 !!
@@ -376,6 +390,35 @@ CONTAINS
     QML_dnbeta  = exp(-QModel%a*(dnR-QModel%req))
 
   END FUNCTION QML_dnbeta
+
+  SUBROUTINE EvalScalOp_QML_Morse(QModel,Mat_OF_ScalOpDia,list_Op,dnQ,nderiv)
+    USE QDUtil_m,  ONLY : ZERO
+    USE ADdnSVM_m, ONLY : dnS_t
+    IMPLICIT NONE
+  
+      CLASS (QML_Morse_t),    intent(in)     :: QModel
+      TYPE (dnS_t),           intent(in)     :: dnQ(:)
+      integer,                intent(in)     :: list_Op(:)
+      TYPE (dnS_t),           intent(inout)  :: Mat_OF_ScalOpDia(:,:,:)
+      integer,                intent(in)     :: nderiv
+  
+      integer :: iScalOp
+
+      IF (QModel%nb_ScalOp-1 /= size(list_Op)) THEN
+        write(out_unit,*) 'ERROR in EvalScalOp_QML_Morse'
+        write(out_unit,*) '  QModel%nb_ScalOp and size(list_Op) are inconsistent'
+        write(out_unit,*) '  QModel%nb_ScalOp (including potential)',QModel%nb_ScalOp
+        write(out_unit,*) ' size(list_Op)',size(list_Op)
+
+        STOP 'ERROR in EvalScalOp_QML_Morse: QModel%nb_ScalOp and size(list_Op) are inconsistent'
+      END IF
+ 
+      IF (QModel%nb_ScalOp > 1) THEN
+        iScalOp = 1
+        Mat_OF_ScalOpDia(1,1,iScalOp) = QModel%dip0 + QModel%dip1*(dnQ(1)-QModel%req)
+      END IF
+  
+  END SUBROUTINE EvalScalOp_QML_Morse
 
   SUBROUTINE RefValues_QML_Morse(QModel,err,nderiv,Q0,dnMatV,d0GGdef,option)
     USE QDUtil_m

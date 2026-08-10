@@ -68,7 +68,7 @@ MODULE QML_Empty_m
     logical :: Cart_TO_Q        = .FALSE. ! to perform the Cartesian to model coordinates
     logical :: MassWeighted     = .FALSE. ! Cartesian with mass Weighted
     logical :: AbInitio         = .FALSE. ! To use abitio calculation (experimental)
-    integer :: nb_ScalOp        = 1 ! number scalar operators including the potential
+    integer :: nb_ScalOp        = -1 ! number scalar operators including the potential
                                     ! numbering: [0: potential, 1...: other operators]
 
     logical :: ImagContrib      = .FALSE.
@@ -549,6 +549,8 @@ MODULE QML_Empty_m
     write(nio,*)
     write(nio,*) 'nsurf:                     ',QModel%nsurf
     write(nio,*) 'ndim:                      ',QModel%ndim
+    write(nio,*) 'nb_ScalOp:                 ',QModel%nb_ScalOp
+
     write(nio,*) 'ImagContrib:               ',QModel%ImagContrib
     write(nio,*) 'numeric:                   ',QModel%numeric
     write(nio,*) 'no analytical derivatives: ',QModel%no_ana_der
@@ -631,7 +633,7 @@ MODULE QML_Empty_m
     END DO
 
   END SUBROUTINE Qact_TO_Q_QML_Empty
-    SUBROUTINE RefValues_QML_Empty(QModel,err,nderiv,Q0,dnMatV,d0GGdef,option)
+  SUBROUTINE RefValues_QML_Empty(QModel,err,nderiv,Q0,dnMatV,d0GGdef,option)
     USE QDUtil_m
     USE ADdnSVM_m
     IMPLICIT NONE
