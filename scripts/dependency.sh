@@ -4,7 +4,7 @@ name_dep=scripts/dependencies.mk
 SRCFile=scripts/fortranlist.mk
 
 list=`find SRC  -name "*.f90"`
-ExcludeList=' read_para.f90 sub_system.f90 calc_f2_f1Q.f90 Calc_Tab_dnQflex.f90 Sub_X_TO_Q_ana.f90 OneDTransfo_m.f90 '
+ExcludeList=' read_para.f90 sub_system.f90 sub_system_save.f90 calc_f2_f1Q.f90 Calc_Tab_dnQflex.f90 Sub_X_TO_Q_ana.f90 OneDTransfo_m.f90 '
 
 echo "#===============================================" > $name_dep
 echo "#===============================================" > $SRCFile

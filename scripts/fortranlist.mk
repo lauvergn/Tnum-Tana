@@ -2,6 +2,7 @@
 SRCFILES := \
 IdentityTransfo_m.f90  \
 ActiveTransfo_m.f90  \
+Coord_m.f90  \
 Qtransfo_m.f90  \
 CartTransfo_m.f90  \
 ZmatTransfo_m.f90  \

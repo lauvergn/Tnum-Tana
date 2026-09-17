@@ -1,6 +1,7 @@
 #===============================================
 identitytransfo_m := $(OBJ_DIR)/IdentityTransfo_m.o
 activetransfo_m := $(OBJ_DIR)/ActiveTransfo_m.o
+coord_m := $(OBJ_DIR)/Coord_m.o
 qtransfo_m := $(OBJ_DIR)/Qtransfo_m.o
 carttransfo_m := $(OBJ_DIR)/CartTransfo_m.o
 zmattransfo_m := $(OBJ_DIR)/ZmatTransfo_m.o
@@ -67,6 +68,13 @@ $(OBJ_DIR)/ActiveTransfo_m.o : \
           $(qtransfobase_m) \
           $(addnsvm_m) \
           $(mod_lib_qtransfo)
+#file+mod_name: SRC/Source_TnumTana_Coord/QtransfoOOP/Coord_m.f90 coord_m
+$(OBJ_DIR)/Coord_m.o : \
+          $(tnumtana_system_m) \
+          $(addnsvm_m) \
+          $(mod_constant) \
+          $(qtransfo_m) \
+          $(carttransfo_m)
 #file+mod_name: SRC/Source_TnumTana_Coord/QtransfoOOP/Qtransfo_m.f90 qtransfo_m
 $(OBJ_DIR)/Qtransfo_m.o : \
           $(tnumtana_system_m) \
@@ -377,8 +385,8 @@ $(OBJ_DIR)/Module_ForTnumTana_Driver.o : \
 #file+mod_name: SRC/Source_TnumTana_Coord/Tnum/sub_export_KEO.f90 mod_export_keo
 $(OBJ_DIR)/sub_export_KEO.o : \
           $(tnumtana_system_m) \
-          $(mod_dnsvm) \
           $(mod_tnum) \
+          $(mod_dnsvm) \
           $(mod_dngg_dng)
 #file+mod_name: SRC/Source_TnumTana_Coord/Tnum/calc_dng_dnGG.f90 mod_dngg_dng
 $(OBJ_DIR)/calc_dng_dnGG.o : \

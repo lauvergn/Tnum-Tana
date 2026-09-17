@@ -377,28 +377,26 @@ CONTAINS
 
   END FUNCTION QoutTOQin_QTransfo_Tnum
 
-!=======================================================================================
-!  Read reference geometry and convert it in atomic unit: Q0(:)
-!  Remarks: it defines up Qdyn0 as well
-!=======================================================================================
-  SUBROUTINE Read_RefGeom_QTransfo_Tnum(Q0,Q0_itQtransfo,Qtransfo)
+  !=======================================================================================
+  !  Read reference geometry and convert it in atomic unit: Q0(:)
+  !  Remarks: it defines up Qdyn0 as well
+  !=======================================================================================
+  SUBROUTINE Read_RefGeom_QTransfo_Tnum(Qtransfo)
     
     IMPLICIT NONE
 
-!----- for the CoordType and Tnum --------------------------------------
-    real (kind=Rkind), allocatable, intent(out)   :: Q0(:) ! read coordinates
-    integer,                        intent(out)   :: Q0_itQtransfo
+    !----- for the CoordType and Tnum --------------------------------------
     CLASS (Qtransfo_t),             intent(inout) :: Qtransfo(:)
 
 
     integer :: iref,i,nb_t,type_Qin,type_Qread,nc1,nc2,nc3
-    integer :: nb_Qtransfo,nb_var
+    integer :: Q0_itQtransfo,nb_Qtransfo,nb_var
     character (len=:), allocatable :: info_Qread
     real (kind=Rkind), allocatable :: Qdyn(:)
+    real (kind=Rkind), allocatable :: Q0(:) ! read coordinates
 
 
     !-----------------------------------------------------------------
-
     logical            :: read_Qact0,read_Qdyn0,read_Qsym0
     logical            :: read_xyz0,read_xyz0_with_dummy,xyz0_TnumOrder
     logical            :: read_nameQ
@@ -417,11 +415,12 @@ CONTAINS
     character (len=*), parameter :: name_sub='Read_RefGeom_QTransfo_Tnum'
     !-----------------------------------------------------------------
 
-
-    write(out_unit,*) 'BEGINNING ',name_sub
+    IF(MPI_id == 0 .OR. debug) THEN
+      write(out_unit,*) 'BEGINNING ',name_sub
+    END IF
     nb_Qtransfo = size(Qtransfo)
 
-!------- read the namelist minimum -----------------------------
+    !------- read the namelist minimum -----------------------------
     read_Qsym0           = .FALSE.
     read_Qdyn0           = .FALSE.
     read_Qact0           = .FALSE.
@@ -464,7 +463,7 @@ CONTAINS
     !=================================================================
     !=================================================================
     !=================================================================
-    IF(MPI_id==0) THEN
+    IF(MPI_id==0 .OR. debug) THEN
       write(out_unit,*)  '------------------------------------------------------'
       write(out_unit,*)  '--- Coordinates used for the reference geometry ------'
       write(out_unit,*)  '------------------------------------------------------'
@@ -543,21 +542,22 @@ CONTAINS
     ! ----------------------------------------------
     ! read the coordinates + conversion (angs,deg => bohr, radian)
     !
-    ! nb_var must be determined: it is nb_Qout of the "active" transfo (the last one)
-    nb_var = Qtransfo(nb_Qtransfo)%Qtransfo%get_nb_Qout()
-
     IF (Q0_itQtransfo == 0) THEN ! special case for Cartesian coordinates
+      ! nb_var must be determined: it is nb_Qout of the "active" transfo (the last one)
+      nb_var = Qtransfo(1)%Qtransfo%get_nb_Qout()
+      allocate(Q0(nb_var))
       CALL Qtransfo(1)%Qtransfo%Read_Q(Q0,nb_var, &
                     unit,info_Qread,.TRUE.,read_xyz0_with_dummy,xyz0_TnumOrder)
     ELSE
+      ! nb_var must be determined: it is nb_Qout of the "active" transfo (the last one)
+      nb_var = Qtransfo(nb_Qtransfo)%Qtransfo%get_nb_Qout()
+      allocate(Q0(nb_var))
       CALL Qtransfo(Q0_itQtransfo)%Qtransfo%Read_Q(Q0,nb_var,unit,info_Qread)
     END IF
-    IF(MPI_id==0) THEN 
+    IF(MPI_id==0 .OR. debug) THEN 
       write(out_unit,*) info_Qread
       write(out_unit,*) Q0
-
     END IF
-
     !----------------------------------------------
 
     ! ----------------------------------------------
@@ -582,16 +582,17 @@ CONTAINS
     SELECT TYPE (ActiveTransfo => Qtransfo(nb_Qtransfo)%Qtransfo)
     TYPE IS(ActiveTransfo_t)
       ActiveTransfo%Qdyn0 = Qdyn
+      ActiveTransfo%Qact0 = Qdyn(ActiveTransfo%list_QactTOQdyn)
+      IF ((MPI_id==0 .AND. print_level > 1) .OR. debug) THEN
+        write(out_unit,*) 'Qdyn0 is set-up:',ActiveTransfo%Qdyn0
+        write(out_unit,*) 'Qact0 is set-up:',ActiveTransfo%Qact0
+      END IF
     END SELECT
     IF (debug) CALL Qtransfo(nb_Qtransfo)%Write()
     ! ----------------------------------------------
 
 
-    IF(MPI_id==0) THEN
-      IF (print_level > 1) THEN
-        write(out_unit,*) 'Qdyn0 is set-up:',Qdyn
-        write(out_unit,*) '===================================='
-      END IF
+    IF(MPI_id == 0 .OR. debug) THEN
       write(out_unit,*) 'END ',name_sub
     ENDIF
 
@@ -702,10 +703,9 @@ CONTAINS
     END IF
 
   END SUBROUTINE Qit_TO_Qact_Qtransfo_Tnum
-!=======================================================================================
-!  Get Qdyn from other coordinates (transformation)
-!
-!=======================================================================================
+  !=======================================================================================
+  !  Get Qdyn from other coordinates (transformation)
+  !=======================================================================================
   SUBROUTINE Qit_TO_Qdyn_Qtransfo_Tnum(Qdyn,Qit,Q_itQtransfo,Qtransfo)
     
     USE ADdnSVM_m

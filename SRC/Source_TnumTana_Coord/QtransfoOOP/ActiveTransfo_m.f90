@@ -613,9 +613,11 @@ CONTAINS
     full_loc = .FALSE. ; IF (present(full)) full_loc = full
 
     IF (full_loc) THEN
-      Qact0 = this%Qdyn0(this%list_QactTOQdyn)
+      !Qact0 = this%Qdyn0(this%list_QactTOQdyn)
+      Qact0 = this%Qact0
     ELSE
-      Qact0 = this%Qdyn0(this%list_QactTOQdyn(1:this%nb_act))
+      !Qact0 = this%Qdyn0(this%list_QactTOQdyn(1:this%nb_act))
+      Qact0 = this%Qact0(1:this%nb_act)
     END IF
 
   END FUNCTION get_Qact0_ActiveTransfo_Tnum

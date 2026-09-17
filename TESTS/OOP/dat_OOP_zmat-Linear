@@ -3,7 +3,7 @@ here=`pwd`
 DIR_EVRT=$here/../..
 
 cd $DIR_EVRT
-  make OPT=0 oop
+  make OPT=0 app APPSRC=Tnum_OOP.f90
 cd $here
 
 $DIR_EVRT/Tnum_OOP.exe << ** > res
