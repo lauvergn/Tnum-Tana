@@ -86,7 +86,8 @@ MODULE mod_ActiveTransfo
       PUBLIC :: Read_ActiveTransfo, Read2_ActiveTransfo, Write_ActiveTransfo
       PUBLIC :: calc_ActiveTransfo
       PUBLIC :: get_Qact,get_Qact0, Adding_InactiveCoord_TO_Qact, Set_AllActive
-      PUBLIC :: Qact_TO_Qdyn_FROM_ActiveTransfo, Qdyn_TO_Qact_FROM_ActiveTransfo, Qinact2n_TO_Qact_FROM_ActiveTransfo
+      PUBLIC :: Qact_TO_Qdyn_FROM_ActiveTransfo, Qdyn_TO_Qact_FROM_ActiveTransfo
+      PUBLIC :: Qinact2n_TO_Qact_FROM_ActiveTransfo
 
 CONTAINS
 
