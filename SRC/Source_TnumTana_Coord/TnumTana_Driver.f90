@@ -34,14 +34,52 @@
 !===========================================================================
 !===========================================================================
 SUBROUTINE Init_TnumTana_Driver(nb_act,nb_cart,init_sub)
+  USE Module_ForTnumTana_Driver
   IMPLICIT NONE
 
   integer,           intent(inout)     :: nb_act,nb_cart
+
   integer,           intent(inout)     :: init_sub
 
   character (len=*), parameter :: name_sub='Init_TnumTana_Driver'
 
-  CALL Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
+
+  !$OMP    CRITICAL (Init_TnumTana_Driver_CRIT)
+  IF (Init == 0 .OR. init_sub == 0) THEN
+    init     = 1
+    init_sub = 1
+
+    CALL TnumTana_version(.TRUE.)
+    CALL set_print_level(-1)
+    !-----------------------------------------------------------------
+    !     - read the coordinate transformations :
+    !     -   zmatrix, polysperical, bunch...
+    !     ------------------------------------------------------------
+    CALL Read_CoordType(mole,para_Tnum,const_phys)
+    !     ------------------------------------------------------------
+    !-----------------------------------------------------------------
+
+    !-----------------------------------------------------------------
+    !     - read coordinate values -----------------------------------
+    !     ------------------------------------------------------------
+    CALL read_RefGeom(mole,para_Tnum)
+    !     ------------------------------------------------------------
+    !-----------------------------------------------------------------
+
+    !-----------------------------------------------------------------
+    !     ---- TO finalize the coordinates (NM) and the KEO ----------
+    !     ------------------------------------------------------------
+    IF (mole%itNM > 0) THEN
+      mole%tab_Qtransfo(mole%itNM)%skip_transfo = (skip_NM == 1) ! the NM are not calculated
+      IF (k_Half == 0 .OR. k_Half == 1) THEN
+        mole%tab_Qtransfo(mole%itNM)%NMTransfo%k_Half = (k_Half == 1)
+      END IF
+    END IF
+    CALL Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp)
+  END IF
+  nb_act  = mole%nb_act
+  nb_cart = mole%ncart_act
+  !$OMP   END CRITICAL (Init_TnumTana_Driver_CRIT)
 
 END SUBROUTINE Init_TnumTana_Driver
 SUBROUTINE Tnum_Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
@@ -792,47 +830,52 @@ SUBROUTINE Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
 
   character (len=*), parameter :: name_sub='Init_TnumTana_FOR_Driver'
 
-
-  !$OMP    CRITICAL (Init_TnumTana_FOR_Driver_CRIT)
-  IF (Init == 0 .OR. init_sub == 0) THEN
-    init     = 1
-    init_sub = 1
-
-    CALL TnumTana_version(.TRUE.)
-    CALL set_print_level(-1)
-    !-----------------------------------------------------------------
-    !     - read the coordinate transformations :
-    !     -   zmatrix, polysperical, bunch...
-    !     ------------------------------------------------------------
-    CALL Read_CoordType(mole,para_Tnum,const_phys)
-    !     ------------------------------------------------------------
-    !-----------------------------------------------------------------
-
-    !-----------------------------------------------------------------
-    !     - read coordinate values -----------------------------------
-    !     ------------------------------------------------------------
-    CALL read_RefGeom(mole,para_Tnum)
-    !     ------------------------------------------------------------
-    !-----------------------------------------------------------------
-
-    !-----------------------------------------------------------------
-    !     ---- TO finalize the coordinates (NM) and the KEO ----------
-    !     ------------------------------------------------------------
-    IF (mole%itNM > 0) THEN
-      mole%tab_Qtransfo(mole%itNM)%skip_transfo = (skip_NM == 1) ! the NM are not calculated
-      IF (k_Half == 0 .OR. k_Half == 1) THEN
-        mole%tab_Qtransfo(mole%itNM)%NMTransfo%k_Half = (k_Half == 1)
-      END IF
-    END IF
-    CALL Finalize_TnumTana_Coord_PrimOp(para_Tnum,mole,PrimOp)
-  END IF
-  nb_act  = mole%nb_act
-  nb_cart = mole%ncart_act
-  !$OMP   END CRITICAL (Init_TnumTana_FOR_Driver_CRIT)
-
+  CALL Init_TnumTana_Driver(nb_act,nb_cart,init_sub)
 
 END SUBROUTINE Init_TnumTana_FOR_Driver
+SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
+  USE TnumTana_system_m
+  IMPLICIT NONE
 
+  integer,           intent(in)     :: nb_act,nb_cart
+
+  real (kind=Rkind), intent(in)     :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)  :: Qcart(nb_cart)
+
+  character (len=*), parameter :: name_sub='Qact_TO_cart'
+
+  CALL Tnum_Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
+
+END SUBROUTINE Qact_TO_cart
+SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
+  USE TnumTana_system_m
+  IMPLICIT NONE
+
+  integer,           intent(in)     :: nb_act,nb_cart
+
+  real (kind=Rkind), intent(in)     :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)  :: Qcart(nb_cart)
+
+  character (len=*), parameter :: name_sub='Qact_TO_cartCOM'
+
+  CALL Tnum_Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
+
+END SUBROUTINE Qact_TO_cartCOM
+SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
+  USE TnumTana_system_m
+  IMPLICIT NONE
+
+  integer,           intent(in)     :: nb_act,nb_cart
+
+  real (kind=Rkind), intent(in)     :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)  :: Qcart(nb_cart)
+
+
+  character (len=*), parameter :: name_sub='cart_TO_Qact'
+
+  CALL Tnum_cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
+
+END SUBROUTINE cart_TO_Qact
 SUBROUTINE Init_TnumTana_FOR_Driver_FOR_c(nb_act,nb_cart,init_sub)  BIND(C, name="Init_TnumTana_FOR_Driver_FOR_c")
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_INT
   IMPLICIT NONE
@@ -849,7 +892,7 @@ SUBROUTINE Init_TnumTana_FOR_Driver_FOR_c(nb_act,nb_cart,init_sub)  BIND(C, name
 
 
 
-  CALL Init_TnumTana_FOR_Driver(nb_act_loc,nb_cart_loc,init_sub_loc)
+  CALL Init_TnumTana_Driver(nb_act_loc,nb_cart_loc,init_sub_loc)
 
 
   nb_act   = nb_act_loc
