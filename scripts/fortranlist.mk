@@ -43,9 +43,9 @@ sub_module_Tana_NumKEO.f90  \
 sub_module_Tana_OpnD.f90  \
 sub_module_Tana_keo.f90  \
 sub_module_Tana_op.f90  \
+TnumTana_Driver.f90  \
 sub_module_Tnum.f90  \
 Module_ForTnumTana_Driver.f90  \
-TnumTana_Lib.f90  \
 sub_export_KEO.f90  \
 calc_dng_dnGG.f90  \
 sub_dnDetGG_dnDetg.f90  \

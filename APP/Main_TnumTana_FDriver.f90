@@ -108,21 +108,21 @@ PROGRAM Main_TnumTana_FDriver
   IF (X2Q) THEN
     Qact(:) = 0.5_Rk
     write(OUTPUT_UNIT,*) 'Qact (initial values)',Qact
-    CALL Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
-    CALL cart_TO_Qact(Qact,size(Qact),Qcart,size(Qcart))
-    write(OUTPUT_UNIT,*) 'Qact (from cart_TO_Qact)',Qact
+    CALL Tnum_Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
+    CALL Tnum_cart_TO_Qact(Qact,size(Qact),Qcart,size(Qcart))
+    write(OUTPUT_UNIT,*) 'Qact (from Tnum_cart_TO_Qact)',Qact
   END IF
 
   Qact(:) = 0.5_Rk
   Qact(1) = 0.5_Rk + nb_eval*0.001_Rk
   write(OUTPUT_UNIT,*) 'Qact (final values)',Qact
-  CALL Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
+  CALL Tnum_Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
   write(OUTPUT_UNIT,*) 'Qcart (not recenter / COM)'
   DO i=1,nb_cart,3
     write(OUTPUT_UNIT,*) (i-1)/3+1,Qcart(i:i+2)
   END DO
 
-  CALL Qact_TO_cartCOM(Qact,size(Qact),Qcart,size(Qcart))
+  CALL Tnum_Qact_TO_cartCOM(Qact,size(Qact),Qcart,size(Qcart))
   write(OUTPUT_UNIT,*) 'Qcart (recenter / COM)'
   DO i=1,nb_cart,3
     write(OUTPUT_UNIT,*) (i-1)/3+1,Qcart(i:i+2)
@@ -153,7 +153,7 @@ PROGRAM Main_TnumTana_FDriver
   DO i=1,nb_eval
     IF (mod(i,100) == 0) write(OUTPUT_UNIT,'(".")',advance='no')
     Qact(1) = 0.5_Rk + i*0.5_Rk/nb_eval
-    CALL Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
+    CALL Tnum_Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
     CALL Tnum_get_EckartRot(Qact,nb_act,EckartRot)
   END DO
  !$OMP   END DO

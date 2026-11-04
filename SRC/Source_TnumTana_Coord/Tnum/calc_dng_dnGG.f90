@@ -38,7 +38,6 @@ MODULE mod_dnGG_dng
   use mod_dnSVM
   use mod_paramQ,  only: sub_QactTOdnMWx, Write_dnx, analyze_dnx
   use mod_Tnum,    only: tnum, CoordType,Write_CoordType,dealloc_CoordType
-  !use mod_Tnum,    only: CoordType2_TO_CoordType1
   USE mod_dnRho ! all
 
   IMPLICIT NONE

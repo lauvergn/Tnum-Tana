@@ -219,8 +219,7 @@ ifeq ($(DDEBUG),t)
   $(info ***********OBJ files:       $(OBJ))
 endif
 # special files
-EXT_SRC  := calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90 \
-            Module_ForTnumTana_Driver.f90 TnumTana_Lib.f90
+EXT_SRC  := calc_f2_f1Q.f90 Sub_X_TO_Q_ana.f90 Calc_Tab_dnQflex.f90 sub_system.f90
 EXT_OBJ  := $(EXT_SRC:.f90=.o)
 EXT_OBJ  := $(addprefix $(OBJ_DIR)/,$(EXT_OBJ))
 
@@ -347,6 +346,8 @@ cleanall: clean
 	rm -f lib*.a
 	rm -rf OBJ
 	cd $(TESTS_DIR) && ./clean
+	cd TEST_MCTDH && ./clean
+	cd TESTS_Drivers && ./clean
 	if [ "$(EXTLIB_LIST)" != "" -a "$(RECCLEAN)" = "1" ]; then ./scripts/cleanExtLib cleanall "$(ExtLibDIR)" "$(EXTLIB_LIST)" 0; fi  
 	@echo "  done remove the *.a libraries and the OBJ directory for "$(LIB_NAME)
 cleanlocextlib: clean

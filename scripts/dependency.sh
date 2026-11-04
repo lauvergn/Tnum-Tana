@@ -26,11 +26,12 @@ for ff90 in $list
 do
    ff=`basename $ff90`
    #echo $ff
-   #echo '# '$ff >> $name_dep
+   echo '# '$ff >> $name_dep
    if grep -vq $ff <<< $ExcludeList;  then
      mname=`awk -f scripts/get_modname.awk $ff90`
      #echo "#mname: '"$mname"'"
-     #echo "#mname: " $mname >> $name_dep
-     test -z $mname || awk -v mod_name=$mname -f scripts/dep2.awk $ff90 >> $name_dep
+     echo "#mname: " $mname >> $name_dep
+     #test -z $mname || awk -v mod_name=$mname -f scripts/dep2.awk $ff90 >> $name_dep
+     awk -v mod_name=$mname -f scripts/dep2.awk $ff90 >> $name_dep
    fi
 done

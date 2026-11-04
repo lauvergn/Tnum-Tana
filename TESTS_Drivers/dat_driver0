@@ -1,0 +1,26 @@
+ &variables
+         Old_Qtransfo=f
+         nb_Qtransfo=3
+         nrho=2
+         Tana=t MCTDHForm=t
+         Write_QMotions=t
+ /
+ &Coord_transfo name_transfo='bunch_poly' nb_vect=3 inTOout=f /
+O O H H
+
+ &Coord_transfo name_transfo='poly' cos_th=f /
+     &vector nb_vect=2 iAtA=1  iAtB=2 Frame=t /
+       &vector         iAtA=1  iAtB=3 /
+       &vector         iAtA=4  iAtB=2 /
+
+ &Coord_transfo name_transfo='active' /
+ 1 1 100    1 100 1
+
+ &minimum read_itQ0transfo=2 unit='angs' /
+ ROO 1.4
+ RH1 1.0
+ A1  100.
+ RH2 1.0
+ A2  100.
+ D    60.
+

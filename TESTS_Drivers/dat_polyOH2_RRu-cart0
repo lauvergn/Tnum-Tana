@@ -1,0 +1,21 @@
+
+
+./comp
+
+./Main_TnumTana_FDriver2.exe << ** > res
+ &variables Old_Qtransfo=f nb_Qtransfo=3  Tana=t  Write_QMotions=t /
+ &Coord_transfo name_transfo='bunch_poly' nat=3 nb_X=0 inTOout=f /
+O H H
+
+ &Coord_transfo name_transfo='poly' cos_th=t /
+     &vector nb_vect=1 Frame=t iAtA=1 iAtB=2 /
+       &vector                 iAtA=1 iAtB=3 /
+
+ &Coord_transfo name_transfo='active' /
+1 1 1
+
+ &minimum read_xyz0=t read_xyz0_with_dummy=f unit='angs' /
+      8     0.000000    0.000000    0.127160
+      1     0.000000    0.758081   -0.508642
+      1     0.000000   -0.758081   -0.508642
+**

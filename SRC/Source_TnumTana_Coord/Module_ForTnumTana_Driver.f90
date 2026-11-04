@@ -53,16 +53,16 @@ MODULE Module_ForTnumTana_Driver
                                     ! 1 => k_Half is set to T, 0 => k_Half is set to F
 
 CONTAINS
-SUBROUTINE Check_TnumInit(name_sub)
-  IMPLICIT NONE
-
-  character(len=*), intent(in) :: name_sub
-
-
-  IF (Init == 0) THEN
-    write(out_unit,*) ' ERROR in ',name_sub
-    write(out_unit,*) ' Tnum is not initialized!'
-    STOP 'ERROR:  Tnum is not initialized!'
-  END IF
-END SUBROUTINE Check_TnumInit
+  SUBROUTINE Check_TnumInit(name_sub)
+    IMPLICIT NONE
+  
+    character(len=*), intent(in) :: name_sub
+  
+  
+    IF (Init == 0) THEN
+      write(out_unit,*) ' ERROR in ',name_sub
+      write(out_unit,*) ' Tnum is not initialized!'
+      STOP 'ERROR:  Tnum is not initialized!'
+    END IF
+  END SUBROUTINE Check_TnumInit
 END MODULE Module_ForTnumTana_Driver

@@ -1,0 +1,4 @@
+rm -f res* *.log err_Tnum
+rm -f keo.op freq.xyz TanaF2F1Vep.f90
+rm -f Taylor*.keo
+rm -f Main_TnumTana_FDriver2.exe

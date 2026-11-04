@@ -33,7 +33,18 @@
 !
 !===========================================================================
 !===========================================================================
-SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
+SUBROUTINE Init_TnumTana_Driver(nb_act,nb_cart,init_sub)
+  IMPLICIT NONE
+
+  integer,           intent(inout)     :: nb_act,nb_cart
+  integer,           intent(inout)     :: init_sub
+
+  character (len=*), parameter :: name_sub='Init_TnumTana_Driver'
+
+  CALL Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
+
+END SUBROUTINE Init_TnumTana_Driver
+SUBROUTINE Tnum_Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
   USE TnumTana_system_m
   USE Module_ForTnumTana_Driver
   USE mod_ActiveTransfo
@@ -47,11 +58,11 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
   real (kind=Rkind), allocatable     :: Qact_loc(:)
 
 
-  character (len=*), parameter :: name_sub='Qact_TO_cart'
+  character (len=*), parameter :: name_sub='Tnum_Qact_TO_cart'
 
 !===========================================================
 !===========================================================
-  !$OMP    CRITICAL (Qact_TO_cart_CRIT)
+  !$OMP    CRITICAL (Tnum_Qact_TO_cart_CRIT)
   IF (Init == 0) THEN
     Init = 1
     CALL TnumTana_version(.TRUE.)
@@ -86,7 +97,7 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
     END IF
 
   END IF
-  !$OMP   END CRITICAL (Qact_TO_cart_CRIT)
+  !$OMP   END CRITICAL (Tnum_Qact_TO_cart_CRIT)
 
 !===========================================================
 !===========================================================
@@ -104,12 +115,12 @@ SUBROUTINE Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
     write(out_unit,*) ' nb_act is larger than mole%nb_var'
     write(out_unit,*) ' nb_act     ',nb_act
     write(out_unit,*) ' mole%nb_var',mole%nb_var
-    STOP 'ERROR in Qact_TO_cart: nb_act is larger than mole%nb_var'
+    STOP 'ERROR in Tnum_Qact_TO_cart: nb_act is larger than mole%nb_var'
   END IF
 
 
-END SUBROUTINE Qact_TO_cart
-SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
+END SUBROUTINE Tnum_Qact_TO_cart
+SUBROUTINE Tnum_Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
   USE TnumTana_system_m
   USE Module_ForTnumTana_Driver
   USE mod_ActiveTransfo
@@ -123,11 +134,11 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
   real (kind=Rkind), allocatable     :: Qact_loc(:)
 
 
-  character (len=*), parameter :: name_sub='Qact_TO_cartCOM'
+  character (len=*), parameter :: name_sub='Tnum_Qact_TO_cartCOM'
 
 !===========================================================
 !===========================================================
-  !$OMP    CRITICAL (Qact_TO_cartCOM_CRIT)
+  !$OMP    CRITICAL (Tnum_Qact_TO_cartCOM_CRIT)
   IF (Init == 0) THEN
     Init = 1
     CALL TnumTana_version(.TRUE.)
@@ -162,7 +173,7 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
     END IF
 
   END IF
-  !$OMP   END CRITICAL (Qact_TO_cartCOM_CRIT)
+  !$OMP   END CRITICAL (Tnum_Qact_TO_cartCOM_CRIT)
 
 !===========================================================
 !===========================================================
@@ -180,12 +191,12 @@ SUBROUTINE Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
     write(out_unit,*) ' nb_act is larger than mole%nb_var'
     write(out_unit,*) ' nb_act     ',nb_act
     write(out_unit,*) ' mole%nb_var',mole%nb_var
-    STOP 'ERROR in Qact_TO_cart: nb_act is larger than mole%nb_var'
+    STOP 'ERROR in Tnum_Qact_TO_cart: nb_act is larger than mole%nb_var'
   END IF
 
 
-END SUBROUTINE Qact_TO_cartCOM
-SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
+END SUBROUTINE Tnum_Qact_TO_cartCOM
+SUBROUTINE Tnum_cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
   USE TnumTana_system_m
   USE Module_ForTnumTana_Driver
   IMPLICIT NONE
@@ -196,11 +207,11 @@ SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
   real (kind=Rkind), intent(inout)  :: Qcart(nb_cart)
 
 
-  character (len=*), parameter :: name_sub='cart_TO_Qact'
+  character (len=*), parameter :: name_sub='Tnum_cart_TO_Qact'
 
 !===========================================================
 !===========================================================
-  !$OMP    CRITICAL (cart_TO_Qact_CRIT)
+  !$OMP    CRITICAL (Tnum_cart_TO_Qact_CRIT)
   IF (Init == 0) THEN
     Init = 1
     CALL TnumTana_version(.TRUE.)
@@ -235,7 +246,7 @@ SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
     END IF
 
   END IF
-  !$OMP   END CRITICAL (cart_TO_Qact_CRIT)
+  !$OMP   END CRITICAL (Tnum_cart_TO_Qact_CRIT)
 !===========================================================
 !===========================================================
 
@@ -244,7 +255,7 @@ SUBROUTINE cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
   CALL sub_d0xTOQact(Qcart,Qact,mole)
 
 
-END SUBROUTINE cart_TO_Qact
+END SUBROUTINE Tnum_cart_TO_Qact
 SUBROUTINE Init_InputUnit_Driver(InputUnit)
   USE TnumTana_system_m
   IMPLICIT NONE
@@ -273,6 +284,18 @@ SUBROUTINE Init_OutputUnit_Driver(OutputUnit)
   !$OMP   END CRITICAL (Init_OutputUnit_Driver_CRIT)
 
 END SUBROUTINE Init_OutputUnit_Driver
+SUBROUTINE Tnum_Write_Mat(Mat,nbL,nbC,nio)
+  USE TnumTana_system_m
+  IMPLICIT NONE
+
+  integer,           intent(in)     :: nbL,nbC,nio
+  real (kind=Rkind), intent(in)     :: Mat(nbL,nbC)
+
+  character (len=*), parameter :: name_sub='Tnum_Write_Mat'
+
+  CALL Write_Mat_MPI(Mat,nio,5)
+
+END SUBROUTINE Tnum_Write_Mat
 SUBROUTINE Tnum_Check_NMTransfo(Check)
   USE TnumTana_system_m
   USE Module_ForTnumTana_Driver
@@ -479,6 +502,18 @@ SUBROUTINE Tnum_get_EigNM_ForPVSCF(EigNM,nb_NM)
 END SUBROUTINE Tnum_get_EigNM_ForPVSCF
 SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
   USE TnumTana_system_m
+  IMPLICIT NONE
+
+  integer,           intent(in)        :: ndimG,nb_act
+  logical,           intent(in)        :: def
+  real (kind=Rkind), intent(in)        :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)     :: GG(ndimG,ndimG)
+
+  CALL Tnum_get_d0GG(Qact,nb_act,GG,ndimG,def)
+
+END SUBROUTINE Tnum_get_GG
+SUBROUTINE Tnum_get_d0GG(Qact,nb_act,d0GG,ndimG,def)
+  USE TnumTana_system_m
   USE Module_ForTnumTana_Driver
   USE mod_ActiveTransfo
   USE mod_dnGG_dng
@@ -487,11 +522,11 @@ SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
   integer,           intent(in)        :: ndimG,nb_act
   logical,           intent(in)        :: def
   real (kind=Rkind), intent(in)        :: Qact(nb_act)
-  real (kind=Rkind), intent(inout)     :: GG(ndimG,ndimG)
+  real (kind=Rkind), intent(inout)     :: d0GG(ndimG,ndimG)
 
   real (kind=Rkind), allocatable       :: Qact_loc(:)
 
-  character (len=*), parameter :: name_sub='Tnum_get_GG'
+  character (len=*), parameter :: name_sub='Tnum_get_d0GG'
 
   CALL Check_TnumInit(name_sub)
 
@@ -499,14 +534,20 @@ SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
     write(out_unit,*) ' ERROR in ',name_sub
     write(out_unit,*) ' Wrong nb_act value. It must be equal to: ',mole%nb_act
     write(out_unit,*) ' nb_act',nb_act
-    STOP 'ERROR in Tnum_get_GG:  Wrong nb_act value!'
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong nb_act value!'
   END IF
 
-  IF (ndimG /= mole%ndimG) THEN
+  IF (.NOT. def .AND. ndimG /= mole%ndimG) THEN
     write(out_unit,*) ' ERROR in ',name_sub
     write(out_unit,*) ' Wrong ndimG value. It must be equal to: ',mole%ndimG
     write(out_unit,*) ' ndimG',ndimG
-    STOP 'ERROR in Tnum_get_GG:  Wrong ndimG value!'
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
+  END IF
+  IF (      def .AND. ndimG /= mole%nb_act) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong ndimG value (deformation only). It must be equal to: ',mole%nb_act
+    write(out_unit,*) ' ndimG',ndimG
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
   END IF
 
   IF (nb_act <= mole%nb_var) THEN
@@ -518,15 +559,145 @@ SUBROUTINE Tnum_get_GG(Qact,nb_act,GG,ndimG,def)
     write(out_unit,*) ' nb_act is larger than mole%nb_var'
     write(out_unit,*) ' nb_act     ',nb_act
     write(out_unit,*) ' mole%nb_var',mole%nb_var
-    STOP 'ERROR in Tnum_get_GG: nb_act is larger than mole%nb_var'
+    STOP 'ERROR in Tnum_get_d0GG: nb_act is larger than mole%nb_var'
   END IF
 
-  CALL get_d0GG(Qact_loc,para_Tnum,mole,GG,def=def)
+  CALL get_d0GG(Qact_loc,para_Tnum,mole,d0GG,def=def)
 
   deallocate(Qact_loc)
 
-END SUBROUTINE Tnum_get_GG
+END SUBROUTINE Tnum_get_d0GG
+SUBROUTINE Tnum_get_d0d1GG(Qact,nb_act,d0GG,d1GG,ndimG,def)
+  USE TnumTana_system_m
+  USE Module_ForTnumTana_Driver
+  USE mod_ActiveTransfo
+  USE mod_dnGG_dng
+  use mod_dnSVM
+  IMPLICIT NONE
 
+  integer,           intent(in)        :: ndimG,nb_act
+  logical,           intent(in)        :: def
+  real (kind=Rkind), intent(in)        :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)     :: d0GG(ndimG,ndimG),d1GG(ndimG,ndimG,nb_act)
+
+  real (kind=Rkind), allocatable       :: Qact_loc(:)
+  TYPE(Type_dnMat)                     :: dnGG_loc
+
+
+  character (len=*), parameter :: name_sub='Tnum_get_d0GG'
+
+  CALL Check_TnumInit(name_sub)
+
+  IF (nb_act /= mole%nb_act) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong nb_act value. It must be equal to: ',mole%nb_act
+    write(out_unit,*) ' nb_act',nb_act
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong nb_act value!'
+  END IF
+
+ IF (.NOT. def .AND. ndimG /= mole%ndimG) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong ndimG value. It must be equal to: ',mole%ndimG
+    write(out_unit,*) ' ndimG',ndimG
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
+  END IF
+  IF (      def .AND. ndimG /= mole%nb_act) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong ndimG value (deformation only). It must be equal to: ',mole%nb_act
+    write(out_unit,*) ' ndimG',ndimG
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
+  END IF
+
+  IF (nb_act <= mole%nb_var) THEN
+    allocate(Qact_loc(mole%nb_var))
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+    Qact_loc(1:nb_act) = Qact
+  ELSE
+    write(out_unit,*) ' ERROR in ', name_sub
+    write(out_unit,*) ' nb_act is larger than mole%nb_var'
+    write(out_unit,*) ' nb_act     ',nb_act
+    write(out_unit,*) ' mole%nb_var',mole%nb_var
+    STOP 'ERROR in Tnum_get_d0GG: nb_act is larger than mole%nb_var'
+  END IF
+
+  CALL alloc_dnSVM(dnGG_loc,mole%ndimG,mole%ndimG,mole%nb_act,nderiv=1)
+
+  CALL get_dng_dnGG(Qact_loc,para_Tnum,mole,dnGG=dnGG_loc,nderiv=1)
+
+  d0GG(:,:)   = dnGG_loc%d0(1:ndimG,1:ndimG)
+  d1GG(:,:,:) = dnGG_loc%d1(1:ndimG,1:ndimG,:)
+
+  deallocate(Qact_loc)
+  CALL dealloc_dnSVM(dnGG_loc)
+
+END SUBROUTINE Tnum_get_d0d1GG
+SUBROUTINE Tnum_get_d0d1d2GG(Qact,nb_act,d0GG,d1GG,d2GG,ndimG,def)
+  USE TnumTana_system_m
+  USE Module_ForTnumTana_Driver
+  USE mod_ActiveTransfo
+  USE mod_dnGG_dng
+  use mod_dnSVM
+  IMPLICIT NONE
+
+  integer,           intent(in)        :: ndimG,nb_act
+  logical,           intent(in)        :: def
+  real (kind=Rkind), intent(in)        :: Qact(nb_act)
+  real (kind=Rkind), intent(inout)     :: d0GG(ndimG,ndimG)
+  real (kind=Rkind), intent(inout)     :: d1GG(ndimG,ndimG,nb_act)
+  real (kind=Rkind), intent(inout)     :: d2GG(ndimG,ndimG,nb_act,nb_act)
+
+  real (kind=Rkind), allocatable       :: Qact_loc(:)
+  TYPE(Type_dnMat)                     :: dnGG_loc
+
+
+  character (len=*), parameter :: name_sub='Tnum_get_d0GG'
+
+  CALL Check_TnumInit(name_sub)
+
+  IF (nb_act /= mole%nb_act) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong nb_act value. It must be equal to: ',mole%nb_act
+    write(out_unit,*) ' nb_act',nb_act
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong nb_act value!'
+  END IF
+
+ IF (.NOT. def .AND. ndimG /= mole%ndimG) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong ndimG value. It must be equal to: ',mole%ndimG
+    write(out_unit,*) ' ndimG',ndimG
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
+  END IF
+  IF (      def .AND. ndimG /= mole%nb_act) THEN
+    write(out_unit,*) ' ERROR in ',name_sub
+    write(out_unit,*) ' Wrong ndimG value (deformation only). It must be equal to: ',mole%nb_act
+    write(out_unit,*) ' ndimG',ndimG
+    STOP 'ERROR in Tnum_get_d0GG:  Wrong ndimG value!'
+  END IF
+
+  IF (nb_act <= mole%nb_var) THEN
+    allocate(Qact_loc(mole%nb_var))
+    CALL get_Qact0(Qact_loc,mole%tab_Qtransfo(mole%itActive)%ActiveTransfo)
+    Qact_loc(1:nb_act) = Qact
+  ELSE
+    write(out_unit,*) ' ERROR in ', name_sub
+    write(out_unit,*) ' nb_act is larger than mole%nb_var'
+    write(out_unit,*) ' nb_act     ',nb_act
+    write(out_unit,*) ' mole%nb_var',mole%nb_var
+    STOP 'ERROR in Tnum_get_d0GG: nb_act is larger than mole%nb_var'
+  END IF
+
+  CALL alloc_dnSVM(dnGG_loc,mole%ndimG,mole%ndimG,mole%nb_act,nderiv=2)
+
+  CALL get_dng_dnGG(Qact_loc,para_Tnum,mole,dnGG=dnGG_loc,nderiv=2)
+
+  d0GG(:,:)     = dnGG_loc%d0(1:ndimG,1:ndimG)
+  d1GG(:,:,:)   = dnGG_loc%d1(1:ndimG,1:ndimG,:)
+  d2GG(:,:,:,:) = dnGG_loc%d2(1:ndimG,1:ndimG,:,:)
+
+  deallocate(Qact_loc)
+  CALL dealloc_dnSVM(dnGG_loc)
+
+END SUBROUTINE Tnum_get_d0d1d2GG
 SUBROUTINE Tnum_get_EckartRot(Qact,nb_act,EckartRot)
   USE TnumTana_system_m
   USE mod_dnSVM
@@ -661,6 +832,7 @@ SUBROUTINE Init_TnumTana_FOR_Driver(nb_act,nb_cart,init_sub)
 
 
 END SUBROUTINE Init_TnumTana_FOR_Driver
+
 SUBROUTINE Init_TnumTana_FOR_Driver_FOR_c(nb_act,nb_cart,init_sub)  BIND(C, name="Init_TnumTana_FOR_Driver_FOR_c")
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_INT
   IMPLICIT NONE
