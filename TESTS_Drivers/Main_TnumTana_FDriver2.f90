@@ -74,6 +74,8 @@ PROGRAM Main_TnumTana_FDriver2
   !====================================================================
   !====================================================================
   CALL Tnum_get_Qact0(Qact,nb_act)
+  write(OUTPUT_UNIT,*) 'Reference coordinates, Qact0: ',Qact
+
 
 
   !====================================================================
@@ -83,15 +85,15 @@ PROGRAM Main_TnumTana_FDriver2
   !====================================================================
   d = 0.1_Rk/real(nb_act,kind=Rk)
   Qact(:) = [(0.5_Rk+i*d,i=1,nb_act)]
-  write(OUTPUT_UNIT,*) 'Qact (final values)',Qact
+  write(OUTPUT_UNIT,*) 'Qact:',Qact
   CALL Tnum_Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
-  write(OUTPUT_UNIT,*) 'Qcart (not recenter / COM)'
+  write(OUTPUT_UNIT,*) 'Qcart (not recentered / COM)'
   DO i=1,nb_cart,3
     write(OUTPUT_UNIT,*) (i-1)/3+1,Qcart(i:i+2)
   END DO
 
   CALL Tnum_Qact_TO_cartCOM(Qact,size(Qact),Qcart,size(Qcart))
-  write(OUTPUT_UNIT,*) 'Qcart (recenter / COM)'
+  write(OUTPUT_UNIT,*) 'Qcart (recentered / COM)'
   DO i=1,nb_cart,3
     write(OUTPUT_UNIT,*) (i-1)/3+1,Qcart(i:i+2)
   END DO

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+main=Main_TnumTana_FMini
+
+here=`pwd`
+DIR_PROG=/Users/lauvergn/git/Tnum-Tana
+
+cd $DIR_PROG
+    #make FC=gfortran LAPACK=0 OPT=0 INT=4 OMP=1 lib &> $here/comp.log #with OpenMP
+    make FC=gfortran LAPACK=0 OPT=0 INT=4 OMP=0 lib &> $here/comp.log #without OpenMP
+cd $here
+
+# with OpenMP
+#gfortran -fopenmp -o $main.exe $main.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp1_lapack0_int4_real64.a
+
+# without OpenMP
+gfortran          -o $main.exe $main.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp0_lapack0_int4_real64.a

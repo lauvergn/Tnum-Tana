@@ -33,10 +33,15 @@ make app
 # Main Tnum/Tana executable for MidasCpp: Tnum90_MidasCpp.exe
 #
 # Example of Fortran driver:              Main_TnumTana_FDriver.exe
-# Example of Fortran driver2:             Main_TnumTana_FDriver2.exe 
 # Example of c driver:                    Main_TnumTana_cDriver.exe
 #
 # Example of Fortran driver (cartesian to curvilinear transformation): Main_X2Q.exe
+```
+
+To run unitary tests:
+```bash
+make ut
+# The 32 tests should pass.
 ```
 
 The libraries can be built:
@@ -61,7 +66,7 @@ make FC=ifort OMP=0 OPT=0 LAPACK=0 INT=4 RKIND=real64
   # RKIND=real64/real32/real128 to change the real kind. 
 ```
 
-The library, **libTnum-Tana_XXX_optY_ompZ_lapackW_intV_realR.a** is created in the main directory.
+The libraries, **libTnum-Tana_XXX_optY_ompZ_lapackW_intV_realR.a** and **libTnum-TanaFull_XXX_optY_ompZ_lapackW_intV_realR.a** are created in the main directory.
 Remarks: 
 
 - XXX is the compiler (gfortran, ifort ...)
@@ -118,19 +123,28 @@ The available Fortran drivers are (in SRC/TnumTana_Driver.f90):
 
 ```fortran
 CALL Init_TnumTana_Driver(nb_act,nb_cart,init_sub)
-  ! This subroutine reads in input file and the reference geometry.
+  ! This subroutine reads the input file and initializes the coordinates and the reference geometry.
   !   nb_act:   is an integer. It is initialized to the number of active coordinates.
   !   nb_cart:  is an integer. It is initialized to the number of cartesian coordinates.
   !   init_sub: is an integer. init_sub=1, when the initialization is done.
-  ! remarks: by default, the input and output file are the standard ones (unit 5 or 6 in Fortran). This can be changed with **Init_InputUnit_Driver** and **Init_OutputUnit_Driver** subroutines (see below)
+  ! remarks: by default, the input and output files are the standard ones (unit 5 or 6 in Fortran). 
+  !          This can be changed with Init_InputUnit_Driver and Init_OutputUnit_Driver subroutines (see below).
+```
+
+```fortran
+CALL Tnum_get_Qact0(Qact,nb_act)
+  ! This subroutine gets the reference geometry from the initialization.
+  !   Qact(:):  is a table of real of the active coordinates.
+  !   nb_act:   is the number of active coordinates.
+  ! Remark: useful when the reference geometry is given with Cartesian coordinates.
 ```
 
 ```fortran
 CALL Tnum_Qact_TO_cart(Qact,nb_act,Qcart,nb_cart)
   ! This subroutine performs the initialization (if required) and generates the cartesian coordinates, Qcart, from the active ones, Qact.
-  !   Qact(:):  is a table of real af the active coordinates.
+  !   Qact(:):  is a table of real of the active coordinates.
   !   nb_act:   is the number of active coordinates. Its value needs to be the one obtained in the Init_TnumTana_Driver subroutine.
-  !   Qcart(:): is a table of real af the active coordinates. It will contain the Cartesian coordinates
+  !   Qcart(:): is a table of real of the active coordinates. It will contain the Cartesian coordinates
   !   nb_cart:  is the number of Cartesian coordinates. Its value needs to be the one obtained in the Init_TnumTana_Driver subroutine
   ! remarks: The Cartesian coordinates are not recentered with respect to the center of mass.
 ```
@@ -143,7 +157,8 @@ CALL Tnum_Qact_TO_cartCOM(Qact,nb_act,Qcart,nb_cart)
 
 ```fortran
 CALL Tnum_cart_TO_Qact(Qact,nb_act,Qcart,nb_cart)
-  ! Same as the previous subroutine (Qact_TO_cart), but now the Cartesian coordinates are recentered with respect to the center of mass.
+  ! It generates the active coordinates, Qact, from the Cartesian ones, Qcart.
+  ! The variables are the same as the previous subroutines.
 ```
 
 ```fortran

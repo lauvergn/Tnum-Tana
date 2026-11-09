@@ -11,7 +11,7 @@ cd $DIR_PROG
 cd $here
 
 # with OpenMP
-#gfortran -fopenmp -o $main.exe Main_TnumTana_FDriver2.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp1_lapack0_int4_real64.a
+#gfortran -fopenmp -o $main.exe $main.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp1_lapack0_int4_real64.a
 
 # without OpenMP
-gfortran          -o $main.exe Main_TnumTana_FDriver2.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp0_lapack0_int4_real64.a
+gfortran          -o $main.exe $main.f90 $DIR_PROG/libTnum-TanaFull_gfortran_opt0_omp0_lapack0_int4_real64.a

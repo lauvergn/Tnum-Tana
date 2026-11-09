@@ -56,13 +56,13 @@ PROGRAM Main_X2Q
   Qact(1) = HALF+ONETENTH
   write(out_unit,*) 'Qact',Qact
   CALL Tnum_Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
-  write(out_unit,*) 'Qcart (not recenter / COM)'
+  write(out_unit,*) 'Qcart (not recentered / COM)'
   DO i=1,nb_cart,3
     write(out_unit,*) (i-1)/3+1,Qcart(i:i+2)
   END DO
 
   CALL Tnum_Qact_TO_cartCOM(Qact,size(Qact),Qcart,size(Qcart))
-  write(out_unit,*) 'Qcart (recenter / COM)'
+  write(out_unit,*) 'Qcart (recentered / COM)'
   DO i=1,nb_cart,3
     write(out_unit,*) (i-1)/3+1,Qcart(i:i+2)
   END DO

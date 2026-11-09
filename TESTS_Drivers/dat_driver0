@@ -2,7 +2,7 @@
          Old_Qtransfo=f
          nb_Qtransfo=3
          nrho=2
-         Tana=t MCTDHForm=t
+         Tana=f MCTDHForm=t
          Write_QMotions=t
  /
  &Coord_transfo name_transfo='bunch_poly' nb_vect=3 inTOout=f /

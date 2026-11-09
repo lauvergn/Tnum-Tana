@@ -117,7 +117,7 @@ PROGRAM Main_TnumTana_FDriver
   Qact(1) = 0.5_Rk + nb_eval*0.001_Rk
   write(OUTPUT_UNIT,*) 'Qact (final values)',Qact
   CALL Tnum_Qact_TO_cart(Qact,size(Qact),Qcart,size(Qcart))
-  write(OUTPUT_UNIT,*) 'Qcart (not recenter / COM)'
+  write(OUTPUT_UNIT,*) 'Qcart (not recentered / COM)'
   DO i=1,nb_cart,3
     write(OUTPUT_UNIT,*) (i-1)/3+1,Qcart(i:i+2)
   END DO
