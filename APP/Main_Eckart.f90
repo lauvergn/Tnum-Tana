@@ -43,29 +43,30 @@ PROGRAM Main_Eckart
   integer, parameter :: Rk  = real64 ! 8
 
   integer                               :: nat
-  real (kind=Rk), allocatable           :: XYZ(:,:),MWXYZ(:,:),MWXYZ_ref(:,:),masses(:)
+  real (kind=Rk),           allocatable :: XYZ(:,:),MWXYZ(:,:),MWXYZ_ref(:,:),masses(:)
   character (len=Name_len), allocatable :: At(:)
   real (kind=Rk)                        :: Mtot_inv,norm
   real (kind=Rk)                        :: EckartRot(3,3),COM(3),Rot_Eckart(3)
-  integer                               :: InputUnit,ResUnit
-  character (len=:), allocatable        :: InputName,OutputName
+
+  integer                               :: InputUnit,OutputUnit
+  character (len=:),        allocatable :: InputName,OutputName
 
 
   character (len=Name_len)  :: name_xyz
   integer :: i,err_io
-  logical :: read_masses,coord_transfo
+  logical :: read_masses,coord_transfo,COM_Centered
 
   character (len=*), parameter :: name_sub='Main_Eckart'
 
-  CALL ReadArguments(InputName,OutputName,read_masses,coord_transfo)
+  CALL ReadArguments(InputName,OutputName,read_masses,coord_transfo,COM_Centered)
 
   open(newunit=InputUnit,file=InputName)
-  open(newunit=ResUnit,  file=OutputName)
+  open(newunit=OutputUnit,  file=OutputName)
  
   CALL Init_InputUnit_Driver(InputUnit)
-  CALL Init_OutputUnit_Driver(ResUnit)
-  write(OUTPUT_UNIT,*) 'InputUnit',InputUnit
-  write(OUTPUT_UNIT,*) 'ResUnit',ResUnit
+  CALL Init_OutputUnit_Driver(OutputUnit)
+  write(OUTPUT_UNIT,*) 'InputUnit ',InputUnit
+  write(OUTPUT_UNIT,*) 'OutputUnit',OutputUnit
 
   CALL sub_constantes(const_phys,Read_Namelist=.FALSE.)
 
@@ -157,13 +158,13 @@ PROGRAM Main_Eckart
 
   CALL calc_EckartRot_SingleRef(MWXYZ,EckartRot,MWXYZ_ref,Dymarsky_only=.FALSE.)
 
-  write(ResUnit,*) 'Eckart Rotation matrix'
-  write(ResUnit,*) '1 ',EckartRot(:,1)
-  write(ResUnit,*) '2 ',EckartRot(:,2)
-  write(ResUnit,*) '3 ',EckartRot(:,3)
+  write(OutputUnit,*) 'Eckart Rotation matrix'
+  write(OutputUnit,*) '1 ',EckartRot(:,1)
+  write(OutputUnit,*) '2 ',EckartRot(:,2)
+  write(OutputUnit,*) '3 ',EckartRot(:,3)
 
   IF (coord_transfo) THEN
-    write(ResUnit,*) 'New current geometry (input unit)'
+    write(OutputUnit,*) 'New current geometry (input unit)'
 
     MWXYZ = matmul(EckartRot,MWXYZ)
 
@@ -176,16 +177,22 @@ PROGRAM Main_Eckart
     norm = sqrt(dot_product(Rot_Eckart(:),Rot_Eckart(:)))
     write(out_unit,*) 'Norm Rot_Eckart',norm
 
-    XYZ(1,:) = MWXYZ(1,:)/sqrt(masses) + COM(1)
-    XYZ(2,:) = MWXYZ(2,:)/sqrt(masses) + COM(2)
-    XYZ(3,:) = MWXYZ(3,:)/sqrt(masses) + COM(3)
+    IF (COM_Centered) THEN
+      XYZ(1,:) = MWXYZ(1,:)/sqrt(masses)
+      XYZ(2,:) = MWXYZ(2,:)/sqrt(masses)
+      XYZ(3,:) = MWXYZ(3,:)/sqrt(masses)
+    ELSE
+      XYZ(1,:) = MWXYZ(1,:)/sqrt(masses) + COM(1)
+      XYZ(2,:) = MWXYZ(2,:)/sqrt(masses) + COM(2)
+      XYZ(3,:) = MWXYZ(3,:)/sqrt(masses) + COM(3)
+    END IF
+  
 
-
-    write(ResUnit,*,IOSTAT=err_io)
-    write(ResUnit,*,IOSTAT=err_io) nat
-    write(ResUnit,*,IOSTAT=err_io)
+    write(OutputUnit,*,IOSTAT=err_io)
+    write(OutputUnit,*,IOSTAT=err_io) nat
+    write(OutputUnit,*,IOSTAT=err_io)
     DO i=1,nat
-      write(ResUnit,"(1x,A,3(2x,f20.9))") At(i),XYZ(:,i)
+      write(OutputUnit,"(1x,A,3(2x,f20.9))") At(i),XYZ(:,i)
     END DO
   END IF
 
@@ -195,12 +202,12 @@ PROGRAM Main_Eckart
   deallocate(MWXYZ_ref)
 
 CONTAINS
-  SUBROUTINE ReadArguments(InputName,OutputName,read_masses,coord_transfo)
+  SUBROUTINE ReadArguments(InputName,OutputName,read_masses,coord_transfo,COM_Centered)
     USE, intrinsic :: ISO_FORTRAN_ENV, ONLY : INPUT_UNIT,OUTPUT_UNIT
     IMPLICIT NONE
 
     character (len=:), allocatable, intent(inout)  :: InputName,OutputName
-    logical,                        intent(inout)  :: read_masses,coord_transfo
+    logical,                        intent(inout)  :: read_masses,coord_transfo,COM_Centered
 
     character(len=:), allocatable :: arg,arg2
     integer :: long , i,n,ioerr
@@ -213,6 +220,7 @@ CONTAINS
     END IF
     read_masses   = .FALSE.
     coord_transfo = .FALSE.
+    COM_Centered  = .FALSE.
 
     DO i=1,COMMAND_ARGUMENT_COUNT(),2
       CALL GET_COMMAND_ARGUMENT( NUMBER=i, LENGTH=long )
@@ -233,6 +241,8 @@ CONTAINS
         read(arg2,*,iostat=ioerr) read_masses
       CASE("-t","--coord_transfo")
         read(arg2,*,iostat=ioerr) coord_transfo
+      CASE("-cm","--com_centered")
+        read(arg2,*,iostat=ioerr) COM_Centered
       CASE Default
         write(OUTPUT_UNIT,*) 'Number of argument(s): ',COMMAND_ARGUMENT_COUNT()
         STOP 'ERROR in ReadArguments: no default argument'
@@ -255,6 +265,7 @@ CONTAINS
     write(OUTPUT_UNIT,*) 'InputName:        ',InputName
     write(OUTPUT_UNIT,*) 'read_masses:      ',read_masses
     write(OUTPUT_UNIT,*) 'coord_transfo:    ',coord_transfo
+    write(OUTPUT_UNIT,*) 'COM_Centered:     ',COM_Centered
 
   END SUBROUTINE ReadArguments
 END PROGRAM Main_Eckart

@@ -213,7 +213,7 @@ Then, the code computes the Eckart rotation matrix.
 Depending of the argumant options:
 
 - masses can be read (-m or --read_masses). They are read in g.mol$^{-1}$ or unified atomic mass unit (u or AMU) or Dalton (Da).
-- the current transformed geometry is printed (-t or --coord_transfo)
+- the current transformed geometry is printed (--coord_transfo t, the default if false, f) and it can be centered with respect to the center of mass ( --com_centered t, the default if false, f).
 
 Example, without reading the masses. Therefore, Tnum masses are used (CODATA2006 physical constants and NIST2012 masses).
 
